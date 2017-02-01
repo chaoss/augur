@@ -1,1 +1,3 @@
-from ghdata import GHData
+#SPDX-License-Identifier: MIT
+
+from ghdata import *
