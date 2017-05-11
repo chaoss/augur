@@ -54,101 +54,81 @@
 <span class="k">else</span><span class="p">:</span>
     <span class="kn">import</span> <span class="nn">ConfigParser</span> <span class="k">as</span> <span class="nn">configparser</span>
 <span class="kn">from</span> <span class="nn">dateutil</span> <span class="k">import</span> <span class="n">parser</span><span class="p">,</span> <span class="n">tz</span>
-<span class="kn">from</span> <span class="nn">ghdata</span> <span class="k">import</span> <span class="n">GHData</span>
+<span class="kn">import</span> <span class="nn">ghdata</span>
+
 
 <span class="n">GHDATA_API_VERSION</span> <span class="o">=</span> <span class="s1">&#39;unstable&#39;</span>
 
-<span class="c1"># @todo: Support saving config as a dotfile</span>
-<div class="viewcode-block" id="GHDataClient"><a class="viewcode-back" href="../../ghdata.html#ghdata.server.GHDataClient">[docs]</a><span class="k">class</span> <span class="nc">GHDataClient</span><span class="p">:</span>
+
+<div class="viewcode-block" id="serialize"><a class="viewcode-back" href="../../ghdata.html#ghdata.server.serialize">[docs]</a><span class="k">def</span> <span class="nf">serialize</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="o">**</span><span class="n">args</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Reads the configuration file, creates an instance of GHData, serializes dataframes into JSON</span>
+<span class="sd">    Serailizes a function that returns a dataframe</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">db_host</span><span class="o">=</span><span class="s1">&#39;127.0.0.1&#39;</span><span class="p">,</span> <span class="n">db_port</span><span class="o">=</span><span class="mi">3306</span><span class="p">,</span> <span class="n">db_user</span><span class="o">=</span><span class="s1">&#39;root&#39;</span><span class="p">,</span> <span class="n">db_pass</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">db_name</span><span class="o">=</span><span class="s1">&#39;ghtorrent&#39;</span><span class="p">,</span> <span class="n">public_www_api_key</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">connect</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Stores configuration, optionally connects to the database</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__db_host</span> <span class="o">=</span> <span class="n">db_host</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__db_port</span> <span class="o">=</span> <span class="n">db_port</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__db_user</span> <span class="o">=</span> <span class="n">db_user</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__db_pass</span> <span class="o">=</span> <span class="n">db_pass</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__db_name</span> <span class="o">=</span> <span class="n">db_name</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__public_www_api_key</span> <span class="o">=</span> <span class="n">public_www_api_key</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__file</span> <span class="o">=</span> <span class="n">file</span>
-
-        <span class="k">if</span> <span class="p">(</span><span class="n">debug</span> <span class="o">==</span> <span class="s1">&#39;1&#39;</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">DEBUG</span> <span class="o">=</span> <span class="kc">True</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">DEBUG</span> <span class="o">=</span> <span class="kc">False</span>
-
-        <span class="k">if</span> <span class="p">(</span><span class="n">connect</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">__connect</span><span class="p">()</span>
-
-    <span class="k">def</span> <span class="nf">__connect</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Generates the dbstr from the configuration loaded earlier, opens the connection</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="k">if</span> <span class="p">(</span><span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;__ghdata&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="kc">False</span><span class="p">):</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">__dbstr</span> <span class="o">=</span> <span class="s1">&#39;mysql+pymysql://</span><span class="si">{}</span><span class="s1">:</span><span class="si">{}</span><span class="s1">@</span><span class="si">{}</span><span class="s1">:</span><span class="si">{}</span><span class="s1">/</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__db_user</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__db_pass</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__db_host</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__db_port</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__db_name</span><span class="p">)</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">__ghdata</span> <span class="o">=</span> <span class="n">GHData</span><span class="p">(</span><span class="n">dbstr</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__dbstr</span><span class="p">,</span> <span class="n">public_www_api_key</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__public_www_api_key</span><span class="p">)</span>
-        <span class="k">except</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Failed to connect to database using:&#39;</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__dbstr</span><span class="p">)</span>
-
-    
-<div class="viewcode-block" id="GHDataClient.get"><a class="viewcode-back" href="../../ghdata.html#ghdata.server.GHDataClient.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="o">**</span><span class="n">args</span><span class="p">):</span>
-        <span class="c1"># Interact with ghdata and convert dataframes to JSON&quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__connect</span><span class="p">()</span>
-        <span class="n">data</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__ghdata</span><span class="p">,</span> <span class="n">key</span><span class="p">)(</span><span class="o">**</span><span class="n">args</span><span class="p">)</span>
-        <span class="k">if</span> <span class="p">(</span><span class="nb">hasattr</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="s1">&#39;to_json&#39;</span><span class="p">)):</span>
-            <span class="k">return</span> <span class="n">data</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="n">orient</span><span class="o">=</span><span class="s1">&#39;records&#39;</span><span class="p">,</span> <span class="n">date_format</span><span class="o">=</span><span class="s1">&#39;iso&#39;</span><span class="p">,</span> <span class="n">date_unit</span><span class="o">=</span><span class="s1">&#39;ms&#39;</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">data</span></div></div>
-        
+    <span class="n">data</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="o">**</span><span class="n">args</span><span class="p">)</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nb">hasattr</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="s1">&#39;to_json&#39;</span><span class="p">)):</span>
+        <span class="k">return</span> <span class="n">data</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="n">orient</span><span class="o">=</span><span class="s1">&#39;records&#39;</span><span class="p">,</span> <span class="n">date_format</span><span class="o">=</span><span class="s1">&#39;iso&#39;</span><span class="p">,</span> <span class="n">date_unit</span><span class="o">=</span><span class="s1">&#39;ms&#39;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">data</span></div>
 
 
-<div class="viewcode-block" id="basic_endpoint"><a class="viewcode-back" href="../../ghdata.html#ghdata.server.basic_endpoint">[docs]</a><span class="k">def</span> <span class="nf">basic_endpoint</span><span class="p">(</span><span class="n">flaskapp</span><span class="p">,</span> <span class="n">table</span><span class="p">):</span>
+<div class="viewcode-block" id="flaskify_ghtorrent"><a class="viewcode-back" href="../../ghdata.html#ghdata.server.flaskify_ghtorrent">[docs]</a><span class="k">def</span> <span class="nf">flaskify_ghtorrent</span><span class="p">(</span><span class="n">flaskapp</span><span class="p">,</span> <span class="n">func</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Simplifies API endpoints that just accept owner and repo</span>
+<span class="sd">    Simplifies API endpoints that just accept owner and repo,</span>
+<span class="sd">    serializes them and spits them out</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">generated_function</span><span class="p">(</span><span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="p">):</span>
-        <span class="n">repoid</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;repoid&#39;</span><span class="p">,</span> <span class="n">owner</span><span class="o">=</span><span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="o">=</span><span class="n">repo</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">Response</span><span class="p">(</span><span class="n">response</span><span class="o">=</span><span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">repoid</span><span class="o">=</span><span class="n">repoid</span><span class="p">),</span>
+        <span class="n">repoid</span> <span class="o">=</span> <span class="n">ghtorrent</span><span class="o">.</span><span class="n">repoid</span><span class="p">(</span><span class="n">owner</span><span class="o">=</span><span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="o">=</span><span class="n">repo</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">Response</span><span class="p">(</span><span class="n">response</span><span class="o">=</span><span class="n">serialize</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">repoid</span><span class="o">=</span><span class="n">repoid</span><span class="p">),</span>
                 <span class="n">status</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span>
                 <span class="n">mimetype</span><span class="o">=</span><span class="s2">&quot;application/json&quot;</span><span class="p">)</span>
-    <span class="n">generated_function</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">=</span> <span class="n">table</span>
+    <span class="n">generated_function</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">=</span> <span class="n">func</span><span class="o">.</span><span class="vm">__name__</span>
     <span class="k">return</span> <span class="n">generated_function</span></div>
 
-<span class="c1"># Globals</span>
-<span class="n">client</span> <span class="o">=</span> <span class="kc">None</span> <span class="c1"># Initalized in the base group function below</span>
-<span class="n">app</span> <span class="o">=</span> <span class="n">Flask</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
-<span class="n">CORS</span><span class="p">(</span><span class="n">app</span><span class="p">)</span>
-<span class="c1"># Flags and Initialization</span>
+<div class="viewcode-block" id="flaskify"><a class="viewcode-back" href="../../ghdata.html#ghdata.server.flaskify">[docs]</a><span class="k">def</span> <span class="nf">flaskify</span><span class="p">(</span><span class="n">flaskapp</span><span class="p">,</span> <span class="n">func</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Simplifies API endpoints that just accept owner and repo,</span>
+<span class="sd">    serializes them and spits them out</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">generated_function</span><span class="p">(</span><span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">Response</span><span class="p">(</span><span class="n">response</span><span class="o">=</span><span class="n">serialize</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">owner</span><span class="o">=</span><span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="o">=</span><span class="n">repo</span><span class="p">),</span>
+                <span class="n">status</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span>
+                <span class="n">mimetype</span><span class="o">=</span><span class="s2">&quot;application/json&quot;</span><span class="p">)</span>
+    <span class="n">generated_function</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">=</span> <span class="n">func</span><span class="o">.</span><span class="vm">__name__</span>
+    <span class="k">return</span> <span class="n">generated_function</span></div>
 
-<div class="viewcode-block" id="init"><a class="viewcode-back" href="../../ghdata.html#ghdata.server.init">[docs]</a><span class="k">def</span> <span class="nf">init</span><span class="p">():</span>
+
+<div class="viewcode-block" id="run"><a class="viewcode-back" href="../../ghdata.html#ghdata.server.run">[docs]</a><span class="k">def</span> <span class="nf">run</span><span class="p">():</span> 
+
+    <span class="n">app</span> <span class="o">=</span> <span class="n">Flask</span><span class="p">(</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">static_url_path</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="s1">&#39;static/&#39;</span><span class="p">))</span>
+    <span class="n">CORS</span><span class="p">(</span><span class="n">app</span><span class="p">)</span>
+    <span class="c1"># Flags and Initialization</span>
+
     <span class="sd">&quot;&quot;&quot;Reads the config file&quot;&quot;&quot;</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="c1"># Try to open the config file and parse it</span>
         <span class="n">parser</span> <span class="o">=</span> <span class="n">configparser</span><span class="o">.</span><span class="n">RawConfigParser</span><span class="p">()</span>
         <span class="n">parser</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s1">&#39;ghdata.cfg&#39;</span><span class="p">)</span>
-        <span class="n">host</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;Database&#39;</span><span class="p">,</span> <span class="s1">&#39;host&#39;</span><span class="p">)</span>
-        <span class="n">port</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;Database&#39;</span><span class="p">,</span> <span class="s1">&#39;port&#39;</span><span class="p">)</span>
-        <span class="n">user</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;Database&#39;</span><span class="p">,</span> <span class="s1">&#39;user&#39;</span><span class="p">)</span>
-        <span class="n">password</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;Database&#39;</span><span class="p">,</span> <span class="s1">&#39;pass&#39;</span><span class="p">)</span>
-        <span class="n">db</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;Database&#39;</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">)</span>
-        <span class="n">public_www_api_key</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;PublicWWW&#39;</span><span class="p">,</span> <span class="s1">&#39;APIKey&#39;</span><span class="p">)</span>
-        <span class="n">debug</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;Development&#39;</span><span class="p">,</span> <span class="s1">&#39;developer&#39;</span><span class="p">)</span>
+        <span class="n">host</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;Server&#39;</span><span class="p">,</span> <span class="s1">&#39;host&#39;</span><span class="p">)</span>
+        <span class="n">port</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;Server&#39;</span><span class="p">,</span> <span class="s1">&#39;port&#39;</span><span class="p">)</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="k">global</span> <span class="n">client</span>
-            <span class="n">client</span> <span class="o">=</span> <span class="n">GHDataClient</span><span class="p">(</span><span class="n">db_host</span><span class="o">=</span><span class="n">host</span><span class="p">,</span> <span class="n">db_port</span><span class="o">=</span><span class="n">port</span><span class="p">,</span> <span class="n">db_user</span><span class="o">=</span><span class="n">user</span><span class="p">,</span> <span class="n">db_pass</span><span class="o">=</span><span class="n">password</span><span class="p">,</span> <span class="n">db_name</span><span class="o">=</span><span class="n">db</span><span class="p">,</span> <span class="n">public_www_api_key</span><span class="o">=</span><span class="n">public_www_api_key</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="n">debug</span><span class="p">)</span>
-        <span class="k">except</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Couldn</span><span class="se">\&#39;</span><span class="s1">t start. Double check ghdata.cfg for errors.&#39;</span><span class="p">)</span>
-        
-    <span class="k">except</span><span class="p">:</span>
+            <span class="n">dbstr</span> <span class="o">=</span> <span class="s1">&#39;mysql+pymysql://</span><span class="si">{}</span><span class="s1">:</span><span class="si">{}</span><span class="s1">@</span><span class="si">{}</span><span class="s1">:</span><span class="si">{}</span><span class="s1">/</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">parser</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;Database&#39;</span><span class="p">,</span> <span class="s1">&#39;user&#39;</span><span class="p">),</span> <span class="n">parser</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;Database&#39;</span><span class="p">,</span> <span class="s1">&#39;pass&#39;</span><span class="p">),</span> <span class="n">parser</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;Database&#39;</span><span class="p">,</span> <span class="s1">&#39;host&#39;</span><span class="p">),</span> <span class="n">parser</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;Database&#39;</span><span class="p">,</span> <span class="s1">&#39;port&#39;</span><span class="p">),</span> <span class="n">parser</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;Database&#39;</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">))</span>
+            <span class="n">ghtorrent</span> <span class="o">=</span> <span class="n">ghdata</span><span class="o">.</span><span class="n">GHTorrent</span><span class="p">(</span><span class="n">dbstr</span><span class="o">=</span><span class="n">dbstr</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Failed to connect to database (&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;)&quot;</span><span class="p">);</span>
+        <span class="n">publicwww</span> <span class="o">=</span> <span class="n">ghdata</span><span class="o">.</span><span class="n">PublicWWW</span><span class="p">(</span><span class="n">public_www_api_key</span><span class="o">=</span><span class="n">parser</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;PublicWWW&#39;</span><span class="p">,</span> <span class="s1">&#39;APIKey&#39;</span><span class="p">))</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">parser</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;Development&#39;</span><span class="p">,</span> <span class="s1">&#39;developer&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;1&#39;</span> <span class="ow">or</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;FLASK_DEBUG&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;1&#39;</span><span class="p">):</span>
+            <span class="n">DEBUG</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">DEBUG</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
         <span class="c1"># Uh-oh. Save a new config file.</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Failed to open config file.&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Error: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
         <span class="n">config</span> <span class="o">=</span> <span class="n">configparser</span><span class="o">.</span><span class="n">RawConfigParser</span><span class="p">()</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">add_section</span><span class="p">(</span><span class="s1">&#39;Server&#39;</span><span class="p">)</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;Server&#39;</span><span class="p">,</span> <span class="s1">&#39;host&#39;</span><span class="p">,</span> <span class="s1">&#39;0.0.0.0&#39;</span><span class="p">)</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;Server&#39;</span><span class="p">,</span> <span class="s1">&#39;port&#39;</span><span class="p">,</span> <span class="s1">&#39;5000&#39;</span><span class="p">)</span>
         <span class="n">config</span><span class="o">.</span><span class="n">add_section</span><span class="p">(</span><span class="s1">&#39;Database&#39;</span><span class="p">)</span>
         <span class="n">config</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;Database&#39;</span><span class="p">,</span> <span class="s1">&#39;host&#39;</span><span class="p">,</span> <span class="s1">&#39;127.0.0.1&#39;</span><span class="p">)</span>
         <span class="n">config</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;Database&#39;</span><span class="p">,</span> <span class="s1">&#39;port&#39;</span><span class="p">,</span> <span class="s1">&#39;3306&#39;</span><span class="p">)</span>
@@ -166,70 +146,341 @@
         <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">()</span>
 
 
-    <span class="k">if</span> <span class="p">(</span><span class="n">client</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    @api {get} / API Status</span>
+<span class="sd">    @apiName Status</span>
+<span class="sd">    @apiGroup Misc</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/</span><span class="si">{}</span><span class="s1">/&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">GHDATA_API_VERSION</span><span class="p">))</span>
+    <span class="k">def</span> <span class="nf">api_root</span><span class="p">():</span>
+        <span class="sd">&quot;&quot;&quot;API status&quot;&quot;&quot;</span>
+        <span class="c1"># @todo: When we support multiple data sources this should keep track of their status</span>
+        <span class="k">return</span> <span class="s2">&quot;&quot;&quot;{&quot;status&quot;: &quot;healthy&quot;, &quot;ghtorrent&quot;: &quot;online&quot;}&quot;&quot;&quot;</span>
+
+    <span class="c1">#######################</span>
+    <span class="c1">#     Timeseries      #</span>
+    <span class="c1">#######################</span>
+
+    <span class="c1"># @todo: Link to LF Metrics</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    @api {get} /:owner/:repo/commits Commits by Week</span>
+<span class="sd">    @apiName CommitsByWeek</span>
+<span class="sd">    @apiGroup Timeseries</span>
+
+<span class="sd">    @apiParam {String} owner Username of the owner of the GitHub repository</span>
+<span class="sd">    @apiParam {String} repo Name of the GitHub repository</span>
+
+<span class="sd">    @apiSuccessExample {json} Success-Response:</span>
+<span class="sd">                        [</span>
+<span class="sd">                            {</span>
+<span class="sd">                                &quot;date&quot;: &quot;2015-01-01T00:00:00.000Z&quot;,</span>
+<span class="sd">                                &quot;commits&quot;: 153</span>
+<span class="sd">                            },</span>
+<span class="sd">                            {</span>
+<span class="sd">                                &quot;date&quot;: &quot;2015-01-08T00:00:00.000Z&quot;,</span>
+<span class="sd">                                &quot;commits&quot;: 192</span>
+<span class="sd">                            }</span>
+<span class="sd">                        ]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/</span><span class="si">{}</span><span class="s1">/&lt;owner&gt;/&lt;repo&gt;/timeseries/commits&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">GHDATA_API_VERSION</span><span class="p">))(</span><span class="n">flaskify_ghtorrent</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="n">ghtorrent</span><span class="o">.</span><span class="n">commits</span><span class="p">))</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    @api {get} /:owner/:repo/forks Forks by Week</span>
+<span class="sd">    @apiName ForksByWeek</span>
+<span class="sd">    @apiGroup Timeseries</span>
+
+<span class="sd">    @apiParam {String} owner Username of the owner of the GitHub repository</span>
+<span class="sd">    @apiParam {String} repo Name of the GitHub repository</span>
+
+<span class="sd">    @apiSuccessExample {json} Success-Response:</span>
+<span class="sd">                        [</span>
+<span class="sd">                            {</span>
+<span class="sd">                                &quot;date&quot;: &quot;2015-01-01T00:00:00.000Z&quot;,</span>
+<span class="sd">                                &quot;forks&quot;: 13</span>
+<span class="sd">                            },</span>
+<span class="sd">                            {</span>
+<span class="sd">                                &quot;date&quot;: &quot;2015-01-08T00:00:00.000Z&quot;,</span>
+<span class="sd">                                &quot;forks&quot;: 12</span>
+<span class="sd">                            }</span>
+<span class="sd">                        ]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/</span><span class="si">{}</span><span class="s1">/&lt;owner&gt;/&lt;repo&gt;/timeseries/forks&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">GHDATA_API_VERSION</span><span class="p">))(</span><span class="n">flaskify_ghtorrent</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="n">ghtorrent</span><span class="o">.</span><span class="n">forks</span><span class="p">))</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    @api {get} /:owner/:repo/issues Issues by Week</span>
+<span class="sd">    @apiName IssuesByWeek</span>
+<span class="sd">    @apiGroup Timeseries</span>
+
+<span class="sd">    @apiParam {String} owner Username of the owner of the GitHub repository</span>
+<span class="sd">    @apiParam {String} repo Name of the GitHub repository</span>
+
+<span class="sd">    @apiSuccessExample {json} Success-Response:</span>
+<span class="sd">                        [</span>
+<span class="sd">                            {</span>
+<span class="sd">                                &quot;date&quot;: &quot;2015-01-01T00:00:00.000Z&quot;,</span>
+<span class="sd">                                &quot;issues&quot;:13</span>
+<span class="sd">                            },</span>
+<span class="sd">                            {</span>
+<span class="sd">                                &quot;date&quot;: &quot;2015-01-08T00:00:00.000Z&quot;,</span>
+<span class="sd">                                &quot;issues&quot;:15</span>
+<span class="sd">                            }</span>
+<span class="sd">                        ]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/</span><span class="si">{}</span><span class="s1">/&lt;owner&gt;/&lt;repo&gt;/timeseries/issues&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">GHDATA_API_VERSION</span><span class="p">))(</span><span class="n">flaskify_ghtorrent</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="n">ghtorrent</span><span class="o">.</span><span class="n">issues</span><span class="p">))</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    @api {get} /:owner/:repo/issues/response_time Issue Response Time</span>
+<span class="sd">    @apiName IssueResponseTime</span>
+<span class="sd">    @apiGroup Timeseries</span>
+
+<span class="sd">    @apiParam {String} owner Username of the owner of the GitHub repository</span>
+<span class="sd">    @apiParam {String} repo Name of the GitHub repository</span>
+
+<span class="sd">    @apiSuccessExample {json} Success-Response:</span>
+<span class="sd">                        [</span>
+<span class="sd">                            {</span>
+<span class="sd">                                &quot;created_at&quot;: &quot;2013-09-16T17:00:54.000Z&quot;,</span>
+<span class="sd">                                &quot;responded_at&quot;: &quot;2013-09-16T17:20:58.000Z&quot;</span>
+<span class="sd">                            },</span>
+<span class="sd">                            {</span>
+<span class="sd">                                &quot;created_at&quot;: &quot;2013-09-16T09:31:34.000Z&quot;,</span>
+<span class="sd">                                &quot;responded_at&quot;: &quot;2013-09-16T09:43:03.000Z&quot;</span>
+<span class="sd">                            }</span>
+<span class="sd">                        ]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/</span><span class="si">{}</span><span class="s1">/&lt;owner&gt;/&lt;repo&gt;/timeseries/issues/response_time&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">GHDATA_API_VERSION</span><span class="p">))(</span><span class="n">flaskify_ghtorrent</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="n">ghtorrent</span><span class="o">.</span><span class="n">issue_response_time</span><span class="p">))</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    @api {get} /:owner/:repo/pulls Pull Requests by Week</span>
+<span class="sd">    @apiName PullRequestsByWeek</span>
+<span class="sd">    @apiGroup Timeseries</span>
+
+<span class="sd">    @apiParam {String} owner Username of the owner of the GitHub repository</span>
+<span class="sd">    @apiParam {String} repo Name of the GitHub repository</span>
+
+<span class="sd">    @apiSuccessExample {json} Success-Response:</span>
+<span class="sd">                        [</span>
+<span class="sd">                            {</span>
+<span class="sd">                                &quot;date&quot;: &quot;2015-01-01T00:00:00.000Z&quot;,</span>
+<span class="sd">                                &quot;pull_requests&quot;: 1</span>
+<span class="sd">                                &quot;comments&quot;: 11</span>
+<span class="sd">                            },</span>
+<span class="sd">                            {</span>
+<span class="sd">                                &quot;date&quot;: &quot;2015-01-08T00:00:00.000Z&quot;,</span>
+<span class="sd">                                &quot;pull_requests&quot;: 2</span>
+<span class="sd">                                &quot;comments&quot;: 31</span>
+<span class="sd">                            }</span>
+<span class="sd">                        ]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/</span><span class="si">{}</span><span class="s1">/&lt;owner&gt;/&lt;repo&gt;/timeseries/pulls&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">GHDATA_API_VERSION</span><span class="p">))(</span><span class="n">flaskify_ghtorrent</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="n">ghtorrent</span><span class="o">.</span><span class="n">pulls</span><span class="p">))</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    @api {get} /:owner/:repo/stargazers Stargazers by Week</span>
+<span class="sd">    @apiName StargazersByWeek</span>
+<span class="sd">    @apiGroup Timeseries</span>
+
+<span class="sd">    @apiParam {String} owner Username of the owner of the GitHub repository</span>
+<span class="sd">    @apiParam {String} repo Name of the GitHub repository</span>
+
+<span class="sd">    @apiSuccessExample {json} Success-Response:</span>
+<span class="sd">                        [</span>
+<span class="sd">                            {</span>
+<span class="sd">                                &quot;date&quot;: &quot;2015-01-01T00:00:00.000Z&quot;,</span>
+<span class="sd">                                &quot;watchers&quot;: 133</span>
+<span class="sd">                            },</span>
+<span class="sd">                            {</span>
+<span class="sd">                                &quot;date&quot;: &quot;2015-01-08T00:00:00.000Z&quot;,</span>
+<span class="sd">                                &quot;watchers&quot;: 54</span>
+<span class="sd">                            }</span>
+<span class="sd">                        ]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/</span><span class="si">{}</span><span class="s1">/&lt;owner&gt;/&lt;repo&gt;/timeseries/stargazers&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">GHDATA_API_VERSION</span><span class="p">))(</span><span class="n">flaskify_ghtorrent</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="n">ghtorrent</span><span class="o">.</span><span class="n">stargazers</span><span class="p">))</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    @api {get} /:owner/:repo/pulls/acceptance_rate Pull Request Acceptance Rate by Week</span>
+<span class="sd">    @apiDescription For each week, the rate is calculated as (pull requests merged that week) / (pull requests opened that week)</span>
+<span class="sd">    @apiName Stargazers</span>
+<span class="sd">    @apiGroup Timeseries</span>
+
+<span class="sd">    @apiParam {String} owner Username of the owner of the GitHub repository</span>
+<span class="sd">    @apiParam {String} repo Name of the GitHub repository</span>
+
+<span class="sd">    @apiSuccessExample {json} Success-Response:</span>
+<span class="sd">                        [</span>
+<span class="sd">                            {</span>
+<span class="sd">                                &quot;date&quot;: &quot;2015-01-01T00:00:00.000Z&quot;,</span>
+<span class="sd">                                &quot;rate&quot;: 0.5</span>
+<span class="sd">                            },</span>
+<span class="sd">                            {</span>
+<span class="sd">                                &quot;date&quot;: &quot;2015-01-08T00:00:00.000Z&quot;,</span>
+<span class="sd">                                &quot;rate&quot;: 0.33</span>
+<span class="sd">                            }</span>
+<span class="sd">                        ]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/</span><span class="si">{}</span><span class="s1">/&lt;owner&gt;/&lt;repo&gt;/pulls/acceptance_rate&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">GHDATA_API_VERSION</span><span class="p">))(</span><span class="n">flaskify_ghtorrent</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="n">ghtorrent</span><span class="o">.</span><span class="n">pull_acceptance_rate</span><span class="p">))</span>
+
+    <span class="c1"># Contribution Trends</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    @api {get} /:owner/:repo/contributors Total Contributions by User</span>
+<span class="sd">    @apiName TotalContributions</span>
+<span class="sd">    @apiGroup Users</span>
+
+<span class="sd">    @apiParam {String} owner Username of the owner of the GitHub repository</span>
+<span class="sd">    @apiParam {String} repo Name of the GitHub repository</span>
+
+<span class="sd">    @apiSuccessExample {json} Success-Response:</span>
+<span class="sd">                       [</span>
+<span class="sd">                            {</span>
+<span class="sd">                                &quot;login&quot;: &quot;foo&quot;,</span>
+<span class="sd">                                &quot;location&quot;: &quot;Springfield&quot;,</span>
+<span class="sd">                                &quot;commits&quot;: 1337.0,</span>
+<span class="sd">                                &quot;pull_requests&quot;: 60.0,</span>
+<span class="sd">                                &quot;issues&quot;: null,</span>
+<span class="sd">                                &quot;commit_comments&quot;: 158.0,</span>
+<span class="sd">                                &quot;pull_request_comments&quot;: 718.0,</span>
+<span class="sd">                                &quot;issue_comments&quot;: 1668.0</span>
+<span class="sd">                            },</span>
+<span class="sd">                            {</span>
+<span class="sd">                                &quot;login&quot;: &quot;bar&quot;,</span>
+<span class="sd">                                &quot;location&quot;: null,</span>
+<span class="sd">                                &quot;commits&quot;: 3968.0,</span>
+<span class="sd">                                &quot;pull_requests&quot;: null,</span>
+<span class="sd">                                &quot;issues&quot;: 12.0,</span>
+<span class="sd">                                &quot;commit_comments&quot;: 158.0,</span>
+<span class="sd">                                &quot;pull_request_comments&quot;: 718.0,</span>
+<span class="sd">                                &quot;issue_comments&quot;: 1568.0</span>
+<span class="sd">                            }</span>
+<span class="sd">                        ]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/</span><span class="si">{}</span><span class="s1">/&lt;owner&gt;/&lt;repo&gt;/contributors&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">GHDATA_API_VERSION</span><span class="p">))(</span><span class="n">flaskify_ghtorrent</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="n">ghtorrent</span><span class="o">.</span><span class="n">contributors</span><span class="p">))</span>
+
+    <span class="c1">#######################</span>
+    <span class="c1"># Contribution Trends #</span>
+    <span class="c1">#######################</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    @api {get} /:owner/:repo/contributions Contributions by Week</span>
+<span class="sd">    @apiName ContributionsByWeek</span>
+<span class="sd">    @apiGroup Timeseries</span>
+
+<span class="sd">    @apiParam {String} owner Username of the owner of the GitHub repository</span>
+<span class="sd">    @apiParam {String} repo Name of the GitHub repository</span>
+<span class="sd">    @apiParam (String) user Limit results to the given user&#39;s contributions</span>
+
+<span class="sd">    @apiSuccessExample {json} Success-Response:</span>
+<span class="sd">                       [</span>
+<span class="sd">                            {</span>
+<span class="sd">                                &quot;date&quot;: &quot;2015-01-01T00:00:00.000Z&quot;,</span>
+<span class="sd">                                &quot;commits&quot;: 37.0,</span>
+<span class="sd">                                &quot;pull_requests&quot;: null,</span>
+<span class="sd">                                &quot;issues&quot;: null,</span>
+<span class="sd">                                &quot;commit_comments&quot;: 7.0,</span>
+<span class="sd">                                &quot;pull_request_comments&quot;: 8.0,</span>
+<span class="sd">                                &quot;issue_comments&quot;: 17.0</span>
+<span class="sd">                            },</span>
+<span class="sd">                            {</span>
+<span class="sd">                                &quot;date&quot;: &quot;2015-01-08T00:00:00.000Z&quot;,</span>
+<span class="sd">                                &quot;commits&quot;: 68.0,</span>
+<span class="sd">                                &quot;pull_requests&quot;: null,</span>
+<span class="sd">                                &quot;issues&quot;: 12.0,</span>
+<span class="sd">                                &quot;commit_comments&quot;: 18.0,</span>
+<span class="sd">                                &quot;pull_request_comments&quot;: 13.0,</span>
+<span class="sd">                                &quot;issue_comments&quot;: 28.0</span>
+<span class="sd">                            }</span>
+<span class="sd">                        ]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/</span><span class="si">{}</span><span class="s1">/&lt;owner&gt;/&lt;repo&gt;/contributions&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">GHDATA_API_VERSION</span><span class="p">))</span>
+    <span class="k">def</span> <span class="nf">contributions</span><span class="p">(</span><span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="p">):</span>
+        <span class="n">repoid</span> <span class="o">=</span> <span class="n">ghtorrent</span><span class="o">.</span><span class="n">repoid</span><span class="p">(</span><span class="n">owner</span><span class="o">=</span><span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="o">=</span><span class="n">repo</span><span class="p">)</span>
+        <span class="n">user</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;user&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">user</span><span class="p">):</span>
+            <span class="n">userid</span> <span class="o">=</span> <span class="n">ghtorrent</span><span class="o">.</span><span class="n">userid</span><span class="p">(</span><span class="n">username</span><span class="o">=</span><span class="n">user</span><span class="p">)</span>
+            <span class="n">contribs</span> <span class="o">=</span> <span class="n">ghtorrent</span><span class="o">.</span><span class="n">contributions</span><span class="p">(</span><span class="n">repoid</span><span class="o">=</span><span class="n">repoid</span><span class="p">,</span> <span class="n">userid</span><span class="o">=</span><span class="n">userid</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">contribs</span> <span class="o">=</span> <span class="n">ghtorrent</span><span class="o">.</span><span class="n">contributions</span><span class="p">(</span><span class="n">repoid</span><span class="o">=</span><span class="n">repoid</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">Response</span><span class="p">(</span><span class="n">response</span><span class="o">=</span><span class="n">contribs</span><span class="p">,</span>
+                        <span class="n">status</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span>
+                        <span class="n">mimetype</span><span class="o">=</span><span class="s2">&quot;application/json&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Diversity</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    @api {get} /:owner/:repo/commits/locations Commits and Location by User</span>
+<span class="sd">    @apiName Stargazers</span>
+<span class="sd">    @apiGroup Diversity</span>
+
+<span class="sd">    @apiParam {String} owner Username of the owner of the GitHub repository</span>
+<span class="sd">    @apiParam {String} repo Name of the GitHub repository</span>
+
+<span class="sd">    @apiSuccessExample {json} Success-Response:</span>
+<span class="sd">                        [</span>
+<span class="sd">                            {</span>
+<span class="sd">                                &quot;login&quot;: &quot;bonnie&quot;,</span>
+<span class="sd">                                &quot;location&quot;: &quot;Rowena, TX&quot;,</span>
+<span class="sd">                                &quot;commits&quot;: 12</span>
+<span class="sd">                            },</span>
+<span class="sd">                            {</span>
+<span class="sd">                                &quot;login&quot;:&quot;clyde&quot;,</span>
+<span class="sd">                                &quot;location&quot;:&quot;Ellis County, TX&quot;,</span>
+<span class="sd">                                &quot;commits&quot;: 12</span>
+<span class="sd">                            }</span>
+<span class="sd">                        ]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/</span><span class="si">{}</span><span class="s1">/&lt;owner&gt;/&lt;repo&gt;/commits/locations&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">GHDATA_API_VERSION</span><span class="p">))(</span><span class="n">flaskify_ghtorrent</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="n">ghtorrent</span><span class="o">.</span><span class="n">committer_locations</span><span class="p">))</span>
+
+    <span class="c1"># Popularity</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    @api {get} /:owner/:repo/linking_websites Linking Websites</span>
+<span class="sd">    @apiDescription Returns an array of websites and their rank according to http://publicwww.com/</span>
+<span class="sd">    @apiName LinkingWebsites</span>
+<span class="sd">    @apiGroup Popularity</span>
+
+<span class="sd">    @apiParam {String} owner Username of the owner of the GitHub repository</span>
+<span class="sd">    @apiParam {String} repo Name of the GitHub repository</span>
+
+<span class="sd">    @apiSuccessExample {json} Success-Response:</span>
+<span class="sd">                        [</span>
+<span class="sd">                            {</span>
+<span class="sd">                                &quot;url&quot;: &quot;missouri.edu&quot;,</span>
+<span class="sd">                                &quot;rank&quot;: &quot;1&quot;</span>
+<span class="sd">                            },</span>
+<span class="sd">                            {</span>
+<span class="sd">                                &quot;url&quot;: &quot;unomaha.edu&quot;,</span>
+<span class="sd">                                &quot;rank&quot;: &quot;2&quot;</span>
+<span class="sd">                            }</span>
+<span class="sd">                        ]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/</span><span class="si">{}</span><span class="s1">/&lt;owner&gt;/&lt;repo&gt;/linking_websites&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">GHDATA_API_VERSION</span><span class="p">))(</span><span class="n">flaskify</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="n">publicwww</span><span class="o">.</span><span class="n">linking_websites</span><span class="p">))</span>
+
+
+    <span class="k">if</span> <span class="p">(</span><span class="n">DEBUG</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot; * Serving static routes&quot;</span><span class="p">)</span>
         <span class="c1"># Serve the front-end files in debug mode to make it easier for developers to work on the interface</span>
         <span class="c1"># @todo: Figure out why this isn&#39;t working.</span>
         <span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
-        <span class="k">def</span> <span class="nf">root</span><span class="p">():</span>
-            <span class="k">return</span> <span class="n">app</span><span class="o">.</span><span class="n">send_static_file</span><span class="p">(</span><span class="s1">&#39;frontend/index.html&#39;</span><span class="p">)</span>
+        <span class="k">def</span> <span class="nf">index</span><span class="p">():</span>
+            <span class="n">root_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">())</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">root_dir</span> <span class="o">+</span> <span class="s1">&#39;/ghdata/static&#39;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">send_from_directory</span><span class="p">(</span><span class="n">root_dir</span> <span class="o">+</span> <span class="s1">&#39;/ghdata/ghdata/static&#39;</span><span class="p">,</span> <span class="s1">&#39;index.html&#39;</span><span class="p">)</span>
 
         <span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/scripts/&lt;path&gt;&#39;</span><span class="p">)</span>
         <span class="k">def</span> <span class="nf">send_scripts</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
-            <span class="k">return</span> <span class="n">send_from_directory</span><span class="p">(</span><span class="s1">&#39;frontend/scripts&#39;</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
+            <span class="n">root_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">())</span>
+            <span class="k">return</span> <span class="n">send_from_directory</span><span class="p">(</span><span class="n">root_dir</span> <span class="o">+</span> <span class="s1">&#39;/ghdata/ghdata/static/scripts&#39;</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
 
         <span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/styles/&lt;path&gt;&#39;</span><span class="p">)</span>
         <span class="k">def</span> <span class="nf">send_styles</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
-            <span class="k">return</span> <span class="n">send_from_directory</span><span class="p">(</span><span class="s1">&#39;frontend/styles&#39;</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
+            <span class="n">root_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">())</span>
+            <span class="k">return</span> <span class="n">send_from_directory</span><span class="p">(</span><span class="n">root_dir</span><span class="o">+</span> <span class="s1">&#39;/ghdata/ghdata/static/styles&#39;</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
 
         <span class="n">app</span><span class="o">.</span><span class="n">debug</span> <span class="o">=</span> <span class="kc">True</span>
 
-    <span class="n">app</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">debug</span><span class="o">=</span><span class="n">client</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span></div>
-
-
-<span class="c1">##################</span>
-<span class="c1">#     Routes     #</span>
-<span class="c1">##################</span>
-
-<span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/</span><span class="si">{}</span><span class="s1">/&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">GHDATA_API_VERSION</span><span class="p">))</span>
-<div class="viewcode-block" id="api_root"><a class="viewcode-back" href="../../ghdata.html#ghdata.server.api_root">[docs]</a><span class="k">def</span> <span class="nf">api_root</span><span class="p">():</span>
-    <span class="sd">&quot;&quot;&quot;API status&quot;&quot;&quot;</span>
-    <span class="c1"># @todo: When we support multiple data sources this should keep track of their status</span>
-    <span class="n">info</span> <span class="o">=</span> <span class="n">Response</span><span class="p">(</span><span class="n">response</span><span class="o">=</span><span class="s1">&#39;{&quot;status&quot;: &quot;healthy&quot;, &quot;ghtorrent&quot;: &quot;online&quot;}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">GHDATA_API_VERSION</span><span class="p">),</span>
-                    <span class="n">status</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span>
-                    <span class="n">mimetype</span><span class="o">=</span><span class="s2">&quot;application/json&quot;</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">info</span></div>
-
-<span class="c1"># Timeseries</span>
-<span class="n">app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/</span><span class="si">{}</span><span class="s1">/&lt;owner&gt;/&lt;repo&gt;/commits&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">GHDATA_API_VERSION</span><span class="p">))(</span><span class="n">basic_endpoint</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="s1">&#39;commits&#39;</span><span class="p">))</span>
-<span class="n">app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/</span><span class="si">{}</span><span class="s1">/&lt;owner&gt;/&lt;repo&gt;/forks&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">GHDATA_API_VERSION</span><span class="p">))(</span><span class="n">basic_endpoint</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="s1">&#39;forks&#39;</span><span class="p">))</span>
-<span class="n">app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/</span><span class="si">{}</span><span class="s1">/&lt;owner&gt;/&lt;repo&gt;/issues&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">GHDATA_API_VERSION</span><span class="p">))(</span><span class="n">basic_endpoint</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="s1">&#39;issues&#39;</span><span class="p">))</span>
-<span class="n">app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/</span><span class="si">{}</span><span class="s1">/&lt;owner&gt;/&lt;repo&gt;/issues/response_time&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">GHDATA_API_VERSION</span><span class="p">))(</span><span class="n">basic_endpoint</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="s1">&#39;issue_response_time&#39;</span><span class="p">))</span>
-<span class="n">app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/</span><span class="si">{}</span><span class="s1">/&lt;owner&gt;/&lt;repo&gt;/pulls&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">GHDATA_API_VERSION</span><span class="p">))(</span><span class="n">basic_endpoint</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="s1">&#39;pulls&#39;</span><span class="p">))</span>
-<span class="n">app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/</span><span class="si">{}</span><span class="s1">/&lt;owner&gt;/&lt;repo&gt;/stargazers&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">GHDATA_API_VERSION</span><span class="p">))(</span><span class="n">basic_endpoint</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="s1">&#39;stargazers&#39;</span><span class="p">))</span>
-
-<span class="c1"># Contribution Trends</span>
-<span class="n">app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/</span><span class="si">{}</span><span class="s1">/&lt;owner&gt;/&lt;repo&gt;/contributors&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">GHDATA_API_VERSION</span><span class="p">))(</span><span class="n">basic_endpoint</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="s1">&#39;contributors&#39;</span><span class="p">))</span>
-<span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/</span><span class="si">{}</span><span class="s1">/&lt;owner&gt;/&lt;repo&gt;/contributions&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">GHDATA_API_VERSION</span><span class="p">))</span>
-<div class="viewcode-block" id="contributions"><a class="viewcode-back" href="../../ghdata.html#ghdata.server.contributions">[docs]</a><span class="k">def</span> <span class="nf">contributions</span><span class="p">(</span><span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="p">):</span>
-    <span class="n">repoid</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;repoid&#39;</span><span class="p">,</span> <span class="n">owner</span><span class="o">=</span><span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="o">=</span><span class="n">repo</span><span class="p">)</span>
-    <span class="n">user</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;user&#39;</span><span class="p">)</span>
-    <span class="k">if</span> <span class="p">(</span><span class="n">user</span><span class="p">):</span>
-        <span class="n">userid</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;userid&#39;</span><span class="p">,</span> <span class="n">username</span><span class="o">=</span><span class="n">user</span><span class="p">)</span>
-        <span class="n">contribs</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;contributions&#39;</span><span class="p">,</span> <span class="n">repoid</span><span class="o">=</span><span class="n">repoid</span><span class="p">,</span> <span class="n">userid</span><span class="o">=</span><span class="n">userid</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">contribs</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;contributions&#39;</span><span class="p">,</span> <span class="n">repoid</span><span class="o">=</span><span class="n">repoid</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">Response</span><span class="p">(</span><span class="n">response</span><span class="o">=</span><span class="n">contribs</span><span class="p">,</span>
-                    <span class="n">status</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span>
-                    <span class="n">mimetype</span><span class="o">=</span><span class="s2">&quot;application/json&quot;</span><span class="p">)</span></div>
-
-<span class="c1"># Diversity</span>
-<span class="n">app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/</span><span class="si">{}</span><span class="s1">/&lt;owner&gt;/&lt;repo&gt;/commits/locations&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">GHDATA_API_VERSION</span><span class="p">))(</span><span class="n">basic_endpoint</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="s1">&#39;committer_locations&#39;</span><span class="p">))</span>
-
-<span class="c1"># Popularity</span>
-<span class="n">app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/</span><span class="si">{}</span><span class="s1">/&lt;owner&gt;/&lt;repo&gt;/linking_websites&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">GHDATA_API_VERSION</span><span class="p">))(</span><span class="n">basic_endpoint</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="s1">&#39;linking_websites&#39;</span><span class="p">))</span>
+    <span class="n">app</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">host</span><span class="o">=</span><span class="n">host</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">port</span><span class="p">),</span> <span class="n">debug</span><span class="o">=</span><span class="n">DEBUG</span><span class="p">)</span></div>
 
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
-    <span class="n">init</span><span class="p">()</span>
+    <span class="n">run</span><span class="p">()</span>
 </pre></div>
 
           </div>
