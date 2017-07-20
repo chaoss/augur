@@ -36020,8 +36020,7 @@ module.exports = function (str) {
 require.alias("d3/build/d3.js", "d3");
 require.alias("jquery/dist/jquery.js", "jquery");
 require.alias("metrics-graphics/dist/metricsgraphics.js", "metrics-graphics");
-require.alias("process/browser.js", "process");
-require.alias("querystring-es3/index.js", "querystring");process = require('process');require.register("___globals___", function(exports, require, module) {
+require.alias("process/browser.js", "process");process = require('process');require.register("___globals___", function(exports, require, module) {
   
 });})();require('___globals___');
 
