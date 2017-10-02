@@ -51,11 +51,74 @@
 <div class="section" id="ghdata-ghdata-module">
 <h2>ghdata.ghdata module<a class="headerlink" href="#ghdata-ghdata-module" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="ghdata-server-module">
-<h2>ghdata.server module<a class="headerlink" href="#ghdata-server-module" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-ghdata.server">
+<span id="ghdata-server-module"></span><h2>ghdata.server module<a class="headerlink" href="#module-ghdata.server" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="ghdata.server.addMetric">
+<code class="descclassname">ghdata.server.</code><code class="descname">addMetric</code><span class="sig-paren">(</span><em>app</em>, <em>function</em>, <em>endpoint</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ghdata/server.html#addMetric"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghdata.server.addMetric" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simplifies adding routes that only accept owner/repo</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ghdata.server.addTimeseries">
+<code class="descclassname">ghdata.server.</code><code class="descname">addTimeseries</code><span class="sig-paren">(</span><em>app</em>, <em>function</em>, <em>endpoint</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ghdata/server.html#addTimeseries"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghdata.server.addTimeseries" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simplifies adding routes that accept owner/repo and return timeseries</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>app</strong> &#8211; Flask app</li>
+<li><strong>function</strong> &#8211; Function from a datasource to add</li>
+<li><strong>endpoint</strong> &#8211; GET endpoint to generate</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="ghdata.server.api_root">
+<code class="descclassname">ghdata.server.</code><code class="descname">api_root</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ghdata/server.html#api_root"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghdata.server.api_root" title="Permalink to this definition">¶</a></dt>
+<dd><p>API status</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ghdata.server.contributions">
+<code class="descclassname">ghdata.server.</code><code class="descname">contributions</code><span class="sig-paren">(</span><em>owner</em>, <em>repo</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ghdata/server.html#contributions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghdata.server.contributions" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ghdata.server.flaskify">
+<code class="descclassname">ghdata.server.</code><code class="descname">flaskify</code><span class="sig-paren">(</span><em>func</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ghdata/server.html#flaskify"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghdata.server.flaskify" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simplifies API endpoints that just accept owner and repo,
+serializes them and spits them out</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ghdata.server.ghtorrent_range">
+<code class="descclassname">ghdata.server.</code><code class="descname">ghtorrent_range</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ghdata/server.html#ghtorrent_range"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghdata.server.ghtorrent_range" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ghdata.server.read_config">
+<code class="descclassname">ghdata.server.</code><code class="descname">read_config</code><span class="sig-paren">(</span><em>parser</em>, <em>section</em>, <em>name</em>, <em>environment_variable</em>, <em>default</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ghdata/server.html#read_config"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghdata.server.read_config" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ghdata.server.run">
+<code class="descclassname">ghdata.server.</code><code class="descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ghdata/server.html#run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghdata.server.run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ghdata.server.serialize">
+<code class="descclassname">ghdata.server.</code><code class="descname">serialize</code><span class="sig-paren">(</span><em>data</em>, <em>orient='records'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ghdata/server.html#serialize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghdata.server.serialize" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </div>
-<div class="section" id="module-contents">
-<h2>Module contents<a class="headerlink" href="#module-contents" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-ghdata">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-ghdata" title="Permalink to this headline">¶</a></h2>
 </div>
 </div>
 
@@ -70,8 +133,8 @@
 <li><a class="reference internal" href="#">ghdata package</a><ul>
 <li><a class="reference internal" href="#submodules">Submodules</a></li>
 <li><a class="reference internal" href="#ghdata-ghdata-module">ghdata.ghdata module</a></li>
-<li><a class="reference internal" href="#ghdata-server-module">ghdata.server module</a></li>
-<li><a class="reference internal" href="#module-contents">Module contents</a></li>
+<li><a class="reference internal" href="#module-ghdata.server">ghdata.server module</a></li>
+<li><a class="reference internal" href="#module-ghdata">Module contents</a></li>
 </ul>
 </li>
 </ul>
