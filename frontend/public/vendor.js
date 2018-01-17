@@ -4626,7 +4626,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 require.register("d3-dsv/build/d3-dsv.js", function(exports, require, module) {
   require = __makeRelativeRequire(require, {}, "d3-dsv");
   (function() {
-    // https://d3js.org/d3-dsv/ Version 1.0.7. Copyright 2017 Mike Bostock.
+    // https://d3js.org/d3-dsv/ Version 1.0.8. Copyright 2017 Mike Bostock.
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 	typeof define === 'function' && define.amd ? define(['exports'], factory) :
@@ -4677,7 +4677,7 @@ var dsv = function(delimiter) {
       if (convert) return convert(row, i - 1);
       columns = row, convert = f ? customConverter(row, f) : objectConverter(row);
     });
-    rows.columns = columns;
+    rows.columns = columns || [];
     return rows;
   }
 
@@ -5725,7 +5725,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 require.register("d3-format/build/d3-format.js", function(exports, require, module) {
   require = __makeRelativeRequire(require, {}, "d3-format");
   (function() {
-    // https://d3js.org/d3-format/ Version 1.2.0. Copyright 2017 Mike Bostock.
+    // https://d3js.org/d3-format/ Version 1.2.1. Copyright 2017 Mike Bostock.
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 	typeof define === 'function' && define.amd ? define(['exports'], factory) :
@@ -6062,7 +6062,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 require.register("d3-geo/build/d3-geo.js", function(exports, require, module) {
   require = __makeRelativeRequire(require, {}, "d3-geo");
   (function() {
-    // https://d3js.org/d3-geo/ Version 1.8.1. Copyright 2017 Mike Bostock.
+    // https://d3js.org/d3-geo/ Version 1.9.1. Copyright 2017 Mike Bostock.
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-array')) :
 	typeof define === 'function' && define.amd ? define(['exports', 'd3-array'], factory) :
@@ -8302,33 +8302,49 @@ TransformStream.prototype = {
   polygonEnd: function() { this.stream.polygonEnd(); }
 };
 
-function fitExtent(projection, extent, object) {
-  var w = extent[1][0] - extent[0][0],
-      h = extent[1][1] - extent[0][1],
-      clip = projection.clipExtent && projection.clipExtent();
-
-  projection
-      .scale(150)
-      .translate([0, 0]);
-
+function fit(projection, fitBounds, object) {
+  var clip = projection.clipExtent && projection.clipExtent();
+  projection.scale(150).translate([0, 0]);
   if (clip != null) projection.clipExtent(null);
-
   geoStream(object, projection.stream(boundsStream$1));
-
-  var b = boundsStream$1.result(),
-      k = Math.min(w / (b[1][0] - b[0][0]), h / (b[1][1] - b[0][1])),
-      x = +extent[0][0] + (w - k * (b[1][0] + b[0][0])) / 2,
-      y = +extent[0][1] + (h - k * (b[1][1] + b[0][1])) / 2;
-
+  fitBounds(boundsStream$1.result());
   if (clip != null) projection.clipExtent(clip);
+  return projection;
+}
 
-  return projection
-      .scale(k * 150)
-      .translate([x, y]);
+function fitExtent(projection, extent, object) {
+  return fit(projection, function(b) {
+    var w = extent[1][0] - extent[0][0],
+        h = extent[1][1] - extent[0][1],
+        k = Math.min(w / (b[1][0] - b[0][0]), h / (b[1][1] - b[0][1])),
+        x = +extent[0][0] + (w - k * (b[1][0] + b[0][0])) / 2,
+        y = +extent[0][1] + (h - k * (b[1][1] + b[0][1])) / 2;
+    projection.scale(150 * k).translate([x, y]);
+  }, object);
 }
 
 function fitSize(projection, size, object) {
   return fitExtent(projection, [[0, 0], size], object);
+}
+
+function fitWidth(projection, width, object) {
+  return fit(projection, function(b) {
+    var w = +width,
+        k = w / (b[1][0] - b[0][0]),
+        x = (w - k * (b[1][0] + b[0][0])) / 2,
+        y = -k * b[0][1];
+    projection.scale(150 * k).translate([x, y]);
+  }, object);
+}
+
+function fitHeight(projection, height, object) {
+  return fit(projection, function(b) {
+    var h = +height,
+        k = h / (b[1][1] - b[0][1]),
+        x = -k * b[0][0],
+        y = (h - k * (b[1][1] + b[0][1])) / 2;
+    projection.scale(150 * k).translate([x, y]);
+  }, object);
 }
 
 var maxDepth = 16;
@@ -8523,6 +8539,14 @@ function projectionMutator(projectAt) {
     return fitSize(projection, size, object);
   };
 
+  projection.fitWidth = function(width, object) {
+    return fitWidth(projection, width, object);
+  };
+
+  projection.fitHeight = function(height, object) {
+    return fitHeight(projection, height, object);
+  };
+
   function recenter() {
     projectRotate = compose(rotate = rotateRadians(deltaLambda, deltaPhi, deltaGamma), project);
     var center = project(lambda, phi);
@@ -8635,8 +8659,7 @@ var albersUsa = function() {
 
   function albersUsa(coordinates) {
     var x = coordinates[0], y = coordinates[1];
-    return point = null,
-        (lower48Point.point(x, y), point)
+    return point = null, (lower48Point.point(x, y), point)
         || (alaskaPoint.point(x, y), point)
         || (hawaiiPoint.point(x, y), point);
   }
@@ -8695,6 +8718,14 @@ var albersUsa = function() {
 
   albersUsa.fitSize = function(size, object) {
     return fitSize(albersUsa, size, object);
+  };
+
+  albersUsa.fitWidth = function(width, object) {
+    return fitWidth(albersUsa, width, object);
+  };
+
+  albersUsa.fitHeight = function(height, object) {
+    return fitHeight(albersUsa, height, object);
   };
 
   function reset() {
@@ -8792,7 +8823,7 @@ function mercatorProjection(project) {
   };
 
   m.clipExtent = function(_) {
-    return arguments.length ? ((_ == null ? x0 = y0 = x1 = y1 = null : (x0 = +_[0][0], y0 = +_[0][1], x1 = +_[1][0], y1 = +_[1][1])), reclip()) : x0 == null ? null : [[x0, y0], [x1, y1]];
+    return arguments.length ? (_ == null ? x0 = y0 = x1 = y1 = null : (x0 = +_[0][0], y0 = +_[0][1], x1 = +_[1][0], y1 = +_[1][1]), reclip()) : x0 == null ? null : [[x0, y0], [x1, y1]];
   };
 
   function reclip() {
@@ -8937,6 +8968,12 @@ var identity$1 = function() {
     },
     fitSize: function(size, object) {
       return fitSize(projection, size, object);
+    },
+    fitWidth: function(width, object) {
+      return fitWidth(projection, width, object);
+    },
+    fitHeight: function(height, object) {
+      return fitHeight(projection, height, object);
     }
   };
 };
@@ -10369,7 +10406,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 require.register("d3-interpolate/build/d3-interpolate.js", function(exports, require, module) {
   require = __makeRelativeRequire(require, {}, "d3-interpolate");
   (function() {
-    // https://d3js.org/d3-interpolate/ Version 1.1.5. Copyright 2017 Mike Bostock.
+    // https://d3js.org/d3-interpolate/ Version 1.1.6. Copyright 2017 Mike Bostock.
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-color')) :
 	typeof define === 'function' && define.amd ? define(['exports', 'd3-color'], factory) :
@@ -10496,7 +10533,7 @@ var rgbBasisClosed = rgbSpline(basisClosed);
 var array = function(a, b) {
   var nb = b ? b.length : 0,
       na = a ? Math.min(nb, a.length) : 0,
-      x = new Array(nb),
+      x = new Array(na),
       c = new Array(nb),
       i;
 
@@ -12146,7 +12183,7 @@ exports.tsv = tsv;
 require.register("d3-scale/build/d3-scale.js", function(exports, require, module) {
   require = __makeRelativeRequire(require, {}, "d3-scale");
   (function() {
-    // https://d3js.org/d3-scale/ Version 1.0.6. Copyright 2017 Mike Bostock.
+    // https://d3js.org/d3-scale/ Version 1.0.7. Copyright 2017 Mike Bostock.
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-array'), require('d3-collection'), require('d3-interpolate'), require('d3-format'), require('d3-time'), require('d3-time-format'), require('d3-color')) :
 	typeof define === 'function' && define.amd ? define(['exports', 'd3-array', 'd3-collection', 'd3-interpolate', 'd3-format', 'd3-time', 'd3-time-format', 'd3-color'], factory) :
@@ -12911,7 +12948,7 @@ function calendar(year, month, week, day, hour, minute, second, millisecond, for
         step = i[1];
         interval = i[0];
       } else {
-        step = d3Array.tickStep(start, stop, interval);
+        step = Math.max(d3Array.tickStep(start, stop, interval), 1);
         interval = millisecond;
       }
     }
@@ -13077,7 +13114,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 require.register("d3-selection/build/d3-selection.js", function(exports, require, module) {
   require = __makeRelativeRequire(require, {}, "d3-selection");
   (function() {
-    // https://d3js.org/d3-selection/ Version 1.1.0. Copyright 2017 Mike Bostock.
+    // https://d3js.org/d3-selection/ Version 1.2.0. Copyright 2017 Mike Bostock.
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 	typeof define === 'function' && define.amd ? define(['exports'], factory) :
@@ -14039,6 +14076,7 @@ exports.matcher = matcher$1;
 exports.mouse = mouse;
 exports.namespace = namespace;
 exports.namespaces = namespaces;
+exports.clientPoint = point;
 exports.select = select;
 exports.selectAll = selectAll;
 exports.selection = selection;
@@ -16000,7 +16038,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 require.register("d3-time-format/build/d3-time-format.js", function(exports, require, module) {
   require = __makeRelativeRequire(require, {}, "d3-time-format");
   (function() {
-    // https://d3js.org/d3-time-format/ Version 2.0.5. Copyright 2017 Mike Bostock.
+    // https://d3js.org/d3-time-format/ Version 2.1.1. Copyright 2017 Mike Bostock.
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-time')) :
 	typeof define === 'function' && define.amd ? define(['exports', 'd3-time'], factory) :
@@ -16058,6 +16096,7 @@ function formatLocale(locale) {
     "c": null,
     "d": formatDayOfMonth,
     "e": formatDayOfMonth,
+    "f": formatMicroseconds,
     "H": formatHour24,
     "I": formatHour12,
     "j": formatDayOfYear,
@@ -16065,9 +16104,13 @@ function formatLocale(locale) {
     "m": formatMonthNumber,
     "M": formatMinutes,
     "p": formatPeriod,
+    "Q": formatUnixTimestamp,
+    "s": formatUnixTimestampSeconds,
     "S": formatSeconds,
+    "u": formatWeekdayNumberMonday,
     "U": formatWeekNumberSunday,
-    "w": formatWeekdayNumber,
+    "V": formatWeekNumberISO,
+    "w": formatWeekdayNumberSunday,
     "W": formatWeekNumberMonday,
     "x": null,
     "X": null,
@@ -16085,6 +16128,7 @@ function formatLocale(locale) {
     "c": null,
     "d": formatUTCDayOfMonth,
     "e": formatUTCDayOfMonth,
+    "f": formatUTCMicroseconds,
     "H": formatUTCHour24,
     "I": formatUTCHour12,
     "j": formatUTCDayOfYear,
@@ -16092,9 +16136,13 @@ function formatLocale(locale) {
     "m": formatUTCMonthNumber,
     "M": formatUTCMinutes,
     "p": formatUTCPeriod,
+    "Q": formatUnixTimestamp,
+    "s": formatUnixTimestampSeconds,
     "S": formatUTCSeconds,
+    "u": formatUTCWeekdayNumberMonday,
     "U": formatUTCWeekNumberSunday,
-    "w": formatUTCWeekdayNumber,
+    "V": formatUTCWeekNumberISO,
+    "w": formatUTCWeekdayNumberSunday,
     "W": formatUTCWeekNumberMonday,
     "x": null,
     "X": null,
@@ -16112,6 +16160,7 @@ function formatLocale(locale) {
     "c": parseLocaleDateTime,
     "d": parseDayOfMonth,
     "e": parseDayOfMonth,
+    "f": parseMicroseconds,
     "H": parseHour24,
     "I": parseHour24,
     "j": parseDayOfYear,
@@ -16119,9 +16168,13 @@ function formatLocale(locale) {
     "m": parseMonthNumber,
     "M": parseMinutes,
     "p": parsePeriod,
+    "Q": parseUnixTimestamp,
+    "s": parseUnixTimestampSeconds,
     "S": parseSeconds,
+    "u": parseWeekdayNumberMonday,
     "U": parseWeekNumberSunday,
-    "w": parseWeekdayNumber,
+    "V": parseWeekNumberISO,
+    "w": parseWeekdayNumberSunday,
     "W": parseWeekNumberMonday,
     "x": parseLocaleDate,
     "X": parseLocaleTime,
@@ -16170,16 +16223,38 @@ function formatLocale(locale) {
   function newParse(specifier, newDate) {
     return function(string) {
       var d = newYear(1900),
-          i = parseSpecifier(d, specifier, string += "", 0);
+          i = parseSpecifier(d, specifier, string += "", 0),
+          week, day;
       if (i != string.length) return null;
+
+      // If a UNIX timestamp is specified, return it.
+      if ("Q" in d) return new Date(d.Q);
 
       // The am-pm flag is 0 for AM, and 1 for PM.
       if ("p" in d) d.H = d.H % 12 + d.p * 12;
 
       // Convert day-of-week and week-of-year to day-of-year.
-      if ("W" in d || "U" in d) {
-        if (!("w" in d)) d.w = "W" in d ? 1 : 0;
-        var day = "Z" in d ? utcDate(newYear(d.y)).getUTCDay() : newDate(newYear(d.y)).getDay();
+      if ("V" in d) {
+        if (d.V < 1 || d.V > 53) return null;
+        if (!("w" in d)) d.w = 1;
+        if ("Z" in d) {
+          week = utcDate(newYear(d.y)), day = week.getUTCDay();
+          week = day > 4 || day === 0 ? d3Time.utcMonday.ceil(week) : d3Time.utcMonday(week);
+          week = d3Time.utcDay.offset(week, (d.V - 1) * 7);
+          d.y = week.getUTCFullYear();
+          d.m = week.getUTCMonth();
+          d.d = week.getUTCDate() + (d.w + 6) % 7;
+        } else {
+          week = newDate(newYear(d.y)), day = week.getDay();
+          week = day > 4 || day === 0 ? d3Time.timeMonday.ceil(week) : d3Time.timeMonday(week);
+          week = d3Time.timeDay.offset(week, (d.V - 1) * 7);
+          d.y = week.getFullYear();
+          d.m = week.getMonth();
+          d.d = week.getDate() + (d.w + 6) % 7;
+        }
+      } else if ("W" in d || "U" in d) {
+        if (!("w" in d)) d.w = "u" in d ? d.u % 7 : "W" in d ? 1 : 0;
+        day = "Z" in d ? utcDate(newYear(d.y)).getUTCDay() : newDate(newYear(d.y)).getDay();
         d.m = 0;
         d.d = "W" in d ? (d.w + 6) % 7 + d.W * 7 - (day + 5) % 7 : d.w + d.U * 7 - (day + 6) % 7;
       }
@@ -16323,7 +16398,7 @@ function formatLocale(locale) {
 var pads = {"-": "", "_": " ", "0": "0"};
 var numberRe = /^\s*\d+/;
 var percentRe = /^%/;
-var requoteRe = /[\\\^\$\*\+\?\|\[\]\(\)\.\{\}]/g;
+var requoteRe = /[\\^$*+?|[\]().{}]/g;
 
 function pad(value, fill, width) {
   var sign = value < 0 ? "-" : "",
@@ -16346,18 +16421,28 @@ function formatLookup(names) {
   return map;
 }
 
-function parseWeekdayNumber(d, string, i) {
+function parseWeekdayNumberSunday(d, string, i) {
   var n = numberRe.exec(string.slice(i, i + 1));
   return n ? (d.w = +n[0], i + n[0].length) : -1;
 }
 
+function parseWeekdayNumberMonday(d, string, i) {
+  var n = numberRe.exec(string.slice(i, i + 1));
+  return n ? (d.u = +n[0], i + n[0].length) : -1;
+}
+
 function parseWeekNumberSunday(d, string, i) {
-  var n = numberRe.exec(string.slice(i));
+  var n = numberRe.exec(string.slice(i, i + 2));
   return n ? (d.U = +n[0], i + n[0].length) : -1;
 }
 
+function parseWeekNumberISO(d, string, i) {
+  var n = numberRe.exec(string.slice(i, i + 2));
+  return n ? (d.V = +n[0], i + n[0].length) : -1;
+}
+
 function parseWeekNumberMonday(d, string, i) {
-  var n = numberRe.exec(string.slice(i));
+  var n = numberRe.exec(string.slice(i, i + 2));
   return n ? (d.W = +n[0], i + n[0].length) : -1;
 }
 
@@ -16372,7 +16457,7 @@ function parseYear(d, string, i) {
 }
 
 function parseZone(d, string, i) {
-  var n = /^(Z)|([+-]\d\d)(?:\:?(\d\d))?/.exec(string.slice(i, i + 6));
+  var n = /^(Z)|([+-]\d\d)(?::?(\d\d))?/.exec(string.slice(i, i + 6));
   return n ? (d.Z = n[1] ? 0 : -(n[2] + (n[3] || "00")), i + n[0].length) : -1;
 }
 
@@ -16411,9 +16496,24 @@ function parseMilliseconds(d, string, i) {
   return n ? (d.L = +n[0], i + n[0].length) : -1;
 }
 
+function parseMicroseconds(d, string, i) {
+  var n = numberRe.exec(string.slice(i, i + 6));
+  return n ? (d.L = Math.floor(n[0] / 1000), i + n[0].length) : -1;
+}
+
 function parseLiteralPercent(d, string, i) {
   var n = percentRe.exec(string.slice(i, i + 1));
   return n ? i + n[0].length : -1;
+}
+
+function parseUnixTimestamp(d, string, i) {
+  var n = numberRe.exec(string.slice(i));
+  return n ? (d.Q = +n[0], i + n[0].length) : -1;
+}
+
+function parseUnixTimestampSeconds(d, string, i) {
+  var n = numberRe.exec(string.slice(i));
+  return n ? (d.Q = (+n[0]) * 1000, i + n[0].length) : -1;
 }
 
 function formatDayOfMonth(d, p) {
@@ -16436,6 +16536,10 @@ function formatMilliseconds(d, p) {
   return pad(d.getMilliseconds(), p, 3);
 }
 
+function formatMicroseconds(d, p) {
+  return formatMilliseconds(d, p) + "000";
+}
+
 function formatMonthNumber(d, p) {
   return pad(d.getMonth() + 1, p, 2);
 }
@@ -16448,11 +16552,22 @@ function formatSeconds(d, p) {
   return pad(d.getSeconds(), p, 2);
 }
 
+function formatWeekdayNumberMonday(d) {
+  var day = d.getDay();
+  return day === 0 ? 7 : day;
+}
+
 function formatWeekNumberSunday(d, p) {
   return pad(d3Time.timeSunday.count(d3Time.timeYear(d), d), p, 2);
 }
 
-function formatWeekdayNumber(d) {
+function formatWeekNumberISO(d, p) {
+  var day = d.getDay();
+  d = (day >= 4 || day === 0) ? d3Time.timeThursday(d) : d3Time.timeThursday.ceil(d);
+  return pad(d3Time.timeThursday.count(d3Time.timeYear(d), d) + (d3Time.timeYear(d).getDay() === 4), p, 2);
+}
+
+function formatWeekdayNumberSunday(d) {
   return d.getDay();
 }
 
@@ -16495,6 +16610,10 @@ function formatUTCMilliseconds(d, p) {
   return pad(d.getUTCMilliseconds(), p, 3);
 }
 
+function formatUTCMicroseconds(d, p) {
+  return formatUTCMilliseconds(d, p) + "000";
+}
+
 function formatUTCMonthNumber(d, p) {
   return pad(d.getUTCMonth() + 1, p, 2);
 }
@@ -16507,11 +16626,22 @@ function formatUTCSeconds(d, p) {
   return pad(d.getUTCSeconds(), p, 2);
 }
 
+function formatUTCWeekdayNumberMonday(d) {
+  var dow = d.getUTCDay();
+  return dow === 0 ? 7 : dow;
+}
+
 function formatUTCWeekNumberSunday(d, p) {
   return pad(d3Time.utcSunday.count(d3Time.utcYear(d), d), p, 2);
 }
 
-function formatUTCWeekdayNumber(d) {
+function formatUTCWeekNumberISO(d, p) {
+  var day = d.getUTCDay();
+  d = (day >= 4 || day === 0) ? d3Time.utcThursday(d) : d3Time.utcThursday.ceil(d);
+  return pad(d3Time.utcThursday.count(d3Time.utcYear(d), d) + (d3Time.utcYear(d).getUTCDay() === 4), p, 2);
+}
+
+function formatUTCWeekdayNumberSunday(d) {
   return d.getUTCDay();
 }
 
@@ -16535,7 +16665,15 @@ function formatLiteralPercent() {
   return "%";
 }
 
-var locale$1;
+function formatUnixTimestamp(d) {
+  return +d;
+}
+
+function formatUnixTimestampSeconds(d) {
+  return Math.floor(+d / 1000);
+}
+
+var locale;
 
 
 
@@ -16553,12 +16691,12 @@ defaultLocale({
 });
 
 function defaultLocale(definition) {
-  locale$1 = formatLocale(definition);
-  exports.timeFormat = locale$1.format;
-  exports.timeParse = locale$1.parse;
-  exports.utcFormat = locale$1.utcFormat;
-  exports.utcParse = locale$1.utcParse;
-  return locale$1;
+  locale = formatLocale(definition);
+  exports.timeFormat = locale.format;
+  exports.timeParse = locale.parse;
+  exports.utcFormat = locale.utcFormat;
+  exports.utcParse = locale.utcParse;
+  return locale;
 }
 
 var isoSpecifier = "%Y-%m-%dT%H:%M:%S.%LZ";
@@ -16594,7 +16732,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 require.register("d3-time/build/d3-time.js", function(exports, require, module) {
   require = __makeRelativeRequire(require, {}, "d3-time");
   (function() {
-    // https://d3js.org/d3-time/ Version 1.0.7. Copyright 2017 Mike Bostock.
+    // https://d3js.org/d3-time/ Version 1.0.8. Copyright 2017 Mike Bostock.
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 	typeof define === 'function' && define.amd ? define(['exports'], factory) :
@@ -16627,11 +16765,12 @@ function newInterval(floori, offseti, count, field) {
   };
 
   interval.range = function(start, stop, step) {
-    var range = [];
+    var range = [], previous;
     start = interval.ceil(start);
     step = step == null ? 1 : Math.floor(step);
     if (!(start < stop) || !(step > 0)) return range; // also handles Invalid Date
-    do range.push(new Date(+start)); while (offseti(start, step), floori(start), start < stop)
+    do range.push(previous = new Date(+start)), offseti(start, step), floori(start);
+    while (previous < start && start < stop);
     return range;
   };
 
@@ -17139,7 +17278,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 require.register("d3-transition/build/d3-transition.js", function(exports, require, module) {
   require = __makeRelativeRequire(require, {}, "d3-transition");
   (function() {
-    // https://d3js.org/d3-transition/ Version 1.1.0. Copyright 2017 Mike Bostock.
+    // https://d3js.org/d3-transition/ Version 1.1.1. Copyright 2017 Mike Bostock.
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-selection'), require('d3-dispatch'), require('d3-timer'), require('d3-interpolate'), require('d3-color'), require('d3-ease')) :
 	typeof define === 'function' && define.amd ? define(['exports', 'd3-selection', 'd3-dispatch', 'd3-timer', 'd3-interpolate', 'd3-color', 'd3-ease'], factory) :
@@ -17177,20 +17316,20 @@ var schedule = function(node, name, id, index, group, timing) {
 };
 
 function init(node, id) {
-  var schedule = node.__transition;
-  if (!schedule || !(schedule = schedule[id]) || schedule.state > CREATED) throw new Error("too late");
+  var schedule = get(node, id);
+  if (schedule.state > CREATED) throw new Error("too late; already scheduled");
   return schedule;
 }
 
 function set(node, id) {
-  var schedule = node.__transition;
-  if (!schedule || !(schedule = schedule[id]) || schedule.state > STARTING) throw new Error("too late");
+  var schedule = get(node, id);
+  if (schedule.state > STARTING) throw new Error("too late; already started");
   return schedule;
 }
 
 function get(node, id) {
   var schedule = node.__transition;
-  if (!schedule || !(schedule = schedule[id])) throw new Error("too late");
+  if (!schedule || !(schedule = schedule[id])) throw new Error("transition not found");
   return schedule;
 }
 
@@ -18937,7 +19076,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 require.register("d3-zoom/build/d3-zoom.js", function(exports, require, module) {
   require = __makeRelativeRequire(require, {}, "d3-zoom");
   (function() {
-    // https://d3js.org/d3-zoom/ Version 1.6.0. Copyright 2017 Mike Bostock.
+    // https://d3js.org/d3-zoom/ Version 1.7.1. Copyright 2017 Mike Bostock.
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-dispatch'), require('d3-drag'), require('d3-interpolate'), require('d3-selection'), require('d3-transition')) :
 	typeof define === 'function' && define.amd ? define(['exports', 'd3-dispatch', 'd3-drag', 'd3-interpolate', 'd3-selection', 'd3-transition'], factory) :
@@ -19046,17 +19185,25 @@ function defaultTouchable() {
   return "ontouchstart" in this;
 }
 
+function defaultConstrain(transform$$1, extent, translateExtent) {
+  var dx0 = transform$$1.invertX(extent[0][0]) - translateExtent[0][0],
+      dx1 = transform$$1.invertX(extent[1][0]) - translateExtent[1][0],
+      dy0 = transform$$1.invertY(extent[0][1]) - translateExtent[0][1],
+      dy1 = transform$$1.invertY(extent[1][1]) - translateExtent[1][1];
+  return transform$$1.translate(
+    dx1 > dx0 ? (dx0 + dx1) / 2 : Math.min(0, dx0) || Math.max(0, dx1),
+    dy1 > dy0 ? (dy0 + dy1) / 2 : Math.min(0, dy0) || Math.max(0, dy1)
+  );
+}
+
 var zoom = function() {
   var filter = defaultFilter,
       extent = defaultExtent,
+      constrain = defaultConstrain,
       wheelDelta = defaultWheelDelta,
       touchable = defaultTouchable,
-      k0 = 0,
-      k1 = Infinity,
-      x0 = -k1,
-      x1 = k1,
-      y0 = x0,
-      y1 = x1,
+      scaleExtent = [0, Infinity],
+      translateExtent = [[-Infinity, -Infinity], [Infinity, Infinity]],
       duration = 250,
       interpolate = d3Interpolate.interpolateZoom,
       gestures = [],
@@ -19111,7 +19258,7 @@ var zoom = function() {
           p0 = centroid(e),
           p1 = t0.invert(p0),
           k1 = typeof k === "function" ? k.apply(this, arguments) : k;
-      return constrain(translate(scale(t0, k1), p0, p1), e);
+      return constrain(translate(scale(t0, k1), p0, p1), e, translateExtent);
     });
   };
 
@@ -19120,7 +19267,7 @@ var zoom = function() {
       return constrain(this.__zoom.translate(
         typeof x === "function" ? x.apply(this, arguments) : x,
         typeof y === "function" ? y.apply(this, arguments) : y
-      ), extent.apply(this, arguments));
+      ), extent.apply(this, arguments), translateExtent);
     });
   };
 
@@ -19132,29 +19279,18 @@ var zoom = function() {
       return constrain(identity.translate(p[0], p[1]).scale(t.k).translate(
         typeof x === "function" ? -x.apply(this, arguments) : -x,
         typeof y === "function" ? -y.apply(this, arguments) : -y
-      ), e);
+      ), e, translateExtent);
     });
   };
 
   function scale(transform$$1, k) {
-    k = Math.max(k0, Math.min(k1, k));
+    k = Math.max(scaleExtent[0], Math.min(scaleExtent[1], k));
     return k === transform$$1.k ? transform$$1 : new Transform(k, transform$$1.x, transform$$1.y);
   }
 
   function translate(transform$$1, p0, p1) {
     var x = p0[0] - p1[0] * transform$$1.k, y = p0[1] - p1[1] * transform$$1.k;
     return x === transform$$1.x && y === transform$$1.y ? transform$$1 : new Transform(transform$$1.k, x, y);
-  }
-
-  function constrain(transform$$1, extent) {
-    var dx0 = transform$$1.invertX(extent[0][0]) - x0,
-        dx1 = transform$$1.invertX(extent[1][0]) - x1,
-        dy0 = transform$$1.invertY(extent[0][1]) - y0,
-        dy1 = transform$$1.invertY(extent[1][1]) - y1;
-    return transform$$1.translate(
-      dx1 > dx0 ? (dx0 + dx1) / 2 : Math.min(0, dx0) || Math.max(0, dx1),
-      dy1 > dy0 ? (dy0 + dy1) / 2 : Math.min(0, dy0) || Math.max(0, dy1)
-    );
   }
 
   function centroid(extent) {
@@ -19233,7 +19369,7 @@ var zoom = function() {
     if (!filter.apply(this, arguments)) return;
     var g = gesture(this, arguments),
         t = this.__zoom,
-        k = Math.max(k0, Math.min(k1, t.k * Math.pow(2, wheelDelta.apply(this, arguments)))),
+        k = Math.max(scaleExtent[0], Math.min(scaleExtent[1], t.k * Math.pow(2, wheelDelta.apply(this, arguments)))),
         p = d3Selection.mouse(this);
 
     // If the mouse is in the same location as before, reuse it.
@@ -19257,7 +19393,7 @@ var zoom = function() {
 
     noevent();
     g.wheel = setTimeout(wheelidled, wheelDelay);
-    g.zoom("mouse", constrain(translate(scale(t, k), g.mouse[0], g.mouse[1]), g.extent));
+    g.zoom("mouse", constrain(translate(scale(t, k), g.mouse[0], g.mouse[1]), g.extent, translateExtent));
 
     function wheelidled() {
       g.wheel = null;
@@ -19285,7 +19421,7 @@ var zoom = function() {
         var dx = d3Selection.event.clientX - x0, dy = d3Selection.event.clientY - y0;
         g.moved = dx * dx + dy * dy > clickDistance2;
       }
-      g.zoom("mouse", constrain(translate(g.that.__zoom, g.mouse[0] = d3Selection.mouse(g.that), g.mouse[1]), g.extent));
+      g.zoom("mouse", constrain(translate(g.that.__zoom, g.mouse[0] = d3Selection.mouse(g.that), g.mouse[1]), g.extent, translateExtent));
     }
 
     function mouseupped() {
@@ -19302,7 +19438,7 @@ var zoom = function() {
         p0 = d3Selection.mouse(this),
         p1 = t0.invert(p0),
         k1 = t0.k * (d3Selection.event.shiftKey ? 0.5 : 2),
-        t1 = constrain(translate(scale(t0, k1), p0, p1), extent.apply(this, arguments));
+        t1 = constrain(translate(scale(t0, k1), p0, p1), extent.apply(this, arguments), translateExtent);
 
     noevent();
     if (duration > 0) d3Selection.select(this).transition().duration(duration).call(schedule, t1, p0);
@@ -19366,7 +19502,7 @@ var zoom = function() {
     }
     else if (g.touch0) p = g.touch0[0], l = g.touch0[1];
     else return;
-    g.zoom("touch", constrain(translate(t, p, l), g.extent));
+    g.zoom("touch", constrain(translate(t, p, l), g.extent, translateExtent));
   }
 
   function touchended() {
@@ -19404,11 +19540,15 @@ var zoom = function() {
   };
 
   zoom.scaleExtent = function(_) {
-    return arguments.length ? (k0 = +_[0], k1 = +_[1], zoom) : [k0, k1];
+    return arguments.length ? (scaleExtent[0] = +_[0], scaleExtent[1] = +_[1], zoom) : [scaleExtent[0], scaleExtent[1]];
   };
 
   zoom.translateExtent = function(_) {
-    return arguments.length ? (x0 = +_[0][0], x1 = +_[1][0], y0 = +_[0][1], y1 = +_[1][1], zoom) : [[x0, y0], [x1, y1]];
+    return arguments.length ? (translateExtent[0][0] = +_[0][0], translateExtent[1][0] = +_[1][0], translateExtent[0][1] = +_[0][1], translateExtent[1][1] = +_[1][1], zoom) : [[translateExtent[0][0], translateExtent[0][1]], [translateExtent[1][0], translateExtent[1][1]]];
+  };
+
+  zoom.constrain = function(_) {
+    return arguments.length ? (constrain = _, zoom) : constrain;
   };
 
   zoom.duration = function(_) {
@@ -19479,7 +19619,7 @@ var d3Transition = require('d3-transition');
 var d3Voronoi = require('d3-voronoi');
 var d3Zoom = require('d3-zoom');
 
-var version = "4.11.0";
+var version = "4.12.2";
 
 exports.version = version;
 Object.keys(d3Array).forEach(function (key) { exports[key] = d3Array[key]; });
@@ -54398,359 +54538,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 });
 });
 
-require.register("include/mg_line_brushing.js", function(exports, require, module) {
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-exports.default = AddBrushingCapability;
-
-var _d = require('d3');
-
-var d3 = _interopRequireWildcard(_d);
-
-var _jquery = require('jquery');
-
-function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
-
-function AddBrushingCapability(MG) {
-
-    /*
-    The MIT License (MIT)
-     Copyright (c) 2015 Dan de Havilland
-     Permission is hereby granted, free of charge, to any person obtaining a copy
-    of this software and associated documentation files (the "Software"), to deal
-    in the Software without restriction, including without limitation the rights
-    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-    copies of the Software, and to permit persons to whom the Software is
-    furnished to do so, subject to the following conditions:
-     The above copyright notice and this permission notice shall be included in all
-    copies or substantial portions of the Software.
-     THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-    SOFTWARE.
-    */
-
-    MG.line_brushing = {
-        set_brush_as_base: function set_brush_as_base(target) {
-            var svg = d3.select(target).select('svg'),
-                current,
-                history = brushHistory[target];
-
-            svg.classed('mg-brushed', false);
-
-            if (history) {
-                history.brushed = false;
-
-                current = history.current;
-                history.original = current;
-
-                args.min_x = current.min_x;
-                args.max_x = current.max_x;
-                args.min_y = current.min_y;
-                args.max_y = current.max_y;
-
-                history.steps = [];
-            }
-        },
-
-        zoom_in: function zoom_in(target, options) {},
-
-        zoom_out: function zoom_out(target, options) {}
-    };
-
-    /* helpers */
-    function get_brush_interval(args) {
-        var resolution = args.brushing_interval,
-            interval;
-
-        if (!resolution) {
-            if (args.time_series) {
-                resolution = d3.timeDay;
-            } else {
-                resolution = 1;
-            }
-        }
-
-        // work with N as integer
-        if (typeof resolution === 'number') {
-            interval = {
-                round: function round(val) {
-                    return resolution * Math.round(val / resolution);
-                },
-                offset: function offset(val, count) {
-                    return val + resolution * count;
-                }
-            };
-        }
-        // work with d3.time.[interval]
-        else if (typeof resolution.round === 'function' && typeof resolution.offset === 'function') {
-                interval = resolution;
-            } else {
-                console.warn('The `brushing_interval` provided is invalid. It must be either a number or expose both `round` and `offset` methods');
-            }
-
-        return interval;
-    }
-
-    function is_within_bounds(datum, args) {
-        var x = +datum[args.x_accessor],
-            y = +datum[args.y_accessor];
-
-        return x >= (+args.processed.min_x || x) && x <= (+args.processed.max_x || x) && y >= (+args.processed.min_y || y) && y <= (+args.processed.max_y || y);
-    }
-
-    /**
-      Brushing for line charts
-       1. hooks
-    */
-
-    var brushHistory = {},
-        args;
-
-    MG.add_hook('global.defaults', function (args) {
-        // enable brushing unless it's explicitly disabled
-        args.brushing = args.brushing !== false;
-        if (args.brushing) {
-            args.brushing_history = args.brushing_history !== false;
-            args.aggregate_rollover = true;
-        }
-    });
-
-    function brushing() {
-        var chartContext = this;
-
-        args = this.args;
-
-        if (args.brushing === false) {
-            return this;
-        }
-
-        if (!brushHistory[args.target] || !brushHistory[args.target].brushed) {
-            brushHistory[args.target] = {
-                brushed: false,
-                steps: [],
-                original: {
-                    min_x: +args.processed.min_x,
-                    max_x: +args.processed.max_x,
-                    min_y: +args.processed.min_y,
-                    max_y: +args.processed.max_y
-                }
-            };
-        }
-
-        var isDragging = false,
-            mouseDown = false,
-            originX,
-            svg = d3.select(args.target).select('svg'),
-            body = d3.select('body'),
-            rollover = svg.select('.mg-rollover-rect, .mg-voronoi'),
-            brushingGroup,
-            extentRect;
-
-        rollover.classed('mg-brush-container', true);
-
-        brushingGroup = rollover.insert('g', '*').classed('mg-brush', true);
-
-        extentRect = brushingGroup.append('rect').attr('opacity', 0).attr('y', args.top).attr('height', args.height - args.bottom - args.top - args.buffer).classed('mg-extent', true);
-
-        // mousedown, start area selection
-        svg.on('mousedown', function () {
-            mouseDown = true;
-            isDragging = false;
-            originX = d3.mouse(this)[0];
-            svg.classed('mg-brushed', false);
-            svg.classed('mg-brushing-in-progress', true);
-            extentRect.attr({
-                x: d3.mouse(this)[0],
-                opacity: 0,
-                width: 0
-            });
-        });
-
-        // mousemove / drag, expand area selection
-        svg.on('mousemove', function () {
-            if (mouseDown) {
-                isDragging = true;
-                rollover.classed('mg-brushing', true);
-
-                var mouseX = d3.mouse(this)[0],
-                    newX = Math.min(originX, mouseX),
-                    width = Math.max(originX, mouseX) - newX;
-
-                extentRect.attr('x', newX).attr('width', width).attr('opacity', 1);
-            }
-        });
-
-        // mouseup, finish area selection
-        svg.on('mouseup', function () {
-            mouseDown = false;
-            svg.classed('mg-brushing-in-progress', false);
-
-            var xScale = args.scales.X,
-                yScale = args.scales.Y,
-                flatData = [].concat.apply([], args.data),
-                boundedData,
-                yBounds,
-                xBounds,
-                extentX0 = +extentRect.attr('x'),
-                extentX1 = extentX0 + +extentRect.attr('width'),
-                interval = get_brush_interval(args),
-                offset = 0,
-                mapDtoX = function mapDtoX(d) {
-                return +d[args.x_accessor];
-            },
-                mapDtoY = function mapDtoY(d) {
-                return +d[args.y_accessor];
-            };
-
-            // if we're zooming in: calculate the domain for x and y axes based on the selected rect
-            if (isDragging) {
-                isDragging = false;
-
-                if (brushHistory[args.target].brushed) {
-                    brushHistory[args.target].steps.push({
-                        max_x: args.brushed_max_x || args.processed.max_x,
-                        min_x: args.brushed_min_x || args.processed.min_x,
-                        max_y: args.brushed_max_y || args.processed.max_y,
-                        min_y: args.brushed_min_y || args.processed.min_y
-                    });
-                }
-
-                brushHistory[args.target].brushed = true;
-
-                boundedData = [];
-                // is there at least one data point in the chosen selection? if not, increase the range until there is.
-                var iterations = 0;
-                while (boundedData.length === 0 && iterations <= flatData.length) {
-
-                    var xValX0 = xScale.invert(extentX0);
-                    var xValX1 = xScale.invert(extentX1);
-                    xValX0 = xValX0 instanceof Date ? xValX0 : interval.round(xValX0);
-                    xValX1 = xValX1 instanceof Date ? xValX1 : interval.round(xValX1);
-
-                    args.brushed_min_x = xValX0;
-                    args.brushed_max_x = Math.max(interval.offset(args.min_x, 1), xValX1);
-
-                    boundedData = flatData.filter(function (d) {
-                        var val = d[args.x_accessor];
-                        return val >= args.brushed_min_x && val <= args.brushed_max_x;
-                    });
-
-                    iterations++;
-                }
-
-                xBounds = d3.extent(boundedData, mapDtoX);
-                args.brushed_min_x = +xBounds[0];
-                args.brushed_max_x = +xBounds[1];
-                xScale.domain(xBounds);
-
-                yBounds = d3.extent(boundedData, mapDtoY);
-                // add 10% padding on the y axis for better display
-                // @TODO: make this an option
-                args.brushed_min_y = yBounds[0] * 0.9;
-                args.brushed_max_y = yBounds[1] * 1.1;
-                yScale.domain(yBounds);
-            }
-            // zooming out on click, maintaining the step history
-            else if (args.brushing_history) {
-                    if (brushHistory[args.target].brushed) {
-                        var previousBrush = brushHistory[args.target].steps.pop();
-                        if (previousBrush) {
-                            args.brushed_max_x = previousBrush.max_x;
-                            args.brushed_min_x = previousBrush.min_x;
-                            args.brushed_max_y = previousBrush.max_y;
-                            args.brushed_min_y = previousBrush.min_y;
-
-                            xBounds = [args.brushed_min_x, args.brushed_max_x];
-                            yBounds = [args.brushed_min_y, args.brushed_max_y];
-                            xScale.domain(xBounds);
-                            yScale.domain(yBounds);
-                        } else {
-                            brushHistory[args.target].brushed = false;
-
-                            delete args.brushed_max_x;
-                            delete args.brushed_min_x;
-                            delete args.brushed_max_y;
-                            delete args.brushed_min_y;
-
-                            xBounds = [brushHistory[args.target].original.min_x, brushHistory[args.target].original.max_x];
-
-                            yBounds = [brushHistory[args.target].original.min_y, brushHistory[args.target].original.max_y];
-                        }
-                    }
-                }
-
-            // has anything changed?
-            if (xBounds && yBounds) {
-                if (xBounds[0] < xBounds[1]) {
-                    // trigger the brushing callback
-
-                    var step = {
-                        min_x: xBounds[0],
-                        max_x: xBounds[1],
-                        min_y: yBounds[0],
-                        max_y: yBounds[1]
-                    };
-
-                    brushHistory[args.target].current = step;
-
-                    if (args.after_brushing) {
-                        args.after_brushing.apply(this, [step]);
-                    }
-                }
-
-                // redraw the chart
-                if (!args.brushing_manual_redraw) {
-                    MG.data_graphic(args);
-                }
-            }
-        });
-
-        return this;
-    }
-
-    MG.add_hook('line.after_init', function (lineChart) {
-        brushing.apply(lineChart);
-    });
-
-    function processXAxis(args, min_x, max_x) {
-        if (args.brushing) {
-            args.processed.min_x = args.brushed_min_x ? Math.max(args.brushed_min_x, min_x) : min_x;
-            args.processed.max_x = args.brushed_max_x ? Math.min(args.brushed_max_x, max_x) : max_x;
-        }
-    }
-
-    MG.add_hook('x_axis.process_min_max', processXAxis);
-
-    function processYAxis(args) {
-        if (args.brushing && (args.brushed_min_y || args.brushed_max_y)) {
-            args.processed.min_y = args.brushed_min_y;
-            args.processed.max_y = args.brushed_max_y;
-        }
-    }
-
-    MG.add_hook('y_axis.process_min_max', processYAxis);
-
-    function afterRollover(args) {
-        if (args.brushing_history && brushHistory[args.target] && brushHistory[args.target].brushed) {
-            var svg = d3.select(args.target).select('svg');
-            svg.classed('mg-brushed', true);
-        }
-    }
-
-    MG.add_hook('line.after_rollover', afterRollover);
-
-    return;
-}
-});
-
-;require.alias("buffer/index.js", "buffer");
+require.alias("buffer/index.js", "buffer");
 require.alias("builtin-status-codes/browser.js", "builtin-status-codes");
 require.alias("core-util-is/lib/util.js", "core-util-is");
 require.alias("d3/build/d3.node.js", "d3");
