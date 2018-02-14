@@ -31,7 +31,7 @@ Now, to install:
       ```
 
 
-2.  Configure the following environment variables:
+2.  Configure the following environment variables in the `docker-compose.yml` file:
 
     ```bash
     # Most likely required
