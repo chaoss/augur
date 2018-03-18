@@ -8,5 +8,3 @@ class LocalCSV(object):
         return
 
     name_gender = pd.read_csv(get_data_path('name_gender.csv'), index_col=0) #read the data from name_gender.csv
-    
-    
