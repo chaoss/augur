@@ -55,5 +55,3 @@ _pycache_
 # Node #
 ########
 *node_modules/
-
-venv/
