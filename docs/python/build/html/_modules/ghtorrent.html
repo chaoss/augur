@@ -5,12 +5,12 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-
+    
     <title>ghtorrent &#8212; Augur  documentation</title>
-
+    
     <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-
+    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
@@ -27,21 +27,21 @@
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-
+   
   <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
-
-
+  
+  
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
   </head>
   <body role="document">
-
+  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
           <div class="body" role="main">
-
+            
   <h1>Source code for ghtorrent</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 <span class="kn">import</span> <span class="nn">sqlalchemy</span> <span class="k">as</span> <span class="nn">s</span>
@@ -131,7 +131,7 @@
 <span class="s2">            WHERE </span><span class="si">{1}</span><span class="s2">.</span><span class="si">{3}</span><span class="s2"> = </span><span class="si">{0}</span><span class="s2">.</span><span class="si">{2}</span><span class="s2"></span>
 <span class="s2">            AND </span><span class="si">{0}</span><span class="s2">.</span><span class="si">{4}</span><span class="s2"> = :repoid</span>
 <span class="s2">            GROUP BY YEARWEEK(</span><span class="si">{1}</span><span class="s2">.created_at)&quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">parent_table</span><span class="p">,</span> <span class="n">sub_table</span><span class="p">,</span> <span class="n">parent_id</span><span class="p">,</span> <span class="n">sub_id</span><span class="p">,</span> <span class="n">project_id</span><span class="p">)</span>
-
+    
 
 <div class="viewcode-block" id="GHTorrent.repoid"><a class="viewcode-back" href="../index.html#ghtorrent.GHTorrent.repoid">[docs]</a>    <span class="k">def</span> <span class="nf">repoid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">owner_or_repoid</span><span class="p">,</span> <span class="n">repo</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -298,7 +298,7 @@
 <span class="s2">                AND commits.project_id = :repoid</span>
 <span class="s2">            AND issues.repo_id = :repoid ) </span>
 <span class="s2">            GROUP BY issues.id</span>
-<span class="s2">        &quot;&quot;&quot;</span><span class="p">)</span>
+<span class="s2">        &quot;&quot;&quot;</span><span class="p">)</span> 
         <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_sql</span><span class="p">(</span><span class="n">issueResponseTimeSQL</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;repoid&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">repoid</span><span class="p">)})</span>
 
     <span class="k">def</span> <span class="nf">issue_activity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -309,11 +309,11 @@
 <span class="s2">                JOIN issue_events ON issues.id = issue_events.issue_id</span>
 <span class="s2">                WHERE issues.repo_id = :repoid</span>
 <span class="s2">                GROUP BY YEARWEEK(issues.created_at)</span>
-<span class="s2">            &quot;&quot;&quot;</span><span class="p">)</span>
+<span class="s2">            &quot;&quot;&quot;</span><span class="p">)</span> 
         <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_sql</span><span class="p">(</span><span class="n">issueActivity</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;repoid&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">repoid</span><span class="p">)})</span>
         <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">issues_open</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span>
         <span class="n">globalIssuesOpened</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="n">df</span><span class="p">[</span><span class="s2">&quot;issues_open&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;issues_opened&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;issues_closed&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;issues_reopened&quot;</span><span class="p">]</span>
+        <span class="n">df</span><span class="p">[</span><span class="s2">&quot;issues_open&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;issues_opened&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;issues_closed&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;issues_reopened&quot;</span><span class="p">]</span> 
         <span class="n">dates</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">issueActivityCount</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">issuesAction</span> <span class="o">=</span> <span class="p">[]</span>
@@ -688,6 +688,84 @@
         <span class="k">return</span> <span class="n">counts</span>
 
 
+    <span class="k">def</span> <span class="nf">issue_comment_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="p">):</span>
+        <span class="n">repoid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">repoid</span><span class="p">(</span><span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="p">)</span>
+        <span class="n">issueCommentsSQL</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">sql</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">            SELECT *, TIMESTAMPDIFF(MINUTE, opened, first_commented) AS minutes_to_comment FROM ( </span>
+<span class="s2">                </span>
+<span class="s2">                SELECT issues.id AS id, issues.created_at AS opened, MIN(issue_comments.created_at) AS first_commented, 0 AS pull_request</span>
+<span class="s2">                FROM issues</span>
+<span class="s2">                LEFT JOIN issue_comments</span>
+<span class="s2">                ON issues.id = issue_comments.issue_id</span>
+<span class="s2">                WHERE issues.pull_request = 0 AND issues.repo_id = :repoid</span>
+<span class="s2">                GROUP BY id</span>
+<span class="s2">                </span>
+<span class="s2">                UNION ALL</span>
+<span class="s2">                </span>
+<span class="s2">                SELECT issues.id AS id, issues.created_at AS opened, MIN(pull_request_comments.created_at) AS first_commented, 1 AS pull_request</span>
+<span class="s2">                FROM issues</span>
+<span class="s2">                LEFT JOIN pull_request_comments</span>
+<span class="s2">                ON issues.pull_request_id = pull_request_comments.pull_request_id</span>
+<span class="s2">                WHERE issues.pull_request = 1 AND issues.repo_id = :repoid</span>
+<span class="s2">                GROUP BY id</span>
+<span class="s2">             ) a</span>
+<span class="s2">            &quot;&quot;&quot;</span><span class="p">)</span>
+        <span class="n">rs</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_sql</span><span class="p">(</span><span class="n">issueCommentsSQL</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;repoid&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">repoid</span><span class="p">)})</span>
+        <span class="k">return</span> <span class="n">rs</span>
+
+<div class="viewcode-block" id="GHTorrent.maintainer_response_to_merge_request_duration"><a class="viewcode-back" href="../index.html#ghtorrent.GHTorrent.maintainer_response_to_merge_request_duration">[docs]</a>    <span class="k">def</span> <span class="nf">maintainer_response_to_merge_request_duration</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        *1). Get a list of all the comments on merge requests, and the user ids of the people who made those comments</span>
+<span class="sd">        2). Get a list of all maintainers for the repository</span>
+<span class="sd">        3). For merge request, append the ID of the first comment that was made by a maintainer to an array, if it exists (also append the issue id to a different array) ***use a data frame?***</span>
+<span class="sd">        *4). For every one of those comment IDs, append the timestamp difference to a array</span>
+<span class="sd">        5). Calculate mean time per week</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">repoid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">repoid</span><span class="p">(</span><span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="p">)</span>
+        <span class="n">maintainerResponseToMRSQL</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">sql</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">             SELECT</span>
+<span class="s2">               issues.issue_id as &quot;issue_id&quot;, </span>
+<span class="s2">               issue_comments.user_id as &quot;user_id&quot;, </span>
+<span class="s2">               issue_comments.comment_id as &quot;comment_id&quot;,</span>
+<span class="s2">               issue_comments.issue_id as &quot;comment_issue_id&quot;,</span>
+<span class="s2">               issue_comments.created_at as &quot;issue_comment_created_at&quot;,</span>
+<span class="s2">               issues.created_at as &quot;issue_created_at&quot;</span>
+<span class="s2">            FROM issues, issue_comments</span>
+<span class="s2">            WHERE issue_comments.issue_id = issues.issue_id </span>
+<span class="s2">            AND issues.pull_request = 1</span>
+<span class="s2">            AND issues.repo_id = :repoid</span>
+<span class="s2">            ORDER BY (issues.created_at)  </span>
+<span class="s2">            &quot;&quot;&quot;</span><span class="p">)</span> 
+        <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_sql</span><span class="p">(</span><span class="n">maintainerResponseToMRSQL</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;repoid&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">repoid</span><span class="p">)})</span>
+        <span class="k">return</span> <span class="n">df</span>
+
+        <span class="n">classified</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">classify_contributors</span><span class="p">(</span><span class="n">repoid</span><span class="p">,</span> <span class="n">repo</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+
+        <span class="n">maintainerIDs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">classified</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;role&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;maintainer&quot;</span><span class="p">:</span>
+                <span class="n">maintainerIDs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">maintainerIDs</span><span class="p">,</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;user&#39;</span><span class="p">])</span>
+
+        <span class="n">commentIDs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">issueIDs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">rowArray</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">user</span> <span class="ow">in</span> <span class="n">maintainerIDs</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;user_id&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">user</span><span class="p">:</span>
+                    <span class="n">commentIDs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;comment_id&#39;</span><span class="p">])</span>
+                    <span class="n">issueIDs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;issue_id&#39;</span><span class="p">])</span>
+                    <span class="n">rowArray</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+                    <span class="k">break</span>
+
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">rowArray</span><span class="p">:</span>
+            <span class="n">timedelta</span> <span class="o">=</span> <span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">row</span><span class="p">,</span> <span class="s1">&#39;issue_comment_created_at&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">row</span><span class="p">,</span> <span class="s1">&#39;issue_created_at&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">timedelta</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">times</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">times</span><span class="p">,</span> <span class="n">timedelta</span><span class="p">)</span>
+
+        <span class="n">df2</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">times</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;response_time&quot;</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">df2</span></div>
+
+
     <span class="k">def</span> <span class="nf">ghtorrent_range</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">ghtorrentRangeSQL</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">sql</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
 <span class="s2">        SELECT MIN(date(created_at)) AS &quot;min_date&quot;, MAX(date(created_at)) AS &quot;max_date&quot; </span>
@@ -725,15 +803,15 @@
     </div>
     <div class="footer">
       &copy;2018, Augur Contributors.
-
+      
       |
       Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.6</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
-
+      
     </div>
 
+    
 
-
-
+    
   </body>
 </html>
