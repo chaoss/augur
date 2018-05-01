@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Welcome to Augur’s documentation! &#8212; Augur  documentation</title>
+    <title>Augur &#8212; Augur  documentation</title>
     
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -42,11 +42,369 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <div class="section" id="welcome-to-augur-s-documentation">
-<h1>Welcome to Augur&#8217;s documentation!<a class="headerlink" href="#welcome-to-augur-s-documentation" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="augur">
+<h1>Augur<a class="headerlink" href="#augur" title="Permalink to this headline">¶</a></h1>
 <div class="toctree-wrapper compound">
 </div>
-<span class="target" id="module-augur"></span></div>
+<span class="target" id="module-ghtorrent"></span><dl class="class">
+<dt id="ghtorrent.GHTorrent">
+<em class="property">class </em><code class="descclassname">ghtorrent.</code><code class="descname">GHTorrent</code><span class="sig-paren">(</span><em>dbstr</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ghtorrent.html#GHTorrent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghtorrent.GHTorrent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Uses GHTorrent and other GitHub data sources and returns dataframes with interesting GitHub indicators</p>
+<dl class="method">
+<dt id="ghtorrent.GHTorrent.classify_contributors">
+<code class="descname">classify_contributors</code><span class="sig-paren">(</span><em>owner</em>, <em>repo=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ghtorrent.html#GHTorrent.classify_contributors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghtorrent.GHTorrent.classify_contributors" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>Classify everyone who has interacted with a repo into</dt>
+<dd><ul class="first last simple">
+<li>user</li>
+<li>tester</li>
+<li>rejected_contributor</li>
+<li>contributor</li>
+<li>major_contributor</li>
+<li>maintainer</li>
+</ul>
+</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>owner</strong> &#8211; The name of the project owner or the id of the project in the projects table of the project in the projects table.</li>
+<li><strong>repo</strong> &#8211; The name of the repo. Unneeded if repository id was passed as owner.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">DataFrame with the login and role of contributors</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="ghtorrent.GHTorrent.commit_comments">
+<code class="descname">commit_comments</code><span class="sig-paren">(</span><em>owner</em>, <em>repo=None</em>, <em>group_by='week'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ghtorrent.html#GHTorrent.commit_comments"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghtorrent.GHTorrent.commit_comments" title="Permalink to this definition">¶</a></dt>
+<dd><p>Timeseries of commit comments</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>owner</strong> &#8211; The name of the project owner or the id of the project in the projects table of the project in the projects table. Use repoid() to get this.</li>
+<li><strong>repo</strong> &#8211; The name of the repo. Unneeded if repository id was passed as owner.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">DataFrame with new by week</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="ghtorrent.GHTorrent.commits">
+<code class="descname">commits</code><span class="sig-paren">(</span><em>owner</em>, <em>repo=None</em>, <em>group_by='week'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ghtorrent.html#GHTorrent.commits"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghtorrent.GHTorrent.commits" title="Permalink to this definition">¶</a></dt>
+<dd><p>Timeseries of all the commits on a repo</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>owner</strong> &#8211; The name of the project owner or the id of the project in the projects table of the project in the projects table. Use repoid() to get this.</li>
+<li><strong>repo</strong> &#8211; The name of the repo. Unneeded if repository id was passed as owner.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">DataFrame with commits/day</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="ghtorrent.GHTorrent.committer_locations">
+<code class="descname">committer_locations</code><span class="sig-paren">(</span><em>owner</em>, <em>repo=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ghtorrent.html#GHTorrent.committer_locations"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghtorrent.GHTorrent.committer_locations" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return committers and their locations</p>
+<p>&#64;todo: Group by country code instead of users, needs the new schema</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>owner</strong> &#8211; The name of the project owner or the id of the project in the projects table of the project in the projects table.</li>
+<li><strong>repo</strong> &#8211; The name of the repo.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">DataFrame with users and locations sorted by commtis</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="ghtorrent.GHTorrent.community_age">
+<code class="descname">community_age</code><span class="sig-paren">(</span><em>owner</em>, <em>repo=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ghtorrent.html#GHTorrent.community_age"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghtorrent.GHTorrent.community_age" title="Permalink to this definition">¶</a></dt>
+<dd><p>Information helpful to determining a community&#8217;s age</p>
+<p>For now, returns the date of the first of each type of action (fork, pull request, etc.)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ghtorrent.GHTorrent.contributions">
+<code class="descname">contributions</code><span class="sig-paren">(</span><em>owner</em>, <em>repo=None</em>, <em>userid=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ghtorrent.html#GHTorrent.contributions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghtorrent.GHTorrent.contributions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Timeseries of all the contributions to a project, optionally limited to a specific user</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>owner</strong> &#8211; The name of the project owner or the id of the project in the projects table of the project in the projects table</li>
+<li><strong>repo</strong> &#8211; The name of the repo. Unneeded if repository id was passed as owner.</li>
+<li><strong>userid</strong> &#8211; The id of user if you want to limit the contributions to a specific user.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">DataFrame with all of the contributions seperated by day.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="ghtorrent.GHTorrent.contributors">
+<code class="descname">contributors</code><span class="sig-paren">(</span><em>owner</em>, <em>repo=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ghtorrent.html#GHTorrent.contributors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghtorrent.GHTorrent.contributors" title="Permalink to this definition">¶</a></dt>
+<dd><p>All the contributors to a project and the counts of their contributions</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>owner</strong> &#8211; The name of the project owner or the id of the project in the projects table of the project in the projects table. Use repoid() to get this.</li>
+<li><strong>repo</strong> &#8211; The name of the repo. Unneeded if repository id was passed as owner.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">DataFrame with users id, users login, and their contributions by type</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="ghtorrent.GHTorrent.forks">
+<code class="descname">forks</code><span class="sig-paren">(</span><em>owner</em>, <em>repo=None</em>, <em>group_by='week'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ghtorrent.html#GHTorrent.forks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghtorrent.GHTorrent.forks" title="Permalink to this definition">¶</a></dt>
+<dd><p>Timeseries of when a repo&#8217;s forks were created</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>owner</strong> &#8211; The name of the project owner or the id of the project in the projects table of the project in the projects table. Use repoid() to get this.</li>
+<li><strong>repo</strong> &#8211; The name of the repo. Unneeded if repository id was passed as owner.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">DataFrame with forks/day</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="ghtorrent.GHTorrent.issue_comments">
+<code class="descname">issue_comments</code><span class="sig-paren">(</span><em>owner</em>, <em>repo=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ghtorrent.html#GHTorrent.issue_comments"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghtorrent.GHTorrent.issue_comments" title="Permalink to this definition">¶</a></dt>
+<dd><p>Timeseries of issue comments</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>owner</strong> &#8211; The name of the project owner or the id of the project in the projects table of the project in the projects table. Use repoid() to get this.</li>
+<li><strong>repo</strong> &#8211; The name of the repo. Unneeded if repository id was passed as owner.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">DataFrame with new by week</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="ghtorrent.GHTorrent.issues">
+<code class="descname">issues</code><span class="sig-paren">(</span><em>owner</em>, <em>repo=None</em>, <em>group_by='week'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ghtorrent.html#GHTorrent.issues"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghtorrent.GHTorrent.issues" title="Permalink to this definition">¶</a></dt>
+<dd><p>Timeseries of issues opened per day</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>owner</strong> &#8211; The name of the project owner or the id of the project in the projects table of the project in the projects table. Use repoid() to get this.</li>
+<li><strong>repo</strong> &#8211; The name of the repo. Unneeded if repository id was passed as owner.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">DataFrame with issues/day</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="ghtorrent.GHTorrent.issues_with_close">
+<code class="descname">issues_with_close</code><span class="sig-paren">(</span><em>owner</em>, <em>repo=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ghtorrent.html#GHTorrent.issues_with_close"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghtorrent.GHTorrent.issues_with_close" title="Permalink to this definition">¶</a></dt>
+<dd><p>How long on average each week it takes to close an issue</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>owner</strong> &#8211; The name of the project owner or the id of the project in the projects table of the project in the projects table. Use repoid() to get this.</li>
+<li><strong>repo</strong> &#8211; The name of the repo. Unneeded if repository id was passed as owner.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">DataFrame with issues/day</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="ghtorrent.GHTorrent.pull_acceptance_rate">
+<code class="descname">pull_acceptance_rate</code><span class="sig-paren">(</span><em>owner</em>, <em>repo=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ghtorrent.html#GHTorrent.pull_acceptance_rate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghtorrent.GHTorrent.pull_acceptance_rate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Timeseries of pull request acceptance rate (Number of pull requests merged on a date over Number of pull requests opened on a date)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>owner</strong> &#8211; The name of the project owner or the id of the project in the projects table of the project in the projects table.</li>
+<li><strong>repo</strong> &#8211; The name of the repo. Unneeded if repository id was passed as owner.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">DataFrame with the pull acceptance rate and the dates</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="ghtorrent.GHTorrent.pull_request_comments">
+<code class="descname">pull_request_comments</code><span class="sig-paren">(</span><em>owner</em>, <em>repo=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ghtorrent.html#GHTorrent.pull_request_comments"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghtorrent.GHTorrent.pull_request_comments" title="Permalink to this definition">¶</a></dt>
+<dd><p>Timeseries of pull request comments</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>owner</strong> &#8211; The name of the project owner or the id of the project in the projects table of the project in the projects table. Use repoid() to get this.</li>
+<li><strong>repo</strong> &#8211; The name of the repo. Unneeded if repository id was passed as owner.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">DataFrame with new by week</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="ghtorrent.GHTorrent.pulls">
+<code class="descname">pulls</code><span class="sig-paren">(</span><em>owner</em>, <em>repo=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ghtorrent.html#GHTorrent.pulls"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghtorrent.GHTorrent.pulls" title="Permalink to this definition">¶</a></dt>
+<dd><p>Timeseries of pull requests creation, also gives their associated activity</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>owner</strong> &#8211; The name of the project owner or the id of the project in the projects table of the project in the projects table. Use repoid() to get this.</li>
+<li><strong>repo</strong> &#8211; The name of the repo. Unneeded if repository id was passed as owner.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">DataFrame with pull requests by day</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="ghtorrent.GHTorrent.repoid">
+<code class="descname">repoid</code><span class="sig-paren">(</span><em>owner_or_repoid</em>, <em>repo=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ghtorrent.html#GHTorrent.repoid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghtorrent.GHTorrent.repoid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a repository&#8217;s ID as it appears in the GHTorrent projects table
+github.com/[owner]/[project]</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>owner</strong> &#8211; The username of a project&#8217;s owner</li>
+<li><strong>repo</strong> &#8211; The name of the repository</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">The repository&#8217;s ID as it appears in the GHTorrent projects table</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="ghtorrent.GHTorrent.stargazers">
+<code class="descname">stargazers</code><span class="sig-paren">(</span><em>owner</em>, <em>repo=None</em>, <em>group_by='week'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ghtorrent.html#GHTorrent.stargazers"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghtorrent.GHTorrent.stargazers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Timeseries of when people starred a repo</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>owner</strong> &#8211; The name of the project owner or the id of the project in the projects table of the project in the projects table. Use repoid() to get this.</li>
+<li><strong>repo</strong> &#8211; The name of the repo. Unneeded if repository id was passed as owner.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">DataFrame with stargazers/day</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="ghtorrent.GHTorrent.userid">
+<code class="descname">userid</code><span class="sig-paren">(</span><em>username</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ghtorrent.html#GHTorrent.userid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghtorrent.GHTorrent.userid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the userid given a username</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>username</strong> &#8211; GitHub username to be matched against the login table in GHTorrent</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The id from the users table in GHTorrent</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
 <div class="section" id="indices-and-tables">
 <h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
 <ul class="simple">
@@ -64,7 +422,7 @@
         <div class="sphinxsidebarwrapper">
   <h3><a href="#">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">Welcome to Augur&#8217;s documentation!</a></li>
+<li><a class="reference internal" href="#">Augur</a></li>
 <li><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
 </ul>
 <div class="relations">
@@ -96,7 +454,7 @@
       <div class="clearer"></div>
     </div>
     <div class="footer">
-      &copy;2017, Augur Contributors.
+      &copy;2018, Augur Contributors.
       
       |
       Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.6</a>
