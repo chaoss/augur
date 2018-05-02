@@ -1,30 +1,19 @@
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
     <title>Augur &#8212; Augur  documentation</title>
-    
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    './',
-        VERSION:     '',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true,
-        SOURCELINK_SUFFIX: '.txt'
-      };
-    </script>
+    <script type="text/javascript" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
    
@@ -33,8 +22,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
-  </head>
-  <body role="document">
+  </head><body>
   
 
     <div class="document">
@@ -70,8 +58,8 @@
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>owner</strong> &#8211; The name of the project owner or the id of the project in the projects table of the project in the projects table.</li>
-<li><strong>repo</strong> &#8211; The name of the repo. Unneeded if repository id was passed as owner.</li>
+<li><strong>owner</strong> – The name of the project owner or the id of the project in the projects table of the project in the projects table.</li>
+<li><strong>repo</strong> – The name of the repo. Unneeded if repository id was passed as owner.</li>
 </ul>
 </td>
 </tr>
@@ -91,8 +79,8 @@
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>owner</strong> &#8211; The name of the project owner or the id of the project in the projects table of the project in the projects table. Use repoid() to get this.</li>
-<li><strong>repo</strong> &#8211; The name of the repo. Unneeded if repository id was passed as owner.</li>
+<li><strong>owner</strong> – The name of the project owner or the id of the project in the projects table of the project in the projects table. Use repoid() to get this.</li>
+<li><strong>repo</strong> – The name of the repo. Unneeded if repository id was passed as owner.</li>
 </ul>
 </td>
 </tr>
@@ -112,8 +100,8 @@
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>owner</strong> &#8211; The name of the project owner or the id of the project in the projects table of the project in the projects table. Use repoid() to get this.</li>
-<li><strong>repo</strong> &#8211; The name of the repo. Unneeded if repository id was passed as owner.</li>
+<li><strong>owner</strong> – The name of the project owner or the id of the project in the projects table of the project in the projects table. Use repoid() to get this.</li>
+<li><strong>repo</strong> – The name of the repo. Unneeded if repository id was passed as owner.</li>
 </ul>
 </td>
 </tr>
@@ -134,8 +122,8 @@
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>owner</strong> &#8211; The name of the project owner or the id of the project in the projects table of the project in the projects table.</li>
-<li><strong>repo</strong> &#8211; The name of the repo.</li>
+<li><strong>owner</strong> – The name of the project owner or the id of the project in the projects table of the project in the projects table.</li>
+<li><strong>repo</strong> – The name of the repo.</li>
 </ul>
 </td>
 </tr>
@@ -149,7 +137,7 @@
 <dl class="method">
 <dt id="ghtorrent.GHTorrent.community_age">
 <code class="descname">community_age</code><span class="sig-paren">(</span><em>owner</em>, <em>repo=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ghtorrent.html#GHTorrent.community_age"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghtorrent.GHTorrent.community_age" title="Permalink to this definition">¶</a></dt>
-<dd><p>Information helpful to determining a community&#8217;s age</p>
+<dd><p>Information helpful to determining a community’s age</p>
 <p>For now, returns the date of the first of each type of action (fork, pull request, etc.)</p>
 </dd></dl>
 
@@ -162,9 +150,9 @@
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>owner</strong> &#8211; The name of the project owner or the id of the project in the projects table of the project in the projects table</li>
-<li><strong>repo</strong> &#8211; The name of the repo. Unneeded if repository id was passed as owner.</li>
-<li><strong>userid</strong> &#8211; The id of user if you want to limit the contributions to a specific user.</li>
+<li><strong>owner</strong> – The name of the project owner or the id of the project in the projects table of the project in the projects table</li>
+<li><strong>repo</strong> – The name of the repo. Unneeded if repository id was passed as owner.</li>
+<li><strong>userid</strong> – The id of user if you want to limit the contributions to a specific user.</li>
 </ul>
 </td>
 </tr>
@@ -184,8 +172,8 @@
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>owner</strong> &#8211; The name of the project owner or the id of the project in the projects table of the project in the projects table. Use repoid() to get this.</li>
-<li><strong>repo</strong> &#8211; The name of the repo. Unneeded if repository id was passed as owner.</li>
+<li><strong>owner</strong> – The name of the project owner or the id of the project in the projects table of the project in the projects table. Use repoid() to get this.</li>
+<li><strong>repo</strong> – The name of the repo. Unneeded if repository id was passed as owner.</li>
 </ul>
 </td>
 </tr>
@@ -199,14 +187,14 @@
 <dl class="method">
 <dt id="ghtorrent.GHTorrent.forks">
 <code class="descname">forks</code><span class="sig-paren">(</span><em>owner</em>, <em>repo=None</em>, <em>group_by='week'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ghtorrent.html#GHTorrent.forks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghtorrent.GHTorrent.forks" title="Permalink to this definition">¶</a></dt>
-<dd><p>Timeseries of when a repo&#8217;s forks were created</p>
+<dd><p>Timeseries of when a repo’s forks were created</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>owner</strong> &#8211; The name of the project owner or the id of the project in the projects table of the project in the projects table. Use repoid() to get this.</li>
-<li><strong>repo</strong> &#8211; The name of the repo. Unneeded if repository id was passed as owner.</li>
+<li><strong>owner</strong> – The name of the project owner or the id of the project in the projects table of the project in the projects table. Use repoid() to get this.</li>
+<li><strong>repo</strong> – The name of the repo. Unneeded if repository id was passed as owner.</li>
 </ul>
 </td>
 </tr>
@@ -226,8 +214,8 @@
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>owner</strong> &#8211; The name of the project owner or the id of the project in the projects table of the project in the projects table. Use repoid() to get this.</li>
-<li><strong>repo</strong> &#8211; The name of the repo. Unneeded if repository id was passed as owner.</li>
+<li><strong>owner</strong> – The name of the project owner or the id of the project in the projects table of the project in the projects table. Use repoid() to get this.</li>
+<li><strong>repo</strong> – The name of the repo. Unneeded if repository id was passed as owner.</li>
 </ul>
 </td>
 </tr>
@@ -247,8 +235,8 @@
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>owner</strong> &#8211; The name of the project owner or the id of the project in the projects table of the project in the projects table. Use repoid() to get this.</li>
-<li><strong>repo</strong> &#8211; The name of the repo. Unneeded if repository id was passed as owner.</li>
+<li><strong>owner</strong> – The name of the project owner or the id of the project in the projects table of the project in the projects table. Use repoid() to get this.</li>
+<li><strong>repo</strong> – The name of the repo. Unneeded if repository id was passed as owner.</li>
 </ul>
 </td>
 </tr>
@@ -268,8 +256,8 @@
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>owner</strong> &#8211; The name of the project owner or the id of the project in the projects table of the project in the projects table. Use repoid() to get this.</li>
-<li><strong>repo</strong> &#8211; The name of the repo. Unneeded if repository id was passed as owner.</li>
+<li><strong>owner</strong> – The name of the project owner or the id of the project in the projects table of the project in the projects table. Use repoid() to get this.</li>
+<li><strong>repo</strong> – The name of the repo. Unneeded if repository id was passed as owner.</li>
 </ul>
 </td>
 </tr>
@@ -281,16 +269,6 @@
 </dd></dl>
 
 <dl class="method">
-<dt id="ghtorrent.GHTorrent.maintainer_response_to_merge_request_duration">
-<code class="descname">maintainer_response_to_merge_request_duration</code><span class="sig-paren">(</span><em>owner</em>, <em>repo=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ghtorrent.html#GHTorrent.maintainer_response_to_merge_request_duration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghtorrent.GHTorrent.maintainer_response_to_merge_request_duration" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>1). Get a list of all the comments on merge requests, and the user ids of the people who made those comments
-2). Get a list of all maintainers for the repository
-3). For merge request, append the ID of the first comment that was made by a maintainer to an array, if it exists (also append the issue id to a different array) ***use a data frame?**</em>
-<a href="#id1"><span class="problematic" id="id2">*</span></a>4). For every one of those comment IDs, append the timestamp difference to a array
-5). Calculate mean time per week</p>
-</dd></dl>
-
-<dl class="method">
 <dt id="ghtorrent.GHTorrent.pull_acceptance_rate">
 <code class="descname">pull_acceptance_rate</code><span class="sig-paren">(</span><em>owner</em>, <em>repo=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ghtorrent.html#GHTorrent.pull_acceptance_rate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghtorrent.GHTorrent.pull_acceptance_rate" title="Permalink to this definition">¶</a></dt>
 <dd><p>Timeseries of pull request acceptance rate (Number of pull requests merged on a date over Number of pull requests opened on a date)</p>
@@ -299,8 +277,8 @@
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>owner</strong> &#8211; The name of the project owner or the id of the project in the projects table of the project in the projects table.</li>
-<li><strong>repo</strong> &#8211; The name of the repo. Unneeded if repository id was passed as owner.</li>
+<li><strong>owner</strong> – The name of the project owner or the id of the project in the projects table of the project in the projects table.</li>
+<li><strong>repo</strong> – The name of the repo. Unneeded if repository id was passed as owner.</li>
 </ul>
 </td>
 </tr>
@@ -320,8 +298,8 @@
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>owner</strong> &#8211; The name of the project owner or the id of the project in the projects table of the project in the projects table. Use repoid() to get this.</li>
-<li><strong>repo</strong> &#8211; The name of the repo. Unneeded if repository id was passed as owner.</li>
+<li><strong>owner</strong> – The name of the project owner or the id of the project in the projects table of the project in the projects table. Use repoid() to get this.</li>
+<li><strong>repo</strong> – The name of the repo. Unneeded if repository id was passed as owner.</li>
 </ul>
 </td>
 </tr>
@@ -341,8 +319,8 @@
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>owner</strong> &#8211; The name of the project owner or the id of the project in the projects table of the project in the projects table. Use repoid() to get this.</li>
-<li><strong>repo</strong> &#8211; The name of the repo. Unneeded if repository id was passed as owner.</li>
+<li><strong>owner</strong> – The name of the project owner or the id of the project in the projects table of the project in the projects table. Use repoid() to get this.</li>
+<li><strong>repo</strong> – The name of the repo. Unneeded if repository id was passed as owner.</li>
 </ul>
 </td>
 </tr>
@@ -356,19 +334,19 @@
 <dl class="method">
 <dt id="ghtorrent.GHTorrent.repoid">
 <code class="descname">repoid</code><span class="sig-paren">(</span><em>owner_or_repoid</em>, <em>repo=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ghtorrent.html#GHTorrent.repoid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghtorrent.GHTorrent.repoid" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns a repository&#8217;s ID as it appears in the GHTorrent projects table
+<dd><p>Returns a repository’s ID as it appears in the GHTorrent projects table
 github.com/[owner]/[project]</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>owner</strong> &#8211; The username of a project&#8217;s owner</li>
-<li><strong>repo</strong> &#8211; The name of the repository</li>
+<li><strong>owner</strong> – The username of a project’s owner</li>
+<li><strong>repo</strong> – The name of the repository</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">The repository&#8217;s ID as it appears in the GHTorrent projects table</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">The repository’s ID as it appears in the GHTorrent projects table</p>
 </td>
 </tr>
 </tbody>
@@ -384,8 +362,8 @@ github.com/[owner]/[project]</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>owner</strong> &#8211; The name of the project owner or the id of the project in the projects table of the project in the projects table. Use repoid() to get this.</li>
-<li><strong>repo</strong> &#8211; The name of the repo. Unneeded if repository id was passed as owner.</li>
+<li><strong>owner</strong> – The name of the project owner or the id of the project in the projects table of the project in the projects table. Use repoid() to get this.</li>
+<li><strong>repo</strong> – The name of the repo. Unneeded if repository id was passed as owner.</li>
 </ul>
 </td>
 </tr>
@@ -397,6 +375,16 @@ github.com/[owner]/[project]</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="ghtorrent.GHTorrent.time_to_first_maintainer_response_to_merge_request">
+<code class="descname">time_to_first_maintainer_response_to_merge_request</code><span class="sig-paren">(</span><em>owner</em>, <em>repo=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ghtorrent.html#GHTorrent.time_to_first_maintainer_response_to_merge_request"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghtorrent.GHTorrent.time_to_first_maintainer_response_to_merge_request" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>1). Get a list of all the comments on merge requests, and the user ids of the people who made those comments
+2). Get a list of all maintainers for the repository
+3). For merge request, append the ID of the first comment that was made by a maintainer to an array, if it exists (also append the issue id to a different array) ***use a data frame?**</em>
+<a href="#id1"><span class="problematic" id="id2">*</span></a>4). For every one of those comment IDs, append the timestamp difference to a array
+5). Calculate mean time per week</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="ghtorrent.GHTorrent.userid">
 <code class="descname">userid</code><span class="sig-paren">(</span><em>username</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ghtorrent.html#GHTorrent.userid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghtorrent.GHTorrent.userid" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the userid given a username</p>
@@ -404,7 +392,7 @@ github.com/[owner]/[project]</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>username</strong> &#8211; GitHub username to be matched against the login table in GHTorrent</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>username</strong> – GitHub username to be matched against the login table in GHTorrent</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The id from the users table in GHTorrent</td>
 </tr>
@@ -451,12 +439,14 @@ github.com/[owner]/[project]</p>
    </div>
 <div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
+    <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <div><input type="text" name="q" /></div>
-      <div><input type="submit" value="Go" /></div>
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
     </form>
+    </div>
 </div>
 <script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
@@ -467,7 +457,7 @@ github.com/[owner]/[project]</p>
       &copy;2018, Augur Contributors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.6</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.4</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
       
       |
