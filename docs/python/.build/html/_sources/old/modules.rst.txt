@@ -1,7 +1,7 @@
-ghdata
+augur
 ======
 
 .. toctree::
    :maxdepth: 4
 
-   ghdata
+   augur

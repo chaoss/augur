@@ -1,25 +1,14 @@
-.PHONY: all test clean install install-dev python-docs api-docs docs dev-start dev-stop dev-restart monitor monitor-backend monitor-frontend download-upgrade upgrade
+.PHONY: all test clean install install-dev python-docs api-docs docs dev-start dev-stop dev-restart monitor monitor-backend monitor-frontend download-upgrade upgrade frontend install-ubuntu-dependencies
 
-SHELL=/bin/bash
-PY2 := $(shell command -v pip2 2> /dev/null)
-PY3 := $(shell command -v pip3 2> /dev/null)
-NODE := $(shell command -v npm 2> /dev/null)
-CONDA := $(shell command -v conda 2> /dev/null)
-
-SERVECOMMAND=gunicorn -w`getconf _NPROCESSORS_ONLN` -b0.0.0.0:5000 ghdata.server:app
-
-CONDAUPDATE=
-CONDAACTIVATE=
-ifdef CONDA
-		CONDAUPDATE=if ! source activate ghdata; then conda env create -n=ghdata -f=environment.yml && source activate ghdata; else conda env update -n=ghdata -f=environment.yml && source activate ghdata; fi;
-		CONDAACTIVATE=source activate ghdata;
-endif
+SERVECOMMAND=gunicorn -w`getconf _NPROCESSORS_ONLN` -b0.0.0.0:5000 augur.server:app
+CONDAUPDATE=if ! conda activate augur; then conda env create -n=augur -f=environment.yml && conda activate augur; else conda env update -n=augur -f=environment.yml && conda activate augur; fi;
+CONDAACTIVATE=conda activate augur;
 
 default:
 	@ echo "Commands:"
 	@ echo
-	@ echo "    install          Installs ghdata using pip"
-	@ echo "    install-dev      Installs ghdata's developer dependencies (requires npm and pip)"
+	@ echo "    install          Installs augur using pip"
+	@ echo "    install-dev      Installs augur's developer dependencies (requires npm and pip)"
 	@ echo "    install-msr      Installs MSR14 dataset"
 	@ echo "    upgrade          Pulls newest version and installs"
 	@ echo "    test             Run pytest unit tests"
@@ -31,33 +20,15 @@ default:
 	@ echo "    python-docs      Generates new Sphinx documentation"
 	@ echo "    api-docs         Generates new apidocjs documentation"
 	@ echo "    docs             Generates all documentation"
+	@ echo "    frontend         Builds frontend with Brunch"
 	@ echo "    build            Builds documentation and frontend - use before pushing"
 	@ echo "    update-deps      Generates updated requirements.txt and environment.yml"
-	@ echo
 
-conda:
+install:
+		bash -lc '$(CONDAUPDATE) pip install --upgrade .'
 
-
-install: conda
-		$(CONDAUPDATE) pip install --upgrade .
-
-install-dev: conda
-		$(CONDAUPDATE) pip install pipreqs sphinx
-ifdef PY2
-	  pip2 install --upgrade -e .
-endif
-ifdef PY3
-		$(CONDAACTIVATE) pip3 install --upgrade -e .
-endif
-ifndef PY2
-ifndef PY3
-		 $(CONDAACTIVATE) pip install --upgrade -e .
-endif
-endif
-ifdef NODE
-		npm install -g apidoc brunch yarn
-		cd frontend/ && yarn install
-endif
+install-dev:
+		bash -lc '$(CONDAUPDATE) pip install pipreqs sphinx; npm install -g apidoc brunch; cd frontend/ && npm install'
 
 install-msr:
 		@ ./docs/install-msr.sh
@@ -68,21 +39,18 @@ download-upgrade:
 upgrade: download-upgrade install
 		@ echo "Upgraded."
 
-ugh:
-		
-
 dev-start: dev-stop
 ifdef CONDA
-		@ bash -c '(cd frontend; brunch w -s >../logs/frontend.log 2>&1 & echo $$! > ../logs/frontend.pid);'
-		@ bash -c '(source activate ghdata; $(SERVECOMMAND) >logs/backend.log 2>&1 & echo $$! > logs/backend.pid);'
+		@ bash -lc '(cd frontend; brunch w -s >../logs/frontend.log 2>&1 & echo $$! > ../logs/frontend.pid);'
+		@ bash -lc '(conda activate augur; $(SERVECOMMAND) >logs/backend.log 2>&1 & echo $$! > logs/backend.pid);'
 else
-		@ bash -c '(cd frontend; brunch w -s >../logs/frontend.log 2>&1 & echo $$! > ../logs/frontend.pid);'
-		@ bash -c '($(SERVECOMMAND) >logs/backend.log 2>&1 & echo $$! > logs/backend.pid);'
+		@ bash -lc '(cd frontend; brunch w -s >../logs/frontend.log 2>&1 & echo $$! > ../logs/frontend.pid);'
+		@ bash -lc '($(SERVECOMMAND) >logs/backend.log 2>&1 & echo $$! > logs/backend.pid);'
 endif
 		@ echo "Server     Description       Log                   Monitoring                   PID                        "
 		@ echo "------------------------------------------------------------------------------------------                 "
 		@ echo "Frontend   Brunch            logs/frontend.log     make monitor-backend         $$( cat logs/frontend.pid ) "
-		@ echo "Backend    GHData/Gunicorn   logs/backend.log      make monitor-frontend        $$( cat logs/backend.pid  ) "
+		@ echo "Backend    Augur/Gunicorn    logs/backend.log      make monitor-frontend        $$( cat logs/backend.pid  ) "
 		@ echo
 		@ echo "Monitor both:  make monitor  "
 		@ echo "Restart and monitor: make dev"
@@ -111,10 +79,13 @@ dev-restart: dev-stop dev-start
 
 serve:
 ifdef CONDA
-		bash -c "$(SERVECOMMAND)"
+		bash -lc "$(SERVECOMMAND)"
 else
-		gunicorn -w`getconf _NPROCESSORS_ONLN` -b0.0.0.0:5000 ghdata.server:app
+		gunicorn -w`getconf _NPROCESSORS_ONLN` -b0.0.0.0:5000 augur.server:app
 endif
+
+frontend:
+		bash -lc 'cd frontend; brunch build'
 
 python-docs:
 		cd docs/python   \
@@ -122,12 +93,12 @@ python-docs:
 		&& make html
 
 api-docs:
-		apidoc --debug -f "\.py" -i ghdata/ -o docs/api/
+		cd docs && apidoc --debug -f "\.py" -i ../augur/ -o api/
 
 docs: api-docs python-docs
 
-build: docs
-		cd ghdata/static/ && brunch build --production
+build: frontend docs
+		cd augur/static/ && brunch build --production
 
 check-test-env:
 ifndef DB_TEST_URL
@@ -145,7 +116,7 @@ ifndef PUBLIC_WWW_TEST_API_KEY
 endif
 
 test: check-test-env
-		python -m pytest
+		python -m pytest ./test
 
 update-deps:
 		@ hash pipreqs 2>/dev/null || { echo "This command needs pipreqs, installing..."; pip install pipreqs; exit 1; }
@@ -153,3 +124,20 @@ update-deps:
 ifdef CONDA
 		conda env export > environment.yml
 endif
+
+
+install-ubuntu-dependencies:
+	@ echo "Downloading NodeSource Installer..."
+	curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -
+	@ echo "Installing Node and MariaDB..."
+	sudo apt-get install nodejs mariadb-server
+	@ echo "Downloading Anaconda Installer..."
+	curl https://repo.anaconda.com/archive/Anaconda3-5.1.0-Linux-x86_64.sh | bash -e
+
+install-os-x-dependencies:
+	@ echo "Downloading dependencies..."
+	brew install node mariadb wget
+	@ echo "Downloading Anaconda installer to ~/Downloads..."
+	cd ~/Downloads && wget https://repo.anaconda.com/archive/Anaconda3-5.1.0-MacOSX-x86_64.pkg
+	cd ~/Downloads && open Anaconda3-5.1.0-MacOSX-x86_64.pkg
+

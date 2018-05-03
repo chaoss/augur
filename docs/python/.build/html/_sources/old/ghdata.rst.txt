@@ -1,21 +1,21 @@
-ghdata package
+augur package
 ==============
 
 Submodules
 ----------
 
-ghdata.ghdata module
+augur.augur module
 --------------------
 
-.. automodule:: ghdata.ghdata
+.. automodule:: augur.augur
     :members:
     :undoc-members:
     :show-inheritance:
 
-ghdata.server module
+augur.server module
 --------------------
 
-.. automodule:: ghdata.server
+.. automodule:: augur.server
     :members:
     :undoc-members:
     :show-inheritance:
@@ -24,7 +24,7 @@ ghdata.server module
 Module contents
 ---------------
 
-.. automodule:: ghdata
+.. automodule:: augur
     :members:
     :undoc-members:
     :show-inheritance:

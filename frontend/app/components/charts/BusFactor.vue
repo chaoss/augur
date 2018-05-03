@@ -34,7 +34,7 @@ export default {
       $(this.$el).find('.showme').addClass('invis')
       $(this.$el).find('.textchart').addClass('loader')
       if (this.repo) {
-        window.GHDataRepos[this.repo][this.source]().then((data) => {
+        window.AugurRepos[this.repo][this.source]().then((data) => {
           $(this.$el).find('.showme, .hidefirst').removeClass('invis')
           $(this.$el).find('.textchart').removeClass('loader')
           this.values = data

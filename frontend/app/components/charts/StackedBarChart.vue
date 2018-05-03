@@ -10,6 +10,7 @@
 
 <script>
 import { mapState } from 'vuex'
+import AugurStats from 'AugurStats'
 
 export default {
   props: ['source', 'citeUrl', 'citeText', 'title', 'disableRollingAverage', 'alwaysByDate'],
@@ -46,7 +47,7 @@ export default {
       $(this.$el).find('.showme').addClass('invis')
       $(this.$el).find('.stackedbarchart').addClass('loader')
       if (this.repo) {
-        window.GHDataRepos[this.repo][this.source]().then((data) => {
+        window.AugurRepos[this.repo][this.source]().then((data) => {
           $(this.$el).find('.showme, .hidefirst').removeClass('invis')
           $(this.$el).find('.stackedbarchart').removeClass('loader')
           this.values = data
