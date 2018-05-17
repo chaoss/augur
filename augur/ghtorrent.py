@@ -401,6 +401,16 @@ class GHTorrent(object):
         """)
         return pd.read_sql(contributorsSQL, self.db, params={"repoid": str(repoid)})
 
+    def contributors1(self, owner, repo=None):
+        repoid = self.repoid(owner, repo)
+        contributorsSQL = s.sql.text("""
+            SELECT date(created_at) AS "date", COUNT(*) AS fakes
+            FROM users
+            WHERE fake = true
+            GROUP BY YEARWEEK(date)
+        """)	
+        return pd.read_sql(contributorsSQL, self.db, params={"repoid": str(repoid)})
+
 
     def contributions(self, owner, repo=None, userid=None):
         """
