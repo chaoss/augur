@@ -149,7 +149,8 @@ class GHTorrent(object):
         repoid = self.repoid(owner, repo)
         commitsSQL = s.sql.text(self.__single_table_count_by_date('commits', group_by=group_by))
         return pd.read_sql(commitsSQL, self.db, params={"repoid": str(repoid)})
-
+    
+    # Example of using commits to find those over 100
     def commits1(self, owner, repo=None, group_by="week"):
         """
         Timeseries of all the commits on a repo
@@ -401,6 +402,7 @@ class GHTorrent(object):
         """)
         return pd.read_sql(contributorsSQL, self.db, params={"repoid": str(repoid)})
 
+    #Determines the amount of fake users were made for a particular week
     def contributors1(self, owner, repo=None):
         repoid = self.repoid(owner, repo)
         contributorsSQL = s.sql.text("""
