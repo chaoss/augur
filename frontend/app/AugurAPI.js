@@ -192,7 +192,6 @@ export default class AugurAPI {
     Timeseries(repo, 'tags', 'tags')
     Timeseries(repo, 'downloads', 'downloads')
     Timeseries(repo, 'totalCommitters', 'total_committers')
-    //Timeseries(repo, 'totalCommitters1', 'total_committers')
     Timeseries(repo, 'issueComments', 'issue/comments')
     Timeseries(repo, 'commitComments', 'commits/comments')
     Timeseries(repo, 'pullReqComments', 'pulls/comments')
@@ -200,13 +199,10 @@ export default class AugurAPI {
     Timeseries(repo, 'issuesClosed', 'issues/closed')
     Timeseries(repo, 'issuesResponseTime', 'issues/response_time')
     Timeseries(repo, 'issueActivity', 'issues/activity')
-    Timeseries(repo, 'issueActivity1', 'issues/activity')
     Timeseries(repo, 'communityEngagement', 'community_engagement')
     Timeseries(repo, 'linesChanged', 'lines_changed')
     Timeseries(repo, 'commits1', 'commits1')
-    
-    //addMetric(repo, 'committerLocations', 'committerlocations')
-
+    Timeseries(repo, 'contributors1', 'contributors1')
 
     Endpoint(repo, 'maintainerResponseTime', 'pull/maintainer_response_time')
     Endpoint(repo, 'contributors', 'contributors')
@@ -219,7 +215,7 @@ export default class AugurAPI {
     Endpoint(repo, 'dependencies', 'dependencies')
     Endpoint(repo, 'dependencyStats', 'dependency_stats')
     Endpoint(repo, 'watchers', 'watchers')
+
     return repo
   }
 }
-
