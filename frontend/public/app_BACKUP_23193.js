@@ -539,6 +539,7 @@ var AugurAPI = function () {
         });
       };
 
+<<<<<<< HEAD
       if (repo.owner && repo.name) {
         // DIVERSITY AND INCLUSION
 
@@ -599,6 +600,60 @@ var AugurAPI = function () {
         GitEndpoint(repo, 'linesChangedMinusWhitespace', 'lines_changed');
         GitEndpoint(repo, 'changesByAuthor', 'changes_by_author');
       }
+=======
+      // DIVERSITY AND INCLUSION
+
+      // GROWTH, MATURITY, AND DECLINE
+      Timeseries(repo, 'issues', 'issues');
+      Timeseries(repo, 'issuesClosed', 'issues/closed');
+      Timeseries(repo, 'issuesResponseTime', 'issues/response_time');
+      Timeseries(repo, 'commits', 'commits');
+      Timeseries(repo, 'linesChanged', 'lines_changed');
+      Endpoint(repo, 'maintainerResponseTime', 'pull/maintainer_response_time');
+      Timeseries(repo, 'forks', 'forks');
+      Timeseries(repo, 'pulls', 'pulls');
+      Timeseries(repo, 'pullReqComments', 'pulls/comments');
+
+      // RISK
+
+      // VALUE
+
+      // ACTIVITY
+      Timeseries(repo, 'issueComments', 'issue/comments');
+      Endpoint(repo, 'watchers', 'watchers');
+
+      // EXPERIMENTAL
+
+      // Commit Related
+      Timeseries(repo, 'commits100', 'commits100');
+      Timeseries(repo, 'commitComments', 'commits/comments');
+      Timeseries(repo, 'totalCommitters', 'total_committers');
+      Endpoint(repo, 'committerLocations', 'committer_locations');
+
+      // Issue Related
+      Timeseries(repo, 'issueActivity', 'issues/activity');
+
+      // Pull Request Related
+      Timeseries(repo, 'pullsAcceptanceRate', 'pulls/acceptance_rate');
+
+      // Community / Contributions
+      Timeseries(repo, 'communityEngagement', 'community_engagement');
+      Endpoint(repo, 'communityAge', 'community_age');
+      Endpoint(repo, 'contributors', 'contributors');
+      Endpoint(repo, 'contributions', 'contributions');
+
+      // Dependency Related
+      Endpoint(repo, 'dependencies', 'dependencies');
+      Endpoint(repo, 'dependents', 'dependents');
+      Endpoint(repo, 'dependencyStats', 'dependency_stats');
+
+      // Other
+      Endpoint(repo, 'busFactor', 'bus_factor');
+      Timeseries(repo, 'downloads', 'downloads');
+      Timeseries(repo, 'fakes', 'fakes');
+      Timeseries(repo, 'tags', 'tags');
+      Endpoint(repo, 'linkingWebsites', 'linking_websites');
+>>>>>>> cleanup
 
       return repo;
     }
@@ -870,10 +925,6 @@ if (module.hot) {(function () {  var hotAPI = require("vue-hot-reload-api")
 ;(function(){
 'use strict';
 
-var _MainControls = require('./MainControls');
-
-var _MainControls2 = _interopRequireDefault(_MainControls);
-
 var _BaseRepoActivityCard = require('./BaseRepoActivityCard');
 
 var _BaseRepoActivityCard2 = _interopRequireDefault(_BaseRepoActivityCard);
@@ -902,19 +953,24 @@ var _DiversityInclusionCard = require('./DiversityInclusionCard');
 
 var _DiversityInclusionCard2 = _interopRequireDefault(_DiversityInclusionCard);
 
+<<<<<<< HEAD
 var _GitCard = require('./GitCard');
 
 var _GitCard2 = _interopRequireDefault(_GitCard);
 
+var _MainControls = require('./MainControls.vue');
+
+var _MainControls2 = _interopRequireDefault(_MainControls);
+=======
 var _ExperimentalCard = require('./ExperimentalCard');
 
 var _ExperimentalCard2 = _interopRequireDefault(_ExperimentalCard);
+>>>>>>> cleanup
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 module.exports = {
   components: {
-    MainControls: _MainControls2.default,
     BaseRepoActivityCard: _BaseRepoActivityCard2.default,
     BaseRepoEcosystemCard: _BaseRepoEcosystemCard2.default,
     ComparedRepoActivityCard: _ComparedRepoActivityCard2.default,
@@ -922,8 +978,12 @@ module.exports = {
     RiskCard: _RiskCard2.default,
     ValueCard: _ValueCard2.default,
     DiversityInclusionCard: _DiversityInclusionCard2.default,
+<<<<<<< HEAD
     GitCard: _GitCard2.default,
+    MainControls: _MainControls2.default
+=======
     ExperimentalCard: _ExperimentalCard2.default
+>>>>>>> cleanup
   },
   data: function data() {
     return {
@@ -985,7 +1045,11 @@ module.exports = {
 if (module.exports.__esModule) module.exports = module.exports.default
 var __vue__options__ = (typeof module.exports === "function"? module.exports.options: module.exports)
 if (__vue__options__.functional) {console.error("[vueify] functional components are not supported and should be defined in plain js files using render functions.")}
-__vue__options__.render = function render () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('div',[_c('div',{class:{ hidden: _vm.hasState }},[_c('section',{staticClass:"unmaterialized"},[_c('h3',[_vm._v("Enter a GitHub URL to get started")]),_vm._v(" "),_c('input',{staticClass:"search reposearch",attrs:{"type":"text","placeholder":"GitHub URL"},on:{"change":_vm.onRepo}})]),_vm._v(" "),_c('section',{staticClass:"unmaterialized"},[_c('h3',[_vm._v("Downloaded Git repositories")]),_vm._v(" "),_vm._l((_vm.downloadedRepos),function(repo){return _c('div',[_c('a',{staticClass:"repolink",attrs:{"href":'?git=' + _vm.btoa(repo)}},[_vm._v(_vm._s(repo))])])})],2)]),_vm._v(" "),_c('div',{class:{ hidden: !_vm.hasState }},[_c('nav',{staticClass:"tabs"},[_c('ul',[_c('li',{class:{ active: (_vm.currentTab == 'gmd'), hidden: !_vm.baseRepo }},[_c('a',{attrs:{"href":"#","data-value":"gmd"},on:{"click":_vm.changeTab}},[_vm._v("Growth, Maturity, and Decline")])]),_vm._v(" "),_c('li',{class:{ active: (_vm.currentTab == 'diversityInclusion'), hidden: !_vm.baseRepo }},[_c('a',{attrs:{"href":"#","data-value":"diversityInclusion"},on:{"click":_vm.changeTab}},[_vm._v("Diversity and Inclusion")])]),_vm._v(" "),_c('li',{class:{ active: (_vm.currentTab == 'risk'), hidden: !_vm.baseRepo }},[_c('a',{attrs:{"href":"#","data-value":"risk"},on:{"click":_vm.changeTab}},[_vm._v("Risk")])]),_vm._v(" "),_c('li',{class:{ active: (_vm.currentTab == 'value'), hidden: !_vm.baseRepo }},[_c('a',{attrs:{"href":"#","data-value":"value"},on:{"click":_vm.changeTab}},[_vm._v("Value")])]),_vm._v(" "),_c('li',{class:{ active: (_vm.currentTab == 'activity'), hidden: !_vm.baseRepo }},[_c('a',{attrs:{"href":"#","data-value":"activity"},on:{"click":_vm.changeTab}},[_vm._v("Activity")])]),_vm._v(" "),_c('li',{class:{ active: (_vm.currentTab == 'experimental'), hidden: !_vm.baseRepo }},[_c('a',{attrs:{"href":"#","data-value":"experimental"},on:{"click":_vm.changeTab}},[_vm._v("Experimental")])]),_vm._v(" "),_c('li',{class:{ active: (_vm.currentTab == 'git'), hidden: !_vm.gitRepo }},[_c('a',{attrs:{"href":"#","data-value":"git"},on:{"click":_vm.changeTab}},[_vm._v("Git")])])])]),_vm._v(" "),_c('div',{ref:"cards"},[((_vm.baseRepo && (_vm.currentTab == 'gmd')))?_c('div',[_c('growth-maturity-decline-card')],1):_vm._e(),_vm._v(" "),((_vm.baseRepo && (_vm.currentTab == 'diversityInclusion')))?_c('div',[_c('diversity-inclusion-card')],1):_vm._e(),_vm._v(" "),((_vm.baseRepo && (_vm.currentTab == 'risk')))?_c('div',[_c('risk-card')],1):_vm._e(),_vm._v(" "),((_vm.baseRepo && (_vm.currentTab == 'value')))?_c('div',[_c('value-card')],1):_vm._e(),_vm._v(" "),((_vm.baseRepo && (_vm.currentTab == 'activity')))?_c('div',{attrs:{"id":"activity"}},[_c('base-repo-activity-card'),_vm._v(" "),_c('base-repo-ecosystem-card'),_vm._v(" "),_vm._l((_vm.comparedRepos),function(repo){return _c('div',{class:{ hidden: !_vm.comparedRepos.length },attrs:{"id":"comparisonCards"}},[_c('compared-repo-activity-card',{attrs:{"comparedTo":repo}})],1)})],2):_vm._e(),_vm._v(" "),((_vm.baseRepo && (_vm.currentTab == 'experimental')))?_c('div',[_c('experimental-card')],1):_vm._e(),_vm._v(" "),((_vm.gitRepo && (_vm.currentTab == 'git')))?_c('div',[_c('git-card')],1):_vm._e(),_vm._v(" "),((_vm.baseRepo && (_vm.currentTab == 'activity')))?_c('section',{staticClass:"unmaterialized"},[_c('h3',[_vm._v("Compare repository")]),_vm._v(" "),_c('input',{staticClass:"search reposearch",attrs:{"type":"text","placeholder":"GitHub URL"},on:{"change":_vm.onCompare}})]):_vm._e(),_vm._v(" "),_c('main-controls')],1)])])}
+<<<<<<< HEAD
+__vue__options__.render = function render () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('div',[_c('div',{class:{ hidden: _vm.hasState }},[_c('section',{staticClass:"unmaterialized"},[_c('h3',[_vm._v("Enter a GitHub URL to get started")]),_vm._v(" "),_c('input',{staticClass:"search reposearch",attrs:{"type":"text","placeholder":"GitHub URL"},on:{"change":_vm.onRepo}})]),_vm._v(" "),_c('section',{staticClass:"unmaterialized"},[_c('h3',[_vm._v("Downloaded Git repositories")]),_vm._v(" "),_vm._l((_vm.downloadedRepos),function(repo){return _c('div',[_c('a',{staticClass:"repolink",attrs:{"href":'?git=' + _vm.btoa(repo)}},[_vm._v(_vm._s(repo))])])})],2)]),_vm._v(" "),_c('div',{class:{ hidden: !_vm.hasState }},[_c('nav',{staticClass:"tabs"},[_c('ul',[_c('li',{class:{ active: (_vm.currentTab == 'gmd'), hidden: !_vm.baseRepo }},[_c('a',{attrs:{"href":"#","data-value":"gmd"},on:{"click":_vm.changeTab}},[_vm._v("Growth, Maturity, and Decline")])]),_vm._v(" "),_c('li',{class:{ active: (_vm.currentTab == 'diversityInclusion'), hidden: !_vm.baseRepo }},[_c('a',{attrs:{"href":"#","data-value":"diversityInclusion"},on:{"click":_vm.changeTab}},[_vm._v("Diversity and Inclusion")])]),_vm._v(" "),_c('li',{class:{ active: (_vm.currentTab == 'risk'), hidden: !_vm.baseRepo }},[_c('a',{attrs:{"href":"#","data-value":"risk"},on:{"click":_vm.changeTab}},[_vm._v("Risk")])]),_vm._v(" "),_c('li',{class:{ active: (_vm.currentTab == 'value'), hidden: !_vm.baseRepo }},[_c('a',{attrs:{"href":"#","data-value":"value"},on:{"click":_vm.changeTab}},[_vm._v("Value")])]),_vm._v(" "),_c('li',{class:{ active: (_vm.currentTab == 'activity'), hidden: !_vm.baseRepo }},[_c('a',{attrs:{"href":"#","data-value":"activity"},on:{"click":_vm.changeTab}},[_vm._v("Activity")])]),_vm._v(" "),_c('li',{class:{ active: (_vm.currentTab == 'git'), hidden: !_vm.gitRepo }},[_c('a',{attrs:{"href":"#","data-value":"git"},on:{"click":_vm.changeTab}},[_vm._v("Git")])])])]),_vm._v(" "),_c('div',{ref:"cards"},[((_vm.baseRepo && (_vm.currentTab == 'gmd')))?_c('div',[_c('growth-maturity-decline-card')],1):_vm._e(),_vm._v(" "),((_vm.baseRepo && (_vm.currentTab == 'diversityInclusion')))?_c('div',[_c('diversity-inclusion-card')],1):_vm._e(),_vm._v(" "),((_vm.baseRepo && (_vm.currentTab == 'risk')))?_c('div',[_c('risk-card')],1):_vm._e(),_vm._v(" "),((_vm.baseRepo && (_vm.currentTab == 'value')))?_c('div',[_c('value-card')],1):_vm._e(),_vm._v(" "),((_vm.baseRepo && (_vm.currentTab == 'activity')))?_c('div',{attrs:{"id":"activity"}},[_c('base-repo-activity-card'),_vm._v(" "),_c('base-repo-ecosystem-card'),_vm._v(" "),_vm._l((_vm.comparedRepos),function(repo){return _c('div',{class:{ hidden: !_vm.comparedRepos.length },attrs:{"id":"comparisonCards"}},[_c('compared-repo-activity-card',{attrs:{"comparedTo":repo}})],1)})],2):_vm._e(),_vm._v(" "),((_vm.gitRepo && (_vm.currentTab == 'git')))?_c('div',[_c('git-card')],1):_vm._e(),_vm._v(" "),((_vm.baseRepo && (_vm.currentTab == 'activity')))?_c('section',{staticClass:"unmaterialized"},[_c('h3',[_vm._v("Compare repository")]),_vm._v(" "),_c('input',{staticClass:"search reposearch",attrs:{"type":"text","placeholder":"GitHub URL"},on:{"change":_vm.onCompare}})]):_vm._e(),_vm._v(" "),_c('main-controls')],1)])])}
+=======
+__vue__options__.render = function render () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('div',[_c('nav',{staticClass:"tabs"},[_c('ul',[_c('li',{class:{ active: (_vm.currentTab == 'gmd') }},[_c('a',{attrs:{"href":"#","data-value":"gmd"},on:{"click":_vm.changeTab}},[_vm._v("Growth, Maturity, and Decline")])]),_vm._v(" "),_c('li',{class:{ active: (_vm.currentTab == 'diversityInclusion') }},[_c('a',{attrs:{"href":"#","data-value":"diversityInclusion"},on:{"click":_vm.changeTab}},[_vm._v("Diversity and Inclusion")])]),_vm._v(" "),_c('li',{class:{ active: (_vm.currentTab == 'risk') }},[_c('a',{attrs:{"href":"#","data-value":"risk"},on:{"click":_vm.changeTab}},[_vm._v("Risk")])]),_vm._v(" "),_c('li',{class:{ active: (_vm.currentTab == 'value') }},[_c('a',{attrs:{"href":"#","data-value":"value"},on:{"click":_vm.changeTab}},[_vm._v("Value")])]),_vm._v(" "),_c('li',{class:{ active: (_vm.currentTab == 'activity') }},[_c('a',{attrs:{"href":"#","data-value":"activity"},on:{"click":_vm.changeTab}},[_vm._v("Activity")])]),_vm._v(" "),_c('li',{class:{ active: (_vm.currentTab == 'experimental') }},[_c('a',{attrs:{"href":"#","data-value":"experimental"},on:{"click":_vm.changeTab}},[_vm._v("Experimental")])])])]),_vm._v(" "),_c('section',{class:{ hidden: _vm.baseRepo, unmaterialized: true }},[_c('h3',[_vm._v("Enter a GitHub URL to get started")]),_vm._v(" "),_c('input',{staticClass:"search reposearch",attrs:{"type":"text","placeholder":"GitHub URL"},on:{"change":_vm.onRepo}})]),_vm._v(" "),_c('div',{ref:"cards"},[((_vm.baseRepo && (_vm.currentTab == 'gmd')))?_c('div',[_c('growth-maturity-decline-card')],1):_vm._e(),_vm._v(" "),((_vm.baseRepo && (_vm.currentTab == 'diversityInclusion')))?_c('div',[_c('diversity-inclusion-card')],1):_vm._e(),_vm._v(" "),((_vm.baseRepo && (_vm.currentTab == 'risk')))?_c('div',[_c('risk-card')],1):_vm._e(),_vm._v(" "),((_vm.baseRepo && (_vm.currentTab == 'value')))?_c('div',[_c('value-card')],1):_vm._e(),_vm._v(" "),((_vm.baseRepo && (_vm.currentTab == 'experimental')))?_c('div',[_c('experimental-card')],1):_vm._e(),_vm._v(" "),((_vm.baseRepo && (_vm.currentTab == 'activity')))?_c('div',{attrs:{"id":"activity"}},[_c('base-repo-activity-card'),_vm._v(" "),_c('base-repo-ecosystem-card'),_vm._v(" "),_vm._l((_vm.comparedRepos),function(repo){return _c('div',{class:{ hidden: !_vm.comparedRepos.length },attrs:{"id":"comparisonCards"}},[_c('compared-repo-activity-card',{attrs:{"comparedTo":repo}})],1)})],2):_vm._e(),_vm._v(" "),_c('section',{class:{ hidden: !_vm.baseRepo, unmaterialized: true }},[_c('h3',[_vm._v("Compare repository")]),_vm._v(" "),_c('input',{staticClass:"search reposearch",attrs:{"type":"text","placeholder":"GitHub URL"},on:{"change":_vm.onCompare}})])])])}
+>>>>>>> cleanup
 __vue__options__.staticRenderFns = []
 if (module.hot) {(function () {  var hotAPI = require("vue-hot-reload-api")
   hotAPI.install(require("vue"), true)
@@ -1203,7 +1267,11 @@ if (module.hot) {(function () {  var hotAPI = require("vue-hot-reload-api")
 })()}
 });
 
+<<<<<<< HEAD
+;require.register("components/GitCard.vue", function(exports, require, module) {
+=======
 ;require.register("components/ExperimentalCard.vue", function(exports, require, module) {
+>>>>>>> cleanup
 ;(function(){
 'use strict';
 
@@ -1211,6 +1279,11 @@ var _LineChart = require('./charts/LineChart');
 
 var _LineChart2 = _interopRequireDefault(_LineChart);
 
+<<<<<<< HEAD
+var _LinesOfCodeChart = require('./charts/LinesOfCodeChart');
+
+var _LinesOfCodeChart2 = _interopRequireDefault(_LinesOfCodeChart);
+=======
 var _BubbleChart = require('./charts/BubbleChart');
 
 var _BubbleChart2 = _interopRequireDefault(_BubbleChart);
@@ -1218,68 +1291,45 @@ var _BubbleChart2 = _interopRequireDefault(_BubbleChart);
 var _StackedBarChart = require('./charts/StackedBarChart');
 
 var _StackedBarChart2 = _interopRequireDefault(_StackedBarChart);
+>>>>>>> cleanup
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 module.exports = {
   components: {
     LineChart: _LineChart2.default,
+<<<<<<< HEAD
+    LinesOfCodeChart: _LinesOfCodeChart2.default
+=======
     BubbleChart: _BubbleChart2.default,
     StackedBarChart: _StackedBarChart2.default
+>>>>>>> cleanup
   }
 };
 })()
 if (module.exports.__esModule) module.exports = module.exports.default
 var __vue__options__ = (typeof module.exports === "function"? module.exports.options: module.exports)
 if (__vue__options__.functional) {console.error("[vueify] functional components are not supported and should be defined in plain js files using render functions.")}
-__vue__options__.render = function render () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('section',[_c('h1',[_vm._v("Experimental")]),_vm._v(" "),_c('h2',[_vm._v(_vm._s(_vm.$store.state.baseRepo))]),_vm._v(" "),_c('div',{staticClass:"row"},[_c('div',{staticClass:"col col-6"},[_c('line-chart',{attrs:{"source":"commitComments","title":"Commit Comments / Week ","cite-url":"","cite-text":"Commit Comments"}})],1),_vm._v(" "),_c('div',{staticClass:"col col-6"},[_c('line-chart',{attrs:{"source":"totalCommitters","title":"Committers","cite-url":"","cite-text":"Total Commiters"}})],1),_vm._v(" "),_c('div',{staticClass:"col col-6"},[_c('line-chart',{attrs:{"source":"pullsAcceptanceRate","title":"Pull Acceptance Rate","cite-url":"","cite-text":"Total Commiters"}})],1),_vm._v(" "),_c('div',{staticClass:"col col-6"},[_c('line-chart',{attrs:{"source":"communityEngagement:issues_open","title":"Community Engagement: Open Issues","cite-url":"https://github.com/OSSHealth/wg-gmd/blob/master/activity-metrics/open-issues.md","cite-text":"Open Issues","disable-rolling-average":"1"}})],1),_vm._v(" "),_c('div',{staticClass:"col col-6"},[_c('line-chart',{attrs:{"source":"communityEngagement:issues_closed_total","title":"Community Engagement: Closed Issues","cite-url":"https://github.com/OSSHealth/wg-gmd/blob/master/activity-metrics/closed-issues.md","cite-text":"Closed Issues","disable-rolling-average":"1"}})],1),_vm._v(" "),_c('div',{staticClass:"col col-6"},[_c('line-chart',{attrs:{"source":"fakes","title":"Fakes","cite-url":"","cite-text":"Fakes","disable-rolling-average":"1"}})],1),_vm._v(" "),_c('div',{staticClass:"col col-12"},[_c('stacked-bar-chart',{attrs:{"source":"issueActivity","title":"Issue Activity","cite-url":"","cite-text":"Issue Activity","disableRollingAverage":"1"}})],1),_vm._v(" "),_c('div',{staticClass:"col col-12"},[_c('bubble-chart',{attrs:{"source":"contributors","title":"Contributor Overview","size":"total","cite-url":"","cite-text":"Contributors"}})],1)])])}
-__vue__options__.staticRenderFns = []
-if (module.hot) {(function () {  var hotAPI = require("vue-hot-reload-api")
-  hotAPI.install(require("vue"), true)
-  if (!hotAPI.compatible) return
-  module.hot.accept()
-  if (!module.hot.data) {
-    hotAPI.createRecord("data-v-b05646f6", __vue__options__)
-  } else {
-    hotAPI.reload("data-v-b05646f6", __vue__options__)
-  }
-})()}
-});
-
-;require.register("components/GitCard.vue", function(exports, require, module) {
-;(function(){
-'use strict';
-
-var _LineChart = require('./charts/LineChart');
-
-var _LineChart2 = _interopRequireDefault(_LineChart);
-
-var _LinesOfCodeChart = require('./charts/LinesOfCodeChart');
-
-var _LinesOfCodeChart2 = _interopRequireDefault(_LinesOfCodeChart);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-module.exports = {
-  components: {
-    LineChart: _LineChart2.default,
-    LinesOfCodeChart: _LinesOfCodeChart2.default
-  }
-};
-})()
-if (module.exports.__esModule) module.exports = module.exports.default
-var __vue__options__ = (typeof module.exports === "function"? module.exports.options: module.exports)
-if (__vue__options__.functional) {console.error("[vueify] functional components are not supported and should be defined in plain js files using render functions.")}
+<<<<<<< HEAD
 __vue__options__.render = function render () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('section',[_c('h1',[_vm._v("Git Metrics")]),_vm._v(" "),_c('h2',[_vm._v(_vm._s(_vm.$store.state.baseRepo))]),_vm._v(" "),_c('div',{staticClass:"row"},[_c('lines-of-code-chart')],1)])}
+=======
+__vue__options__.render = function render () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('section',[_c('h1',[_vm._v("Experimental")]),_vm._v(" "),_c('h2',[_vm._v(_vm._s(_vm.$store.state.baseRepo))]),_vm._v(" "),_c('div',{staticClass:"row"},[_c('div',{staticClass:"col col-6"},[_c('line-chart',{attrs:{"source":"commitComments","title":"Commit Comments / Week ","cite-url":"","cite-text":"Commit Comments"}})],1),_vm._v(" "),_c('div',{staticClass:"col col-6"},[_c('line-chart',{attrs:{"source":"totalCommitters","title":"Committers","cite-url":"","cite-text":"Total Commiters"}})],1),_vm._v(" "),_c('div',{staticClass:"col col-6"},[_c('line-chart',{attrs:{"source":"pullsAcceptanceRate","title":"Pull Acceptance Rate","cite-url":"","cite-text":"Total Commiters"}})],1),_vm._v(" "),_c('div',{staticClass:"col col-6"},[_c('line-chart',{attrs:{"source":"communityEngagement:issues_open","title":"Community Engagement: Open Issues","cite-url":"https://github.com/OSSHealth/wg-gmd/blob/master/activity-metrics/open-issues.md","cite-text":"Open Issues","disable-rolling-average":"1"}})],1),_vm._v(" "),_c('div',{staticClass:"col col-6"},[_c('line-chart',{attrs:{"source":"communityEngagement:issues_closed_total","title":"Community Engagement: Closed Issues","cite-url":"https://github.com/OSSHealth/wg-gmd/blob/master/activity-metrics/closed-issues.md","cite-text":"Closed Issues","disable-rolling-average":"1"}})],1),_vm._v(" "),_c('div',{staticClass:"col col-6"},[_c('line-chart',{attrs:{"source":"fakes","title":"Fakes","cite-url":"","cite-text":"Fakes","disable-rolling-average":"1"}})],1),_vm._v(" "),_c('div',{staticClass:"col col-12"},[_c('stacked-bar-chart',{attrs:{"source":"issueActivity","title":"Issue Activity","cite-url":"","cite-text":"Issue Activity","disableRollingAverage":"1"}})],1),_vm._v(" "),_c('div',{staticClass:"col col-12"},[_c('bubble-chart',{attrs:{"source":"contributors","title":"Contributor Overview","size":"total","cite-url":"","cite-text":"Contributors"}})],1)])])}
+>>>>>>> cleanup
 __vue__options__.staticRenderFns = []
 if (module.hot) {(function () {  var hotAPI = require("vue-hot-reload-api")
   hotAPI.install(require("vue"), true)
   if (!hotAPI.compatible) return
   module.hot.accept()
   if (!module.hot.data) {
+<<<<<<< HEAD
     hotAPI.createRecord("data-v-f66913b6", __vue__options__)
   } else {
     hotAPI.reload("data-v-f66913b6", __vue__options__)
+=======
+    hotAPI.createRecord("data-v-b05646f6", __vue__options__)
+  } else {
+    hotAPI.reload("data-v-b05646f6", __vue__options__)
+>>>>>>> cleanup
   }
 })()}
 });
