@@ -165,14 +165,6 @@ class Server(object):
         """
         addTimeseries(app, ghtorrent.code_commits, 'commits')
 
-        # addTimeseries(app, github.code_reviews, 'code_reviews')
-
-        addTimeseries(app, ghtorrent.code_review_iteration, 'code_review_iteration')
-
-        addTimeseries(app, ghtorrent.contribution_acceptance, 'contribution_acceptance')
-
-        addMetric(app, ghtorrent.contributing_github_organizations, 'contributing_github_organizations')
-
         """
         @api {get} /:owner/:repo/timeseries/issues/response_time Issue Response Time
         @apiName IssueResponseTime
@@ -242,10 +234,18 @@ class Server(object):
         addTimeseries(app, github.lines_of_code_changed, 'lines_changed')
 
         """
+<<<<<<< HEAD
         @api {get} /:owner/:repo/issue_close_time Issue Close Time
         @apiName Issues
         @apiGroup Experimental
         @apiDescription <a href="https://github.com/chaoss/metrics/blob/master/activity-metrics/issue-resolution-efficiency.md">CHAOSS Metric Definition</a>
+=======
+        @api {get} /:owner/:repo/pulls/maintainer_response_time Time to First Maintainer Response to Merge Request
+        @apiDescription <a href="https://github.com/OSSHealth/metrics/blob/master/activity-metrics/maintainer-response-to-merge-request-duration.md">CHAOSS Metric Definition</a>
+        @apiName TimeToFirstMaintainerResponseToMergeRequest
+        @apiGroup Growth-Maturity-Decline
+
+>>>>>>> dev
         @apiParam {String} owner Username of the owner of the GitHub repository
         @apiParam {String} repo Name of the GitHub repository
 
@@ -273,12 +273,16 @@ class Server(object):
                             }
                         ]
         """
+<<<<<<< HEAD
         addMetric(app, ghtorrentplus.issue_resolution_duration, 'issues/time_to_close')
+=======
+        addTimeseries(app, ghtorrent.time_to_first_maintainer_response_to_merge_request, 'pulls/maintainer_response_time')
+>>>>>>> dev
 
         """
         @api {get} /:owner/:repo/pulls/maintainer_response_time Time to First Maintainer Response to Merge Request
         @apiDescription <a href="https://github.com/OSSHealth/metrics/blob/master/activity-metrics/maintainer-response-to-merge-request-duration.md">CHAOSS Metric Definition</a>
-        @apiName TimeToFirstMaintainerResponseToMergeRequest
+        @apiName TimeToFirstMaintainerResponseToMergeRequest 
         @apiGroup Growth-Maturity-Decline
 
         @apiParam {String} owner Username of the owner of the GitHub repository
@@ -294,9 +298,7 @@ class Server(object):
                                 },
                             ]
         """
-        addTimeseries(app, ghtorrent.maintainer_response_to_merge_request_duration, 'pulls/maintainer_response_time')
-
-        addTimeseries(app, ghtorrent.new_contributing_github_organizations, 'new_contributing_github_organizations')
+        addMetric(app, ghtorrent.maintainer_response_to_merge_request_duration, 'pulls/maintainer_response_time')
 
         """
         @api {get} /:owner/:repo/timeseries/issues issues
@@ -306,6 +308,7 @@ class Server(object):
         @apidescription <a href="https://github.com/chaoss/metrics/blob/master/activity-metrics/forks.md">chaoss metric definition</a>
         @apiparam {string} owner username of the owner of the github repository
         @apiparam {string} repo name of the github repository
+
         @apisuccessexample {json} success-response:
                             [
                                 {
@@ -321,8 +324,8 @@ class Server(object):
         addTimeseries(app, ghtorrent.open_issues, 'issues')
 
         """
-        @api {get} /:owner/:repo/timeseries/forks?group_by=:group_by Forks
-        @apiName Forks
+        @api {get} /:owner/:repo/timeseries/pull_request_comments count of new pull request comments weekly
+        @apiName PullRequestComments
         @apiGroup Growth-Maturity-Decline
         @apiDescription <a href="https://github.com/chaoss/metrics/blob/master/activity-metrics/pull-request-comments.md">CHAOSS Metric Definition</a>
         @apiParam {String} owner Username of the owner of the GitHub repository
@@ -340,6 +343,23 @@ class Server(object):
         """
         addTimeseries(app, ghtorrent.pull_request_comments, 'pulls/comments')
 
+<<<<<<< HEAD
+=======
+        addTimeseries(app, ghtorrent.code_review_iteration, 'code_review_iteration')
+
+        addTimeseries(app, ghtorrent.contribution_acceptance, 'contribution_acceptance')
+
+        addTimeseries(app, ghtorrent.new_contributing_github_organizations, 'new_contributing_github_organizations')
+
+        addMetric(app, ghtorrent.contributing_github_organizations, 'contributing_github_organizations')
+
+        # addTimeseries(app, github.code_reviews, 'code_reviews')
+
+        #####################################
+        ###            RISK               ###
+        #####################################
+
+>>>>>>> dev
         """
         @api {get} /:owner/:repo/timeseries/pulls Pull Requests by Week
         @apiName PullRequestsByWeek
@@ -363,7 +383,6 @@ class Server(object):
                             ]
         """
         addTimeseries(app, ghtorrent.pull_requests_open, 'pulls')
-
 
         #####################################
         ###            RISK               ###
@@ -415,6 +434,7 @@ class Server(object):
                             ]
         """
         addMetric(app, ghtorrent.watchers, 'watchers')
+
 
         #####################################
         ###         EXPERIMENTAL          ###
@@ -788,8 +808,8 @@ class Server(object):
         @apiSuccessExample {json} Success-Response:
                             [
                                 {
-                                    "dependencies": "10",
-                                    "dependent_projects": "10.6K",
+                                    "dependencies": "10", 
+                                    "dependent_projects": "10.6K", 
                                     "dependent_repositories": "392K"
                                 }
                             ]
@@ -836,8 +856,14 @@ class Server(object):
         @apiSuccessExample {json} Success-Response:
                             [
                                 {
+<<<<<<< HEAD
                                     "best": "5",
                                     "worst": "1"
+=======
+                                    "dependencies": "10",
+                                    "dependent_projects": "10.6K",
+                                    "dependent_repositories": "392K"
+>>>>>>> dev
                                 }
                             ]
         """
