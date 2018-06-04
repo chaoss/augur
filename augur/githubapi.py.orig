@@ -33,7 +33,11 @@ class GitHubAPI(object):
     ### GROWTH, MATURITY, AND DECLINE ###
     #####################################
 
+<<<<<<< HEAD
     def lines_of_code_changed(self, owner, repo=None): 
+=======
+    def lines_changed(self, owner, repo=None):
+>>>>>>> dev
         """
         chaoss-metric: lines-of-code-changed
         Additions and deletions each week
@@ -161,7 +165,7 @@ class GitHubAPI(object):
                      """
                     query {
                       repository(owner: "%s", name: "%s") {
-                        tags: refs(refPrefix: "refs/tags/", first: 100, after: "%s") {
+                        tags: refs(refPrefix: "refs/tags/", first: 100, after: %s) {
                           edges {
                             cursor
                             tag: node {
@@ -192,7 +196,12 @@ class GitHubAPI(object):
             if data['data']['repository']['tags']['edges'] == []:
                 break
             else:
+<<<<<<< HEAD
                 cursor = data['data']['repository']['tags']['edges'][-1]['cursor']
+=======
+                cursor = '"{}"'.format(data['data']['repository']['tags']['edges'][-1]['cursor'])
+        return pd.DataFrame(tags_list)
+>>>>>>> dev
 
         major_versions = []
         pattern = re.compile("[0-9]+\.[0]+\.[0]+$")
