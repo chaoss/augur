@@ -47,7 +47,7 @@ class Piper_mail:
 	def __init__(self):
 		#print(os.getcwd())
 		archives = ["aalldp-dev","aaa-dev","advisory-group","affinity-dev","alto-dev","archetypes-dev"]
-		engine = s.create_engine('mysql+mysqlconnector://root:Dc1Kk1Sh2Oh1@localhost/Pipermail?charset=utf8')
+		engine = s.create_engine('mysql+mysqlconnector://root:Password@localhost/Pipermail?charset=utf8')
 		if not database_exists(engine.url):
 		    create_database(engine.url)
 		#print(os.getcwd())	
