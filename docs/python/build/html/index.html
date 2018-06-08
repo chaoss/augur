@@ -71,6 +71,62 @@
 </dd></dl>
 
 <dl class="method">
+<dt id="ghtorrent.GHTorrent.closed_issue_resolution_duration">
+<code class="descname">closed_issue_resolution_duration</code><span class="sig-paren">(</span><em>owner</em>, <em>repo=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ghtorrent.html#GHTorrent.closed_issue_resolution_duration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghtorrent.GHTorrent.closed_issue_resolution_duration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Subgroup: Issue Resolution
+Endpoint: issues_with_close
+chaoss-metric: closed-issue-resolution-duration</p>
+<p>How long on average each week it takes to close an issue</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>owner</strong> – The name of the project owner or the id of the project in the projects table of the project in the projects table. Use repoid() to get this.</li>
+<li><strong>repo</strong> – The name of the repo. Unneeded if repository id was passed as owner.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">DataFrame with issues/day</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="ghtorrent.GHTorrent.closed_issues">
+<code class="descname">closed_issues</code><span class="sig-paren">(</span><em>owner</em>, <em>repo=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ghtorrent.html#GHTorrent.closed_issues"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghtorrent.GHTorrent.closed_issues" title="Permalink to this definition">¶</a></dt>
+<dd><p>Subgroup: Issue Resolution
+Endpoint: issues/closed
+chaoss-metric: closed-issues</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ghtorrent.GHTorrent.code_commits">
+<code class="descname">code_commits</code><span class="sig-paren">(</span><em>owner</em>, <em>repo=None</em>, <em>group_by='week'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ghtorrent.html#GHTorrent.code_commits"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghtorrent.GHTorrent.code_commits" title="Permalink to this definition">¶</a></dt>
+<dd><p>Subgroup: Code Development
+Endpoint: commits
+chaoss-metric: code-commits</p>
+<p>Timeseries of all the commits on a repo</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>owner</strong> – The name of the project owner or the id of the project in the projects table of the project in the projects table. Use repoid() to get this.</li>
+<li><strong>repo</strong> – The name of the repo. Unneeded if repository id was passed as owner.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">DataFrame with commits/day</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
 <dt id="ghtorrent.GHTorrent.code_review_iteration">
 <code class="descname">code_review_iteration</code><span class="sig-paren">(</span><em>owner</em>, <em>repo=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ghtorrent.html#GHTorrent.code_review_iteration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghtorrent.GHTorrent.code_review_iteration" title="Permalink to this definition">¶</a></dt>
 <dd><p>Number of iterations (being closed and reopened) that a merge request (code review) goes through until it is finally merged</p>
@@ -107,29 +163,6 @@
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">DataFrame with new by week</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="ghtorrent.GHTorrent.commits">
-<code class="descname">commits</code><span class="sig-paren">(</span><em>owner</em>, <em>repo=None</em>, <em>group_by='week'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ghtorrent.html#GHTorrent.commits"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghtorrent.GHTorrent.commits" title="Permalink to this definition">¶</a></dt>
-<dd><p>Subgroup: Code Development
-chaoss-metric: code-commits</p>
-<p>Timeseries of all the commits on a repo</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>owner</strong> – The name of the project owner or the id of the project in the projects table of the project in the projects table. Use repoid() to get this.</li>
-<li><strong>repo</strong> – The name of the repo. Unneeded if repository id was passed as owner.</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">DataFrame with commits/day</p>
 </td>
 </tr>
 </tbody>
@@ -316,26 +349,38 @@ Timeseries of all the contributions to a project, optionally limited to a specif
 </dd></dl>
 
 <dl class="method">
-<dt id="ghtorrent.GHTorrent.forks">
-<code class="descname">forks</code><span class="sig-paren">(</span><em>owner</em>, <em>repo=None</em>, <em>group_by='week'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ghtorrent.html#GHTorrent.forks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghtorrent.GHTorrent.forks" title="Permalink to this definition">¶</a></dt>
-<dd><p>Subgroup: Code Development
-chaoss-metric: forks</p>
-<p>Timeseries of when a repo’s forks were created</p>
+<dt id="ghtorrent.GHTorrent.first_response_to_issue_duration">
+<code class="descname">first_response_to_issue_duration</code><span class="sig-paren">(</span><em>owner</em>, <em>repo</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ghtorrent.html#GHTorrent.first_response_to_issue_duration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghtorrent.GHTorrent.first_response_to_issue_duration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Subgroup: Issue Resolution
+Endpoint: issues/response_time
+chaoss-metric: first-response-to-issue-duration</p>
+<p>Time to comment by issue</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>owner</strong> – The name of the project owner or the id of the project in the projects table of the project in the projects table. Use repoid() to get this.</li>
-<li><strong>repo</strong> – The name of the repo. Unneeded if repository id was passed as owner.</li>
+<li><strong>owner</strong> – The name of the project owner</li>
+<li><strong>repo</strong> – The name of the repo</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">DataFrame with forks/day</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">DataFrame with each row being am issue</p>
 </td>
 </tr>
 </tbody>
 </table>
+</dd></dl>
+
+<dl class="method">
+<dt id="ghtorrent.GHTorrent.forks">
+<code class="descname">forks</code><span class="sig-paren">(</span><em>owner</em>, <em>repo=None</em>, <em>group_by='week'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ghtorrent.html#GHTorrent.forks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghtorrent.GHTorrent.forks" title="Permalink to this definition">¶</a></dt>
+<dd><p>Subgroup: Code Development
+chaoss-metric: forks
+Timeseries of when a repo’s forks were created
+:param owner: The name of the project owner or the id of the project in the projects table of the project in the projects table. Use repoid() to get this.
+:param repo: The name of the repo. Unneeded if repository id was passed as owner.
+:return: DataFrame with forks/day</p>
 </dd></dl>
 
 <dl class="method">
@@ -366,59 +411,6 @@ chaoss-metric: forks</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="ghtorrent.GHTorrent.issue_response_time">
-<code class="descname">issue_response_time</code><span class="sig-paren">(</span><em>owner</em>, <em>repo</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ghtorrent.html#GHTorrent.issue_response_time"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghtorrent.GHTorrent.issue_response_time" title="Permalink to this definition">¶</a></dt>
-<dd><p>Subgroup: Issue Resolution
-chaoss-metric: issue-response-time</p>
-<p>Time to comment by issue</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>owner</strong> – The name of the project owner</li>
-<li><strong>repo</strong> – The name of the repo</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">DataFrame with each row being am issue</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="ghtorrent.GHTorrent.issues">
-<code class="descname">issues</code><span class="sig-paren">(</span><em>owner</em>, <em>repo=None</em>, <em>group_by='week'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ghtorrent.html#GHTorrent.issues"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghtorrent.GHTorrent.issues" title="Permalink to this definition">¶</a></dt>
-<dd><p>Subgroup: Individual Diversity
-chaoss-metric: open-issues</p>
-<p>Timeseries of issues opened per day</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>owner</strong> – The name of the project owner or the id of the project in the projects table of the project in the projects table. Use repoid() to get this.</li>
-<li><strong>repo</strong> – The name of the repo. Unneeded if repository id was passed as owner.</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">DataFrame with issues/day</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="ghtorrent.GHTorrent.issues_closed">
-<code class="descname">issues_closed</code><span class="sig-paren">(</span><em>owner</em>, <em>repo=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ghtorrent.html#GHTorrent.issues_closed"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghtorrent.GHTorrent.issues_closed" title="Permalink to this definition">¶</a></dt>
-<dd><p>Subgroup: Issue Resolution
-chaoss-metric: closed-issues</p>
-</dd></dl>
-
-<dl class="method">
 <dt id="ghtorrent.GHTorrent.issues_with_close">
 <code class="descname">issues_with_close</code><span class="sig-paren">(</span><em>owner</em>, <em>repo=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ghtorrent.html#GHTorrent.issues_with_close"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghtorrent.GHTorrent.issues_with_close" title="Permalink to this definition">¶</a></dt>
 <dd><p>Subgroup: Issue Resolution
@@ -435,6 +427,27 @@ chaoss-metric: closed-issue-resolution-duration</p>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">DataFrame with issues/day</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="ghtorrent.GHTorrent.maintainer_response_to_merge_request_duration">
+<code class="descname">maintainer_response_to_merge_request_duration</code><span class="sig-paren">(</span><em>owner</em>, <em>repo=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ghtorrent.html#GHTorrent.maintainer_response_to_merge_request_duration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghtorrent.GHTorrent.maintainer_response_to_merge_request_duration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Duration of time between a merge request being created and a maintainer commenting on that request</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>owner</strong> – The name of the project owner</li>
+<li><strong>repo</strong> – The name of the repo</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">DataFrame with each row being a week</p>
 </td>
 </tr>
 </tbody>
@@ -463,9 +476,33 @@ chaoss-metric: closed-issue-resolution-duration</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="ghtorrent.GHTorrent.pull_acceptance_rate">
-<code class="descname">pull_acceptance_rate</code><span class="sig-paren">(</span><em>owner</em>, <em>repo=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ghtorrent.html#GHTorrent.pull_acceptance_rate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghtorrent.GHTorrent.pull_acceptance_rate" title="Permalink to this definition">¶</a></dt>
-<dd><p>augur-metric: pull-acceptance-rate</p>
+<dt id="ghtorrent.GHTorrent.open_issues">
+<code class="descname">open_issues</code><span class="sig-paren">(</span><em>owner</em>, <em>repo=None</em>, <em>group_by='week'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ghtorrent.html#GHTorrent.open_issues"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghtorrent.GHTorrent.open_issues" title="Permalink to this definition">¶</a></dt>
+<dd><p>Subgroup: Individual Diversity
+Endpoint: issues
+chaoss-metric: open-issues</p>
+<p>Timeseries of issues opened per day</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>owner</strong> – The name of the project owner or the id of the project in the projects table of the project in the projects table. Use repoid() to get this.</li>
+<li><strong>repo</strong> – The name of the repo. Unneeded if repository id was passed as owner.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">DataFrame with issues/day</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="ghtorrent.GHTorrent.pull_request_acceptance_rate">
+<code class="descname">pull_request_acceptance_rate</code><span class="sig-paren">(</span><em>owner</em>, <em>repo=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ghtorrent.html#GHTorrent.pull_request_acceptance_rate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghtorrent.GHTorrent.pull_request_acceptance_rate" title="Permalink to this definition">¶</a></dt>
+<dd><p>augur-metric: pull-request-acceptance-rate</p>
 <p>Timeseries of pull request acceptance rate (Number of pull requests merged on a date over Number of pull requests opened on a date)</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -508,9 +545,10 @@ chaoss-metric: pull-request-comments</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="ghtorrent.GHTorrent.pulls">
-<code class="descname">pulls</code><span class="sig-paren">(</span><em>owner</em>, <em>repo=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ghtorrent.html#GHTorrent.pulls"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghtorrent.GHTorrent.pulls" title="Permalink to this definition">¶</a></dt>
+<dt id="ghtorrent.GHTorrent.pull_requests_open">
+<code class="descname">pull_requests_open</code><span class="sig-paren">(</span><em>owner</em>, <em>repo=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ghtorrent.html#GHTorrent.pull_requests_open"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghtorrent.GHTorrent.pull_requests_open" title="Permalink to this definition">¶</a></dt>
 <dd><p>Subgroup: Code Development
+Endpoint: pulls
 chaoss-metric: pull-requests-open</p>
 <p>Timeseries of pull requests creation, also gives their associated activity</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -546,27 +584,6 @@ github.com/[owner]/[project]</p>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">The repository’s ID as it appears in the GHTorrent projects table</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="ghtorrent.GHTorrent.time_to_first_maintainer_response_to_merge_request">
-<code class="descname">time_to_first_maintainer_response_to_merge_request</code><span class="sig-paren">(</span><em>owner</em>, <em>repo=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ghtorrent.html#GHTorrent.time_to_first_maintainer_response_to_merge_request"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghtorrent.GHTorrent.time_to_first_maintainer_response_to_merge_request" title="Permalink to this definition">¶</a></dt>
-<dd><p>Duration of time between a merge request being created and a maintainer commenting on that request</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>owner</strong> – The name of the project owner</li>
-<li><strong>repo</strong> – The name of the repo</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">DataFrame with each row being a week</p>
 </td>
 </tr>
 </tbody>
