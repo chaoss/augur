@@ -77,6 +77,7 @@
         <span class="k">if</span> <span class="n">group_by</span> <span class="o">==</span> <span class="s2">&quot;day&quot;</span><span class="p">:</span>
             <span class="k">return</span> <span class="s2">&quot;&quot;&quot;</span>
 <span class="s2">                SELECT date(created_at) AS &quot;date&quot;, COUNT(*) AS &quot;</span><span class="si">{0}</span><span class="s2">&quot;</span>
+<span class="s2">                FROM </span><span class="si">{0}</span><span class="s2"> </span>
 <span class="s2">                FROM </span><span class="si">{0}</span><span class="s2"></span>
 <span class="s2">                WHERE </span><span class="si">{1}</span><span class="s2"> = :repoid</span>
 <span class="s2">                GROUP BY DATE(created_at)</span>
@@ -160,7 +161,6 @@
             <span class="n">userid</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">userid</span></div>
 
-
     <span class="c1">#####################################</span>
     <span class="c1">###    DIVERSITY AND INCLUSION    ###</span>
     <span class="c1">#####################################</span>
@@ -170,24 +170,10 @@
     <span class="c1">### GROWTH, MATURITY, AND DECLINE ###</span>
     <span class="c1">#####################################</span>
 
-<div class="viewcode-block" id="GHTorrent.issues"><a class="viewcode-back" href="../index.html#ghtorrent.GHTorrent.issues">[docs]</a>    <span class="k">def</span> <span class="nf">issues</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">group_by</span><span class="o">=</span><span class="s2">&quot;week&quot;</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Subgroup: Individual Diversity</span>
-<span class="sd">        chaoss-metric: open-issues</span>
-
-<span class="sd">        Timeseries of issues opened per day</span>
-
-<span class="sd">        :param owner: The name of the project owner or the id of the project in the projects table of the project in the projects table. Use repoid() to get this.</span>
-<span class="sd">        :param repo: The name of the repo. Unneeded if repository id was passed as owner.</span>
-<span class="sd">        :return: DataFrame with issues/day</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">repoid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">repoid</span><span class="p">(</span><span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="p">)</span>
-        <span class="n">issuesSQL</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">sql</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__single_table_count_by_date</span><span class="p">(</span><span class="s1">&#39;issues&#39;</span><span class="p">,</span> <span class="s1">&#39;repo_id&#39;</span><span class="p">,</span> <span class="s1">&#39;reporter_id&#39;</span><span class="p">,</span> <span class="n">group_by</span><span class="o">=</span><span class="n">group_by</span><span class="p">))</span>
-        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_sql</span><span class="p">(</span><span class="n">issuesSQL</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;repoid&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">repoid</span><span class="p">)})</span></div>
-
-<div class="viewcode-block" id="GHTorrent.issues_closed"><a class="viewcode-back" href="../index.html#ghtorrent.GHTorrent.issues_closed">[docs]</a>    <span class="k">def</span> <span class="nf">issues_closed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="GHTorrent.closed_issues"><a class="viewcode-back" href="../index.html#ghtorrent.GHTorrent.closed_issues">[docs]</a>    <span class="k">def</span> <span class="nf">closed_issues</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Subgroup: Issue Resolution</span>
+<span class="sd">        Endpoint: issues/closed</span>
 <span class="sd">        chaoss-metric: closed-issues</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">repoid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">repoid</span><span class="p">(</span><span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="p">)</span>
@@ -201,44 +187,10 @@
 <span class="s2">        &quot;&quot;&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_sql</span><span class="p">(</span><span class="n">issuesClosedSQL</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;repoid&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">repoid</span><span class="p">)})</span></div>
 
-<div class="viewcode-block" id="GHTorrent.issue_response_time"><a class="viewcode-back" href="../index.html#ghtorrent.GHTorrent.issue_response_time">[docs]</a>    <span class="k">def</span> <span class="nf">issue_response_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="p">):</span>
+<div class="viewcode-block" id="GHTorrent.closed_issue_resolution_duration"><a class="viewcode-back" href="../index.html#ghtorrent.GHTorrent.closed_issue_resolution_duration">[docs]</a>    <span class="k">def</span> <span class="nf">closed_issue_resolution_duration</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Subgroup: Issue Resolution</span>
-<span class="sd">        chaoss-metric: issue-response-time</span>
-
-<span class="sd">        Time to comment by issue</span>
-
-<span class="sd">        :param owner: The name of the project owner</span>
-<span class="sd">        :param repo: The name of the repo</span>
-<span class="sd">        :return: DataFrame with each row being am issue</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">repoid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">repoid</span><span class="p">(</span><span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="p">)</span>
-        <span class="n">issueCommentsSQL</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">sql</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
-<span class="s2">            SELECT *, TIMESTAMPDIFF(MINUTE, opened, first_commented) AS minutes_to_comment FROM (</span>
-
-<span class="s2">                SELECT issues.id AS id, issues.created_at AS opened, MIN(issue_comments.created_at) AS first_commented, 0 AS pull_request</span>
-<span class="s2">                FROM issues</span>
-<span class="s2">                LEFT JOIN issue_comments</span>
-<span class="s2">                ON issues.id = issue_comments.issue_id</span>
-<span class="s2">                WHERE issues.pull_request = 0 AND issues.repo_id = :repoid</span>
-<span class="s2">                GROUP BY id</span>
-
-<span class="s2">                UNION ALL</span>
-
-<span class="s2">                SELECT issues.id AS id, issues.created_at AS opened, MIN(pull_request_comments.created_at) AS first_commented, 1 AS pull_request</span>
-<span class="s2">                FROM issues</span>
-<span class="s2">                LEFT JOIN pull_request_comments</span>
-<span class="s2">                ON issues.pull_request_id = pull_request_comments.pull_request_id</span>
-<span class="s2">                WHERE issues.pull_request = 1 AND issues.repo_id = :repoid</span>
-<span class="s2">                GROUP BY id</span>
-<span class="s2">             ) a</span>
-<span class="s2">            &quot;&quot;&quot;</span><span class="p">)</span>
-        <span class="n">rs</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_sql</span><span class="p">(</span><span class="n">issueCommentsSQL</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;repoid&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">repoid</span><span class="p">)})</span>
-        <span class="k">return</span> <span class="n">rs</span></div>
-
-<div class="viewcode-block" id="GHTorrent.issues_with_close"><a class="viewcode-back" href="../index.html#ghtorrent.GHTorrent.issues_with_close">[docs]</a>    <span class="k">def</span> <span class="nf">issues_with_close</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Subgroup: Issue Resolution</span>
+<span class="sd">        Endpoint: issues_with_close</span>
 <span class="sd">        chaoss-metric: closed-issue-resolution-duration</span>
 
 <span class="sd">        How long on average each week it takes to close an issue</span>
@@ -262,9 +214,10 @@
 <span class="s2">            WHERE issues.repo_id = :repoid&quot;&quot;&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_sql</span><span class="p">(</span><span class="n">issuesWithCloseSQL</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;repoid&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">repoid</span><span class="p">)})</span></div>
 
-<div class="viewcode-block" id="GHTorrent.commits"><a class="viewcode-back" href="../index.html#ghtorrent.GHTorrent.commits">[docs]</a>    <span class="k">def</span> <span class="nf">commits</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">group_by</span><span class="o">=</span><span class="s2">&quot;week&quot;</span><span class="p">):</span>
+<div class="viewcode-block" id="GHTorrent.code_commits"><a class="viewcode-back" href="../index.html#ghtorrent.GHTorrent.code_commits">[docs]</a>    <span class="k">def</span> <span class="nf">code_commits</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">group_by</span><span class="o">=</span><span class="s2">&quot;week&quot;</span><span class="p">):</span>        
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Subgroup: Code Development</span>
+<span class="sd">        Endpoint: commits</span>
 <span class="sd">        chaoss-metric: code-commits</span>
 
 <span class="sd">        Timeseries of all the commits on a repo</span>
@@ -276,36 +229,6 @@
         <span class="n">repoid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">repoid</span><span class="p">(</span><span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="p">)</span>
         <span class="n">commitsSQL</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">sql</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__single_table_count_by_date</span><span class="p">(</span><span class="s1">&#39;commits&#39;</span><span class="p">,</span> <span class="n">group_by</span><span class="o">=</span><span class="n">group_by</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_sql</span><span class="p">(</span><span class="n">commitsSQL</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;repoid&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">repoid</span><span class="p">)})</span></div>
-
-<div class="viewcode-block" id="GHTorrent.time_to_first_maintainer_response_to_merge_request"><a class="viewcode-back" href="../index.html#ghtorrent.GHTorrent.time_to_first_maintainer_response_to_merge_request">[docs]</a>    <span class="k">def</span> <span class="nf">time_to_first_maintainer_response_to_merge_request</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Duration of time between a merge request being created and a maintainer commenting on that request</span>
-
-<span class="sd">        :param owner: The name of the project owner</span>
-<span class="sd">        :param repo: The name of the repo</span>
-<span class="sd">        :return: DataFrame with each row being a week</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">repoid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">repoid</span><span class="p">(</span><span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="p">)</span>
-        <span class="n">maintainerResponseToMRSQL</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">sql</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
-<span class="s2">            SELECT DATE(issues.created_at) AS date, TIMESTAMPDIFF(DAY, issues.created_at, pull_request_comments.created_at) as days, pull_request_comments.created_at AS pull_request_comment_created_at, issues.id AS issue_id, pull_request_comments.user_id AS user_id, pull_request_comments.comment_id as pull_request_comment_id</span>
-<span class="s2">            FROM issues</span>
-<span class="s2">            JOIN pull_request_comments</span>
-<span class="s2">            ON issues.pull_request_id = pull_request_comments.pull_request_id</span>
-<span class="s2">            JOIN</span>
-<span class="s2">                (SELECT DISTINCT actor_id</span>
-<span class="s2">                FROM pull_request_history</span>
-<span class="s2">                JOIN pull_requests</span>
-<span class="s2">                ON pull_request_history.pull_request_id = pull_requests.pullreq_id</span>
-<span class="s2">                WHERE action = &quot;merged&quot;</span>
-<span class="s2">                AND base_repo_id = :repoid</span>
-<span class="s2">                ORDER BY actor_id) a</span>
-<span class="s2">            ON a.actor_id = user_id</span>
-<span class="s2">            WHERE issues.pull_request = 1</span>
-<span class="s2">            AND issues.repo_id = :repoid</span>
-<span class="s2">            GROUP BY YEARWEEK(date)</span>
-<span class="s2">            &quot;&quot;&quot;</span><span class="p">)</span>
-        <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_sql</span><span class="p">(</span><span class="n">maintainerResponseToMRSQL</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;repoid&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">repoid</span><span class="p">)})</span>
-        <span class="k">return</span> <span class="n">df</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span></div>
 
 <div class="viewcode-block" id="GHTorrent.code_review_iteration"><a class="viewcode-back" href="../index.html#ghtorrent.GHTorrent.code_review_iteration">[docs]</a>    <span class="k">def</span> <span class="nf">code_review_iteration</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -370,6 +293,171 @@
         <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_sql</span><span class="p">(</span><span class="n">codeReviewIterationSQL</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;repoid&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">repoid</span><span class="p">)})</span>
 
         <span class="k">return</span> <span class="n">df</span></div>
+
+<div class="viewcode-block" id="GHTorrent.contributing_github_organizations"><a class="viewcode-back" href="../index.html#ghtorrent.GHTorrent.contributing_github_organizations">[docs]</a>    <span class="k">def</span> <span class="nf">contributing_github_organizations</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        All the contributing organizations to a project and the counts of each organization&#39;s contributions</span>
+
+<span class="sd">        :param owner: The name of the project owner</span>
+<span class="sd">        :param repo: The name of the repo</span>
+<span class="sd">        :return: DataFrame with each row being an outside contributing organization</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">repoid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">repoid</span><span class="p">(</span><span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="p">)</span>
+        <span class="n">contributingOrgSQL</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">sql</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">            SELECT id AS contributing_org, SUM(commits) AS commits, SUM(issues) AS issues,</span>
+<span class="s2">                               SUM(commit_comments) AS commit_comments, SUM(issue_comments) AS issue_comments,</span>
+<span class="s2">                               SUM(pull_requests) AS pull_requests, SUM(pull_request_comments) AS pull_request_comments,</span>
+<span class="s2">                  SUM(contribution_fields.commits + contribution_fields.issues + contribution_fields.commit_comments + contribution_fields.issue_comments + contribution_fields.pull_requests + contribution_fields.pull_request_comments) AS total, COUNT(DISTINCT contribution_fields.user) AS count</span>
+<span class="s2">            FROM</span>
+<span class="s2">            (</span>
+<span class="s2">                (SELECT organization_members.org_id AS id, commits.author_id AS user, COUNT(*) AS commits, 0 AS issues, 0 AS commit_comments, 0 AS issue_comments, 0 AS pull_requests, 0 AS pull_request_comments FROM organization_members, projects, commits</span>
+<span class="s2">                    WHERE projects.id = :repoid</span>
+<span class="s2">                    AND commits.project_id = :repoid</span>
+<span class="s2">                    AND projects.owner_id &lt;&gt; organization_members.org_id</span>
+<span class="s2">                    AND commits.author_id = organization_members.user_id GROUP BY commits.committer_id)</span>
+<span class="s2">                UNION ALL</span>
+<span class="s2">                (SELECT organization_members.org_id AS id, reporter_id AS user, 0 AS commits, COUNT(*) AS issues, 0 AS commit_comments, 0 AS issue_comments, 0, 0 FROM organization_members, projects, issues</span>
+<span class="s2">                    WHERE projects.id = :repoid</span>
+<span class="s2">                    AND issues.repo_id = :repoid</span>
+<span class="s2">                    AND pull_request = 0</span>
+<span class="s2">                    AND projects.owner_id &lt;&gt; organization_members.org_id</span>
+<span class="s2">                    AND reporter_id = organization_members.user_id GROUP BY issues.reporter_id)</span>
+<span class="s2">                UNION ALL</span>
+<span class="s2">                (SELECT organization_members.org_id AS id, commit_comments.user_id AS user, 0 AS commits, 0 AS commit_comments, COUNT(*) AS commit_comments, 0 AS issue_comments, 0 , 0 FROM organization_members, projects, commit_comments JOIN commits ON commits.id = commit_comments.commit_id</span>
+<span class="s2">                    WHERE projects.id = :repoid</span>
+<span class="s2">                    AND commits.project_id = :repoid</span>
+<span class="s2">                    AND projects.owner_id &lt;&gt; organization_members.org_id</span>
+<span class="s2">                    AND commit_comments.user_id = organization_members.user_id GROUP BY commit_comments.user_id)</span>
+<span class="s2">                 UNION ALL</span>
+<span class="s2">                 (SELECT organization_members.org_id AS id, issue_comments.user_id AS user, 0 AS commits, 0 AS commit_comments, 0 AS commit_comments, COUNT(*) AS issue_comments, 0 , 0 FROM organization_members, projects, issue_comments JOIN issues ON issues.id = issue_comments.issue_id</span>
+<span class="s2">                    WHERE projects.id = :repoid</span>
+<span class="s2">                    AND issues.repo_id = :repoid</span>
+<span class="s2">                    AND projects.owner_id &lt;&gt; organization_members.org_id</span>
+<span class="s2">                    AND issue_comments.user_id = organization_members.user_id GROUP BY id)</span>
+<span class="s2">                 UNION ALL</span>
+<span class="s2">                 (SELECT organization_members.org_id AS id, reporter_id AS user, 0, 0, 0, 0, COUNT(*) AS pull_requests, 0 FROM organization_members, projects, issues</span>
+<span class="s2">                    WHERE projects.id = :repoid</span>
+<span class="s2">                    AND issues.repo_id = :repoid</span>
+<span class="s2">                    AND pull_request = 1</span>
+<span class="s2">                    AND projects.owner_id &lt;&gt; organization_members.org_id</span>
+<span class="s2">                    AND reporter_id = organization_members.user_id GROUP BY issues.reporter_id)</span>
+<span class="s2">                 UNION ALL</span>
+<span class="s2">                 (SELECT organization_members.org_id AS id, pull_request_comments.user_id AS user, 0, 0, 0, 0, 0, COUNT(*) AS pull_request_comments FROM organization_members, projects, pull_request_comments JOIN pull_requests ON pull_requests.base_commit_id = pull_request_comments.commit_id</span>
+<span class="s2">                    WHERE pull_requests.base_repo_id = :repoid</span>
+<span class="s2">                    AND projects.id = :repoid</span>
+<span class="s2">                    AND projects.owner_id &lt;&gt; organization_members.org_id</span>
+<span class="s2">                    AND pull_request_comments.user_id = organization_members.user_id GROUP BY pull_request_comments.user_id)</span>
+<span class="s2">            ) contribution_fields</span>
+<span class="s2">            group by id</span>
+<span class="s2">            having count &gt; 1</span>
+<span class="s2">            ORDER BY total DESC</span>
+<span class="s2">        &quot;&quot;&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_sql</span><span class="p">(</span><span class="n">contributingOrgSQL</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;repoid&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">repoid</span><span class="p">)})</span></div>
+
+<div class="viewcode-block" id="GHTorrent.first_response_to_issue_duration"><a class="viewcode-back" href="../index.html#ghtorrent.GHTorrent.first_response_to_issue_duration">[docs]</a>    <span class="k">def</span> <span class="nf">first_response_to_issue_duration</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Subgroup: Issue Resolution</span>
+<span class="sd">        Endpoint: issues/response_time</span>
+<span class="sd">        chaoss-metric: first-response-to-issue-duration</span>
+
+<span class="sd">        Time to comment by issue</span>
+
+<span class="sd">        :param owner: The name of the project owner</span>
+<span class="sd">        :param repo: The name of the repo</span>
+<span class="sd">        :return: DataFrame with each row being am issue</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">repoid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">repoid</span><span class="p">(</span><span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="p">)</span>
+        <span class="n">issueCommentsSQL</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">sql</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">            SELECT *, TIMESTAMPDIFF(MINUTE, opened, first_commented) AS minutes_to_comment FROM (</span>
+
+<span class="s2">                SELECT issues.id AS id, issues.created_at AS opened, MIN(issue_comments.created_at) AS first_commented, 0 AS pull_request</span>
+<span class="s2">                FROM issues</span>
+<span class="s2">                LEFT JOIN issue_comments</span>
+<span class="s2">                ON issues.id = issue_comments.issue_id</span>
+<span class="s2">                WHERE issues.pull_request = 0 AND issues.repo_id = :repoid</span>
+<span class="s2">                GROUP BY id</span>
+
+<span class="s2">                UNION ALL</span>
+
+<span class="s2">                SELECT issues.id AS id, issues.created_at AS opened, MIN(pull_request_comments.created_at) AS first_commented, 1 AS pull_request</span>
+<span class="s2">                FROM issues</span>
+<span class="s2">                LEFT JOIN pull_request_comments</span>
+<span class="s2">                ON issues.pull_request_id = pull_request_comments.pull_request_id</span>
+<span class="s2">                WHERE issues.pull_request = 1 AND issues.repo_id = :repoid</span>
+<span class="s2">                GROUP BY id</span>
+<span class="s2">             ) a</span>
+<span class="s2">            &quot;&quot;&quot;</span><span class="p">)</span>
+        <span class="n">rs</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_sql</span><span class="p">(</span><span class="n">issueCommentsSQL</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;repoid&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">repoid</span><span class="p">)})</span>
+        <span class="k">return</span> <span class="n">rs</span></div>
+
+<div class="viewcode-block" id="GHTorrent.forks"><a class="viewcode-back" href="../index.html#ghtorrent.GHTorrent.forks">[docs]</a>    <span class="k">def</span> <span class="nf">forks</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">group_by</span><span class="o">=</span><span class="s2">&quot;week&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Subgroup: Code Development</span>
+<span class="sd">        chaoss-metric: forks</span>
+<span class="sd">        Timeseries of when a repo&#39;s forks were created</span>
+<span class="sd">        :param owner: The name of the project owner or the id of the project in the projects table of the project in the projects table. Use repoid() to get this.</span>
+<span class="sd">        :param repo: The name of the repo. Unneeded if repository id was passed as owner.</span>
+<span class="sd">        :return: DataFrame with forks/day</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">repoid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">repoid</span><span class="p">(</span><span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="p">)</span>
+        <span class="n">forksSQL</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">sql</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__single_table_count_by_date</span><span class="p">(</span><span class="s1">&#39;projects&#39;</span><span class="p">,</span> <span class="s1">&#39;forked_from&#39;</span><span class="p">,</span> <span class="s1">&#39;owner_id&#39;</span><span class="p">,</span> <span class="n">group_by</span><span class="o">=</span><span class="n">group_by</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_sql</span><span class="p">(</span><span class="n">forksSQL</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;repoid&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">repoid</span><span class="p">)})</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="GHTorrent.issues_with_close"><a class="viewcode-back" href="../index.html#ghtorrent.GHTorrent.issues_with_close">[docs]</a>    <span class="k">def</span> <span class="nf">issues_with_close</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Subgroup: Issue Resolution</span>
+<span class="sd">        chaoss-metric: closed-issue-resolution-duration</span>
+
+<span class="sd">        How long on average each week it takes to close an issue</span>
+
+<span class="sd">        :param owner: The name of the project owner or the id of the project in the projects table of the project in the projects table. Use repoid() to get this.</span>
+<span class="sd">        :param repo: The name of the repo. Unneeded if repository id was passed as owner.</span>
+<span class="sd">        :return: DataFrame with issues/day</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">repoid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">repoid</span><span class="p">(</span><span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="p">)</span>
+        <span class="n">issuesWithCloseSQL</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">sql</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">            SELECT issues.id as &quot;id&quot;,</span>
+<span class="s2">                   issues.created_at as &quot;date&quot;,</span>
+<span class="s2">                   DATEDIFF(closed.created_at, issues.created_at)  AS &quot;days_to_close&quot;</span>
+<span class="s2">            FROM issues</span>
+
+<span class="s2">           JOIN</span>
+<span class="s2">                (SELECT * FROM issue_events</span>
+<span class="s2">                 WHERE issue_events.action = &quot;closed&quot;) closed</span>
+<span class="s2">            ON issues.id = closed.issue_id</span>
+
+<span class="s2">            WHERE issues.repo_id = :repoid&quot;&quot;&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_sql</span><span class="p">(</span><span class="n">issuesWithCloseSQL</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;repoid&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">repoid</span><span class="p">)})</span></div>
+
+<div class="viewcode-block" id="GHTorrent.maintainer_response_to_merge_request_duration"><a class="viewcode-back" href="../index.html#ghtorrent.GHTorrent.maintainer_response_to_merge_request_duration">[docs]</a>    <span class="k">def</span> <span class="nf">maintainer_response_to_merge_request_duration</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Duration of time between a merge request being created and a maintainer commenting on that request</span>
+
+<span class="sd">        :param owner: The name of the project owner</span>
+<span class="sd">        :param repo: The name of the repo</span>
+<span class="sd">        :return: DataFrame with each row being a week</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">repoid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">repoid</span><span class="p">(</span><span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="p">)</span>
+        <span class="n">maintainerResponseToMRSQL</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">sql</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">            SELECT DATE(issues.created_at) AS date, TIMESTAMPDIFF(DAY, issues.created_at, pull_request_comments.created_at) as days, pull_request_comments.created_at AS pull_request_comment_created_at, issues.id AS issue_id, pull_request_comments.user_id AS user_id, pull_request_comments.comment_id as pull_request_comment_id</span>
+<span class="s2">            FROM issues</span>
+<span class="s2">            JOIN pull_request_comments</span>
+<span class="s2">            ON issues.pull_request_id = pull_request_comments.pull_request_id</span>
+<span class="s2">            JOIN</span>
+<span class="s2">                (SELECT DISTINCT actor_id</span>
+<span class="s2">                FROM pull_request_history</span>
+<span class="s2">                JOIN pull_requests</span>
+<span class="s2">                ON pull_request_history.pull_request_id = pull_requests.pullreq_id</span>
+<span class="s2">                WHERE action = &quot;merged&quot;</span>
+<span class="s2">                AND base_repo_id = :repoid</span>
+<span class="s2">                ORDER BY actor_id) a</span>
+<span class="s2">            ON a.actor_id = user_id</span>
+<span class="s2">            WHERE issues.pull_request = 1</span>
+<span class="s2">            AND issues.repo_id = :repoid</span>
+<span class="s2">            GROUP BY YEARWEEK(date)</span>
+<span class="s2">            &quot;&quot;&quot;</span><span class="p">)</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_sql</span><span class="p">(</span><span class="n">maintainerResponseToMRSQL</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;repoid&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">repoid</span><span class="p">)})</span>
+        <span class="k">return</span> <span class="n">df</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span></div>
 
 <div class="viewcode-block" id="GHTorrent.new_contributing_github_organizations"><a class="viewcode-back" href="../index.html#ghtorrent.GHTorrent.new_contributing_github_organizations">[docs]</a>    <span class="k">def</span> <span class="nf">new_contributing_github_organizations</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -437,84 +525,41 @@
             <span class="n">numOrgs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">numOrgs</span><span class="p">,</span> <span class="n">count</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&#39;date&#39;</span><span class="p">:</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;date&quot;</span><span class="p">],</span> <span class="s1">&#39;organizations&#39;</span><span class="p">:</span> <span class="n">numOrgs</span><span class="p">})</span></div>
 
-<div class="viewcode-block" id="GHTorrent.contributing_github_organizations"><a class="viewcode-back" href="../index.html#ghtorrent.GHTorrent.contributing_github_organizations">[docs]</a>    <span class="k">def</span> <span class="nf">contributing_github_organizations</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="GHTorrent.open_issues"><a class="viewcode-back" href="../index.html#ghtorrent.GHTorrent.open_issues">[docs]</a>    <span class="k">def</span> <span class="nf">open_issues</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">group_by</span><span class="o">=</span><span class="s2">&quot;week&quot;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        All the contributing organizations to a project and the counts of each organization&#39;s contributions</span>
+<span class="sd">        Subgroup: Individual Diversity</span>
+<span class="sd">        Endpoint: issues</span>
+<span class="sd">        chaoss-metric: open-issues</span>
 
-<span class="sd">        :param owner: The name of the project owner</span>
-<span class="sd">        :param repo: The name of the repo</span>
-<span class="sd">        :return: DataFrame with each row being an outside contributing organization</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">repoid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">repoid</span><span class="p">(</span><span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="p">)</span>
-        <span class="n">contributingOrgSQL</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">sql</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
-<span class="s2">            SELECT id AS contributing_org, SUM(commits) AS commits, SUM(issues) AS issues,</span>
-<span class="s2">                               SUM(commit_comments) AS commit_comments, SUM(issue_comments) AS issue_comments,</span>
-<span class="s2">                               SUM(pull_requests) AS pull_requests, SUM(pull_request_comments) AS pull_request_comments,</span>
-<span class="s2">                  SUM(contribution_fields.commits + contribution_fields.issues + contribution_fields.commit_comments + contribution_fields.issue_comments + contribution_fields.pull_requests + contribution_fields.pull_request_comments) AS total, COUNT(DISTINCT contribution_fields.user) AS count</span>
-<span class="s2">            FROM</span>
-<span class="s2">            (</span>
-<span class="s2">                (SELECT organization_members.org_id AS id, commits.author_id AS user, COUNT(*) AS commits, 0 AS issues, 0 AS commit_comments, 0 AS issue_comments, 0 AS pull_requests, 0 AS pull_request_comments FROM organization_members, projects, commits</span>
-<span class="s2">                    WHERE projects.id = :repoid</span>
-<span class="s2">                    AND commits.project_id = :repoid</span>
-<span class="s2">                    AND projects.owner_id &lt;&gt; organization_members.org_id</span>
-<span class="s2">                    AND commits.author_id = organization_members.user_id GROUP BY commits.committer_id)</span>
-<span class="s2">                UNION ALL</span>
-<span class="s2">                (SELECT organization_members.org_id AS id, reporter_id AS user, 0 AS commits, COUNT(*) AS issues, 0 AS commit_comments, 0 AS issue_comments, 0, 0 FROM organization_members, projects, issues</span>
-<span class="s2">                    WHERE projects.id = :repoid</span>
-<span class="s2">                    AND issues.repo_id = :repoid</span>
-<span class="s2">                    AND pull_request = 0</span>
-<span class="s2">                    AND projects.owner_id &lt;&gt; organization_members.org_id</span>
-<span class="s2">                    AND reporter_id = organization_members.user_id GROUP BY issues.reporter_id)</span>
-<span class="s2">                UNION ALL</span>
-<span class="s2">                (SELECT organization_members.org_id AS id, commit_comments.user_id AS user, 0 AS commits, 0 AS commit_comments, COUNT(*) AS commit_comments, 0 AS issue_comments, 0 , 0 FROM organization_members, projects, commit_comments JOIN commits ON commits.id = commit_comments.commit_id</span>
-<span class="s2">                    WHERE projects.id = :repoid</span>
-<span class="s2">                    AND commits.project_id = :repoid</span>
-<span class="s2">                    AND projects.owner_id &lt;&gt; organization_members.org_id</span>
-<span class="s2">                    AND commit_comments.user_id = organization_members.user_id GROUP BY commit_comments.user_id)</span>
-<span class="s2">                 UNION ALL</span>
-<span class="s2">                 (SELECT organization_members.org_id AS id, issue_comments.user_id AS user, 0 AS commits, 0 AS commit_comments, 0 AS commit_comments, COUNT(*) AS issue_comments, 0 , 0 FROM organization_members, projects, issue_comments JOIN issues ON issues.id = issue_comments.issue_id</span>
-<span class="s2">                    WHERE projects.id = :repoid</span>
-<span class="s2">                    AND issues.repo_id = :repoid</span>
-<span class="s2">                    AND projects.owner_id &lt;&gt; organization_members.org_id</span>
-<span class="s2">                    AND issue_comments.user_id = organization_members.user_id GROUP BY id)</span>
-<span class="s2">                 UNION ALL</span>
-<span class="s2">                 (SELECT organization_members.org_id AS id, reporter_id AS user, 0, 0, 0, 0, COUNT(*) AS pull_requests, 0 FROM organization_members, projects, issues</span>
-<span class="s2">                    WHERE projects.id = :repoid</span>
-<span class="s2">                    AND issues.repo_id = :repoid</span>
-<span class="s2">                    AND pull_request = 1</span>
-<span class="s2">                    AND projects.owner_id &lt;&gt; organization_members.org_id</span>
-<span class="s2">                    AND reporter_id = organization_members.user_id GROUP BY issues.reporter_id)</span>
-<span class="s2">                 UNION ALL</span>
-<span class="s2">                 (SELECT organization_members.org_id AS id, pull_request_comments.user_id AS user, 0, 0, 0, 0, 0, COUNT(*) AS pull_request_comments FROM organization_members, projects, pull_request_comments JOIN pull_requests ON pull_requests.base_commit_id = pull_request_comments.commit_id</span>
-<span class="s2">                    WHERE pull_requests.base_repo_id = :repoid</span>
-<span class="s2">                    AND projects.id = :repoid</span>
-<span class="s2">                    AND projects.owner_id &lt;&gt; organization_members.org_id</span>
-<span class="s2">                    AND pull_request_comments.user_id = organization_members.user_id GROUP BY pull_request_comments.user_id)</span>
-<span class="s2">            ) contribution_fields</span>
-<span class="s2">            group by id</span>
-<span class="s2">            having count &gt; 1</span>
-<span class="s2">            ORDER BY total DESC</span>
-<span class="s2">        &quot;&quot;&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_sql</span><span class="p">(</span><span class="n">contributingOrgSQL</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;repoid&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">repoid</span><span class="p">)})</span></div>
-
-<div class="viewcode-block" id="GHTorrent.forks"><a class="viewcode-back" href="../index.html#ghtorrent.GHTorrent.forks">[docs]</a>    <span class="k">def</span> <span class="nf">forks</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">group_by</span><span class="o">=</span><span class="s2">&quot;week&quot;</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Subgroup: Code Development</span>
-<span class="sd">        chaoss-metric: forks</span>
-
-<span class="sd">        Timeseries of when a repo&#39;s forks were created</span>
+<span class="sd">        Timeseries of issues opened per day</span>
 
 <span class="sd">        :param owner: The name of the project owner or the id of the project in the projects table of the project in the projects table. Use repoid() to get this.</span>
 <span class="sd">        :param repo: The name of the repo. Unneeded if repository id was passed as owner.</span>
-<span class="sd">        :return: DataFrame with forks/day</span>
+<span class="sd">        :return: DataFrame with issues/day</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">repoid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">repoid</span><span class="p">(</span><span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="p">)</span>
-        <span class="n">forksSQL</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">sql</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__single_table_count_by_date</span><span class="p">(</span><span class="s1">&#39;projects&#39;</span><span class="p">,</span> <span class="s1">&#39;forked_from&#39;</span><span class="p">,</span> <span class="s1">&#39;owner_id&#39;</span><span class="p">,</span> <span class="n">group_by</span><span class="o">=</span><span class="n">group_by</span><span class="p">))</span>
-        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_sql</span><span class="p">(</span><span class="n">forksSQL</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;repoid&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">repoid</span><span class="p">)})</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span></div>
+        <span class="n">issuesSQL</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">sql</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__single_table_count_by_date</span><span class="p">(</span><span class="s1">&#39;issues&#39;</span><span class="p">,</span> <span class="s1">&#39;repo_id&#39;</span><span class="p">,</span> <span class="s1">&#39;reporter_id&#39;</span><span class="p">,</span> <span class="n">group_by</span><span class="o">=</span><span class="n">group_by</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_sql</span><span class="p">(</span><span class="n">issuesSQL</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;repoid&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">repoid</span><span class="p">)})</span></div>
 
-<div class="viewcode-block" id="GHTorrent.pulls"><a class="viewcode-back" href="../index.html#ghtorrent.GHTorrent.pulls">[docs]</a>    <span class="k">def</span> <span class="nf">pulls</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="GHTorrent.pull_request_comments"><a class="viewcode-back" href="../index.html#ghtorrent.GHTorrent.pull_request_comments">[docs]</a>    <span class="k">def</span> <span class="nf">pull_request_comments</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Subgroup: Code Development</span>
+<span class="sd">        chaoss-metric: pull-request-comments</span>
+
+<span class="sd">        Timeseries of pull request comments</span>
+
+<span class="sd">        :param owner: The name of the project owner or the id of the project in the projects table of the project in the projects table. Use repoid() to get this.</span>
+<span class="sd">        :param repo: The name of the repo. Unneeded if repository id was passed as owner.</span>
+<span class="sd">        :return: DataFrame with new by week</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">repoid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">repoid</span><span class="p">(</span><span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="p">)</span>
+        <span class="n">pullRequestCommentsSQL</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">sql</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__sub_table_count_by_date</span><span class="p">(</span><span class="s2">&quot;pull_requests&quot;</span><span class="p">,</span> <span class="s2">&quot;pull_request_comments&quot;</span><span class="p">,</span> <span class="s2">&quot;pullreq_id&quot;</span><span class="p">,</span> <span class="s2">&quot;pull_request_id&quot;</span><span class="p">,</span> <span class="s2">&quot;base_repo_id&quot;</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_sql</span><span class="p">(</span><span class="n">pullRequestCommentsSQL</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;repoid&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">repoid</span><span class="p">)})</span></div>
+
+<div class="viewcode-block" id="GHTorrent.pull_requests_open"><a class="viewcode-back" href="../index.html#ghtorrent.GHTorrent.pull_requests_open">[docs]</a>    <span class="k">def</span> <span class="nf">pull_requests_open</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Subgroup: Code Development</span>
+<span class="sd">        Endpoint: pulls</span>
 <span class="sd">        chaoss-metric: pull-requests-open</span>
 
 <span class="sd">        Timeseries of pull requests creation, also gives their associated activity</span>
@@ -535,22 +580,6 @@
 <span class="s2">            GROUP BY WEEK(pull_request_history.created_at)</span>
 <span class="s2">        &quot;&quot;&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_sql</span><span class="p">(</span><span class="n">pullsSQL</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;repoid&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">repoid</span><span class="p">)})</span></div>
-
-<div class="viewcode-block" id="GHTorrent.pull_request_comments"><a class="viewcode-back" href="../index.html#ghtorrent.GHTorrent.pull_request_comments">[docs]</a>    <span class="k">def</span> <span class="nf">pull_request_comments</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Subgroup: Code Development</span>
-<span class="sd">        chaoss-metric: pull-request-comments</span>
-
-<span class="sd">        Timeseries of pull request comments</span>
-
-<span class="sd">        :param owner: The name of the project owner or the id of the project in the projects table of the project in the projects table. Use repoid() to get this.</span>
-<span class="sd">        :param repo: The name of the repo. Unneeded if repository id was passed as owner.</span>
-<span class="sd">        :return: DataFrame with new by week</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">repoid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">repoid</span><span class="p">(</span><span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="p">)</span>
-        <span class="n">pullRequestCommentsSQL</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">sql</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__sub_table_count_by_date</span><span class="p">(</span><span class="s2">&quot;pull_requests&quot;</span><span class="p">,</span> <span class="s2">&quot;pull_request_comments&quot;</span><span class="p">,</span> <span class="s2">&quot;pullreq_id&quot;</span><span class="p">,</span> <span class="s2">&quot;pull_request_id&quot;</span><span class="p">,</span> <span class="s2">&quot;base_repo_id&quot;</span><span class="p">))</span>
-        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_sql</span><span class="p">(</span><span class="n">pullRequestCommentsSQL</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;repoid&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">repoid</span><span class="p">)})</span></div>
-
 
     <span class="c1">#####################################</span>
     <span class="c1">###            RISK               ###</span>
@@ -592,13 +621,11 @@
         <span class="n">issueCommentsSQL</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">sql</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__sub_table_count_by_date</span><span class="p">(</span><span class="s2">&quot;issues&quot;</span><span class="p">,</span> <span class="s2">&quot;issue_comments&quot;</span><span class="p">,</span> <span class="s2">&quot;issue_id&quot;</span><span class="p">,</span> <span class="s2">&quot;issue_id&quot;</span><span class="p">,</span> <span class="s2">&quot;repo_id&quot;</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_sql</span><span class="p">(</span><span class="n">issueCommentsSQL</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;repoid&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">repoid</span><span class="p">)})</span></div>
 
-
     <span class="c1">#####################################</span>
     <span class="c1">###         EXPERIMENTAL          ###</span>
     <span class="c1">#####################################</span>
 
     <span class="c1"># COMMIT RELATED</span>
-
 <div class="viewcode-block" id="GHTorrent.commits100"><a class="viewcode-back" href="../index.html#ghtorrent.GHTorrent.commits100">[docs]</a>    <span class="k">def</span> <span class="nf">commits100</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">group_by</span><span class="o">=</span><span class="s2">&quot;week&quot;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Timeseries of all the commits on a repo</span>
@@ -677,7 +704,6 @@
         <span class="k">return</span> <span class="n">df</span></div>
 
     <span class="c1"># ISSUE RELATED</span>
-
 <div class="viewcode-block" id="GHTorrent.issue_activity"><a class="viewcode-back" href="../index.html#ghtorrent.GHTorrent.issue_activity">[docs]</a>    <span class="k">def</span> <span class="nf">issue_activity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        augur-metric: issue-activity</span>
@@ -715,12 +741,10 @@
         <span class="n">df4</span> <span class="o">=</span> <span class="n">df1</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">df2</span><span class="p">)</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">df3</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">df4</span></div>
 
-
     <span class="c1"># PULL REQUEST RELATED</span>
-
-<div class="viewcode-block" id="GHTorrent.pull_acceptance_rate"><a class="viewcode-back" href="../index.html#ghtorrent.GHTorrent.pull_acceptance_rate">[docs]</a>    <span class="k">def</span> <span class="nf">pull_acceptance_rate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="GHTorrent.pull_request_acceptance_rate"><a class="viewcode-back" href="../index.html#ghtorrent.GHTorrent.pull_request_acceptance_rate">[docs]</a>    <span class="k">def</span> <span class="nf">pull_request_acceptance_rate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        augur-metric: pull-acceptance-rate</span>
+<span class="sd">        augur-metric: pull-request-acceptance-rate</span>
 
 <span class="sd">        Timeseries of pull request acceptance rate (Number of pull requests merged on a date over Number of pull requests opened on a date)</span>
 
@@ -748,108 +772,7 @@
 <span class="s2">        &quot;&quot;&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_sql</span><span class="p">(</span><span class="n">pullAcceptanceSQL</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;repoid&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">repoid</span><span class="p">)})</span></div>
 
-
     <span class="c1"># COMMUNITY / CONRIBUTIONS</span>
-
-<div class="viewcode-block" id="GHTorrent.contributions"><a class="viewcode-back" href="../index.html#ghtorrent.GHTorrent.contributions">[docs]</a>    <span class="k">def</span> <span class="nf">contributions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">userid</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        augur metric: contributions</span>
-<span class="sd">        Timeseries of all the contributions to a project, optionally limited to a specific user</span>
-
-<span class="sd">        :param owner: The name of the project owner or the id of the project in the projects table of the project in the projects table</span>
-<span class="sd">        :param repo: The name of the repo. Unneeded if repository id was passed as owner.</span>
-<span class="sd">        :param userid: The id of user if you want to limit the contributions to a specific user.</span>
-<span class="sd">        :return: DataFrame with all of the contributions seperated by day.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">repoid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">repoid</span><span class="p">(</span><span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="p">)</span>
-        <span class="n">rawContributionsSQL</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
-<span class="s2">            SELECT  DATE(coms.created_at) as &quot;date&quot;,</span>
-<span class="s2">                    coms.count            as &quot;commits&quot;,</span>
-<span class="s2">                    pulls.count           as &quot;pull_requests&quot;,</span>
-<span class="s2">                    iss.count             as &quot;issues&quot;,</span>
-<span class="s2">                    comcoms.count         as &quot;commit_comments&quot;,</span>
-<span class="s2">                    pullscoms.count       as &quot;pull_request_comments&quot;,</span>
-<span class="s2">                    isscoms.count         as &quot;issue_comments&quot;,</span>
-<span class="s2">                    coms.count + pulls.count + iss.count + comcoms.count + pullscoms.count + isscoms.count as &quot;total&quot;</span>
-
-<span class="s2">            FROM (SELECT created_at AS created_at, COUNT(*) AS count FROM commits INNER JOIN project_commits ON project_commits.commit_id = commits.id WHERE project_commits.project_id = :repoid[[ AND commits.author_id = :userid]] GROUP BY DATE(created_at)) coms</span>
-
-<span class="s2">            LEFT JOIN (SELECT pull_request_history.created_at AS created_at, COUNT(*) AS count FROM pull_request_history JOIN pull_requests ON pull_requests.id = pull_request_history.pull_request_id WHERE pull_requests.base_repo_id = :repoid AND pull_request_history.action = &#39;merged&#39;[[ AND pull_request_history.actor_id = :userid]] GROUP BY DATE(created_at)) AS pulls</span>
-<span class="s2">            ON DATE(pulls.created_at) = DATE(coms.created_at)</span>
-
-<span class="s2">            LEFT JOIN (SELECT issues.created_at AS created_at, COUNT(*) AS count FROM issues WHERE issues.repo_id = :repoid[[ AND issues.reporter_id = :userid]] GROUP BY DATE(created_at)) AS iss</span>
-<span class="s2">            ON DATE(iss.created_at) = DATE(coms.created_at)</span>
-
-<span class="s2">            LEFT JOIN (SELECT commit_comments.created_at AS created_at, COUNT(*) AS count FROM commit_comments JOIN project_commits ON project_commits.commit_id = commit_comments.commit_id WHERE project_commits.project_id = :repoid[[ AND commit_comments.user_id = :userid]] GROUP BY DATE(commit_comments.created_at)) AS comcoms</span>
-<span class="s2">            ON DATE(comcoms.created_at) = DATE(coms.created_at)</span>
-
-<span class="s2">            LEFT JOIN (SELECT pull_request_comments.created_at AS created_at, COUNT(*) AS count FROM pull_request_comments JOIN pull_requests ON pull_request_comments.pull_request_id = pull_requests.id WHERE pull_requests.base_repo_id = :repoid[[ AND pull_request_comments.user_id = :userid]] GROUP BY DATE(pull_request_comments.created_at)) AS pullscoms</span>
-<span class="s2">            ON DATE(pullscoms.created_at) = DATE(coms.created_at)</span>
-
-<span class="s2">            LEFT JOIN (SELECT issue_comments.created_at AS created_at, COUNT(*) AS count FROM issue_comments JOIN issues ON issue_comments.issue_id = issues.id WHERE issues.repo_id = :repoid[[ AND issue_comments.user_id = :userid]] GROUP BY DATE(issue_comments.created_at)) AS isscoms</span>
-<span class="s2">            ON DATE(isscoms.created_at) = DATE(coms.created_at)</span>
-
-<span class="s2">            GROUP BY YEARWEEK(coms.created_at)</span>
-<span class="s2">            ORDER BY DATE(coms.created_at)</span>
-<span class="s2">        &quot;&quot;&quot;</span>
-
-        <span class="k">if</span> <span class="p">(</span><span class="n">userid</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">userid</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">):</span>
-            <span class="n">rawContributionsSQL</span> <span class="o">=</span> <span class="n">rawContributionsSQL</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;[[&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
-            <span class="n">rawContributionsSQL</span> <span class="o">=</span> <span class="n">rawContributionsSQL</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;]]&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
-            <span class="n">parameterized</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">sql</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="n">rawContributionsSQL</span><span class="p">)</span>
-            <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_sql</span><span class="p">(</span><span class="n">parameterized</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;repoid&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">repoid</span><span class="p">),</span> <span class="s2">&quot;userid&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">userid</span><span class="p">)})</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">rawContributionsSQL</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;\[\[.+?\]\]&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">rawContributionsSQL</span><span class="p">)</span>
-            <span class="n">parameterized</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">sql</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="n">rawContributionsSQL</span><span class="p">)</span>
-            <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_sql</span><span class="p">(</span><span class="n">parameterized</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;repoid&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">repoid</span><span class="p">)})</span></div>
-
-<div class="viewcode-block" id="GHTorrent.classify_contributors"><a class="viewcode-back" href="../index.html#ghtorrent.GHTorrent.classify_contributors">[docs]</a>    <span class="k">def</span> <span class="nf">classify_contributors</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Classify everyone who has interacted with a repo into</span>
-<span class="sd">          - user</span>
-<span class="sd">          - tester</span>
-<span class="sd">          - rejected_contributor</span>
-<span class="sd">          - contributor</span>
-<span class="sd">          - major_contributor</span>
-<span class="sd">          - maintainer</span>
-
-<span class="sd">        :param owner: The name of the project owner or the id of the project in the projects table of the project in the projects table.</span>
-<span class="sd">        :param repo: The name of the repo. Unneeded if repository id was passed as owner.</span>
-<span class="sd">        :return: DataFrame with the login and role of contributors</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">repoid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">repoid</span><span class="p">(</span><span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="p">)</span>
-        <span class="n">contributors</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">contributors</span><span class="p">(</span><span class="n">repoid</span><span class="p">,</span> <span class="n">repo</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
-        <span class="n">sums</span> <span class="o">=</span> <span class="n">contributors</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
-
-        <span class="k">def</span> <span class="nf">classify</span><span class="p">(</span><span class="n">row</span><span class="p">):</span>
-            <span class="n">role</span> <span class="o">=</span> <span class="s1">&#39;user&#39;</span>
-            <span class="n">ratio</span> <span class="o">=</span> <span class="n">row</span> <span class="o">/</span> <span class="n">sums</span>
-            <span class="k">if</span> <span class="p">(</span><span class="n">ratio</span><span class="p">[</span><span class="s1">&#39;issue_comments&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mf">0.05</span><span class="p">):</span>
-                <span class="n">role</span> <span class="o">=</span> <span class="s1">&#39;tester&#39;</span>
-            <span class="k">if</span> <span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;pull_requests&#39;</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;commits&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
-                <span class="n">role</span> <span class="o">=</span> <span class="s1">&#39;rejected_contributor&#39;</span>
-            <span class="k">if</span> <span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;pull_requests&#39;</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;commits&#39;</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">):</span>
-                <span class="n">role</span> <span class="o">=</span> <span class="s1">&#39;contributor&#39;</span>
-            <span class="k">if</span> <span class="p">(</span><span class="n">ratio</span><span class="p">[</span><span class="s1">&#39;pull_requests&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mf">0.10</span> <span class="ow">or</span> <span class="n">ratio</span><span class="p">[</span><span class="s1">&#39;commits&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mf">0.01</span><span class="p">):</span>
-                <span class="n">role</span> <span class="o">=</span> <span class="s1">&#39;major_contributor&#39;</span>
-            <span class="k">if</span> <span class="p">(</span><span class="n">ratio</span><span class="p">[</span><span class="s1">&#39;commits&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mf">0.02</span> <span class="ow">or</span> <span class="n">ratio</span><span class="p">[</span><span class="s1">&#39;pull_request_comments&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mf">0.15</span><span class="p">):</span>
-                <span class="n">role</span> <span class="o">=</span> <span class="s1">&#39;maintainer&#39;</span>
-
-            <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">({</span><span class="s1">&#39;user&#39;</span><span class="p">:</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;user&#39;</span><span class="p">],</span> <span class="s1">&#39;role&#39;</span><span class="p">:</span> <span class="n">role</span><span class="p">})</span>
-
-        <span class="n">roles</span> <span class="o">=</span> <span class="n">contributors</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">classify</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">roles</span></div>
-
-    <span class="k">def</span> <span class="nf">project_age</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="n">repoid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">repoid</span><span class="p">(</span><span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="p">)</span>
-        <span class="n">projectAgeSQL</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">sql</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
-<span class="s2">            SELECT date(created_at) AS &quot;date&quot;, COUNT(*) AS &quot;</span><span class="si">{0}</span><span class="s2">&quot;</span>
-<span class="s2">                FROM projects</span>
-<span class="s2">                WHERE id = :repoid</span>
-<span class="s2">                GROUP BY YEARWEEK(created_at)</span>
-<span class="s2">                &quot;&quot;&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_sql</span><span class="p">(</span><span class="n">projectAgeSQL</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;repoid&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">repoid</span><span class="p">)})</span>
-
 <div class="viewcode-block" id="GHTorrent.community_age"><a class="viewcode-back" href="../index.html#ghtorrent.GHTorrent.community_age">[docs]</a>    <span class="k">def</span> <span class="nf">community_age</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Information helpful to determining a community&#39;s age</span>
@@ -1002,12 +925,108 @@
 <span class="s2">        &quot;&quot;&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_sql</span><span class="p">(</span><span class="n">contributorsSQL</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;repoid&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">repoid</span><span class="p">)})</span></div>
 
+<div class="viewcode-block" id="GHTorrent.contributions"><a class="viewcode-back" href="../index.html#ghtorrent.GHTorrent.contributions">[docs]</a>    <span class="k">def</span> <span class="nf">contributions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">userid</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        augur metric: contributions</span>
+<span class="sd">        Timeseries of all the contributions to a project, optionally limited to a specific user</span>
+
+<span class="sd">        :param owner: The name of the project owner or the id of the project in the projects table of the project in the projects table</span>
+<span class="sd">        :param repo: The name of the repo. Unneeded if repository id was passed as owner.</span>
+<span class="sd">        :param userid: The id of user if you want to limit the contributions to a specific user.</span>
+<span class="sd">        :return: DataFrame with all of the contributions seperated by day.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">repoid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">repoid</span><span class="p">(</span><span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="p">)</span>
+        <span class="n">rawContributionsSQL</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">            SELECT  DATE(coms.created_at) as &quot;date&quot;,</span>
+<span class="s2">                    coms.count            as &quot;commits&quot;,</span>
+<span class="s2">                    pulls.count           as &quot;pull_requests&quot;,</span>
+<span class="s2">                    iss.count             as &quot;issues&quot;,</span>
+<span class="s2">                    comcoms.count         as &quot;commit_comments&quot;,</span>
+<span class="s2">                    pullscoms.count       as &quot;pull_request_comments&quot;,</span>
+<span class="s2">                    isscoms.count         as &quot;issue_comments&quot;,</span>
+<span class="s2">                    coms.count + pulls.count + iss.count + comcoms.count + pullscoms.count + isscoms.count as &quot;total&quot;</span>
+
+<span class="s2">            FROM (SELECT created_at AS created_at, COUNT(*) AS count FROM commits INNER JOIN project_commits ON project_commits.commit_id = commits.id WHERE project_commits.project_id = :repoid[[ AND commits.author_id = :userid]] GROUP BY DATE(created_at)) coms</span>
+
+<span class="s2">            LEFT JOIN (SELECT pull_request_history.created_at AS created_at, COUNT(*) AS count FROM pull_request_history JOIN pull_requests ON pull_requests.id = pull_request_history.pull_request_id WHERE pull_requests.base_repo_id = :repoid AND pull_request_history.action = &#39;merged&#39;[[ AND pull_request_history.actor_id = :userid]] GROUP BY DATE(created_at)) AS pulls</span>
+<span class="s2">            ON DATE(pulls.created_at) = DATE(coms.created_at)</span>
+
+<span class="s2">            LEFT JOIN (SELECT issues.created_at AS created_at, COUNT(*) AS count FROM issues WHERE issues.repo_id = :repoid[[ AND issues.reporter_id = :userid]] GROUP BY DATE(created_at)) AS iss</span>
+<span class="s2">            ON DATE(iss.created_at) = DATE(coms.created_at)</span>
+
+<span class="s2">            LEFT JOIN (SELECT commit_comments.created_at AS created_at, COUNT(*) AS count FROM commit_comments JOIN project_commits ON project_commits.commit_id = commit_comments.commit_id WHERE project_commits.project_id = :repoid[[ AND commit_comments.user_id = :userid]] GROUP BY DATE(commit_comments.created_at)) AS comcoms</span>
+<span class="s2">            ON DATE(comcoms.created_at) = DATE(coms.created_at)</span>
+
+<span class="s2">            LEFT JOIN (SELECT pull_request_comments.created_at AS created_at, COUNT(*) AS count FROM pull_request_comments JOIN pull_requests ON pull_request_comments.pull_request_id = pull_requests.id WHERE pull_requests.base_repo_id = :repoid[[ AND pull_request_comments.user_id = :userid]] GROUP BY DATE(pull_request_comments.created_at)) AS pullscoms</span>
+<span class="s2">            ON DATE(pullscoms.created_at) = DATE(coms.created_at)</span>
+
+<span class="s2">            LEFT JOIN (SELECT issue_comments.created_at AS created_at, COUNT(*) AS count FROM issue_comments JOIN issues ON issue_comments.issue_id = issues.id WHERE issues.repo_id = :repoid[[ AND issue_comments.user_id = :userid]] GROUP BY DATE(issue_comments.created_at)) AS isscoms</span>
+<span class="s2">            ON DATE(isscoms.created_at) = DATE(coms.created_at)</span>
+
+<span class="s2">            GROUP BY YEARWEEK(coms.created_at)</span>
+<span class="s2">            ORDER BY DATE(coms.created_at)</span>
+<span class="s2">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="n">userid</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">userid</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">):</span>
+            <span class="n">rawContributionsSQL</span> <span class="o">=</span> <span class="n">rawContributionsSQL</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;[[&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+            <span class="n">rawContributionsSQL</span> <span class="o">=</span> <span class="n">rawContributionsSQL</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;]]&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+            <span class="n">parameterized</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">sql</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="n">rawContributionsSQL</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_sql</span><span class="p">(</span><span class="n">parameterized</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;repoid&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">repoid</span><span class="p">),</span> <span class="s2">&quot;userid&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">userid</span><span class="p">)})</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">rawContributionsSQL</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;\[\[.+?\]\]&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">rawContributionsSQL</span><span class="p">)</span>
+            <span class="n">parameterized</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">sql</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="n">rawContributionsSQL</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_sql</span><span class="p">(</span><span class="n">parameterized</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;repoid&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">repoid</span><span class="p">)})</span></div>
+
+<div class="viewcode-block" id="GHTorrent.classify_contributors"><a class="viewcode-back" href="../index.html#ghtorrent.GHTorrent.classify_contributors">[docs]</a>    <span class="k">def</span> <span class="nf">classify_contributors</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Classify everyone who has interacted with a repo into</span>
+<span class="sd">          - user</span>
+<span class="sd">          - tester</span>
+<span class="sd">          - rejected_contributor</span>
+<span class="sd">          - contributor</span>
+<span class="sd">          - major_contributor</span>
+<span class="sd">          - maintainer</span>
+
+<span class="sd">        :param owner: The name of the project owner or the id of the project in the projects table of the project in the projects table.</span>
+<span class="sd">        :param repo: The name of the repo. Unneeded if repository id was passed as owner.</span>
+<span class="sd">        :return: DataFrame with the login and role of contributors</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">repoid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">repoid</span><span class="p">(</span><span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="p">)</span>
+        <span class="n">contributors</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">contributors</span><span class="p">(</span><span class="n">repoid</span><span class="p">,</span> <span class="n">repo</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+        <span class="n">sums</span> <span class="o">=</span> <span class="n">contributors</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+
+        <span class="k">def</span> <span class="nf">classify</span><span class="p">(</span><span class="n">row</span><span class="p">):</span>
+            <span class="n">role</span> <span class="o">=</span> <span class="s1">&#39;user&#39;</span>
+            <span class="n">ratio</span> <span class="o">=</span> <span class="n">row</span> <span class="o">/</span> <span class="n">sums</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">ratio</span><span class="p">[</span><span class="s1">&#39;issue_comments&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mf">0.05</span><span class="p">):</span>
+                <span class="n">role</span> <span class="o">=</span> <span class="s1">&#39;tester&#39;</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;pull_requests&#39;</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;commits&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
+                <span class="n">role</span> <span class="o">=</span> <span class="s1">&#39;rejected_contributor&#39;</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;pull_requests&#39;</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;commits&#39;</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="n">role</span> <span class="o">=</span> <span class="s1">&#39;contributor&#39;</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">ratio</span><span class="p">[</span><span class="s1">&#39;pull_requests&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mf">0.10</span> <span class="ow">or</span> <span class="n">ratio</span><span class="p">[</span><span class="s1">&#39;commits&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mf">0.01</span><span class="p">):</span>
+                <span class="n">role</span> <span class="o">=</span> <span class="s1">&#39;major_contributor&#39;</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">ratio</span><span class="p">[</span><span class="s1">&#39;commits&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mf">0.02</span> <span class="ow">or</span> <span class="n">ratio</span><span class="p">[</span><span class="s1">&#39;pull_request_comments&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mf">0.15</span><span class="p">):</span>
+                <span class="n">role</span> <span class="o">=</span> <span class="s1">&#39;maintainer&#39;</span>
+
+            <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">({</span><span class="s1">&#39;user&#39;</span><span class="p">:</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;user&#39;</span><span class="p">],</span> <span class="s1">&#39;role&#39;</span><span class="p">:</span> <span class="n">role</span><span class="p">})</span>
+
+        <span class="n">roles</span> <span class="o">=</span> <span class="n">contributors</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">classify</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">roles</span></div>
+
+    <span class="k">def</span> <span class="nf">project_age</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">repoid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">repoid</span><span class="p">(</span><span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="p">)</span>
+        <span class="n">projectAgeSQL</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">sql</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">            SELECT date(created_at) AS &quot;date&quot;, COUNT(*) AS &quot;</span><span class="si">{0}</span><span class="s2">&quot;</span>
+<span class="s2">                FROM projects</span>
+<span class="s2">                WHERE id = :repoid</span>
+<span class="s2">                GROUP BY YEARWEEK(created_at)</span>
+<span class="s2">                &quot;&quot;&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_sql</span><span class="p">(</span><span class="n">projectAgeSQL</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;repoid&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">repoid</span><span class="p">)})</span>
 
     <span class="c1"># DEPENDENCY RELATED</span>
 
-
     <span class="c1"># OTHER</span>
-
 <div class="viewcode-block" id="GHTorrent.fakes"><a class="viewcode-back" href="../index.html#ghtorrent.GHTorrent.fakes">[docs]</a>    <span class="k">def</span> <span class="nf">fakes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        augur-metric: fakes</span>
