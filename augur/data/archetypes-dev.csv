@@ -1,0 +1,42 @@
+,backend_name,project,mailing_list,category,subject,date,message_from,message_id,message_text
+0,Pipermail,https://lists.opendaylight.org/pipermail/archetypes-dev/,archetypes-dev,message,[archetypes-dev] Mailing archive list test,"Tue, 17 Apr 2018 14:37:58 -0700",agrimberg at linuxfoundation.org (Andrew Grimberg),<34dc81cb-f265-875a-ba4c-eac4fc664c6c@linuxfoundation.org>,"This is just a test.
+
+-- 
+Andrew J Grimberg
+Lead, IT Release Engineering
+The Linux Foundation
+
+-----"
+0,Pipermail,https://lists.opendaylight.org/pipermail/archetypes-dev/,archetypes-dev,message,[archetypes-dev] Mailing archive list test,"Tue, 17 Apr 2018 14:37:58 -0700",agrimberg at linuxfoundation.org (Andrew Grimberg),<34dc81cb-f265-875a-ba4c-eac4fc664c6c@linuxfoundation.org>,"--------- next part --------------
+A non-text attachment was scrubbed...
+Name: signature.asc
+Type: application/pgp-signature
+Size: 488 bytes
+Desc: OpenPGP digital signature
+URL: <http://lists.opendaylight.org/pipermail/archetypes-dev/attachments/20180417/126c0b23/attachment-0001.sig>
+"
+0,Pipermail,https://lists.opendaylight.org/pipermail/archetypes-dev/,archetypes-dev,message,[archetypes-dev] archetypes-dev mailing list archive works now,"Wed, 18 Apr 2018 11:11:16 +0200",vorburger at redhat.com (Michael Vorburger),<CACeyj_G0CPafJwN1i8-aLMVDxS9wNggUKzDc-WsWOD-pmqbkBQ@mail.gmail.com>,"Hello archetypians,
+
+Just to let you all know that
+https://lists.opendaylight.org/pipermail/archetyp"
+0,Pipermail,https://lists.opendaylight.org/pipermail/archetypes-dev/,archetypes-dev,message,[archetypes-dev] archetypes-dev mailing list archive works now,"Wed, 18 Apr 2018 11:11:16 +0200",vorburger at redhat.com (Michael Vorburger),<CACeyj_G0CPafJwN1i8-aLMVDxS9wNggUKzDc-WsWOD-pmqbkBQ@mail.gmail.com>,"es-dev/ works now (thanks
+Andy!).
+
+Just in case anyone in the future every looks back at the first message on
+this list, here is the background to how this all started:
+
+* https://wiki.opendaylight.org/view/Archetypes
+
+* https://lists.opendaylight.org/pipermail/tsc/2018-April/009333.html
+
+* https://jira.linuxfoundation.org/browse/RELENG-854 and its linked issues
+
+Tx,
+M.
+--
+Michael Vorburger, Red Hat
+vorburger at redhat.com | IRC: vorburger @freenode | ~ = http://vorburger.ch
+-------------- next part --------------
+An HTML attachment was scrubbed...
+URL: <http://lists.opendaylight.org/pipermail/archetypes-dev/attachments/20180418/b55eba01/attachment.html>
+"
