@@ -486,7 +486,7 @@ class Server(object):
         @apiDescription For each week, the rate is calculated as (pull requests merged that week) / (pull requests opened that week).
         @apiName PullRequestAcceptanceRate
         @apiGroup Experimental
-        @apiDescription <a href="incomplete): https://github.com/chaoss/metrics/blob/master/activity-metrics/maintainer-response-to-merge-request-duration.md">CHAOSS Metric Definition</a>
+        @apiDescription (incomplete): <a href="https://github.com/chaoss/metrics/blob/master/activity-metrics/maintainer-response-to-merge-request-duration.md">CHAOSS Metric Definition</a>
         @apiParam {String} owner Username of the owner of the GitHub repository
         @apiParam {String} repo Name of the GitHub repository
 
