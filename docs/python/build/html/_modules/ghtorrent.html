@@ -36,6 +36,7 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">from</span> <span class="nn">augur</span> <span class="k">import</span> <span class="n">logger</span>
+<span class="kn">from</span> <span class="nn">augur.util</span> <span class="k">import</span> <span class="n">annotate</span>
 
 <div class="viewcode-block" id="GHTorrent"><a class="viewcode-back" href="../index.html#ghtorrent.GHTorrent">[docs]</a><span class="k">class</span> <span class="nc">GHTorrent</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Uses GHTorrent and other GitHub data sources and returns dataframes with interesting GitHub indicators&quot;&quot;&quot;</span>
@@ -170,7 +171,8 @@
     <span class="c1">### GROWTH, MATURITY, AND DECLINE ###</span>
     <span class="c1">#####################################</span>
 
-<div class="viewcode-block" id="GHTorrent.closed_issues"><a class="viewcode-back" href="../index.html#ghtorrent.GHTorrent.closed_issues">[docs]</a>    <span class="k">def</span> <span class="nf">closed_issues</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="GHTorrent.closed_issues"><a class="viewcode-back" href="../index.html#ghtorrent.GHTorrent.closed_issues">[docs]</a>    <span class="nd">@annotate</span><span class="p">(</span><span class="n">metric_name</span><span class="o">=</span><span class="s1">&#39;closed-issues&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">closed_issues</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Subgroup: Issue Resolution</span>
 <span class="sd">        Endpoint: issues/closed</span>
