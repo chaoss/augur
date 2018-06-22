@@ -76,8 +76,17 @@
 
 <div class="viewcode-block" id="GHTorrentPlus.closed_issue_resolution_duration"><a class="viewcode-back" href="../index.html#ghtorrentplus.GHTorrentPlus.closed_issue_resolution_duration">[docs]</a>    <span class="k">def</span> <span class="nf">closed_issue_resolution_duration</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Endpoint: issue_close_time</span>
-<span class="sd">        augur-metric: closed-issue-resolution-duration</span>
+<span class="sd">        Returns a DataFrame with these columns:</span>
+<span class="sd">        id</span>
+<span class="sd">        repo_id</span>
+<span class="sd">        closed</span>
+<span class="sd">        pull_request</span>
+<span class="sd">        minutes_to_close</span>
+<span class="sd">        z-score</span>
+
+<span class="sd">        :param owner: The name of the project owner or the id of the project in the projects table of the project in the projects table.</span>
+<span class="sd">        :param repo: The name of the repo. Unneeded if repository id was passed as owner.</span>
+<span class="sd">        :return: DataFrame with the above columns</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">repoid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ghtorrent</span><span class="o">.</span><span class="n">repoid</span><span class="p">(</span><span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="p">)</span>
         <span class="n">issuesClosedSQL</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">sql</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
