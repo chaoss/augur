@@ -171,12 +171,16 @@
     <span class="c1">### GROWTH, MATURITY, AND DECLINE ###</span>
     <span class="c1">#####################################</span>
 
-<div class="viewcode-block" id="GHTorrent.closed_issues"><a class="viewcode-back" href="../index.html#ghtorrent.GHTorrent.closed_issues">[docs]</a>    <span class="nd">@annotate</span><span class="p">(</span><span class="n">metric_name</span><span class="o">=</span><span class="s1">&#39;closed-issues&#39;</span><span class="p">)</span>
+<div class="viewcode-block" id="GHTorrent.closed_issues"><a class="viewcode-back" href="../index.html#ghtorrent.GHTorrent.closed_issues">[docs]</a>    <span class="nd">@annotate</span><span class="p">(</span><span class="n">metric_name</span><span class="o">=</span><span class="s1">&#39;closed-issues&#39;</span><span class="p">,</span> <span class="n">group</span><span class="o">=</span><span class="s1">&#39;growth-maturity-decline&#39;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">closed_issues</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Subgroup: Issue Resolution</span>
-<span class="sd">        Endpoint: issues/closed</span>
-<span class="sd">        chaoss-metric: closed-issues</span>
+
+<span class="sd">        Timeseries of the count of the number of issues closed per week</span>
+
+<span class="sd">        :param owner: The name of the project owner or the id of the project in the projects table of the project in the projects table. Use repoid() to get this.</span>
+<span class="sd">        :param repo: The name of the repo. Unneeded if repository id was passed as owner.</span>
+<span class="sd">        :return: DataFrame with newly closed issues/week</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">repoid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">repoid</span><span class="p">(</span><span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="p">)</span>
         <span class="n">issuesClosedSQL</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">sql</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
@@ -189,44 +193,15 @@
 <span class="s2">        &quot;&quot;&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_sql</span><span class="p">(</span><span class="n">issuesClosedSQL</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;repoid&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">repoid</span><span class="p">)})</span></div>
 
-<div class="viewcode-block" id="GHTorrent.closed_issue_resolution_duration"><a class="viewcode-back" href="../index.html#ghtorrent.GHTorrent.closed_issue_resolution_duration">[docs]</a>    <span class="k">def</span> <span class="nf">closed_issue_resolution_duration</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Subgroup: Issue Resolution</span>
-<span class="sd">        Endpoint: issues_with_close</span>
-<span class="sd">        chaoss-metric: closed-issue-resolution-duration</span>
-
-<span class="sd">        How long on average each week it takes to close an issue</span>
-
-<span class="sd">        :param owner: The name of the project owner or the id of the project in the projects table of the project in the projects table. Use repoid() to get this.</span>
-<span class="sd">        :param repo: The name of the repo. Unneeded if repository id was passed as owner.</span>
-<span class="sd">        :return: DataFrame with issues/day</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">repoid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">repoid</span><span class="p">(</span><span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="p">)</span>
-        <span class="n">issuesWithCloseSQL</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">sql</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
-<span class="s2">            SELECT issues.id as &quot;id&quot;,</span>
-<span class="s2">                   issues.created_at as &quot;date&quot;,</span>
-<span class="s2">                   DATEDIFF(closed.created_at, issues.created_at)  AS &quot;days_to_close&quot;</span>
-<span class="s2">            FROM issues</span>
-
-<span class="s2">           JOIN</span>
-<span class="s2">                (SELECT * FROM issue_events</span>
-<span class="s2">                 WHERE issue_events.action = &quot;closed&quot;) closed</span>
-<span class="s2">            ON issues.id = closed.issue_id</span>
-
-<span class="s2">            WHERE issues.repo_id = :repoid&quot;&quot;&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_sql</span><span class="p">(</span><span class="n">issuesWithCloseSQL</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;repoid&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">repoid</span><span class="p">)})</span></div>
-
 <div class="viewcode-block" id="GHTorrent.code_commits"><a class="viewcode-back" href="../index.html#ghtorrent.GHTorrent.code_commits">[docs]</a>    <span class="k">def</span> <span class="nf">code_commits</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">group_by</span><span class="o">=</span><span class="s2">&quot;week&quot;</span><span class="p">):</span>        
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Subgroup: Code Development</span>
-<span class="sd">        Endpoint: commits</span>
-<span class="sd">        chaoss-metric: code-commits</span>
 
-<span class="sd">        Timeseries of all the commits on a repo</span>
+<span class="sd">        Timeseries of the count of commits </span>
 
 <span class="sd">        :param owner: The name of the project owner or the id of the project in the projects table of the project in the projects table. Use repoid() to get this.</span>
 <span class="sd">        :param repo: The name of the repo. Unneeded if repository id was passed as owner.</span>
-<span class="sd">        :return: DataFrame with commits/day</span>
+<span class="sd">        :return: DataFrame with new commits/week</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">repoid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">repoid</span><span class="p">(</span><span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="p">)</span>
         <span class="n">commitsSQL</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">sql</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__single_table_count_by_date</span><span class="p">(</span><span class="s1">&#39;commits&#39;</span><span class="p">,</span> <span class="n">group_by</span><span class="o">=</span><span class="n">group_by</span><span class="p">))</span>
@@ -234,11 +209,13 @@
 
 <div class="viewcode-block" id="GHTorrent.code_review_iteration"><a class="viewcode-back" href="../index.html#ghtorrent.GHTorrent.code_review_iteration">[docs]</a>    <span class="k">def</span> <span class="nf">code_review_iteration</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Number of iterations (being closed and reopened) that a merge request (code review) goes through until it is finally merged</span>
+<span class="sd">        Subgroup: Code Development</span>
 
-<span class="sd">        :param owner: The name of the project owner</span>
-<span class="sd">        :param repo: The name of the repo</span>
-<span class="sd">        :return: DataFrame with each row being a merge request&#39;s date of creation</span>
+<span class="sd">        Timeseries of the count of iterations (being closed and reopened) that a merge request (code review) goes through until it is finally merged</span>
+
+<span class="sd">        :param owner: The name of the project owner or the id of the project in the projects table of the project in the projects table. Use repoid() to get this.</span>
+<span class="sd">        :param repo: The name of the repo. Unneeded if repository id was passed as owner.</span>
+<span class="sd">        :return: DataFrame with iterations/issue for each issue that week</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">repoid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">repoid</span><span class="p">(</span><span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="p">)</span>
 
@@ -249,7 +226,7 @@
 <span class="s2">            issues.issue_id AS &quot;issue_id&quot;,</span>
 <span class="s2">            pull_request_history.pull_request_id AS &quot;pull_request_id&quot;,</span>
 <span class="s2">            pull_request_history.action AS &quot;action&quot;,</span>
-<span class="s2">            COUNT(CASE WHEN action = &quot;closed&quot; THEN 1 ELSE NULL END) AS &quot;count&quot;</span>
+<span class="s2">            COUNT(CASE WHEN action = &quot;closed&quot; THEN 1 ELSE NULL END) AS &quot;iterations&quot;</span>
 <span class="s2">        FROM issues, pull_request_history</span>
 <span class="s2">        WHERE find_in_set(pull_request_history.action, &quot;closed,merged&quot;)&gt;0</span>
 <span class="s2">        AND pull_request_history.pull_request_id IN(</span>
@@ -263,15 +240,17 @@
 <span class="s2">        &quot;&quot;&quot;</span><span class="p">)</span>
 
         <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_sql</span><span class="p">(</span><span class="n">codeReviewIterationSQL</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;repoid&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">repoid</span><span class="p">)})</span>
-        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&#39;date&#39;</span><span class="p">:</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;created_at&#39;</span><span class="p">],</span> <span class="s1">&#39;iterations&#39;</span><span class="p">:</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;count&#39;</span><span class="p">]})</span></div>
+        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&#39;date&#39;</span><span class="p">:</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;created_at&#39;</span><span class="p">],</span> <span class="s1">&#39;iterations&#39;</span><span class="p">:</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;iterations&#39;</span><span class="p">]})</span></div>
 
 <div class="viewcode-block" id="GHTorrent.contribution_acceptance"><a class="viewcode-back" href="../index.html#ghtorrent.GHTorrent.contribution_acceptance">[docs]</a>    <span class="k">def</span> <span class="nf">contribution_acceptance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Rolling ratio between merged pull requests : unmerged pull requests</span>
+<span class="sd">        Subgroup: Community Development</span>
 
-<span class="sd">        :param owner: The name of the project owner</span>
-<span class="sd">        :param repo: The name of the repo</span>
-<span class="sd">        :return: DataFrame with each row being a week</span>
+<span class="sd">        Timeseries of the rolling ratio between merged pull requests over unmerged pull requests</span>
+
+<span class="sd">        :param owner: The name of the project owner or the id of the project in the projects table of the project in the projects table. Use repoid() to get this.</span>
+<span class="sd">        :param repo: The name of the repo. Unneeded if repository id was passed as owner.</span>
+<span class="sd">        :return: DataFrame with ratio/week</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">repoid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">repoid</span><span class="p">(</span><span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="p">)</span>
         <span class="n">codeReviewIterationSQL</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">sql</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
@@ -293,23 +272,24 @@
 <span class="s2">        &quot;&quot;&quot;</span><span class="p">)</span>
 
         <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_sql</span><span class="p">(</span><span class="n">codeReviewIterationSQL</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;repoid&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">repoid</span><span class="p">)})</span>
-
         <span class="k">return</span> <span class="n">df</span></div>
 
-<div class="viewcode-block" id="GHTorrent.contributing_github_organizations"><a class="viewcode-back" href="../index.html#ghtorrent.GHTorrent.contributing_github_organizations">[docs]</a>    <span class="k">def</span> <span class="nf">contributing_github_organizations</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="GHTorrent.contributing_github_organizations"><a class="viewcode-back" href="../index.html#ghtorrent.GHTorrent.contributing_github_organizations">[docs]</a>    <span class="k">def</span> <span class="nf">contributing_github_organizations</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span> <span class="c1">#needs clarification about return value</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        All the contributing organizations to a project and the counts of each organization&#39;s contributions</span>
+<span class="sd">        Subgroup: Community Development</span>
 
-<span class="sd">        :param owner: The name of the project owner</span>
-<span class="sd">        :param repo: The name of the repo</span>
-<span class="sd">        :return: DataFrame with each row being an outside contributing organization</span>
+<span class="sd">        Returns of all the contributing organizations to a project and the counts of each organization&#39;s contributions</span>
+
+<span class="sd">        :param owner: The name of the project owner or the id of the project in the projects table of the project in the projects table. Use repoid() to get this.</span>
+<span class="sd">        :param repo: The name of the repo. Unneeded if repository id was passed as owner.</span>
+<span class="sd">        :return: DataFrame with each organization&#39;s information</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">repoid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">repoid</span><span class="p">(</span><span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="p">)</span>
         <span class="n">contributingOrgSQL</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">sql</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
 <span class="s2">            SELECT id AS contributing_org, SUM(commits) AS commits, SUM(issues) AS issues,</span>
 <span class="s2">                               SUM(commit_comments) AS commit_comments, SUM(issue_comments) AS issue_comments,</span>
 <span class="s2">                               SUM(pull_requests) AS pull_requests, SUM(pull_request_comments) AS pull_request_comments,</span>
-<span class="s2">                  SUM(contribution_fields.commits + contribution_fields.issues + contribution_fields.commit_comments + contribution_fields.issue_comments + contribution_fields.pull_requests + contribution_fields.pull_request_comments) AS total, COUNT(DISTINCT contribution_fields.user) AS count</span>
+<span class="s2">                  SUM(contribution_fields.commits + contribution_fields.issues + contribution_fields.commit_comments + contribution_fields.issue_comments + contribution_fields.pull_requests + contribution_fields.pull_request_comments) AS total, COUNT(DISTINCT contribution_fields.user) AS distinct_users</span>
 <span class="s2">            FROM</span>
 <span class="s2">            (</span>
 <span class="s2">                (SELECT organization_members.org_id AS id, commits.author_id AS user, COUNT(*) AS commits, 0 AS issues, 0 AS commit_comments, 0 AS issue_comments, 0 AS pull_requests, 0 AS pull_request_comments FROM organization_members, projects, commits</span>
@@ -351,22 +331,20 @@
 <span class="s2">                    AND pull_request_comments.user_id = organization_members.user_id GROUP BY pull_request_comments.user_id)</span>
 <span class="s2">            ) contribution_fields</span>
 <span class="s2">            group by id</span>
-<span class="s2">            having count &gt; 1</span>
+<span class="s2">            having distinct_users &gt; 1</span>
 <span class="s2">            ORDER BY total DESC</span>
 <span class="s2">        &quot;&quot;&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_sql</span><span class="p">(</span><span class="n">contributingOrgSQL</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;repoid&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">repoid</span><span class="p">)})</span></div>
 
-<div class="viewcode-block" id="GHTorrent.first_response_to_issue_duration"><a class="viewcode-back" href="../index.html#ghtorrent.GHTorrent.first_response_to_issue_duration">[docs]</a>    <span class="k">def</span> <span class="nf">first_response_to_issue_duration</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="p">):</span>
+<div class="viewcode-block" id="GHTorrent.first_response_to_issue_duration"><a class="viewcode-back" href="../index.html#ghtorrent.GHTorrent.first_response_to_issue_duration">[docs]</a>    <span class="k">def</span> <span class="nf">first_response_to_issue_duration</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="p">):</span> <span class="c1">#needs clarification about return value</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Subgroup: Issue Resolution</span>
-<span class="sd">        Endpoint: issues/response_time</span>
-<span class="sd">        chaoss-metric: first-response-to-issue-duration</span>
 
-<span class="sd">        Time to comment by issue</span>
+<span class="sd">        Timeseries of the time to first comment by issue</span>
 
-<span class="sd">        :param owner: The name of the project owner</span>
-<span class="sd">        :param repo: The name of the repo</span>
-<span class="sd">        :return: DataFrame with each row being am issue</span>
+<span class="sd">        :param owner: The name of the project owner or the id of the project in the projects table of the project in the projects table. Use repoid() to get this.</span>
+<span class="sd">        :param repo: The name of the repo. Unneeded if repository id was passed as owner.</span>
+<span class="sd">        :return: DataFrame of issues with their response information </span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">repoid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">repoid</span><span class="p">(</span><span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="p">)</span>
         <span class="n">issueCommentsSQL</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">sql</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
@@ -392,25 +370,28 @@
         <span class="n">rs</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_sql</span><span class="p">(</span><span class="n">issueCommentsSQL</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;repoid&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">repoid</span><span class="p">)})</span>
         <span class="k">return</span> <span class="n">rs</span></div>
 
-<div class="viewcode-block" id="GHTorrent.forks"><a class="viewcode-back" href="../index.html#ghtorrent.GHTorrent.forks">[docs]</a>    <span class="k">def</span> <span class="nf">forks</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">group_by</span><span class="o">=</span><span class="s2">&quot;week&quot;</span><span class="p">):</span>
+<div class="viewcode-block" id="GHTorrent.forks"><a class="viewcode-back" href="../index.html#ghtorrent.GHTorrent.forks">[docs]</a>    <span class="k">def</span> <span class="nf">forks</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">group_by</span><span class="o">=</span><span class="s2">&quot;week&quot;</span><span class="p">):</span> 
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Subgroup: Code Development</span>
-<span class="sd">        chaoss-metric: forks</span>
+
 <span class="sd">        Timeseries of when a repo&#39;s forks were created</span>
+
 <span class="sd">        :param owner: The name of the project owner or the id of the project in the projects table of the project in the projects table. Use repoid() to get this.</span>
 <span class="sd">        :param repo: The name of the repo. Unneeded if repository id was passed as owner.</span>
-<span class="sd">        :return: DataFrame with forks/day</span>
+<span class="sd">        :return: DataFrame with new forks/week</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">repoid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">repoid</span><span class="p">(</span><span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="p">)</span>
         <span class="n">forksSQL</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">sql</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__single_table_count_by_date</span><span class="p">(</span><span class="s1">&#39;projects&#39;</span><span class="p">,</span> <span class="s1">&#39;forked_from&#39;</span><span class="p">,</span> <span class="s1">&#39;owner_id&#39;</span><span class="p">,</span> <span class="n">group_by</span><span class="o">=</span><span class="n">group_by</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_sql</span><span class="p">(</span><span class="n">forksSQL</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;repoid&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">repoid</span><span class="p">)})</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="GHTorrent.maintainer_response_to_merge_request_duration"><a class="viewcode-back" href="../index.html#ghtorrent.GHTorrent.maintainer_response_to_merge_request_duration">[docs]</a>    <span class="k">def</span> <span class="nf">maintainer_response_to_merge_request_duration</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="GHTorrent.maintainer_response_to_merge_request_duration"><a class="viewcode-back" href="../index.html#ghtorrent.GHTorrent.maintainer_response_to_merge_request_duration">[docs]</a>    <span class="k">def</span> <span class="nf">maintainer_response_to_merge_request_duration</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span> <span class="c1">#needs clarification on return value</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Duration of time between a merge request being created and a maintainer commenting on that request</span>
+<span class="sd">        Subgroup: Code Development</span>
 
-<span class="sd">        :param owner: The name of the project owner</span>
-<span class="sd">        :param repo: The name of the repo</span>
+<span class="sd">        Timeseries of duration of time between a merge request being created and a maintainer commenting on that request</span>
+
+<span class="sd">        :param owner: The name of the project owner or the id of the project in the projects table of the project in the projects table. Use repoid() to get this.</span>
+<span class="sd">        :param repo: The name of the repo. Unneeded if repository id was passed as owner.</span>
 <span class="sd">        :return: DataFrame with each row being a week</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">repoid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">repoid</span><span class="p">(</span><span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="p">)</span>
@@ -435,13 +416,15 @@
         <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_sql</span><span class="p">(</span><span class="n">maintainerResponseToMRSQL</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;repoid&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">repoid</span><span class="p">)})</span>
         <span class="k">return</span> <span class="n">df</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span></div>
 
-<div class="viewcode-block" id="GHTorrent.new_contributing_github_organizations"><a class="viewcode-back" href="../index.html#ghtorrent.GHTorrent.new_contributing_github_organizations">[docs]</a>    <span class="k">def</span> <span class="nf">new_contributing_github_organizations</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="GHTorrent.new_contributing_github_organizations"><a class="viewcode-back" href="../index.html#ghtorrent.GHTorrent.new_contributing_github_organizations">[docs]</a>    <span class="k">def</span> <span class="nf">new_contributing_github_organizations</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span> <span class="c1">#needs clarification about return value</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Number of new contributing organizations on a certain date</span>
+<span class="sd">        Subgroup: Community Growth</span>
 
-<span class="sd">        :param owner: The name of the project owner</span>
-<span class="sd">        :param repo: The name of the repo</span>
-<span class="sd">        :return: DataFrame with each row being a week</span>
+<span class="sd">        Timeseries of information about new contributing organizations on a certain date</span>
+
+<span class="sd">        :param owner: The name of the project owner or the id of the project in the projects table of the project in the projects table. Use repoid() to get this.</span>
+<span class="sd">        :param repo: The name of the repo. Unneeded if repository id was passed as owner.</span>
+<span class="sd">        :return: DataFrame with each organization&#39;s information</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">repoid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">repoid</span><span class="p">(</span><span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="p">)</span>
 
@@ -504,14 +487,12 @@
 <div class="viewcode-block" id="GHTorrent.open_issues"><a class="viewcode-back" href="../index.html#ghtorrent.GHTorrent.open_issues">[docs]</a>    <span class="k">def</span> <span class="nf">open_issues</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">group_by</span><span class="o">=</span><span class="s2">&quot;week&quot;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Subgroup: Individual Diversity</span>
-<span class="sd">        Endpoint: issues</span>
-<span class="sd">        chaoss-metric: open-issues</span>
 
-<span class="sd">        Timeseries of issues opened per day</span>
+<span class="sd">        Timeseries of the count of newly issues opened per week</span>
 
 <span class="sd">        :param owner: The name of the project owner or the id of the project in the projects table of the project in the projects table. Use repoid() to get this.</span>
 <span class="sd">        :param repo: The name of the repo. Unneeded if repository id was passed as owner.</span>
-<span class="sd">        :return: DataFrame with issues/day</span>
+<span class="sd">        :return: DataFrame with opened issues/week</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">repoid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">repoid</span><span class="p">(</span><span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="p">)</span>
         <span class="n">issuesSQL</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">sql</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__single_table_count_by_date</span><span class="p">(</span><span class="s1">&#39;issues&#39;</span><span class="p">,</span> <span class="s1">&#39;repo_id&#39;</span><span class="p">,</span> <span class="s1">&#39;reporter_id&#39;</span><span class="p">,</span> <span class="n">group_by</span><span class="o">=</span><span class="n">group_by</span><span class="p">))</span>
@@ -520,13 +501,12 @@
 <div class="viewcode-block" id="GHTorrent.pull_request_comments"><a class="viewcode-back" href="../index.html#ghtorrent.GHTorrent.pull_request_comments">[docs]</a>    <span class="k">def</span> <span class="nf">pull_request_comments</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Subgroup: Code Development</span>
-<span class="sd">        chaoss-metric: pull-request-comments</span>
 
-<span class="sd">        Timeseries of pull request comments</span>
+<span class="sd">        Timeseries of the count of new pull request comments</span>
 
 <span class="sd">        :param owner: The name of the project owner or the id of the project in the projects table of the project in the projects table. Use repoid() to get this.</span>
 <span class="sd">        :param repo: The name of the repo. Unneeded if repository id was passed as owner.</span>
-<span class="sd">        :return: DataFrame with new by week</span>
+<span class="sd">        :return: DataFrame with new pull request comments/week</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">repoid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">repoid</span><span class="p">(</span><span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="p">)</span>
         <span class="n">pullRequestCommentsSQL</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">sql</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__sub_table_count_by_date</span><span class="p">(</span><span class="s2">&quot;pull_requests&quot;</span><span class="p">,</span> <span class="s2">&quot;pull_request_comments&quot;</span><span class="p">,</span> <span class="s2">&quot;pullreq_id&quot;</span><span class="p">,</span> <span class="s2">&quot;pull_request_id&quot;</span><span class="p">,</span> <span class="s2">&quot;base_repo_id&quot;</span><span class="p">))</span>
@@ -535,14 +515,12 @@
 <div class="viewcode-block" id="GHTorrent.pull_requests_open"><a class="viewcode-back" href="../index.html#ghtorrent.GHTorrent.pull_requests_open">[docs]</a>    <span class="k">def</span> <span class="nf">pull_requests_open</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Subgroup: Code Development</span>
-<span class="sd">        Endpoint: pulls</span>
-<span class="sd">        chaoss-metric: pull-requests-open</span>
 
-<span class="sd">        Timeseries of pull requests creation, also gives their associated activity</span>
+<span class="sd">        Timeseries of pull requests creation and their associated activity</span>
 
 <span class="sd">        :param owner: The name of the project owner or the id of the project in the projects table of the project in the projects table. Use repoid() to get this.</span>
 <span class="sd">        :param repo: The name of the repo. Unneeded if repository id was passed as owner.</span>
-<span class="sd">        :return: DataFrame with pull requests by day</span>
+<span class="sd">        :return: DataFrame with pull request information/week</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">repoid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">repoid</span><span class="p">(</span><span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="p">)</span>
         <span class="n">pullsSQL</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">sql</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
@@ -571,31 +549,31 @@
     <span class="c1">###           ACTIVITY            ###</span>
     <span class="c1">#####################################</span>
 
-<div class="viewcode-block" id="GHTorrent.watchers"><a class="viewcode-back" href="../index.html#ghtorrent.GHTorrent.watchers">[docs]</a>    <span class="k">def</span> <span class="nf">watchers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">group_by</span><span class="o">=</span><span class="s2">&quot;week&quot;</span><span class="p">):</span>
+<div class="viewcode-block" id="GHTorrent.issue_comments"><a class="viewcode-back" href="../index.html#ghtorrent.GHTorrent.issue_comments">[docs]</a>    <span class="k">def</span> <span class="nf">issue_comments</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Timeseries of when people starred a repo</span>
+<span class="sd">        Timeseries of the count of new issue comments</span>
 
 <span class="sd">        :param owner: The name of the project owner or the id of the project in the projects table of the project in the projects table. Use repoid() to get this.</span>
 <span class="sd">        :param repo: The name of the repo. Unneeded if repository id was passed as owner.</span>
-<span class="sd">        :return: DataFrame with stargazers/day</span>
+<span class="sd">        :return: DataFrame with new issue comments/week</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">repoid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">repoid</span><span class="p">(</span><span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="p">)</span>
+        <span class="n">issueCommentsSQL</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">sql</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__sub_table_count_by_date</span><span class="p">(</span><span class="s2">&quot;issues&quot;</span><span class="p">,</span> <span class="s2">&quot;issue_comments&quot;</span><span class="p">,</span> <span class="s2">&quot;issue_id&quot;</span><span class="p">,</span> <span class="s2">&quot;issue_id&quot;</span><span class="p">,</span> <span class="s2">&quot;repo_id&quot;</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_sql</span><span class="p">(</span><span class="n">issueCommentsSQL</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;repoid&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">repoid</span><span class="p">)})</span></div>
+
+<div class="viewcode-block" id="GHTorrent.watchers"><a class="viewcode-back" href="../index.html#ghtorrent.GHTorrent.watchers">[docs]</a>    <span class="k">def</span> <span class="nf">watchers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">group_by</span><span class="o">=</span><span class="s2">&quot;week&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns of the count of people who starred the repo on that date</span>
+
+<span class="sd">        :param owner: The name of the project owner or the id of the project in the projects table of the project in the projects table. Use repoid() to get this.</span>
+<span class="sd">        :param repo: The name of the repo. Unneeded if repository id was passed as owner.</span>
+<span class="sd">        :return: DataFrame with new stargazers</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">repoid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">repoid</span><span class="p">(</span><span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="p">)</span>
         <span class="n">stargazersSQL</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">sql</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__single_table_count_by_date</span><span class="p">(</span><span class="s1">&#39;watchers&#39;</span><span class="p">,</span> <span class="s1">&#39;repo_id&#39;</span><span class="p">,</span> <span class="s1">&#39;user_id&#39;</span><span class="p">,</span> <span class="n">group_by</span><span class="o">=</span><span class="n">group_by</span><span class="p">))</span>
         <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_sql</span><span class="p">(</span><span class="n">stargazersSQL</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;repoid&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">repoid</span><span class="p">)})</span>
         <span class="n">df</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="p">[:</span><span class="mi">1</span><span class="p">],</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">df</span></div>
-
-<div class="viewcode-block" id="GHTorrent.issue_comments"><a class="viewcode-back" href="../index.html#ghtorrent.GHTorrent.issue_comments">[docs]</a>    <span class="k">def</span> <span class="nf">issue_comments</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Timeseries of issue comments</span>
-
-<span class="sd">        :param owner: The name of the project owner or the id of the project in the projects table of the project in the projects table. Use repoid() to get this.</span>
-<span class="sd">        :param repo: The name of the repo. Unneeded if repository id was passed as owner.</span>
-<span class="sd">        :return: DataFrame with new by week</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">repoid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">repoid</span><span class="p">(</span><span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="p">)</span>
-        <span class="n">issueCommentsSQL</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">sql</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__sub_table_count_by_date</span><span class="p">(</span><span class="s2">&quot;issues&quot;</span><span class="p">,</span> <span class="s2">&quot;issue_comments&quot;</span><span class="p">,</span> <span class="s2">&quot;issue_id&quot;</span><span class="p">,</span> <span class="s2">&quot;issue_id&quot;</span><span class="p">,</span> <span class="s2">&quot;repo_id&quot;</span><span class="p">))</span>
-        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_sql</span><span class="p">(</span><span class="n">issueCommentsSQL</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;repoid&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">repoid</span><span class="p">)})</span></div>
 
     <span class="c1">#####################################</span>
     <span class="c1">###         EXPERIMENTAL          ###</span>
@@ -604,7 +582,7 @@
     <span class="c1"># COMMIT RELATED</span>
 <div class="viewcode-block" id="GHTorrent.commits100"><a class="viewcode-back" href="../index.html#ghtorrent.GHTorrent.commits100">[docs]</a>    <span class="k">def</span> <span class="nf">commits100</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">group_by</span><span class="o">=</span><span class="s2">&quot;week&quot;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Timeseries of all the commits on a repo</span>
+<span class="sd">        Timeseries of the count of commits, limited to the first 100 overall</span>
 
 <span class="sd">        :param owner: The name of the project owner or the id of the project in the projects table of the project in the projects table. Use repoid() to get this.</span>
 <span class="sd">        :param repo: The name of the repo. Unneeded if repository id was passed as owner.</span>
@@ -618,9 +596,7 @@
 
 <div class="viewcode-block" id="GHTorrent.commit_comments"><a class="viewcode-back" href="../index.html#ghtorrent.GHTorrent.commit_comments">[docs]</a>    <span class="k">def</span> <span class="nf">commit_comments</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">group_by</span><span class="o">=</span><span class="s2">&quot;week&quot;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        augur-metric: commit-comments</span>
-
-<span class="sd">        Timeseries of commit comments</span>
+<span class="sd">        Timeseries of the count of new commit comments</span>
 
 <span class="sd">        :param owner: The name of the project owner or the id of the project in the projects table of the project in the projects table. Use repoid() to get this.</span>
 <span class="sd">        :param repo: The name of the repo. Unneeded if repository id was passed as owner.</span>
@@ -632,14 +608,14 @@
 
 <div class="viewcode-block" id="GHTorrent.committer_locations"><a class="viewcode-back" href="../index.html#ghtorrent.GHTorrent.committer_locations">[docs]</a>    <span class="k">def</span> <span class="nf">committer_locations</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Return committers and their locations</span>
+<span class="sd">        Returns committers and their locations</span>
 
-<span class="sd">        @todo: Group by country code instead of users, needs the new schema</span>
 
 <span class="sd">        :param owner: The name of the project owner or the id of the project in the projects table of the project in the projects table.</span>
 <span class="sd">        :param repo: The name of the repo.</span>
-<span class="sd">        :return: DataFrame with users and locations sorted by commtis</span>
+<span class="sd">        :return: DataFrame with users and locations sorted by descending count of commits</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1">#TODO: Group by country code instead of users, needs the new schema</span>
         <span class="n">repoid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">repoid</span><span class="p">(</span><span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="p">)</span>
         <span class="n">rawContributionsSQL</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">sql</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
 <span class="s2">            SELECT users.login, users.location, COUNT(*) AS &quot;commits&quot;</span>
@@ -656,13 +632,11 @@
 
 <div class="viewcode-block" id="GHTorrent.total_committers"><a class="viewcode-back" href="../index.html#ghtorrent.GHTorrent.total_committers">[docs]</a>    <span class="k">def</span> <span class="nf">total_committers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        augur-metric: total-committers</span>
+<span class="sd">        Timeseries of total committers as of each week</span>
 
-<span class="sd">        Number of total committers as of each week</span>
-
-<span class="sd">        :param owner: The name of the project owner</span>
-<span class="sd">        :param repo: The name of the repo</span>
-<span class="sd">        :return: DataFrame with each row being a week</span>
+<span class="sd">        :param owner: The name of the project owner or the id of the project in the projects table of the project in the projects table. Use repoid() to get this.</span>
+<span class="sd">        :param repo: The name of the repo. Unneeded if repository id was passed as owner.</span>
+<span class="sd">        :return: DataFrame with total committers/week</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">repoid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">repoid</span><span class="p">(</span><span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="p">)</span>
         <span class="n">totalCommittersSQL</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">sql</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
@@ -682,7 +656,11 @@
     <span class="c1"># ISSUE RELATED</span>
 <div class="viewcode-block" id="GHTorrent.issue_activity"><a class="viewcode-back" href="../index.html#ghtorrent.GHTorrent.issue_activity">[docs]</a>    <span class="k">def</span> <span class="nf">issue_activity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        augur-metric: issue-activity</span>
+<span class="sd">        Timeseries of issue related activity: issues opened, closed, reopened, and currently open</span>
+
+<span class="sd">        :param owner: The name of the project owner or the id of the project in the projects table of the project in the projects table. Use repoid() to get this.</span>
+<span class="sd">        :param repo: The name of the repo. Unneeded if repository id was passed as owner.</span>
+<span class="sd">        :return: DataFrame with total committers/week</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">repoid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">repoid</span><span class="p">(</span><span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="p">)</span>
         <span class="n">issueActivity</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">sql</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
@@ -692,6 +670,7 @@
 <span class="s2">                WHERE issues.repo_id = :repoid</span>
 <span class="s2">                GROUP BY YEARWEEK(issues.created_at)</span>
 <span class="s2">            &quot;&quot;&quot;</span><span class="p">)</span>
+        <span class="c1">#TODO: clean this up</span>
         <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_sql</span><span class="p">(</span><span class="n">issueActivity</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;repoid&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">repoid</span><span class="p">)})</span>
         <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">issues_open</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span>
         <span class="n">globalIssuesOpened</span> <span class="o">=</span> <span class="mi">0</span>
@@ -720,13 +699,11 @@
     <span class="c1"># PULL REQUEST RELATED</span>
 <div class="viewcode-block" id="GHTorrent.pull_request_acceptance_rate"><a class="viewcode-back" href="../index.html#ghtorrent.GHTorrent.pull_request_acceptance_rate">[docs]</a>    <span class="k">def</span> <span class="nf">pull_request_acceptance_rate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        augur-metric: pull-request-acceptance-rate</span>
-
-<span class="sd">        Timeseries of pull request acceptance rate (Number of pull requests merged on a date over Number of pull requests opened on a date)</span>
+<span class="sd">        Timeseries of pull request acceptance rate (expressed as the ratio of pull requests merged on a date to the count of pull requests opened on a date)</span>
 
 <span class="sd">        :param owner: The name of the project owner or the id of the project in the projects table of the project in the projects table.</span>
 <span class="sd">        :param repo: The name of the repo. Unneeded if repository id was passed as owner.</span>
-<span class="sd">        :return: DataFrame with the pull acceptance rate and the dates</span>
+<span class="sd">        :return: DataFrame with ratio/day</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">repoid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">repoid</span><span class="p">(</span><span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="p">)</span>
         <span class="n">pullAcceptanceSQL</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">sql</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
@@ -752,6 +729,8 @@
 <div class="viewcode-block" id="GHTorrent.community_age"><a class="viewcode-back" href="../index.html#ghtorrent.GHTorrent.community_age">[docs]</a>    <span class="k">def</span> <span class="nf">community_age</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Information helpful to determining a community&#39;s age</span>
+
+<span class="sd">        (Currently broken)</span>
 
 <span class="sd">        :param owner: The name of the project owner or the id of the project in the projects table of the project in the projects table.</span>
 <span class="sd">        :param repo: The name of the repo. Unneeded if repository id was passed as owner.</span>
@@ -788,13 +767,31 @@
 
 <div class="viewcode-block" id="GHTorrent.community_engagement"><a class="viewcode-back" href="../index.html#ghtorrent.GHTorrent.community_engagement">[docs]</a>    <span class="k">def</span> <span class="nf">community_engagement</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Lots of information about issues and pull requests</span>
+<span class="sd">        Timeseries with lots of information about issues and pull requests</span>
 
-<span class="sd">        TODO: More documentation</span>
+<span class="sd">        DataFrame returns these columns:</span>
+<span class="sd">        date</span>
+<span class="sd">        issues_opened</span>
+<span class="sd">        issues_closed</span>
+<span class="sd">        pull_requests_opened</span>
+<span class="sd">        pull_requests_merged</span>
+<span class="sd">        pull_requests_closed</span>
+<span class="sd">        issues_opened_total</span>
+<span class="sd">        issues_closed_total</span>
+<span class="sd">        issues_closed_rate_this_window</span>
+<span class="sd">        issues_closed_rate_total</span>
+<span class="sd">        issues_delta</span>
+<span class="sd">        issues_open</span>
+<span class="sd">        pull_requests_opened_total</span>
+<span class="sd">        pull_requests_closed_total</span>
+<span class="sd">        pull_requests_closed_rate_this_window</span>
+<span class="sd">        pull_requests_closed_rate_total</span>
+<span class="sd">        pull_requests_delta</span>
+<span class="sd">        pull_requests</span>
 
-<span class="sd">        :param owner: The name of the project owner</span>
-<span class="sd">        :param repo: The name of the repo</span>
-<span class="sd">        :return: DataFrame with each row being a week</span>
+<span class="sd">        :param owner: The name of the project owner or the id of the project in the projects table of the project in the projects table. Use repoid() to get this.</span>
+<span class="sd">        :param repo: The name of the repo. Unneeded if repository id was passed as owner.</span>
+<span class="sd">        :return: DataFrame with the associated information about a repo&#39;s activity on that specific date</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">repoid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">repoid</span><span class="p">(</span><span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="p">)</span>
         <span class="n">issuesFullSQL</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">sql</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
@@ -867,13 +864,11 @@
 
 <div class="viewcode-block" id="GHTorrent.contributors"><a class="viewcode-back" href="../index.html#ghtorrent.GHTorrent.contributors">[docs]</a>    <span class="k">def</span> <span class="nf">contributors</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        augur-metric: contributors</span>
-
 <span class="sd">        All the contributors to a project and the counts of their contributions</span>
 
 <span class="sd">        :param owner: The name of the project owner or the id of the project in the projects table of the project in the projects table. Use repoid() to get this.</span>
 <span class="sd">        :param repo: The name of the repo. Unneeded if repository id was passed as owner.</span>
-<span class="sd">        :return: DataFrame with users id, users login, and their contributions by type</span>
+<span class="sd">        :return: DataFrame with user&#39;s id and contributions by type, separated by user</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">repoid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">repoid</span><span class="p">(</span><span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="p">)</span>
         <span class="n">contributorsSQL</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">sql</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
@@ -903,13 +898,22 @@
 
 <div class="viewcode-block" id="GHTorrent.contributions"><a class="viewcode-back" href="../index.html#ghtorrent.GHTorrent.contributions">[docs]</a>    <span class="k">def</span> <span class="nf">contributions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">userid</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        augur metric: contributions</span>
 <span class="sd">        Timeseries of all the contributions to a project, optionally limited to a specific user</span>
+
+<span class="sd">        DataFrame has these columns:</span>
+<span class="sd">        date</span>
+<span class="sd">        commits</span>
+<span class="sd">        pull_requests</span>
+<span class="sd">        issues</span>
+<span class="sd">        commit_comments</span>
+<span class="sd">        pull_request_comments</span>
+<span class="sd">        issue_comments</span>
+<span class="sd">        tota</span>
 
 <span class="sd">        :param owner: The name of the project owner or the id of the project in the projects table of the project in the projects table</span>
 <span class="sd">        :param repo: The name of the repo. Unneeded if repository id was passed as owner.</span>
 <span class="sd">        :param userid: The id of user if you want to limit the contributions to a specific user.</span>
-<span class="sd">        :return: DataFrame with all of the contributions seperated by day.</span>
+<span class="sd">        :return: DataFrame with all of the contributions separated by day</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">repoid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">repoid</span><span class="p">(</span><span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="p">)</span>
         <span class="n">rawContributionsSQL</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
@@ -965,7 +969,7 @@
 
 <span class="sd">        :param owner: The name of the project owner or the id of the project in the projects table of the project in the projects table.</span>
 <span class="sd">        :param repo: The name of the repo. Unneeded if repository id was passed as owner.</span>
-<span class="sd">        :return: DataFrame with the login and role of contributors</span>
+<span class="sd">        :return: DataFrame with the id and role of contributors</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">repoid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">repoid</span><span class="p">(</span><span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="p">)</span>
         <span class="n">contributors</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">contributors</span><span class="p">(</span><span class="n">repoid</span><span class="p">,</span> <span class="n">repo</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
@@ -990,7 +994,14 @@
         <span class="n">roles</span> <span class="o">=</span> <span class="n">contributors</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">classify</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">roles</span></div>
 
-    <span class="k">def</span> <span class="nf">project_age</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="GHTorrent.project_age"><a class="viewcode-back" href="../index.html#ghtorrent.GHTorrent.project_age">[docs]</a>    <span class="k">def</span> <span class="nf">project_age</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Date of the project&#39;s creation</span>
+
+<span class="sd">        :param owner: The name of the project owner or the id of the project in the projects table of the project in the projects table.</span>
+<span class="sd">        :param repo: The name of the repo. Unneeded if repository id was passed as owner.</span>
+<span class="sd">        :return: DataFrame with the date of the project&#39;s creation</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">repoid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">repoid</span><span class="p">(</span><span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="p">)</span>
         <span class="n">projectAgeSQL</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">sql</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
 <span class="s2">            SELECT date(created_at) AS &quot;date&quot;, COUNT(*) AS &quot;</span><span class="si">{0}</span><span class="s2">&quot;</span>
@@ -998,14 +1009,18 @@
 <span class="s2">                WHERE id = :repoid</span>
 <span class="s2">                GROUP BY YEARWEEK(created_at)</span>
 <span class="s2">                &quot;&quot;&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_sql</span><span class="p">(</span><span class="n">projectAgeSQL</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;repoid&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">repoid</span><span class="p">)})</span>
+        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_sql</span><span class="p">(</span><span class="n">projectAgeSQL</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;repoid&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">repoid</span><span class="p">)})</span></div>
 
     <span class="c1"># DEPENDENCY RELATED</span>
 
     <span class="c1"># OTHER</span>
-<div class="viewcode-block" id="GHTorrent.fakes"><a class="viewcode-back" href="../index.html#ghtorrent.GHTorrent.fakes">[docs]</a>    <span class="k">def</span> <span class="nf">fakes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="GHTorrent.fakes"><a class="viewcode-back" href="../index.html#ghtorrent.GHTorrent.fakes">[docs]</a>    <span class="k">def</span> <span class="nf">fakes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span> <span class="c1">#should this be for users who contribute to the given repo?</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        augur-metric: fakes</span>
+<span class="sd">        Timeseries of new fake users per week</span>
+
+<span class="sd">        :param owner: The name of the project owner or the id of the project in the projects table of the project in the projects table.</span>
+<span class="sd">        :param repo: The name of the repo. Unneeded if repository id was passed as owner.</span>
+<span class="sd">        :return: DataFrame with new fake users/week</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">repoid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">repoid</span><span class="p">(</span><span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="p">)</span>
         <span class="n">contributorsSQL</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">sql</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
@@ -1016,12 +1031,15 @@
 <span class="s2">        &quot;&quot;&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_sql</span><span class="p">(</span><span class="n">contributorsSQL</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;repoid&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">repoid</span><span class="p">)})</span></div>
 
-    <span class="k">def</span> <span class="nf">ghtorrent_range</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="GHTorrent.ghtorrent_range"><a class="viewcode-back" href="../index.html#ghtorrent.GHTorrent.ghtorrent_range">[docs]</a>    <span class="k">def</span> <span class="nf">ghtorrent_range</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the range of dates GHTorrent covers </span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">ghtorrentRangeSQL</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">sql</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
 <span class="s2">        SELECT MIN(date(created_at)) AS &quot;min_date&quot;, MAX(date(created_at)) AS &quot;max_date&quot;</span>
 <span class="s2">        FROM commits</span>
 <span class="s2">        &quot;&quot;&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_sql</span><span class="p">(</span><span class="n">ghtorrentRangeSQL</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_sql</span><span class="p">(</span><span class="n">ghtorrentRangeSQL</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">)</span></div></div>
 </pre></div>
 
           </div>
