@@ -67,7 +67,7 @@
     <span class="c1">### GROWTH, MATURITY, AND DECLINE ###</span>
     <span class="c1">#####################################</span>
 
-<div class="viewcode-block" id="GitHubAPI.lines_of_code_changed"><a class="viewcode-back" href="../index.html#githubapi.GitHubAPI.lines_of_code_changed">[docs]</a>    <span class="nd">@annotate</span><span class="p">(</span><span class="n">tag</span><span class="o">=</span><span class="s1">&#39;lines-of-code-changed&#39;</span><span class="p">,</span> <span class="n">group</span><span class="o">=</span><span class="s1">&#39;growth-maturity-decline&#39;</span><span class="p">)</span>
+<div class="viewcode-block" id="GitHubAPI.lines_of_code_changed"><a class="viewcode-back" href="../index.html#githubapi.GitHubAPI.lines_of_code_changed">[docs]</a>    <span class="nd">@annotate</span><span class="p">(</span><span class="n">tag</span><span class="o">=</span><span class="s1">&#39;lines-of-code-changed&#39;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">lines_of_code_changed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span> 
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Timeseries of the count of lines added, deleted, and the net change each week</span>
@@ -110,7 +110,7 @@
     <span class="c1">###         EXPERIMENTAL          ###</span>
     <span class="c1">#####################################</span>
 
-<div class="viewcode-block" id="GitHubAPI.bus_factor"><a class="viewcode-back" href="../index.html#githubapi.GitHubAPI.bus_factor">[docs]</a>    <span class="nd">@annotate</span><span class="p">(</span><span class="n">tag</span><span class="o">=</span><span class="s1">&#39;bus-factor&#39;</span><span class="p">,</span> <span class="n">group</span><span class="o">=</span><span class="s1">&#39;growth-maturity-decline&#39;</span><span class="p">)</span>
+<div class="viewcode-block" id="GitHubAPI.bus_factor"><a class="viewcode-back" href="../index.html#githubapi.GitHubAPI.bus_factor">[docs]</a>    <span class="nd">@annotate</span><span class="p">(</span><span class="n">tag</span><span class="o">=</span><span class="s1">&#39;bus-factor&#39;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">bus_factor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="mi">50</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Calculates bus factor by adding up percentages from highest to lowest until they exceed threshold</span>
@@ -178,7 +178,7 @@
 
         <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">bus_factor</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="GitHubAPI.major_tags"><a class="viewcode-back" href="../index.html#githubapi.GitHubAPI.major_tags">[docs]</a>    <span class="nd">@annotate</span><span class="p">(</span><span class="n">tag</span><span class="o">=</span><span class="s1">&#39;major-tags&#39;</span><span class="p">,</span> <span class="n">group</span><span class="o">=</span><span class="s1">&#39;growth-maturity-decline&#39;</span><span class="p">)</span>
+<div class="viewcode-block" id="GitHubAPI.major_tags"><a class="viewcode-back" href="../index.html#githubapi.GitHubAPI.major_tags">[docs]</a>    <span class="nd">@annotate</span><span class="p">(</span><span class="n">tag</span><span class="o">=</span><span class="s1">&#39;major-tags&#39;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">major_tags</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Timeseries of the dates and names of major version (according to semver) tags. May return blank if no major versions</span>
@@ -240,7 +240,7 @@
 
         <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">major_versions</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="GitHubAPI.tags"><a class="viewcode-back" href="../index.html#githubapi.GitHubAPI.tags">[docs]</a>    <span class="nd">@annotate</span><span class="p">(</span><span class="n">tag</span><span class="o">=</span><span class="s1">&#39;tags&#39;</span><span class="p">,</span> <span class="n">group</span><span class="o">=</span><span class="s1">&#39;growth-maturity-decline&#39;</span><span class="p">)</span>
+<div class="viewcode-block" id="GitHubAPI.tags"><a class="viewcode-back" href="../index.html#githubapi.GitHubAPI.tags">[docs]</a>    <span class="nd">@annotate</span><span class="p">(</span><span class="n">tag</span><span class="o">=</span><span class="s1">&#39;tags&#39;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">tags</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">owner</span><span class="p">,</span> <span class="n">repo</span><span class="p">,</span> <span class="n">raw</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Timeseries of the dates and names of tags</span>

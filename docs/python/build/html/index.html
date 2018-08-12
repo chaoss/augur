@@ -552,6 +552,27 @@ tota</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="ghtorrent.GHTorrent.pull_request_acceptance_rate">
+<code class="descname">pull_request_acceptance_rate</code><span class="sig-paren">(</span><em>owner</em>, <em>repo=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ghtorrent.html#GHTorrent.pull_request_acceptance_rate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghtorrent.GHTorrent.pull_request_acceptance_rate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Timeseries of pull request acceptance rate (expressed as the ratio of pull requests merged on a date to the count of pull requests opened on a date)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>owner</strong> – The name of the project owner or the id of the project in the projects table of the project in the projects table.</li>
+<li><strong>repo</strong> – The name of the repo. Unneeded if repository id was passed as owner.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">DataFrame with ratio/day</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
 <dt id="ghtorrent.GHTorrent.pull_request_comments">
 <code class="descname">pull_request_comments</code><span class="sig-paren">(</span><em>owner</em>, <em>repo=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ghtorrent.html#GHTorrent.pull_request_comments"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghtorrent.GHTorrent.pull_request_comments" title="Permalink to this definition">¶</a></dt>
 <dd><p>Subgroup: Code Development</p>
@@ -567,6 +588,27 @@ tota</p>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">DataFrame with new pull request comments/week</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="ghtorrent.GHTorrent.pull_requests_made_closed">
+<code class="descname">pull_requests_made_closed</code><span class="sig-paren">(</span><em>owner</em>, <em>repo=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ghtorrent.html#GHTorrent.pull_requests_made_closed"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#ghtorrent.GHTorrent.pull_requests_made_closed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Timeseries of the ratio of pull requests made/closed</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>owner</strong> – The name of the project owner or the id of the project in the projects table of the project in the projects table. Use repoid() to get this.</li>
+<li><strong>repo</strong> – The name of the repo. Unneeded if repository id was passed as owner.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">DataFrame with the ratio of pull requests made/closed</p>
 </td>
 </tr>
 </tbody>
