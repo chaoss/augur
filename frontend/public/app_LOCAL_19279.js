@@ -221,9 +221,7 @@ function Augur() {
           state.tab = 'git';
           state.gitRepo = repo.gitURL;
         }
-        if (!payload.fromURL) {
-          window.history.pushState(null, 'Augur', '?' + queryString.stringify(state.queryObject, { encode: false }));
-        }
+        window.history.pushState(null, 'Augur', '?' + queryString.stringify(state.queryObject, { encode: false }));
         // if (!payload.keepCompared) {
         //   state.comparedRepos = []
         // }
@@ -1731,7 +1729,7 @@ if (module.hot) {(function () {  var hotAPI = require("vue-hot-reload-api")
   if (!module.hot.data) {
     hotAPI.createRecord("data-v-6fde6fb0", __vue__options__)
   } else {
-    hotAPI.reload("data-v-6fde6fb0", __vue__options__)
+    hotAPI.rerender("data-v-6fde6fb0", __vue__options__)
   }
 })()}
 });
