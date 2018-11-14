@@ -8,7 +8,6 @@ CONDAACTIVATE=. $(shell conda info --root)/etc/profile.d/conda.sh; conda activat
 OLDVERSION="null"
 EDITOR?="vi"
 PLUGIN=**
-CORE=**
 
 default:
 	@ echo "Installation Commands:"
@@ -26,7 +25,6 @@ default:
 	@ echo "    dev-restart                    Runs dev-stop then dev-restart"
 	@ echo "    server            	           Runs a single instance of the server (useful for debugging endpoints)"
 	@ echo "    test    			           Runs all pytest unit tests and API tests"
-	@ echo "    test-core CORE={core}          Run pytest unit tests for the specified core plugin. Defaults to all."
 	@ echo "    test-plugins PLUGIN={plugin}   Run pytest unit tests for the specified non-core plugin. Defaults to all."
 	@ echo "    test-api   			           Run API tests locally using newman"
 	@ echo "    build                          Builds documentation and frontend - use before pushing"
@@ -128,17 +126,14 @@ build: frontend docs
 	cd augur/static/ \
 	&& brunch build --production
 
-test: test-core test-plugins test-api
-
-test-core:
-	@ bash -c '$(CONDAACTIVATE) python -m pytest augur/plugins/core/$(CORE)/test_$(CORE).py'
+test: test-plugins test-api
 
 test-plugins:
 	@ bash -c '$(CONDAACTIVATE) python -m pytest augur/plugins/$(PLUGIN)/test_$(PLUGIN).py'
 
 test-api:
 	@ make dev-start
-	@ python test/api/test_api.py
+	@ python test/test_api.py
 	@ make dev-stop
 
 .PHONY: unlock
