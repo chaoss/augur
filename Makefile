@@ -11,8 +11,8 @@ SOURCE=**
 
 default:
 	@ echo "Installation Commands:"
-	@ echo "    install                    Installs augur using pip"
-	@ echo "    install-e                  Installs augur in editable mode (pip -e)"
+	@ echo "    install                    Installs augur using pip3"
+	@ echo "    install-e                  Installs augur in editable mode (pip3 -e)"
 	@ echo "    install-dev                Installs augur's developer dependencies (requires npm and pip)"
 	@ echo "    install-msr                Installs MSR14 dataset"
 	@ echo "    upgrade                    Pulls newest version, installs, performs migrations"
@@ -50,13 +50,13 @@ default:
 #  Installation
 #
 install:
-	bash -c '$(CONDAUPDATE) $(CONDAACTIVATE) pip install --upgrade .'
+	bash -c '$(CONDAUPDATE) $(CONDAACTIVATE) pip3 install --upgrade .'
 
 install-dev:
-	bash -c '$(CONDAUPDATE) $(CONDAACTIVATE) pip install pipreqs sphinx; npm install -g apidoc brunch; pip install -e .; python -m ipykernel install --user --name augur --display-name "Python (augur)"; cd frontend/ && npm install'
+	bash -c '$(CONDAUPDATE) $(CONDAACTIVATE) pip3 install pipreqs sphinx; npm install -g apidoc brunch; pip3 install -e .; python -m ipykernel install --user --name augur --display-name "Python (augur)"; cd frontend/ && npm install'
 
 install-dev-admin:
-	bash -c '$(CONDAUPDATE) $(CONDAACTIVATE) pip install pipreqs sphinx; sudo npm install -g apidoc brunch; pip install -e .; cd frontend/ && npm install'
+	bash -c '$(CONDAUPDATE) $(CONDAACTIVATE) pip3 install pipreqs sphinx; sudo npm install -g apidoc brunch; pip3 install -e .; cd frontend/ && npm install'
 
 install-msr:
 	@ ./util/install-msr.sh
@@ -141,7 +141,7 @@ unlock:
 	find . -type f -name "*.lock" -delete
 
 update-deps:
-	@ hash pipreqs 2>/dev/null || { echo "This command needs pipreqs, installing..."; pip install pipreqs; exit 1; }
+	@ hash pipreqs 2>/dev/null || { echo "This command needs pipreqs, installing..."; pip3 install pipreqs; exit 1; }
 	pipreqs ./augur/
 	bash -c "$(CONDAACTIVATE) conda env export > environment.yml"
 
