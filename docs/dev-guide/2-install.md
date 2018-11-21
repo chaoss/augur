@@ -21,6 +21,9 @@ Local Installation (For Development)
 # Install NodeSource
 curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -
 
+# Install pip for python 3.x
+sudo apt-get install python3-pip
+
 # Install NodeJS
 sudo apt-get install -y nodejs
 
@@ -43,8 +46,9 @@ rm Anaconda.sh
 ```bash
 # Install NodeSource
 curl -sL https://rpm.nodesource.com/setup_10.x | sudo -E bash -
-sudo yum install -y nodejs
 
+# Install pip for python 3.x
+sudo apt-get install python3-pip
 
 # Install NodeJS
 sudo apt-get install -y nodejs
@@ -69,6 +73,9 @@ rm Anaconda.sh
 ```bash
 # Install Homebrew
 /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+
+# Install pip for python 3.x
+brew install python3-pip
 
 # Install NodeJS 
 brew install wget node
