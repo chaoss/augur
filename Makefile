@@ -49,6 +49,9 @@ default:
 # 
 #  Installation
 #
+preinstall:
+	bash -c 'sudo apt-get install curl && curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash - && sudo apt-get install -y nodejs && sudo apt-get install -y mariadb-server && curl https://repo.anaconda.com/archive/Anaconda3-5.1.0-Linux-x86_64.sh > Anaconda.sh && chmod +x Anaconda.sh && ./Anaconda.sh -b && rm Anaconda.sh'
+
 install:
 	bash -c '$(CONDAUPDATE) $(CONDAACTIVATE) pip install --upgrade .'
 
