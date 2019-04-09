@@ -6,10 +6,10 @@
       <!-- <vega-lite :spec="spec" :data="values"></vega-lite> -->
       <p> {{ chart }} </p>
       <!-- <p class="note">*point values with total lines changed outside the bounds of [50.000, 1.000.000] are rounded to the corresponding edge limit</p> -->
-      <div class="form-item form-checkboxes tickradios">
+      <div class="form-item form-checkboxes tickradios" style="transform: translateY(-35px) !important">
 
 
-          <div class="inputGroup ">
+          <div class="inputGroup" >
             <input id="circradio" name="comparebaseline" value="0" type="radio" v-model="tick">
             <label id="front" for="circradio">Circle</label>
           </div>
@@ -33,7 +33,6 @@
 <script>
 import { mapState } from 'vuex'
 import AugurStats from 'AugurStats'
-
 export default {
   props: ['source', 'citeUrl', 'citeText', 'title', 'disableRollingAverage', 'alwaysByDate', 'data'],
   data() {
@@ -71,9 +70,7 @@ export default {
     spec() {
       console.log("test")
       const vegaEmbed = window.vegaEmbed;
-
       let type = null, bin = null, size = null, opacity = null;
-
       if(this.tick == 0) {
         type = "circle"
         bin = false
@@ -105,8 +102,6 @@ export default {
                 "min": ".5"
               }
       }
-
-
       let config = {
         "$schema": "https://vega.github.io/schema/vega-lite/v2.json",
         "width": 1000,
@@ -147,7 +142,6 @@ export default {
             "mark": type,
             
             "encoding": {
-
               "x": {"field": "author_date", "type": "temporal", "bin": bin, "axis": {"format": "%b %Y", "title": " "}},
               "y": {"field": "author_email", "type": "nominal"},
               "color": {
@@ -158,14 +152,12 @@ export default {
               
               "size": size,
               "opacity": opacity
-
             },
             
           },
           {
             "mark": "rule",
             "transform": [
-             
               {
                 "calculate": "(datum.additions > datum.deletions) ? 'more deletions' : 'more additions'",
                 "as": "Majority type of changes"
@@ -183,9 +175,10 @@ export default {
               "tooltip": {"type": "multi", "on": "mouseover","nearest": false, "empty": "none"}
             },
             "encoding": {
-              "size": {"value": 4},
-              "opacity": {"value": 1.001},
+              "size": {"value": 8},
+              "opacity": {"value": 1.051},
               "x": {"field": "author_date", "type": "temporal"},
+              // "y": {"field": "author_email", "type": "nominal"},
               "tooltip": [{"field": "author_email", "type": "nominal"},{
                 "field": "Total lines changed",
                 "type": "quantitative",
@@ -203,11 +196,9 @@ export default {
         ]
         
       }
-
       let repo = window.AugurAPI.Repo({ gitURL: this.repo })
       let contributors = {}
       let organizations = {}
-
       let addChanges = (dest, src) => {
         if (dest && src) {
           if (typeof dest !== 'object') {
@@ -218,7 +209,6 @@ export default {
           dest['deletions'] += (src['deletions'] || 0)
         }
       }
-
       let group = (obj, name, change, filter) => {
         if (filter(change)) {
           let year = (new Date(change.author_date)).getFullYear()
@@ -231,7 +221,6 @@ export default {
           addChanges(obj[change[name]][year + '-' + month], change)
         }
       }
-
       let flattenAndSort = (obj, keyName, sortField) => {
         return Object.keys(obj)
             .map((key) => {
@@ -243,18 +232,13 @@ export default {
               return b[sortField] - a[sortField]
             })
       }
-
       let filterDates = (change) => {
         return (new Date(change.author_date)).getFullYear() > this.years[0]
       }
-
       let processData = (data) => {
-
         data.forEach((change) => {
           change.author_date = new Date(change.author_date)
         })
-
-
         data.forEach((change) => {
           if (isFinite(change.additions) && isFinite(change.deletions)) {
             group(contributors, 'author_email', change, filterDates)
@@ -264,7 +248,6 @@ export default {
           }
         })
         
-
         //this.values = flattenAndSort(contributors, 'author_email', 'additions')
         //this.organizations = flattenAndSort(organizations, 'name', 'additions')
         this.contributors = flattenAndSort(contributors, 'author_email', 'additions')
@@ -272,9 +255,6 @@ export default {
         this.contributors.slice(0,10).forEach((obj) => {
           careabout.push(obj["author_email"])
         })
-
-
-
         let findObjectByKey = (array, key, value) => {
             let ary = []
             for (var i = 0; i < array.length; i++) {
@@ -284,7 +264,6 @@ export default {
             }
             return ary;
         }
-
         var ary = []
         
         careabout.forEach((name) => {
@@ -295,48 +274,23 @@ export default {
         })
       
         this.values = ary
-
       }
-
       if (this.data) {
-        
         processData(this.data)
       } else {
         repo.changesByAuthor().then((changes) => {
           processData(changes)
         })
       }
-      
-        
-      
-
-
-
-      
-
-
       $(this.$el).find('.showme, .hidefirst').removeClass('invis')
       $(this.$el).find('.stackedbarchart').removeClass('loader')
-
-      // let endpoints = []
-      // let fields = {}
-      // this.source.split(',').forEach((endpointAndFields) => {
-      //   let split = endpointAndFields.split(':')
-      //   endpoints.push(split[0])
-      //   if (split[1]) {
-      //     fields[split[0]] = split[1].split('+')
-      //   }
-      // })
-
       // Get the repos we need
       let repos = []
       if (this.repo) {
         repos.push(window.AugurRepos[this.repo])
       }
       this.reloadImage(config)
-
       return config
-
     }
   },
   methods: {
@@ -346,5 +300,4 @@ export default {
     }
   }
 }
-
 </script>
