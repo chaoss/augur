@@ -132,17 +132,16 @@ class Facade(object):
     @annotate(tag='commits-by-week')
     def commits_by_week(self, repo_url):
         """
-        Returns number of patches per commiter per week
-
+        Returns number of patches per repo per week
         :param repo_url: the repository's URL
         """
-        commitsByMonthSQL = s.sql.text("""
-            SELECT email AS author_email, affiliation, WEEK AS `week`, YEAR AS `year`, patches FROM repo_weekly_cache 
+        commitsByWeekSQL = s.sql.text("""
+            SELECT STR_TO_DATE(CONCAT(cast(`year` as char),cast(`week` as char), ' Sunday'), '%X%V %W') as author_date, patches FROM repo_weekly_cache 
             WHERE repos_id = (SELECT id FROM repos WHERE git LIKE :repourl LIMIT 1)
-            GROUP BY email, WEEK, YEAR
-            ORDER BY YEAR, WEEK, email ASC
+            GROUP BY author_date 
+            ORDER BY author_date asc
         """)
-        results = pd.read_sql(commitsByMonthSQL, self.db, params={"repourl": '%{}%'.format(repo_url)})
+        results = pd.read_sql(commitsByWeekSQL, self.db, params={"repourl": '%{}%'.format(repo_url)})
         return results
 
     @annotate(tag='facade-project')
