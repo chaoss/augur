@@ -188,12 +188,14 @@ class InsightWorker:
         Query the github api for contributors and issues (not yet implemented)
         """
         self.update_metrics()
+        url = self.config['endpoint']
 
-
-        # data[0]['repo_id'] = entry_info['repo_id']
-        # metrics = []
-        # for obj in data:
-        #     metrics.append(obj['tag'])
+        r = requests.get(url=url)
+        data = r.json()
+        data[0]['repo_id'] = entry_info['repo_id']
+        metrics = []
+        for obj in data:
+            metrics.append(obj['tag'])
 
         
         # self.db.execute(self.table.insert().values(data[0]))
