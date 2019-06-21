@@ -41,7 +41,8 @@ class InsightWorker:
         self._queue = Queue()
         self.config = config
         self.db = None
-        self.table = None
+        self.tool_source = 'Insight Worker'
+        self.tool_version = '0.0.1' # See __init__.py
 
         logging.info("Worker initializing...\n")
         
@@ -56,6 +57,9 @@ class InsightWorker:
             ],
             "config": [self.config]
         }
+
+        self.metric_results_counter = 0
+        self.insight_results_counter = 0
 
         """
         Connect to GHTorrent
@@ -188,22 +192,73 @@ class InsightWorker:
         Query the github api for contributors and issues (not yet implemented)
         """
         self.update_metrics()
-        url = self.config['endpoint']
 
-        r = requests.get(url=url)
-        data = r.json()
-        data[0]['repo_id'] = entry_info['repo_id']
-        metrics = []
-        for obj in data:
-            metrics.append(obj['tag'])
+
+        # data[0]['repo_id'] = entry_info['repo_id']
+        # metrics = []
+        # for obj in data:
+        #     metrics.append(obj['tag'])
 
         
         # self.db.execute(self.table.insert().values(data[0]))
         # requests.post('http://localhost:5000/api/completed_task', json=entry_info['git_url'])
 
     def update_metrics(self):
+        logging.info("Preparing to update metrics ...\n\n" + 
+            "Hitting endpoint: http://localhost:5000/api/unstable/metrics/status ...\n")
         r = requests.get(url='http://localhost:5000/api/unstable/metrics/status')
         data = r.json()
-        logging.info(str(data))
 
+        active_metrics = [metric for metric in data if metric['backend_status'] == 'implemented']
+
+        # Duplicate checking ...
+        need_insertion = self.filter_duplicates({'cm_api_endpoint_repo': "endpoint"}, ['chaoss_metric_status'], active_metrics)
+        logging.info("Count of contributors needing insertion: " + str(len(need_insertion)) + "\n")
+
+        for metric in need_insertion:
+
+            tuple = {
+                "cm_group": metric['group'],
+                "cm_source": metric['data_source'],
+                "cm_type": metric['metric_type'],
+                "cm_backend_status": metric['backend_status'],
+                "cm_frontend_status": metric['frontend_status'],
+                "cm_defined": True if metric['is_defined'] == 'true' else False,
+                "cm_api_endpoint_repo": metric['endpoint'],
+                "cm_api_endpoint_rg": None,
+                "cm_name": metric['display_name'],
+                "cm_working_group": metric['group'],
+                "cm_info": metric['tag'],
+                "tool_source": self.tool_source,
+                "tool_version": self.tool_version,
+                "data_source": metric['data_source']
+            }
+            # Commit metric insertion to the chaoss metrics table
+            result = self.db.execute(self.metrics_table.insert().values(tuple))
+            logging.info("Primary key inserted into the metrics table: " + str(result.inserted_primary_key))
+            self.metric_results_counter += 1
+
+            logging.info("Inserted metric: " + metric['display_name'] + "\n")
+
+    def filter_duplicates(self, cols, tables, og_data):
+        need_insertion = []
+
+        table_str = tables[0]
+        del tables[0]
+        for table in tables:
+            table_str += ", " + table
+        for col in cols.keys():
+            colSQL = s.sql.text("""
+                SELECT {} FROM {}
+                """.format(col, table_str))
+            values = pd.read_sql(colSQL, self.db, params={})
+
+            for obj in og_data:
+                if values.isin([obj[cols[col]]]).any().any():
+                    logging.info("value of tuple exists: " + str(obj[cols[col]]) + "\n")
+                elif obj not in need_insertion:
+                    need_insertion.append(obj)
+        logging.info("While filtering duplicates, we reduced the data size from " + str(len(og_data)) + 
+            " to " + str(len(need_insertion)) + "\n")
+        return need_insertion
 
