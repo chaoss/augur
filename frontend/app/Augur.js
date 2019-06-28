@@ -3,6 +3,12 @@ const queryString = require('query-string')
 // import AugurApp from './components/AugurApp.vue'
 // import router from './router/router'
 // import AugurCards from './components/AugurCards.vue'
+// import Vue from 'vue';
+// import ShardsVue from "shards-vue";
+// Vue.use(ShardsVue);\
+// import { Button } from 'shards-vue/src/components'
+// Vue.use(Button)
+// import router from './router';
 
 export default function Augur () {
   window.jQuery = require('jquery')
@@ -18,10 +24,13 @@ export default function Augur () {
   window.d3 = require('d3')
   window.SvgSaver = require('svgsaver')
   window.VueRouter = require('vue-router')
+  window.ShardsVue = require('shards-vue')
+  window.VueSpinners = require('vue-spinners')
+
+  let router = require('./router.js').default
   window.vegaEmbed = require('vega-embed')
   window.vega = require('vega')
   window.vegaLite = require('vega-lite')
-  let router = require('./router/router').default
 
   window.AUGUR_CHART_STYLE = {
     brightColors: ['#FF3647', '#007BFF', '#DAFF4D', '#B775FF'],
@@ -30,6 +39,8 @@ export default function Augur () {
 
   let AugurApp = require('./components/AugurApp')
 
+  window.Vue.use(window.ShardsVue);
+  window.Vue.use(window.VueSpinners);
   window.Vue.use(window.Vuex)
   window.Vue.use(window.VueVega)
   window.Vue.use(window.VueRouter)
@@ -39,8 +50,10 @@ export default function Augur () {
     state: {
       hasState: null,
       tab: 'gmd',
+      page: 'dashboard',
       baseRepo: null,
       gitRepo: null,
+      comparedRepoGroups: [],
       comparedRepos: [],
       trailingAverage: 180,
       startDate: new Date('1 February 2011'),
@@ -54,7 +67,7 @@ export default function Augur () {
       byDate: false
     },
     mutations: {
-      setGitRepo (state, payload) {
+      setBaseRepo (state, payload) {
         state.gitRepo = payload.gitURL
         state.baseRepo = payload.gitURL
         state.hasState = true
@@ -65,12 +78,29 @@ export default function Augur () {
           repo = window.AugurRepos[repo.toString()]
         }
       },
-      setRepo (state, payload) {
-        let repo = window.AugurAPI.Repo(payload)
-        if (!window.AugurRepos[repo.toString()]) {
+      setGitRepo (state, payload) {
+        state.gitRepo = payload.gitURL
+        state.baseRepo = payload.gitURL
+        state.hasState = true
+        let repo = null
+        let repoName = gitUrlToString(payload)
+        if (!window.AugurRepos[repoName]) {
+          repo = window.AugurAPI.Repo(payload)
           window.AugurRepos[repo.toString()] = repo
         } else {
-          repo = window.AugurRepos[repo.toString()]
+          repo = window.AugurRepos[repoName]
+        }
+        state.baseRepo = repo.toString()
+      },
+      setRepo (state, payload) {
+        let repoName = gitUrlToString(payload)
+        let repo = null
+        // let repo = window.AugurAPI.Repo(payload)
+        if (!window.AugurRepos[repoName]) {
+          repo = window.AugurAPI.Repo(payload)
+          window.AugurRepos[repo.toString()] = repo
+        } else {
+          repo = window.AugurRepos[repoName]
         }
         state.queryObject = {}
         state.hasState = true
@@ -199,10 +229,6 @@ export default function Augur () {
 
   AugurApp.store = window.augur
 
-  // AugurApp.router = router
-  // AugurApp.render = h => h(AugurApp)
-
-  // window.AugurApp = new window.Vue(AugurApp).$mount('#app')
   router.beforeEach((to, from, next) => {
     if (to.params.repo || to.params.groupid){
       if (!to.params.groupid && !to.params.comparedrepo){
@@ -291,4 +317,37 @@ export default function Augur () {
   //     window.AugurApp.$store.commit('addComparedRepo', { githubURL: repo.replace(' ', '/') })
   //   })
   // }
+
+  function gitUrlToString(optipns){
+    let owner = null
+    let name = null
+    if (optipns.githubURL) {
+      let splitURL = optipns.githubURL.split('/')
+      if (splitURL.length < 3) {
+        owner = splitURL[0]
+        name = splitURL[1]
+      } else {
+        owner = splitURL[3]
+        name = splitURL[4]
+      }
+    }
+
+    if (optipns.gitURL) {
+      if (optipns.gitURL.includes('github.com')) {
+        let splitURL = optipns.gitURL.split('/')
+        owner = splitURL[1]
+        name = splitURL[2].split('.')[0]
+      } else {
+        let splitURL = optipns.gitURL.split('/')
+        owner = splitURL[0]
+        name = splitURL[1]
+      }
+    }
+
+    if (owner && name) {
+      return owner + '/' + name
+    } else {
+      return JSON.stringify(optipns)
+    }
+  }
 }

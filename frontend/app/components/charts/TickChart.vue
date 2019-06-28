@@ -59,6 +59,9 @@ export default {
   },
   computed: {
     repo() {
+      return this.$store.state.baseRepo
+    },
+    gitRepo() {
       return this.$store.state.gitRepo
     },
     earliest () {
@@ -104,6 +107,7 @@ export default {
       }
       let config = {
         "$schema": "https://vega.github.io/schema/vega-lite/v2.json",
+
         "width": 1000,
         "height": 360,
         "padding": {"left": -10, "top": 35, "right": 5, "bottom": -18},
@@ -196,7 +200,19 @@ export default {
         ]
         
       }
-      let repo = window.AugurAPI.Repo({ gitURL: this.repo })
+      let repo = null
+      if (this.repo) {
+        if (window.AugurRepos[this.repo]) {
+          repo = window.AugurRepos[this.repo]
+        } else {
+          let repo = window.AugurAPI.Repo({"gitURL": this.gitRepo})
+          window.AugurRepos[repo.toString] = repo
+        }
+      } else {
+        repo =  window.AugurAPI.Repo({ gitURL: this.gitRepo })
+        window.AugurRepos[repo.toString()] = repo
+      }
+
       let contributors = {}
       let organizations = {}
       let addChanges = (dest, src) => {

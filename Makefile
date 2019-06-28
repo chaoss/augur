@@ -7,7 +7,7 @@ CONDAUPDATE=. $(shell conda info --root)/etc/profile.d/conda.sh; if ! conda acti
 CONDAACTIVATE=. $(shell conda info --root)/etc/profile.d/conda.sh; conda activate augur;
 OLDVERSION="null"
 EDITOR?="vi"
-SOURCE=**
+PLUGIN=**
 AUGUR_PIP?='pip'
 AUGUR_PYTHON?='python'
 
@@ -27,8 +27,8 @@ default:
 	@ echo "    dev-restart                     Runs dev-stop then dev-restart"
 	@ echo "    server                          Runs a single instance of the server (useful for debugging)"
 	@ echo "    test                            Runs all pytest unit tests and API tests"
-	@ echo "    test-ds SOURCE={source}         Run pytest unit tests for the specified data source. Defaults to all"
-	@ echo "    test-routes SOURCE={source}     Run API tests"
+	@ echo "    test-functions PLUGIN={plugin}  Run pytest unit tests for the specified data plugin. Defaults to all"
+	@ echo "    test-routes PLUGIN={plugin}     Run API tests"
 	@ echo "    build                           Builds documentation and frontend - use before pushing"
 	@ echo "    frontend                        Builds frontend with Brunch"
 	@ echo "    update-deps                     Generates updated requirements.txt and environment.yml"
@@ -56,7 +56,6 @@ install:
 
 install-dev:
 	bash -c '$(CONDAUPDATE) $(CONDAACTIVATE) $(AUGUR_PIP) install pipreqs sphinx; sudo npm install -g apidoc brunch newman; $(AUGUR_PIP) install -e .; $(AUGUR_PYTHON) -m ipykernel install --user --name augur --display-name "Python (augur)"; cd frontend/ && npm install'
-
 
 install-msr:
 	@ ./util/install-msr.sh
@@ -138,15 +137,13 @@ build: frontend docs
 	cd augur/static/ \
 	&& brunch build --production
 
-test:test-ds test-routes
+test:test-functions test-routes
 
-test-ds:
-	bash -c '$(CONDAACTIVATE) $(AUGUR_PYTHON) -m pytest augur/datasources/$(SOURCE)/test_$(SOURCE).py'
+test-functions:
+	bash -c '$(CONDAACTIVATE) $(AUGUR_PYTHON) -m pytest augur/datasources/$(PLUGIN)/test_$(PLUGIN)_functions.py'
 
 test-routes:
-	@ python test/api/test_api.py $(SOURCE)
-#     @ bash -c '$(CONDAACTIVATE) $(AUGUR_PYTHON) -m pytest augur/datasources/$(SOURCE)/test_$(SOURCE)_routes.py'
-#     @ kill `cat logs/backend.pid`
+	@ python test/api/test_api.py $(PLUGIN)
 
 .PHONY: unlock
 unlock:
@@ -156,6 +153,7 @@ update-deps:
 	@ hash pipreqs 2>/dev/null || { echo "This command needs pipreqs, installing..."; $(AUGUR_PIP) install pipreqs; exit 1; }
 	pipreqs ./augur/
 	bash -c "$(CONDAACTIVATE) conda env  --no-builds > environment.yml"
+
 vagrant:
 	@ vagrant up
 	@ vagrant ssh
@@ -169,6 +167,12 @@ clean:
 	find . -name \*.pyc -delete
 	@ echo "Run sudo make install-dev again to reinstall the environment."
 
+vagrant:
+	@ vagrant up
+	@ vagrant ssh
+	@ echo "****************************************************"
+	@ echo "Don't forget to shutdown the VM with 'vagrant halt'!"
+	@ echo "****************************************************"
 
 #
 # Git

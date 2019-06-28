@@ -7,6 +7,7 @@
         <span v-bind:style="{ 'color': colors[index] }" class="repolisting"> {{ repo }} </span> 
       </h2>
     </div>
+
         <div v-if="!loaded" style="text-align: center; margin-left: 44.4%; position: relative !important" class="col col-12 spinner loader"></div>
 
       
@@ -74,6 +75,9 @@ module.exports = {
     NormalizedStackedBarChart,
     OneDimensionalStackedBarChart,
     HorizontalBarChart,
+    GroupedBarChart,
+    DirectionalTimeChart,
+    TimeIntervalBarChart,
     CommitChart
   },
   computed: {
@@ -104,7 +108,18 @@ created() {
     "changesByAuthor",
     ]
     endpoints1.forEach((source) => {
-      let repo = window.AugurAPI.Repo({ gitURL: this.gitRepo })
+      let repo = null
+      if (this.repo) {
+        if (window.AugurRepos[this.repo]) {
+          repo = window.AugurRepos[this.repo]
+        } else {
+          repo = window.AugurAPI.Repo({"gitURL": this.gitRepo})
+          window.AugurRepos[repo.toString] = repo
+        }
+      } else {
+        repo =  window.AugurAPI.Repo({ gitURL: this.gitRepo })
+        window.AugurRepos[repo.toString()] = repo
+      }
       repo[source]().then((data) => {
         console.log("batch data", data)
         this.values[source] = data
