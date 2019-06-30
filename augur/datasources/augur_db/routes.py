@@ -618,7 +618,7 @@ def create_routes(server):
     @apiSuccessExample {json} Success-Response:
                     [
                         {
-                            "user": 1,
+                            "user_id": 1,
                             "commits": 0,
                             "issues": 2,
                             "commit_comments": 0,
@@ -628,7 +628,7 @@ def create_routes(server):
                             "total": 2
                         },
                         {
-                            "user": 2,
+                            "user_id": 2,
                             "commits": 0,
                             "issues": 2,
                             "commit_comments": 0,
