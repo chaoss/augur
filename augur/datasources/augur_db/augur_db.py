@@ -597,7 +597,7 @@ class Augur(object):
                 WHERE issue_id IN (SELECT issue_id FROM issues WHERE repo_id in (SELECT repo_id FROM repo WHERE repo_group_id=:repo_group_id))
                 AND created_at BETWEEN :begin_date AND :end_date AND cntrb_id IS NOT NULL
                 AND action = 'closed' GROUP BY cntrb_id)
-                ) a GROUP BY a.id ) b GROUP BY contribute_at
+                ) a GROUP BY a.id ) b GROUP BY contribute_at 
                 """)
 
             results = pd.read_sql(contributorsNewSQL, self.db, params={'repo_group_id': repo_group_id, 'period': period,
@@ -1200,7 +1200,7 @@ class Augur(object):
             SELECT repo_id, repo_group_id
             FROM repo
             WHERE repo_name = :repo AND repo_path LIKE :owner
-            GROUP BY repo_id
+            GROUP BY repo_id, rg_name
         """)
 
         results = pd.read_sql(getRepoSQL, self.db, params={'owner': '%{}_'.format(owner), 'repo': repo,})
