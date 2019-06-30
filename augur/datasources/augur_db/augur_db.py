@@ -1239,8 +1239,8 @@ class Augur(object):
         :param repo: the name of the repo
         """
         getRepoSQL = s.sql.text("""
-            SELECT repo_id, repo_group_id
-            FROM repo
+            SELECT repo.repo_id, repo.repo_group_id, rg_name
+            FROM repo JOIN repo_groups ON repo_groups.repo_group_id = repo.repo_group_id
             WHERE repo_name = :repo AND repo_path LIKE :owner
             GROUP BY repo_id, rg_name
         """)
