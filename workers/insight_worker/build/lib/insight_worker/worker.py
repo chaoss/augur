@@ -47,7 +47,7 @@ class InsightWorker:
         logging.info("Worker initializing...\n")
         
         specs = {
-            "id": "com.augurlabs.core.badge_worker",
+            "id": "com.augurlabs.core.insight_worker",
             "location": "http://localhost:51235",
             "qualifications":  [
                 {
@@ -106,7 +106,8 @@ class InsightWorker:
 
         self.run()
 
-        requests.post('http://localhost:5000/api/workers', json=specs) #hello message
+        requests.post('http://localhost:{}/api/unstable/workers'.format(
+            self.config['broker_port']), json=specs) #hello message
         
 
     def update_config(self, config):
@@ -137,12 +138,12 @@ class InsightWorker:
 
         """ Query all repos """
         repoUrlSQL = s.sql.text("""
-            SELECT repo_id FROM repo WHERE repo_git = '{}'
+            SELECT repo_id, repo_group_id FROM repo WHERE repo_git = '{}'
             """.format(git_url))
         rs = pd.read_sql(repoUrlSQL, self.db, params={})
-        print(rs, repoUrlSQL)
         try:
-            self._queue.put(CollectorTask(message_type='TASK', entry_info={"git_url": git_url, "repo_id": rs.iloc[0]["repo_id"]}))
+            self._queue.put(CollectorTask(message_type='TASK', entry_info={"git_url": git_url, 
+                "repo_id": rs.iloc[0]["repo_id"], "repo_group_id": rs.iloc[0]["repo_group_id"]}))
         
         # list_queue = dump_queue(self._queue)
         # print("worker's queue after adding the job: " + list_queue)
@@ -191,8 +192,42 @@ class InsightWorker:
         """ Data collection function
         Query the github api for contributors and issues (not yet implemented)
         """
+        # Update table of endpoints before we query them all
         self.update_metrics()
+        
+        insights = []
 
+        """ Query all endpoints """
+        endpointSQL = s.sql.text("""
+            SELECT * FROM chaoss_metric_status WHERE cm_source = 'augur_db'
+            """)
+        endpoints = pd.read_sql(endpointSQL, self.db, params={}).to_json()
+        logging.info(str(endpoints))
+
+        base_url = 'http://localhost:{}/api/unstable/repo-groups/{}/repos/{}/'.format(
+            self.config['broker_port'], entry_info['repo_id'], entry_info['repo_group_id'])
+        for endpoint in endpoints:
+            url = base_url + endpoint['cm_info']
+            logging.info("Hitting endpoint: " + url + "\n")
+            r = requests.get(url=url)
+            data = r.json()
+            insights.append(create_insights(data))
+
+        greatest_week_name = greatest_month_name = insights[0]['cm_name']
+        greatest_week_val = abs(insights[0]['change_week'])
+        greatest_month_val = abs(insights[0]['change_month'])
+
+        for insight in insights:
+            if abs(insight['change_week']) > greatest_week:
+                greatest_week_name = insight['cm_name']
+                greatest_week_val = insight['change_week']
+
+            if abs(insight['change_month']) > greatest_month:
+                greatest_month_name = insight['cm_name']
+                greatest_month_val = insight['change_month']
+
+        logging.info("The endpoint with the greatest percent change in the last week was {} with {}%%".format(greatest_week_name, greatest_week_val))
+        logging.info("The endpoint with the greatest percent change in the last month was {} with {}%%".format(greatest_month_name, greatest_month_val))
 
         # data[0]['repo_id'] = entry_info['repo_id']
         # metrics = []
@@ -262,3 +297,29 @@ class InsightWorker:
             " to " + str(len(need_insertion)) + "\n")
         return need_insertion
 
+    def create_insights(self):
+
+        querySQL = s.sql.text("""
+            SELECT cm_info FROM chaoss_metric_status WHERE data_collection_date = now() - interval '? days'
+            """)
+
+        data_now = pd.read_sql(querySQL, self.db, params={0})
+        data_week = pd.read_sql(querySQL, self.db, params={7})
+        data_month = pd.read_sql(querySQL, self.db, params={30})
+
+        """ Testing query functionality """
+        # print("\n\nNOW\n\n", data_now)
+        # print("\n\nWEEK\n\n", data_week)
+        # print("\n\nMONTH\n\n", data_month)
+
+        """ Determine these subscripts """
+        change_week = (data_now[] - data_week[])/data_now[]
+        change_month = (data_now[] - data_month[])/data_now[]
+
+        new_insight = {
+            "cm_name": data['cm_name'],
+            "change_week": change_week,
+            "change_month": change_month,
+        }
+
+        return new_insight
