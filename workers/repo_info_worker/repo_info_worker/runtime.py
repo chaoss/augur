@@ -1,9 +1,8 @@
-from flask import Flask, jsonify, request
-import click
-from insight_worker.worker import InsightWorker
-import os
-import json
-import logging
+from flask import Flask, jsonify, request, Response
+import click, os, json, requests, logging
+from gh_repo_info_worker.worker import GHRepoInfoWorker
+logging.basicConfig(filename='worker.log', filemode='w', level=logging.INFO)
+
 
 def create_server(app, gw):
     """ Consists of AUGWOP endpoints for the broker to communicate to this worker
@@ -11,36 +10,35 @@ def create_server(app, gw):
     Can retrieve current status of the worker
     Can retrieve the workers config object
     """
-    
+
     @app.route("/AUGWOP/task", methods=['POST', 'GET'])
     def augwop_task():
         """ AUGWOP endpoint that gets hit to add a task to the workers queue or is used to get the heartbeat/status of worker
         """
         if request.method == 'POST': #will post a task to be added to the queue
             logging.info("Sending to work on task: {}".format(str(request.json)))
-            app.gh_worker.task = request.json
-            
-            #set task
-            return jsonify({"success": "sucess"})
-
+            app.gh_repo_info_worker.task = request.json
+            return Response(response=request.json,
+                        status=200,
+                        mimetype="application/json")
         if request.method == 'GET': #will retrieve the current tasks/status of the worker
             return jsonify({
-                "status": gh_worker._queue if condition else condition_if_false,
-                "tasks": [{
-                    "given": list(gh_worker._queue)
-                }]
+                "status": "not implemented"
             })
+        return Response(response=request.json,
+                        status=200,
+                        mimetype="application/json")
 
     @app.route("/AUGWOP/config")
     def augwop_config():
         """ Retrieve worker's config
         """
-        return app.gh_worker.config
+        return app.gh_repo_info_worker.config
 
 @click.command()
 @click.option('--augur-url', default='http://localhost:5000/', help='Augur URL')
 @click.option('--host', default='localhost', help='Host')
-@click.option('--port', default=51252, help='Port')
+@click.option('--port', default=51237, help='Port')
 def main(augur_url, host, port):
     """ Declares singular worker and creates the server and flask app that it will be running on
     """
@@ -49,28 +47,43 @@ def main(augur_url, host, port):
     #load credentials
     credentials = read_config("Database", use_main_config=1)
     server = read_config("Server", use_main_config=1)
-    worker_info = read_config("Workers", use_main_config=1)
-    worker_port = worker_info['port'] if 'port' in worker_info else port
 
-    config = { 
-            "broker_port": server["port"],
+    config = {
+            "id": "com.augurlabs.core.repo_info_worker",
+            "broker_port": server['port'],
+            #"zombie_id": credentials["zombie_id"],
             "host": credentials["host"],
-            "location": "http://localhost:{}".format(worker_port),
+            "key": credentials["key"],
             "password": credentials["password"],
             "port": credentials["port"],
             "user": credentials["user"],
-            "endpoint": "http://localhost:{}/api/unstable/metrics/status".format(server['port']),
             "database": credentials["database"],
+            "table": "repo_info",
+            "endpoint": "https://bestpractices.coreinfrastructure.org/projects.json",
+            "display_name": "",
+            "description": "",
+            "required": 1,
             "type": "string"
         }
 
     #create instance of the worker
-    app.gh_worker = InsightWorker(config) # declares the worker that will be running on this server with specified config
-    
+
+    app.gh_repo_info_worker = GHRepoInfoWorker(config) # declares the worker that will be running on this server with specified config
+
     create_server(app, None)
-    print("Starting Flask App with pid: " + str(os.getpid()) + "...")
+    logging.info("Starting Flask App with pid: " + str(os.getpid()) + "...")
     app.run(debug=app.debug, host=host, port=port)
-    print("Killing Flask App: " + str(os.getpid()))
+    if app.gh_repo_info_worker._child is not None:
+        app.gh_repo_info_worker._child.terminate()
+    try:
+        requests.post('http://localhost:{}/api/unstable/workers/remove'.format(server['port']), json={"id": config['id']})
+    except:
+        pass
+
+    logging.info("Killing Flask App: " + str(os.getpid()))
+    os.kill(os.getpid(), 9)
+
+
 
 def read_config(section, name=None, environment_variable=None, default=None, config_file='augur.config.json', no_config_file=0, use_main_config=0):
     """
@@ -80,10 +93,11 @@ def read_config(section, name=None, environment_variable=None, default=None, con
     :param name: name of variable
     """
 
+
     __config_bad = False
     if use_main_config == 0:
         __config_file_path = os.path.abspath(os.getenv('AUGUR_CONFIG_FILE', config_file))
-    else:        
+    else:
         __config_file_path = os.path.abspath(os.path.dirname(os.path.dirname(os.getcwd())) + '/augur.config.json')
 
     __config_location = os.path.dirname(__config_file_path)
@@ -102,9 +116,9 @@ def read_config(section, name=None, environment_variable=None, default=None, con
 
 
         # Options to export the loaded configuration as environment variables for Docker
-       
+
         if __export_env:
-            
+
             export_filename = os.getenv('AUGUR_ENV_EXPORT_FILE', 'augur.cfg.sh')
             __export_file = open(export_filename, 'w+')
             # logger.info('Exporting {} to environment variable export statements in {}'.format(config_file, export_filename))
@@ -126,3 +140,6 @@ def read_config(section, name=None, environment_variable=None, default=None, con
 
             __config = __default_config
             return(__config[section][name])
+
+if __name__ == "__main__":
+    main()
