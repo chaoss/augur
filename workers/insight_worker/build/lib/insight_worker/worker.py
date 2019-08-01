@@ -5,6 +5,7 @@ import pandas as pd
 import sqlalchemy as s
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy import MetaData
+from statistics import NormalDist
 import logging
 logging.basicConfig(filename='worker.log', filemode='w', level=logging.INFO)
 
@@ -96,6 +97,8 @@ class InsightWorker:
             self.config['broker_port']), json=specs) #hello message
         
 
+        self.
+
     def update_config(self, config):
         """ Method to update config and set a default
         """
@@ -168,29 +171,39 @@ class InsightWorker:
             if message.type == 'TASK':
                 self.query(message.entry_info)
 
-    def query(self, entry_info):
+    def discover_insights(self, entry_info):
         """ Data collection function
         Query the github api for contributors and issues (not yet implemented)
         """
         # Update table of endpoints before we query them all
-        self.update_metrics()
-        
-        # insights = []
-
+        # self.update_metrics()
+    
         # """ Query all endpoints """
         endpointSQL = s.sql.text("""
             SELECT * FROM chaoss_metric_status WHERE cm_source = 'augur_db'
             """)
         endpoints = pd.read_sql(endpointSQL, self.db, params={}).to_json()
 
-        # base_url = 'http://localhost:{}/api/unstable/repo-groups/{}/repos/{}/'.format(
-        #     self.config['broker_port'], entry_info['repo_id'], entry_info['repo_group_id'])
-        # for endpoint in endpoints:
-        #     url = base_url + endpoint['cm_info']
-        #     logging.info("Hitting endpoint: " + url + "\n")
-        #     r = requests.get(url=url)
-        #     data = r.json()
-        #     insights.append(create_insights(data))
+        base_url = 'http://localhost:{}/api/unstable/repo-groups/{}/repos/{}/'.format(
+            self.config['broker_port'], entry_info['repo_id'], entry_info['repo_group_id'])
+        for endpoint in endpoints:
+            url = base_url + endpoint['cm_info']
+            logging.info("Hitting endpoint: " + url + "\n")
+            r = requests.get(url=url)
+            data = r.json()
+
+            raw_values = {}
+            for dict in data:
+                unique_keys = key in dict.keys() if 'date' is not in key and key != 'repo_group_id' and key != 'repo_id'
+                logging.info("Found the following unique keys for this endpoint: {}".format(unique_keys))
+                for key in unique_keys:
+                    try:
+                        raw_values[key].append(dict[key])
+                    except:
+                        raw_values[key] = []
+
+            for key in raw_values.keys():
+                logging.info(self.confidence_interval(raw_values[key]))
 
         # greatest_week_name = greatest_month_name = insights[0]['cm_name']
         # greatest_week_val = abs(insights[0]['change_week'])
@@ -220,8 +233,13 @@ class InsightWorker:
         # self.db.execute(self.table.insert().values(data[0]))
         # requests.post('http://localhost:5000/api/completed_task', json=entry_info['git_url'])
 
-    # def detect_high_activity(self, timeperiod):
-    #     """ Method to find high activity issues in the past specified timeperiod """
+    def confidence_interval(self, data, timeperiod='week', confidence=.8):
+        """ Method to find high activity issues in the past specified timeperiod """
+        console.log(data)
+        dist = NormalDist.from_samples(data)
+        z = NormalDist().inv_cdf((1 + confidence) / 2.)
+        h = dist.stdev * z / ((len(data) - 1) ** .5)
+        return dist.mean - h, dist.mean + h
 
 
     def update_metrics(self):
@@ -283,7 +301,7 @@ class InsightWorker:
             " to " + str(len(need_insertion)) + "\n")
         return need_insertion
 
-    def create_insights(self):
+    def greatest_percentage(self):
 
         querySQL = s.sql.text("""
             SELECT cm_info FROM chaoss_metric_status WHERE data_collection_date = now() - interval '? days'
