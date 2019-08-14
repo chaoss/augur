@@ -17,7 +17,15 @@ import atexit
 import click
 import subprocess
 
-@click.command('run')
+@click.group('run', short_help='Controlling the server')
+def cli():
+    pass
+
+@cli.command('test')
+def test():
+    print('test command')
+
+@cli.command('serve' short_help='Start the server')
 @pass_application
 def cli(app):
 
@@ -56,24 +64,23 @@ def cli(app):
     controller = app.read_config('Workers')
     worker_pids = []
     worker_processes = []
-    if controller:
-        for worker in controller.keys():
-            if controller[worker]['switch']:
-                pids = get_process_id("/bin/sh -c cd workers/{} && {}_start".format(worker, worker))
-                worker_pids += pids
-                if len(pids) > 0:
-                    worker_pids.append(pids[0] + 1)
-                    pids.append(pids[0] + 1)
-                    logger.info("Found and preparing to kill previous {} worker pids: {}".format(worker,pids))
-                    for pid in pids:
-                        try:
-                            os.kill(pid, 9)
-                        except:
-                            logger.info("Worker process {} already killed".format(pid))
-                worker_process = mp.Process(target=worker_start, kwargs={'worker_name': worker}, daemon=True)
-                worker_process.start()
-                worker_processes.append(worker_process)
-                time.sleep(2.5)
+    for worker in controller.keys():
+        if controller[worker]['switch']:
+            pids = get_process_id("/bin/sh -c cd workers/{} && {}_start".format(worker, worker))
+            worker_pids += pids
+            if len(pids) > 0:
+                worker_pids.append(pids[0] + 1)
+                pids.append(pids[0] + 1)
+                logger.info("Found and preparing to kill previous {} worker pids: {}".format(worker,pids))
+                for pid in pids:
+                    try:
+                        os.kill(pid, 9)
+                    except:
+                        logger.info("Worker process {} already killed".format(pid))
+            worker_process = mp.Process(target=worker_start, kwargs={'worker_name': worker}, daemon=True)
+            worker_process.start()
+            worker_processes.append(worker_process)
+            time.sleep(2.5)
 
     @atexit.register
     def exit():
