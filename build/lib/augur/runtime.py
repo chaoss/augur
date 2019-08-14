@@ -30,28 +30,31 @@ class AugurMultiCommand(click.MultiCommand):
         return os.path.abspath(
             os.path.join(os.path.dirname(__file__), 'cli')
         )
+        print(__file__)
 
     def list_commands(self, ctx):
         rv = []
         for filename in os.listdir(self.__commands_folder()):
+            print(filename)
             if not filename.startswith('_') and filename.endswith('.py'):
                 rv.append(filename[:-3])
         rv.sort()
+        print(rv)
         return rv
 
     def get_command(self, ctx, name):
-        # try:
-        print("\n*********************")
-        print("name: " + name)
-        print(ctx.command.list_commands(ctx))
-        print("*********************\n")
-        if sys.version_info[0] == 2:
-            name = name.encode('ascii', 'replace')
-        mod = __import__('augur.cli.' + name,
-                         None, None, ['cli'])
-        # except ImportError as e:
-        #     logger.debug(e)
-        #     return
+        try:
+            print("\n*********************")
+            print("name: " + name)
+            print(ctx.command.list_commands(ctx))
+            print("*********************\n")
+            if sys.version_info[0] == 2:
+                name = name.encode('ascii', 'replace')
+            mod = __import__('augur.cli.' + name,
+                             None, None, ['cli'])
+        except ImportError as e:
+            logger.debug(e)
+            return
         return mod.cli
 
 
