@@ -9,7 +9,7 @@ const state = {
   // hasState: false,
   // tab: 'gmd',
   // page: 'dashboard',
-  apiGroups: {},  
+  apiGroups: {},
   apiRepos: {},
   AugurAPI,
   cache: {},

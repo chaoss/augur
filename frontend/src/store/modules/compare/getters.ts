@@ -1,52 +1,46 @@
 import construct = Reflect.construct;
 import Repo from '@/AugurAPI'
-import RepoGroups from "@/views/RepoGroups.vue";
+import RepoGroups from '@/views/RepoGroups.vue';
 
 export default {
-    comparisonType: (state:any) => {
-        if (state.baseRepo == '' && state.baseGroup == '') {
+    comparisonType: (state: any) => {
+        if (state.baseRepo === '' && state.baseGroup === '') {
             return 'Comparison Type N/A'
         }
 
-        if (state.comparedRepos.length == 0 && state.comparedRepoGroups.length == 0 && state.baseRepo != '') {
+        if (state.comparedRepos.length === 0 && state.comparedRepoGroups.length === 0 && state.baseRepo !== '') {
             return 'Single Repo'
         }
 
-        if (state.comparedRepos.length == 0 && state.comparedRepoGroups.length == 0 && state.baseGroup != '') {
+        if (state.comparedRepos.length === 0 && state.comparedRepoGroups.length === 0 && state.baseGroup !== '') {
             return 'Single Repo Group'
-        }
-        else if (state.comparedRepos.length == 1 && state.comparedRepoGroups.length == 0) {
+        } else if (state.comparedRepos.length === 1 && state.comparedRepoGroups.length === 0) {
             return '1-on-1 repo comparison'
-        }
-        else if (state.comparedRepoGroups.length == 1 && state.comparedRepos.length == 0) {
+        } else if (state.comparedRepoGroups.length === 1 && state.comparedRepos.length === 0) {
             return '1-on-1 group comparison'
-        }
-        else if (state.comparedRepos.length == 0 && state.comparedRepoGroups.length > 1) {
-            return "Multiple Groups"
-        }
-        else if (state.comparedRepos.length > 1 && state.comparedRepoGroups.length == 0) {
-            return "Custom Group"
-        }
-        else if (state.comparedRepos.length == 0 && state.comparedRepoGroups.length == 0) {
-            return "Comparison Type N/A"
-        }
-        else {
-            return "Invalid comparison type"
+        } else if (state.comparedRepos.length === 0 && state.comparedRepoGroups.length > 1) {
+            return 'Multiple Groups'
+        } else if (state.comparedRepos.length > 1 && state.comparedRepoGroups.length === 0) {
+            return 'Custom Group'
+        } else if (state.comparedRepos.length === 0 && state.comparedRepoGroups.length === 0) {
+            return 'Comparison Type N/A'
+        } else {
+            return 'Invalid comparison type'
         }
     },
     // return the base
-    base: (state:any, getters:any, rootState:any, rootGetters:any) => {
-        if(state.baseRepo) {
-            return rootGetters['common/apiRepos'][state.baseRepo] || {'url': 'No base repo/group selected'}
+    base: (state: any, getters: any, rootState: any, rootGetters: any) => {
+        if (state.baseRepo) {
+            return rootGetters['common/apiRepos'][state.baseRepo] || {url: 'No base repo/group selected'}
         } else if (state.baseGroup) {
-            return rootGetters['common/apiGroups'][state.baseGroup] || {'url': 'No base repo/group selected'}
+            return rootGetters['common/apiGroups'][state.baseGroup] || {url: 'No base repo/group selected'}
         }
         return {}
     },
 
-    comparedAPIRepos: (state:any, getters:any, rootState:any, rootGetters:any) => {
-        let compares: Repo[] = []
-        for (let repo of state.comparedRepos) {
+    comparedAPIRepos: (state: any, getters: any, rootState: any, rootGetters: any) => {
+        const compares: Repo[] = []
+        for (const repo of state.comparedRepos) {
           if (rootGetters['common/apiRepos'][repo]) {
             compares.push(rootGetters['common/apiRepos'][repo])
           }
@@ -54,9 +48,9 @@ export default {
         return compares
     },
 
-    comparedAPIGroups: (state:any, getters:any, rootState:any, rootGetters:any) => {
-      let compares: RepoGroups[] = []
-      for (let group of state.comparedRepoGroups) {
+    comparedAPIGroups: (state: any, getters: any, rootState: any, rootGetters: any) => {
+      const compares: RepoGroups[] = []
+      for (const group of state.comparedRepoGroups) {
         if (rootGetters['common/apiGroups'][group]) {
           compares.push(rootGetters['common/apiGroups'][group])
         }
@@ -64,59 +58,59 @@ export default {
       return compares
     },
 
-    isGroup: (state:any, getters:any, rootState:any, rootGetters:any) => {
-        if (state.baseGroup != ''){
+    isGroup: (state: any, getters: any, rootState: any, rootGetters: any) => {
+        if (state.baseGroup !== '') {
             return true
         } else {
             return false
         }
     },
 
-    comparisionSize: (state:any) => {
-        if(state.comparedRepos.length != 0) {
+    comparisionSize: (state: any) => {
+        if (state.comparedRepos.length !== 0) {
             return state.comparedRepos.length
         } else if (state.comparedRepoGroups.length) {
             return state.comparedRepoGroups.length
         }
         return 0
     },
-    compare: (state:any) => {
+    compare: (state: any) => {
         return state.compare
     },
-    trailingAverage: (state:any) => {
+    trailingAverage: (state: any) => {
         return state.trailingAverage
     },
-    showArea: (state:any) => {
+    showArea: (state: any) => {
         return state.showArea
     },
-    startDate: (state:any) => {
+    startDate: (state: any) => {
         return state.startDate
     },
-    endDate: (state:any) => {
+    endDate: (state: any) => {
         return state.endDate
     },
-    showDetail: (state:any) => {
+    showDetail: (state: any) => {
         return state.showDetail
     },
-    showTooltip: (state:any) => {
+    showTooltip: (state: any) => {
         return state.showTooltip
     },
-    byDate: (state:any) => {
+    byDate: (state: any) => {
         return state.byDate
     },
-    rawWeekly: (state:any) => {
+    rawWeekly: (state: any) => {
         return state.byDate
     },
-    showBelowAverage: (state:any) => {
+    showBelowAverage: (state: any) => {
         return state.showBelowAverage
     },
-    comparedRepoGroups: (state:any) => {
+    comparedRepoGroups: (state: any) => {
         return  state.comparedRepoGroups
     },
-    comparedRepos: (state:any) => {
+    comparedRepos: (state: any) => {
         return state.comparedRepos
     },
-    baseRepo: (state:any) => {
+    baseRepo: (state: any) => {
         return state.baseRepo
-    }
+    },
 };

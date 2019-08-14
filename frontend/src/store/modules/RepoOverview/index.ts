@@ -6,8 +6,8 @@ const AugurAPIModule = require('@/AugurAPI').default;
 const AugurAPI = new AugurAPIModule();
 
 const state = {
-	AugurAPI,
-	cache: {}
+  AugurAPI,
+  cache: {},
 };
 
 export default {

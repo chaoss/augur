@@ -3,17 +3,17 @@ import RepoGroup from '@/AugurAPI';
 export default {
     async createAPIObjects(context: any, payload: any) {
         try {
-            let apiGroups = context.state.getRepoGroups || {};
-            let apiRepos = context.state.getRepos || {};
+            const apiGroups = context.state.getRepoGroups || {};
+            const apiRepos = context.state.getRepos || {};
             if ('repos' in payload) {
                 payload.repos.forEach((repo: any) => {
                     apiRepos[repo.url] = context.state.AugurAPI.Repo({gitURL: repo.url,
-                        repo_id:repo.repo_id})
+                        repo_id: repo.repo_id})
                 })
             }
             if ('groups' in payload) {
                 payload.groups.forEach((group: any) => {
-                    apiGroups[group.rg_name] = context.state.AugurAPI.RepoGroup({rg_name: 
+                    apiGroups[group.rg_name] = context.state.AugurAPI.RepoGroup({rg_name:
                         group.rg_name, repo_group_id: group.repo_group_id})
                 })
             }

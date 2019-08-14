@@ -15,7 +15,7 @@ const state = {
     endDate: new Date(),
     trailingAverage: 180,
     compare: 'rolling',
-    rawWeekly:false,
+    rawWeekly: false,
     showArea: true,
     showDetail: false,
     showTooltip: true,
