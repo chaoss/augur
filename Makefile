@@ -119,6 +119,7 @@ backend-stop:
 	@ echo
 
 backend-start:
+	@ mkdir -p logs runtime
 	@ bash -c '($(CONDAACTIVATE) $(SERVECOMMAND) >logs/backend.log 2>&1 & echo $$! > logs/backend.pid;)'
 
 backend-restart: backend-stop backend-start
@@ -166,13 +167,6 @@ clean:
 	rm -rf runtime node_modules frontend/node_modules frontend/public augur.egg-info .pytest_cache logs 
 	find . -name \*.pyc -delete
 	@ echo "Run sudo make install-dev again to reinstall the environment."
-
-vagrant:
-	@ vagrant up
-	@ vagrant ssh
-	@ echo "****************************************************"
-	@ echo "Don't forget to shutdown the VM with 'vagrant halt'!"
-	@ echo "****************************************************"
 
 #
 # Git

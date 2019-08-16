@@ -92,9 +92,9 @@ export default {
       var colors = ["#FF3647", "#4736FF","#3cb44b","#ffe119","#f58231","#911eb4","#42d4f4","#f032e6"]
       let config = {
         "$schema": "https://vega.github.io/schema/vega-lite/v2.json",
-        "width": 450,
-        "height": 300,
-        "padding": {"left": 10, "top": 35, "right": 5, "bottom": 0},
+        "width": 250,
+        "height": 150,
+        "padding": {"left": 10, "top": 35, "right": 500, "bottom": 0},
         "title": {
           "text": this.title,
           "offset": 15
@@ -147,7 +147,7 @@ export default {
             },
             "encoding": {
               "x": {
-                "field": "author_date", 
+                "field": "cmt_author_date", 
                 "type": "temporal", 
                 "timeUnit": timeUnit, 
                 "axis": {"domain": false, "format": format}
@@ -160,7 +160,7 @@ export default {
                 "axis": null,
               },
               "color": {
-                "field": "author_email",
+                "field": "cmt_author_email",
                 "type": "nominal",
                 "scale": {"scheme": "category10"}
               },
@@ -207,7 +207,7 @@ export default {
             "encoding": {
               "opacity": {"value": 1.001},
               "x": {
-                "field": "author_date", 
+                "field": "cmt_author_date", 
                 "type": "temporal", 
                 "timeUnit": timeUnit, 
                 "axis": {"domain": false, "format": format}
@@ -228,11 +228,11 @@ export default {
                 "field": "Net lines added",
                 "type": "quantitative"
               },{
-                "field": "author_date", 
+                "field": "cmt_author_date", 
                 "type": "temporal", 
                 "timeUnit": timeUnit
               },{
-                "field": "author_email",
+                "field": "cmt_author_email",
                 "type": "nominal",
               }],
               "color": {
@@ -247,17 +247,7 @@ export default {
       }
 
       let repo = null
-      if (this.repo) {
-        if (window.AugurRepos[this.repo]) {
-          repo = window.AugurRepos[this.repo]
-        } else {
-          let repo = window.AugurAPI.Repo({"gitURL": this.gitRepo})
-          window.AugurRepos[repo.toString] = repo
-        }
-      } else {
-        repo =  window.AugurAPI.Repo({ gitURL: this.gitRepo })
-        window.AugurRepos[repo.toString()] = repo
-      }
+
       let contributors = {}
       let organizations = {}
 
@@ -274,8 +264,8 @@ export default {
 
       let group = (obj, name, change, filter) => {
         if (filter(change)) {
-          let year = (new Date(change.author_date)).getFullYear()
-          let month = (new Date(change.author_date)).getMonth()
+          let year = (new Date(change.cmt_author_date)).getFullYear()
+          let month = (new Date(change.cmt_author_date)).getMonth()
           obj[change[name]] = obj[change[name]] || { additions: 0, deletions: 0 }
           addChanges(obj[change[name]], change)
           obj[change[name]][year] = obj[change[name]][year] || { additions: 0, deletions: 0 }
@@ -298,7 +288,7 @@ export default {
       }
 
       let filterDates = (change) => {
-        return (new Date(change.author_date)).getFullYear() > this.years[0]
+        return (new Date(change.cmt_author_date)).getFullYear() > this.years[0]
       }
 
       let authors = []
@@ -309,31 +299,31 @@ export default {
       else changes = repo.changesByAuthor()
       
         changes.forEach((change) => {
-          change.author_date = new Date(change.author_date)
+          change.cmt_author_date = new Date(change.cmt_author_date)
           change["count"] = change["count"] ? change["count"] + 1 : 1
-          track[change.author_email] = track[change.author_email] ? track[change.author_email] + 1 : 1
+          track[change.cmt_author_email] = track[change.cmt_author_email] ? track[change.cmt_author_email] + 1 : 1
           track["total"] += 1
         })
 
         changes.forEach((change) => {
           if (isFinite(change.additions) && isFinite(change.deletions)) {
-            group(contributors, 'author_email', change, filterDates)
+            group(contributors, 'cmt_author_email', change, filterDates)
             if (change.author_affiliation !== 'Unknown') {
               group(organizations, 'affiliation', change, filterDates)
             }
           }
-          if(!authors.includes(change["author_email"])) {
-            authors.push(change["author_email"])
-            change["flag"] = (track[change.author_email] / track["total"]).toFixed(4)
+          if(!authors.includes(change["cmt_author_email"])) {
+            authors.push(change["cmt_author_email"])
+            change["flag"] = (track[change.cmt_author_email] / track["total"]).toFixed(4)
           } //else change["flag"] = 100
 
           
         })
         
-        this.contributors = flattenAndSort(contributors, 'author_email', 'additions')
+        this.contributors = flattenAndSort(contributors, 'cmt_author_email', 'additions')
         var careabout = []
         this.contributors.slice(0,10).forEach((obj) => {
-          careabout.push(obj["author_email"])
+          careabout.push(obj["cmt_author_email"])
         })
 
         let findObjectByKey = (array, key, value) => {
@@ -349,7 +339,7 @@ export default {
         var ary = []
         
         careabout.forEach((name) => {
-          findObjectByKey(changes, "author_email", name).forEach((obj) => {
+          findObjectByKey(changes, "cmt_author_email", name).forEach((obj) => {
             ary.push(obj)
           })
         })
@@ -357,10 +347,6 @@ export default {
         this.values = ary
 
       
-
-      $(this.$el).find('.showme, .hidefirst').removeClass('invis')
-      $(this.$el).find('.stackedbarchart').removeClass('loader')
-
       // Get the repos we need
       let repos = []
       if (this.repo) {

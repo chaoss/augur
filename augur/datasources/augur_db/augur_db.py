@@ -1426,9 +1426,10 @@ class Augur(object):
         :param repo_id: The repository's repo_id, defaults to None
         :return: CII best parctices badge level
         """
+        # Welcome to the Twilight Zone
         if repo_id:
             cii_best_practices_badge_SQL = s.sql.text("""
-                SSELECT repo_name, rg_name, repo_badging.badge_level, achieve_passing_status,
+                SELECT repo_name, rg_name, repo_badging.badge_level, achieve_passing_status,
                     achieve_silver_status, tiered_percentage, repo_badging.updated_at as date
                 FROM repo_badging, repo, repo_groups
                 WHERE repo.repo_group_id = repo_groups.repo_group_id AND repo.repo_id = repo_badging.repo_id
@@ -1436,8 +1437,8 @@ class Augur(object):
                 ORDER BY date DESC
             """)
 
-            results = pd.read_sql(cii_best_practices_badge_SQL, self.db, params={'repo_group_id': repo_group_id})
-            return results
+            logger.debug(cii_best_practices_badge_SQL)
+            params = {'repo_id': repo_id}
 
         else:
             cii_best_practices_badge_SQL = s.sql.text("""
@@ -1449,8 +1450,10 @@ class Augur(object):
                 ORDER BY date DESC
             """)
 
-            results = pd.read_sql(cii_best_practices_badge_SQL, self.db, params={'repo_id': repo_id})
-            return results
+            logger.debug(cii_best_practices_badge_SQL)
+            params = {'repo_group_id': repo_group_id}
+
+        return pd.read_sql(cii_best_practices_badge_SQL, self.db, params=params)
 
     @annotate(tag='average-issue-resolution-time')
     def average_issue_resolution_time(self, repo_group_id, repo_id=None):
@@ -2647,8 +2650,8 @@ class Augur(object):
         """
         Returns repo id and repo group id by rg_name and repo_name
 
-        :param owner: the owner of the repo
-        :param repo: the name of the repo
+        :param rg_name: the repo group of the repo
+        :param repo_name: the name of the repo
         """
 
         repoSQL = s.sql.text("""
@@ -2660,6 +2663,20 @@ class Augur(object):
         """)
         results = pd.read_sql(repoSQL, self.db, params={'rg_name': rg_name, 'repo_name': repo_name})
         results['url'] = results['url'].apply(lambda datum: datum.split('//')[1])
+        return results
+
+    def get_group_by_name(self, rg_name):
+        """
+        Returns repo group id by repo group name
+
+        :param rg_name:
+        """
+        groupSQL = s.sql.text("""
+            SELECT repo_group_id, rg_name
+            FROM repo_groups
+            WHERE lower(rg_name) = lower(:rg_name)
+        """)
+        results = pd.read_sql(groupSQL, self.db, params={'rg_name': rg_name})
         return results
 
     # @annotate(tag='dosocs-repos')

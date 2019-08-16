@@ -76,20 +76,20 @@ export default class AugurAPI {
   }
 
   __URLFunctionFactory(url: string) {
-    var self = this
-    return function (params: any, callback: any) {
+    return (params: any, callback: any) => {
       var cacheKey = window.btoa(url + JSON.stringify(params))
-      self.openRequests++
-      if (self.__cache[cacheKey]) {
-        if (self.__cache[cacheKey].created_at > Date.now() - 1000 * 60) {
-          return new Promise((resolve, reject) => {
-            resolve(self.__cache[cacheKey].data)
-          })
-        }
-      }
+      this.openRequests++
+      // if (this.__cache[cacheKey]) {
+      //   if (this.__cache[cacheKey].created_at > Date.now() - 1000 * 60) {
+      //     return new Promise((resolve, reject) => {
+      //       resolve(this.__cache[cacheKey].data)
+      //     })
+      //   }
+      // }
+      this.__cache = this.__cache || {}
       return $.get(url, params).then((data: any) => {
-        self.openRequests--
-        self.__cache[cacheKey] = {
+        this.openRequests--
+        this.__cache[cacheKey] = {
           created_at: Date.now(),
           data: data
         }
@@ -123,10 +123,12 @@ export default class AugurAPI {
     }).then((data: any) => {
       this.openRequests--
       // Save to cache
+      this.__cache = this.__cache || {}
       this.__cache[window.btoa(url + endpoints.join(','))] = {
         created_at: Date.now(),
         data: data
       }
+      console.log(data)
       return data
     })
   }
@@ -291,6 +293,7 @@ class Repo extends BaseRepo{
   public url?:string
   constructor(parent: AugurAPI, metadata:{githubURL?: string, gitURL?: string, repo_id?: number, repo_group_id?: number, rg_name?:string, repo_name?:string}){
     super(parent)
+    console.log(metadata)
     this.gitURL = metadata.gitURL || undefined
     this.githubURL = metadata.githubURL || undefined
     this.repo_id = metadata.repo_id || undefined
@@ -298,11 +301,11 @@ class Repo extends BaseRepo{
     this.rg_name = metadata.rg_name || undefined
     this.repo_name = metadata.repo_name || undefined
     this.url = this.gitURL || this.githubURL || undefined
-    this.initialMetric()
+    this.setup()
   }
 
-   initialMetric(){
-    this.getRepoNameAndID()
+   setup(){
+    this.retrieveID()
     this.initialDBMetric()
     this.initialLegacyMetric()
   }
@@ -315,7 +318,7 @@ class Repo extends BaseRepo{
     }
   }
 
-  getRepoNameAndID(): void {
+  retrieveID(): void {
 
     if (this.repo_id && this.repo_group_id) {
       return
@@ -463,6 +466,7 @@ class Repo extends BaseRepo{
     this.addRepoMetric('languages','languages')
     this.addRepoMetric('committers','committers')
     this.addRepoMetric('licenseDeclared','license-declared')
+    this.addRepoMetric('changesByAuthor', 'lines-changed-by-author')
   }
 }
 
@@ -474,7 +478,26 @@ class RepoGroup extends BaseRepo {
     
     this.repo_group_id = metadata.repo_group_id || undefined
     this.rg_name = metadata.rg_name || null
-    // this.initialMetric()
+    this.setup()
+  }
+
+
+  setup() {
+    if (this.repo_group_id == null && this.rg_name) {
+      this.retrieveGroupID()
+      this.initialMetric()
+    }
+  }
+
+  retrieveGroupID() {
+    $.ajax({
+      type: 'GET',
+      url: this.__endpointURL('rg-name/' + this.rg_name),
+      async: false,
+      success: (data:any) => {
+        this.repo_group_id = data[0].repo_group_id
+      }
+    })
   }
 
   toString(){

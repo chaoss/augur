@@ -85,8 +85,8 @@ export default {
       const colors = ['#FF3647', '#4736FF', '#3cb44b', '#ffe119', '#f58231', '#911eb4', '#42d4f4', '#f032e6'];
       const config = {
         $schema: 'https://vega.github.io/schema/vega-lite/v2.json',
-        width: 450,
-        height: 300,
+        width: 250,
+        height: 150,
         padding: {left: 10, top: 35, right: 5, bottom: 0},
         config: {
           tick: {
@@ -134,17 +134,17 @@ export default {
             encoding: {
               x: {field, type: 'quantitative'},
               y: {
-                field: 'author_email',
+                field: 'cmt_author_email',
                 sort: {
                   field,
                   op: 'mean',
                   order: 'descending',
                 },
                 type: 'nominal',
-                axis: {title: null},
+                axis: null,
               },
               color: {
-                field: 'author_email',
+                field: 'cmt_author_email',
                 type: 'nominal',
                 scale: {scheme: 'category10'},
                 legend: null,
@@ -196,17 +196,17 @@ export default {
             encoding: {
 
               y: {
-                field: 'author_email',
+                field: 'cmt_author_email',
                 sort: {
                   field,
                   op: 'mean',
                   order: 'descending',
                 },
                 type: 'nominal',
-                axis: {title: null},
+                axis: null,
               },
               tooltip: [{field, type: 'quantitative'}, {
-                field: 'author_email',
+                field: 'cmt_author_email',
 
                 type: 'nominal',
               }],
@@ -228,17 +228,7 @@ export default {
       };
 
       let repo = null;
-      if (this.repo) {
-        if (window.AugurRepos[this.repo]) {
-          repo = window.AugurRepos[this.repo];
-        } else {
-          const repo = window.AugurAPI.Repo({gitURL: this.gitRepo});
-          window.AugurRepos[repo.toString] = repo;
-        }
-      } else {
-        repo =  window.AugurAPI.Repo({ gitURL: this.gitRepo });
-        window.AugurRepos[repo.toString()] = repo;
-      }
+
       const contributors = {};
       const organizations = {};
 
@@ -255,8 +245,8 @@ export default {
 
       const group = (obj, name, change, filter) => {
         if (filter(change)) {
-          const year = (new Date(change.author_date)).getFullYear();
-          const month = (new Date(change.author_date)).getMonth();
+          const year = (new Date(change.cmt_author_date)).getFullYear();
+          const month = (new Date(change.cmt_author_date)).getMonth();
           obj[change[name]] = obj[change[name]] || { additions: 0, deletions: 0 };
           addChanges(obj[change[name]], change);
           obj[change[name]][year] = obj[change[name]][year] || { additions: 0, deletions: 0 };
@@ -279,12 +269,13 @@ export default {
       };
 
       const filterDates = (change) => {
-        return (new Date(change.author_date)).getFullYear() > this.years[0];
+        return (new Date(change.cmt_author_date)).getFullYear() > this.years[0];
       };
 
       const authors = [];
       const track = {};
       let changes = null;
+
 
       if (this.data) {
         changes = this.data;
@@ -292,42 +283,42 @@ export default {
       else { changes = repo.changesByAuthor(); }
 
       changes.forEach((change) => {
-        // change.author_date = new Date(change.author_date)
+        // change.cmt_author_date = new Date(change.cmt_author_date)
         // change["commits"] = change["commits"] ? change["commits"] + 1 : 1
-        track[change.author_email] = track[change.author_email] ? track[change.author_email] : {commits: 0, lines: 0, additions: 0, deletions: 0};
-        track[change.author_email].commits = track[change.author_email].commits ? track[change.author_email].commits + 1 : 1;
+        track[change.cmt_author_email] = track[change.cmt_author_email] ? track[change.cmt_author_email] : {commits: 0, lines: 0, additions: 0, deletions: 0};
+        track[change.cmt_author_email].commits = track[change.cmt_author_email].commits ? track[change.cmt_author_email].commits + 1 : 1;
         // track["total_commits"] += 1
         // change["lines"] = change["lines"] ? change["lines"] + change.additions : change.additions
-        track[change.author_email].lines = track[change.author_email].lines ? track[change.author_email].lines + change.additions + change.deletions : change.additions + change.deletions;
-        track[change.author_email].additions = track[change.author_email].additions ? track[change.author_email].additions + change.additions : change.additions;
-        track[change.author_email].deletions = track[change.author_email].deletions ? track[change.author_email].deletions + change.deletions : change.deletions;
+        track[change.cmt_author_email].lines = track[change.cmt_author_email].lines ? track[change.cmt_author_email].lines + change.additions + change.deletions : change.additions + change.deletions;
+        track[change.cmt_author_email].additions = track[change.cmt_author_email].additions ? track[change.cmt_author_email].additions + change.additions : change.additions;
+        track[change.cmt_author_email].deletions = track[change.cmt_author_email].deletions ? track[change.cmt_author_email].deletions + change.deletions : change.deletions;
         // track["total_lines"] += change.additions
       });
-
+      console.log(changes)
       changes.forEach((change) => {
         if (isFinite(change.additions) && isFinite(change.deletions)) {
-          group(contributors, 'author_email', change, filterDates);
+          group(contributors, 'cmt_author_email', change, filterDates);
           if (change.author_affiliation !== 'Unknown') {
             group(organizations, 'affiliation', change, filterDates);
           }
         }
-        if (!authors.includes(change.author_email)) {
-          authors.push(change.author_email);
-          change.flag = ((track[change.author_email] / track.total * 100).toFixed(4));
+        if (!authors.includes(change.cmt_author_email)) {
+          authors.push(change.cmt_author_email);
+          change.flag = ((track[change.cmt_author_email] / track.total * 100).toFixed(4));
           // console.log(change, track)
         } // else change["flag"] = 100
 
 
       });
-
-      this.contributors = flattenAndSort(contributors, 'author_email', 'additions');
-      const careabout = [];
+      console.log(contributors)
+      this.contributors = flattenAndSort(contributors, 'cmt_author_email', 'additions');
+      let careabout = [];
       this.contributors.slice(0, 10).forEach((obj) => {
-        careabout.push(obj.author_email);
+        careabout.push(obj.cmt_author_email);
       });
 
-      const findObjectByKey = (array, key, value) => {
-          const ary = [];
+      let findObjectByKey = (array, key, value) => {
+          let ary = [];
           for (let i = 0; i < array.length; i++) {
               if (array[i][key] == value) {
                   ary.push(array[i]);
@@ -335,20 +326,16 @@ export default {
           }
           return ary;
       };
+      let ary = [];
 
-      const ary = [];
-
-      for (const key in track) {
+      for (let key in track) {
         if (careabout.includes(key)) {
-          ary.push({author_email: key, commits: track[key].commits, lines: track[key].lines, additions: track[key].additions, deletions: track[key].deletions});
+          ary.push({cmt_author_email: key, commits: track[key].commits, lines: track[key].lines, additions: track[key].additions, deletions: track[key].deletions});
         }
       }
 
       this.values = ary;
       console.log('TRACK', ary, careabout);
-
-      $(this.$el).find('.showme, .hidefirst').removeClass('invis');
-      $(this.$el).find('.stackedbarchart').removeClass('loader');
 
       // Get the repos we need
       const repos = [];
