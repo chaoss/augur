@@ -181,12 +181,16 @@ class InsightWorker:
         # self.update_metrics()
         logging.info("Discovering insights for task with entry info: {}".format(entry_info))
 
-        # lengthSQL = s.sql.text("""
-        #     SELECT DISTINCT(cms_id) FROM repo_insights WHERE repo_id = {}
+        # scoreSQL = s.sql.text("""
+        #     SELECT DISTINCT(ri_metric), ri_score FROM repo_insights WHERE repo_id = {} ORDER BY ri_score desc
         # """.format(entry_info['repo_id']))
-        # ins = pd.read_sql(lengthSQL, self.db, params={})
-        # logging.info(len(ins.index))
-        # if len(ins.index) < 3:
+        # scores_ary = pd.read_sql(lengthSQL, self.db, params={}).to_json(orient='records')
+
+        # scores = {}
+        # i = 0
+        # for score in scores_ary:
+        #     scores[i] = score.ri_score
+        #     i += 1
     
         # """ Query all endpoints """
         endpointSQL = s.sql.text("""
@@ -195,6 +199,8 @@ class InsightWorker:
         endpoints = [{'cm_info': "issues-new", 'cm_name': 'New Issues'}, {'cm_info': "code-changes", 
             'cm_name': 'Commit Count'}, {'cm_info': "code-changes-lines", 'cm_name': 'Lines of Code Changed'}, 
             {'cm_info': "reviews", 'cm_name': 'Pull Requests'}]
+
+        """ For when we want all endpoints """
         # for endpoint in pd.read_sql(endpointSQL, self.db, params={}).to_records():
         #     endpoints.append(endpoint)
 
@@ -205,8 +211,10 @@ class InsightWorker:
             base_url = 'http://localhost:{}/api/unstable/repo-groups/9999/repos/{}/'.format(
                 self.config['broker_port'], entry_info['repo_id'])
 
-        num_insights_per_repo = 3
-        cms_id = 1
+        """ Possibly delete extra logged insights? need separate function prob """
+        # num_insights_per_repo = 3
+        # count = 0
+
         for endpoint in endpoints:
             url = base_url + endpoint['cm_info']
             logging.info("Hitting endpoint: " + url + "\n")
@@ -284,11 +292,12 @@ class InsightWorker:
                     discovery_index = None
                     insight = False
                     max_difference = 0
-                    score = 0.0
+                    score = 0
 
 
                     date_filtered_raw_values = []
                     date_filtered_raw_values = date_filtered_data[date_found_index:]
+                    # overwritten_score = None
                     logging.info("Raw values: {}".format(date_filtered_raw_values))
                     for dict in date_filtered_raw_values:
                         if dict[key] > upper and dict[key] - upper > max_difference:
@@ -305,8 +314,9 @@ class InsightWorker:
                             discovery_index = i
                         i += 1
                     if insight and 'date' in data[0]:
-                        self.clear_insight(entry_info['repo_id'], cms_id)
-                        # j = discovery_index - 50 if discovery_index >= 50 else 0
+                        contin = self.clear_insight(entry_info['repo_id'], score, endpoint['cm_name'] + ' ({})'.format(key))
+                        if not contin:
+                            break
                         j = 0
                         # upper_index = discovery_index + 50 if discovery_index >= 50 else 99
                         logging.info("Starting j: {}, discovery_index: {}, data: {}".format(j, discovery_index, date_filtered_data[j]))
@@ -318,7 +328,6 @@ class InsightWorker:
                                     'ri_metric': endpoint['cm_name'] + ' ({})'.format(key),
                                     'ri_value': tuple[key],#date_filtered_raw_values[j][key],
                                     'ri_date': tuple['date'],#date_filtered_raw_values[j]['date'],
-                                    'cms_id': cms_id,
                                     'ri_fresh': 0 if j < discovery_index else 1,
                                     'ri_score': score,
                                     "tool_source": self.tool_source,
@@ -335,21 +344,21 @@ class InsightWorker:
                             except Exception as e:
                                 logging.info("error occurred while storing datapoint: {}".format(repr(e)))
                                 break
-                        cms_id += 1
-                        if cms_id > num_insights_per_repo:
-                            logging.info("Have successfully stored {} insights for repo: {}, breaking from discovery loop".format(
-                                num_insights_per_repo, entry_info['repo_id']))
-                            break
+                        # count += 1
+                        # if count > num_insights_per_repo:
+                        #     logging.info("Have successfully stored {} insights for repo: {}, breaking from discovery loop".format(
+                        #         num_insights_per_repo, entry_info['repo_id']))
+                        #     break
                 else:
                     logging.info("Key: {} has empty raw_values, should not have key here".format(key))
-                    if cms_id > num_insights_per_repo:
-                        logging.info("Have successfully stored {} insights for repo: {}, breaking from discovery loop".format(
-                            num_insights_per_repo, entry_info['repo_id']))
-                        break
-            if cms_id > num_insights_per_repo:
-                logging.info("Have successfully stored {} insights for repo: {}, breaking from discovery loop".format(
-                    num_insights_per_repo, entry_info['repo_id']))
-                break
+            #         if count > num_insights_per_repo:
+            #             logging.info("Have successfully stored {} insights for repo: {}, breaking from discovery loop".format(
+            #                 num_insights_per_repo, entry_info['repo_id']))
+            #             break
+            # if count > num_insights_per_repo:
+            #     logging.info("Have successfully stored {} insights for repo: {}, breaking from discovery loop".format(
+            #         num_insights_per_repo, entry_info['repo_id']))
+            #     break
 
     # HIGHEST PERCENTAGE STUFF, WILL MOVE TO NEW METHOD
         # greatest_week_name = greatest_month_name = insights[0]['cm_name']
@@ -384,24 +393,50 @@ class InsightWorker:
         # else:
         #     logging.info("there are 3 or more insights for repo: {}, skipping this task".format(entry_info))
 
-    def clear_insight(self, repo_id, cms_id):
+    def clear_insight(self, repo_id, new_score, new_metric):
         logging.info("Checking if insight slot filled...")
+        num_insights_per_repo = 3
         insightSQL = s.sql.text("""
-            SELECT *
+            SELECT distinct(ri_metric),repo_id, ri_score
             FROM repo_insights
-            WHERE repo_id = {} AND cms_id = {}
-        """.format(repo_id, cms_id))
-        ins = pd.read_sql(insightSQL, self.db, params={})
-        if len(ins.index) > 0:
-            logging.info("insight slot filled for repo {} slot {}".format(repo_id, cms_id))
-            try:
-                result = self.repo_insights_table.delete().where(and_(self.repo_insights_table.c.repo_id==repo_id, self.repo_insights_table.c.cms_id==cms_id))
-                result.execute()
-                logging.info(str(result))
-                logging.info(str(result.fetchall()))
-            except:
-                self.repo_insights_table.delete().where(and_(self.repo_insights_table.c.repo_id==repo_id, self.repo_insights_table.c.cms_id==cms_id))
+            WHERE repo_id = 21000
+            ORDER BY ri_score ASC
+        """.format(repo_id, new_score))
+        ins = json.loads(pd.read_sql(insightSQL, self.db, params={}).to_json(orient='records'))
+        num_insights = len(ins)
+        to_delete = []
+        logging.info("This repos insights: {}".format(ins))
+        for insight in ins:
+            logging.info("{}, {}".format(insight['ri_metric'], new_metric))
+            if (insight['ri_score'] < new_score and num_insights > num_insights_per_repo - 1) or num_insights > num_insights_per_repo or insight['ri_metric'] == new_metric:
+                num_insights -= 1
+                to_delete.append(insight)
+                logging.info("condition met, new len: {}, insight score: {}, new_score: {}".format(num_insights,
+                    insight['ri_score'], new_score))
 
+        if len(to_delete) == 0 and num_insights == num_insights_per_repo:
+            return False
+
+        for insight in to_delete:
+            logging.info("insight found with a greater score than current slots filled for repo {} new score {}, old score {}".format(repo_id, new_score, insight['ri_score']))
+            deleteSQL = """
+                DELETE 
+                    FROM
+                        repo_insights I
+                    WHERE
+                        repo_id = {}
+                        AND ri_metric = '{}'
+            """.format(insight['repo_id'], insight['ri_metric'])
+            try:
+                result = self.db.execute(deleteSQL)
+                # result = self.repo_insights_table.delete().where(and_(self.repo_insights_table.c.repo_id==repo_id, self.repo_insights_table.c.cms_id==cms_id))
+                # result.execute()
+                logging.info(str(result))
+                # logging.info(str(result.fetchall()))
+            except Exception as e:
+                logging.info("Error occured deleting insight slot: {}".format(e))
+                # self.repo_insights_table.delete().where(and_(self.repo_insights_table.c.repo_id==repo_id, self.repo_insights_table.c.cms_id==cms_id))
+        return True
 
 
     def confidence_interval(self, data, timeperiod='week', confidence=.8):
