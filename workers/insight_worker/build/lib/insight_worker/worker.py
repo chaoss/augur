@@ -408,7 +408,7 @@ class InsightWorker:
         logging.info("This repos insights: {}".format(ins))
         for insight in ins:
             logging.info("{}, {}".format(insight['ri_metric'], new_metric))
-            if (insight['ri_score'] < new_score and num_insights > num_insights_per_repo - 1) or num_insights > num_insights_per_repo or insight['ri_metric'] == new_metric:
+            if (insight['ri_score'] < new_score and num_insights >= num_insights_per_repo) or num_insights > num_insights_per_repo or insight['ri_metric'] == new_metric:
                 num_insights -= 1
                 to_delete.append(insight)
                 logging.info("condition met, new len: {}, insight score: {}, new_score: {}".format(num_insights,
