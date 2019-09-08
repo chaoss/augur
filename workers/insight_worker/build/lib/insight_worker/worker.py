@@ -38,9 +38,10 @@ class InsightWorker:
         self.config = config
         self.db = None
         self.tool_source = 'Insight Worker'
-        self.tool_version = '0.0.1' # See __init__.py
+        self.tool_version = '0.0.2' # See __init__.py
         self.data_source = 'Augur API'
         self.refresh = True
+        self.send_insights = False
 
         logging.info("Worker initializing...")
         
@@ -99,7 +100,7 @@ class InsightWorker:
             SELECT repo_git, repo_id FROM repo order by repo_id asc
         """)
         rs = pd.read_sql(repoUrlSQL, self.db, params={}).to_records()
-        pop_off = 0
+        pop_off = 500
         i = 0
         while i < pop_off:
             rs = rs[1:]
@@ -305,6 +306,8 @@ class InsightWorker:
                         i += 1
                     if insight and 'date' in data[0]:
 
+                        ### INSIGHT DISCOVERED ###
+
                         # Check if new insight has a better score than other insights in its place, use result
                         #   to determine if we continue in the insertion process (0 for no insertion, 1 for record
                         #   insertion, 2 for record and insight data points insertion)
@@ -329,6 +332,9 @@ class InsightWorker:
                             }
                             result = self.db.execute(self.repo_insights_records_table.insert().values(record))
                             logging.info("Primary key inserted into the repo_insights_records table: {}".format(result.inserted_primary_key))
+
+                            # Send insight to Jonah for slack bot
+                            self.send_insight(record, abs(date_filtered_raw_values[discovery_index][key] - mean))
 
                         # Use result from clearing function to determine if we still need to insert the insight
                         if instructions['insight']:
@@ -361,6 +367,24 @@ class InsightWorker:
                                     break
                 else:
                     logging.info("Key: {} has empty raw_values, should not have key here".format(key))
+
+    def send_insight(self, insight, units_from_mean):
+        
+        begin_date = datetime.datetime.now() - datetime.timedelta(days=7)
+        dict_date = datetime.datetime.strptime(insight['ri_date'], '%Y-%m-%dT%H:%M:%S.%fZ')#2018-08-20T00:00:00.000Z
+        if dict_date > begin_date and self.send_insights:
+            logging.info("Insight less than 7 days ago date found: {}\n\nSending to Jonah...".format(insight))
+            to_send = {
+                'insight': True,
+                'rg_name': insight['rg_name'],
+                'repo_git': insight['repo_git'],
+                'value': insight['ri_value'],
+                'field': insight['ri_field'],
+                'metric': insight['ri_metric'],
+                'units_from_mean': units_from_mean,
+                'detection_method': insight['ri_detection_method']
+            }
+            requests.post('https://7oksmwzsy7.execute-api.us-east-2.amazonaws.com/dev-1/insight-event', json=to_send)
 
 
     def clear_insight(self, repo_id, new_score, new_metric, new_field):
@@ -420,7 +444,8 @@ class InsightWorker:
         num_insights = len(ins)
         to_delete = []
         for insight in ins:
-            logging.info("{}, {}".format(insight['ri_metric'], new_metric))
+            insight['ri_score'] = insight['ri_score'] if insight['ri_score'] else 0.0
+            logging.info("{}, {}, {}, {}".format(insight['ri_metric'], new_metric, insight['ri_score'], num_insights_per_repo))
             if (insight['ri_score'] < new_score and num_insights >= num_insights_per_repo) or num_insights > num_insights_per_repo or (insight['ri_metric'] == new_metric and self.refresh):
                 num_insights -= 1
                 to_delete.append(insight)
@@ -450,7 +475,7 @@ class InsightWorker:
         return insertion_directions
 
 
-    def confidence_interval(self, data, timeperiod='week', confidence=.8):
+    def confidence_interval(self, data, timeperiod='week', confidence=.95):
         """ Method to find high activity issues in the past specified timeperiod """
         a = 1.0 * np.array(data)
         logging.info("np array: {}".format(a))
@@ -522,31 +547,4 @@ class InsightWorker:
         logging.info("While filtering duplicates, we reduced the data size from " + str(len(og_data)) + 
             " to " + str(len(need_insertion)) + "\n")
         return need_insertion
-
-    def greatest_percentage(self):
-
-        querySQL = s.sql.text("""
-            SELECT cm_info FROM chaoss_metric_status WHERE data_collection_date = now() - interval '? days'
-            """)
-
-        data_now = pd.read_sql(querySQL, self.db, params={0})
-        data_week = pd.read_sql(querySQL, self.db, params={7})
-        data_month = pd.read_sql(querySQL, self.db, params={30})
-
-        """ Testing query functionality """
-        # print("\n\nNOW\n\n", data_now)
-        # print("\n\nWEEK\n\n", data_week)
-        # print("\n\nMONTH\n\n", data_month)
-
-        """ Determine these subscripts """
-        # change_week = (data_now[] - data_week[])/data_now[]
-        # change_month = (data_now[] - data_month[])/data_now[]
-
-        new_insight = {
-            "cm_info": data['cm_info'],
-            "change_week": change_week,
-            "change_month": change_month,
-        }
-
-        return new_insight
 
