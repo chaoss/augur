@@ -92,15 +92,15 @@ class InsightWorker:
         self.repo_insights_table = Base.classes['repo_insights'].__table__
         self.repo_insights_records_table = Base.classes['repo_insights_records'].__table__
 
-        requests.post('http://localhost:{}/api/unstable/workers'.format(
-            self.config['broker_port']), json=specs) #hello message
+        requests.post('http://{}:{}/api/unstable/workers'.format(
+            self.config['broker_host'],self.config['broker_port']), json=specs) #hello message
 
         # Query all repos and last repo id
         repoUrlSQL = s.sql.text("""
             SELECT repo_git, repo_id FROM repo order by repo_id asc
         """)
         rs = pd.read_sql(repoUrlSQL, self.db, params={}).to_records()
-        pop_off = 500
+        pop_off = 1000
         i = 0
         while i < pop_off:
             rs = rs[1:]
@@ -114,7 +114,7 @@ class InsightWorker:
         """ Method to update config and set a default
         """
         self.config = {
-            'database_connection_string': 'psql://localhost:5432/augur',
+            'database_connection_string': 'psql://{}:5432/augur'.format(self.config['broker_host']),
             "display_name": "",
             "description": "",
             "required": 1,
@@ -161,9 +161,8 @@ class InsightWorker:
         Gets run whenever a new task is added
         """
         logging.info("Running...\n")
-        if not self._child:
-            self._child = Process(target=self.collect, args=())
-            self._child.start()
+        self._child = Process(target=self.collect, args=())
+        self._child.start()
 
     def collect(self):
         """ Function to process each entry in the worker's task queue
@@ -203,11 +202,11 @@ class InsightWorker:
 
         # If we are discovering insights for a group vs repo, the base url will change
         if 'repo_group_id' in entry_info:
-            base_url = 'http://localhost:{}/api/unstable/repo-groups/{}'.format(
-                self.config['broker_port'], entry_info['repo_group_id'])
+            base_url = 'http://{}:{}/api/unstable/repo-groups/{}'.format(
+                self.config['broker_host'],self.config['broker_port'], entry_info['repo_group_id'])
         else:
-            base_url = 'http://localhost:{}/api/unstable/repo-groups/9999/repos/{}/'.format(
-                self.config['broker_port'], entry_info['repo_id'])
+            base_url = 'http://{}:{}/api/unstable/repo-groups/9999/repos/{}/'.format(
+                self.config['broker_host'],self.config['broker_port'], entry_info['repo_id'])
 
         # Hit and discover insights for every endpoint we care about
         for endpoint in endpoints:
@@ -489,10 +488,10 @@ class InsightWorker:
 
     def update_metrics(self):
         logging.info("Preparing to update metrics ...\n\n" + 
-            "Hitting endpoint: http://localhost:{}/api/unstable/metrics/status ...\n".format(
-            self.config['broker_port']))
-        r = requests.get(url='http://localhost:{}/api/unstable/metrics/status'.format(
-            self.config['broker_port']))
+            "Hitting endpoint: http://{}:{}/api/unstable/metrics/status ...\n".format(
+            self.config['broker_host'],self.config['broker_port']))
+        r = requests.get(url='http://{}:{}/api/unstable/metrics/status'.format(
+            self.config['broker_host'],self.config['broker_port']))
         data = r.json()
 
         active_metrics = [metric for metric in data if metric['backend_status'] == 'implemented']
