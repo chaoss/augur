@@ -1,0 +1,12 @@
+#!/Users/elitanelson/github/augur/augur_venv/bin/python
+# EASY-INSTALL-ENTRY-SCRIPT: 'pull-request-worker==0.1.0','console_scripts','pull_request_worker_start'
+__requires__ = 'pull-request-worker==0.1.0'
+import re
+import sys
+from pkg_resources import load_entry_point
+
+if __name__ == '__main__':
+    sys.argv[0] = re.sub(r'(-script\.pyw?|\.exe)?$', '', sys.argv[0])
+    sys.exit(
+        load_entry_point('pull-request-worker==0.1.0', 'console_scripts', 'pull_request_worker_start')()
+    )
