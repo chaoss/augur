@@ -1,0 +1,12 @@
+#!/Users/elitanelson/github/augur/augur_venv/bin/python
+# -*- coding: utf-8 -*-
+# EASY-INSTALL-ENTRY-SCRIPT: 'augur==0.9.8','console_scripts','augur'
+__requires__ = 'augur==0.9.8'
+import re
+import sys
+
+from augur.runtime import run
+
+if __name__ == '__main__':
+    sys.argv[0] = re.sub(r'(-script\.pyw?|\.exe)?$', '', sys.argv[0])
+    sys.exit(run())
