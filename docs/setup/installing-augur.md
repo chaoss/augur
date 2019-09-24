@@ -96,6 +96,8 @@ From the root directory inside of your augur clone (assuming an activated Python
 5. `python -m ipykernel install --user --name augur --display-name "Python (augur)"`
 6. `python setup.py install`
 
+(Note: The build must be updated to reflect new changes made in the backend (local or otherwise). See the final section "Updating your Build" for a quick set of instructions to do this)
+
 ## Augur Back End
 1. Create a file in the root of your augur project called `augur.config.json`.
     - from the root of the augur directory, run `util/make-config.py`
@@ -115,3 +117,15 @@ From the root directory inside of your augur clone (assuming an activated Python
 1. The Dev branch is actively being developed, and these instructions are evolving 
 2. [This is the most current version of our server deployment instruction for the front end](./augur-deployment.md)
 
+## Updating you Build
+
+After updating your augur files, you will have to update your build to reflect these changes.
+Here is a series of commands that will do that.
+
+(Note. Run these commands in your root `augur` directory)
+
+1. `make clean`
+2. `pip install -e .`
+3. `python setup.py install`
+
+Once these have been run, your backend should be updated to the most recent version of your `augur` files.
