@@ -58,7 +58,7 @@ export default {
             timeUnit: "yearmonthdate",
             field: "date",
             type: "temporal",
-            axis: { grid: false, format: "%b %d" }
+            axis: { grid: true, format: "%b %d", labelAngle: 45 }
           },
           y: {
             // "aggregate": "sum",
