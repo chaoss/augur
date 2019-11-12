@@ -65,6 +65,7 @@ def cli(app, enable_housekeeper):
                         logger.info("Worker process {} already killed".format(pid))
 
             for i in range(controller[worker]['workers']):
+                print(i)
                 logger.info("Booting {} #{}".format(worker, i + 1))
                 worker_process = mp.Process(target=worker_start, kwargs={'worker_name': worker, 'instance_number': i}, daemon=True)
                 worker_process.start()

@@ -1,0 +1,26 @@
+2019-11-11 19:27:39 trapbook.local augur[49982] INFO Booting broker and its manager...
+2019-11-11 19:27:40 trapbook.local augur[49982] INFO Booting housekeeper...
+2019-11-11 19:27:41 trapbook.local root[49982] INFO Starting update processes...
+2019-11-11 19:27:41 trapbook.local augur[49982] INFO Starting server...
+[2019-11-11 19:27:41 -0600] [49982] [INFO] Starting gunicorn 19.9.0
+[2019-11-11 19:27:41 -0600] [49982] [ERROR] Connection in use: ('0.0.0.0', 5000)
+[2019-11-11 19:27:41 -0600] [49982] [ERROR] Retrying in 1 second.
+[2019-11-11 19:27:42 -0600] [49982] [ERROR] Connection in use: ('0.0.0.0', 5000)
+[2019-11-11 19:27:42 -0600] [49982] [ERROR] Retrying in 1 second.
+[2019-11-11 19:27:43 -0600] [49982] [ERROR] Connection in use: ('0.0.0.0', 5000)
+[2019-11-11 19:27:43 -0600] [49982] [ERROR] Retrying in 1 second.
+2019-11-11 19:27:43 trapbook.local root[50028] INFO Housekeeper spawned issues model updater process for repo 25430 with PID 50028
+2019-11-11 19:27:43 trapbook.local root[50029] INFO Housekeeper spawned repo_info model updater process for repo 1 with PID 50029
+2019-11-11 19:27:43 trapbook.local root[50031] INFO Housekeeper spawned pull_requests model updater process for repo 1 with PID 50031
+2019-11-11 19:27:43 trapbook.local root[50032] INFO Housekeeper spawned contributors model updater process for repo 1 with PID 50032
+2019-11-11 19:27:43 trapbook.local root[50030] INFO Housekeeper spawned commits model updater process for repo 1 with PID 50030
+2019-11-11 19:27:44 trapbook.local root[50033] INFO Housekeeper spawned insights model updater process for repo 1 with PID 50033
+[2019-11-11 19:27:44 -0600] [49982] [ERROR] Connection in use: ('0.0.0.0', 5000)
+[2019-11-11 19:27:44 -0600] [49982] [ERROR] Retrying in 1 second.
+[2019-11-11 19:27:45 -0600] [49982] [ERROR] Connection in use: ('0.0.0.0', 5000)
+[2019-11-11 19:27:45 -0600] [49982] [ERROR] Retrying in 1 second.
+[2019-11-11 19:27:46 -0600] [49982] [ERROR] Can't connect to ('0.0.0.0', 5000)
+2019-11-11 19:27:46 trapbook.local augur[49982] INFO Shutting down app updates...
+2019-11-11 19:27:46 trapbook.local augur[49982] INFO Finalizing config...
+2019-11-11 19:27:46 trapbook.local augur[49982] INFO Shutting down housekeeper updates...
+2019-11-11 19:27:46 trapbook.local augur[49982] INFO Killing main augur process with PID: 49982

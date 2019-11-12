@@ -39,7 +39,6 @@ class Server(object):
         Initializes the server, creating both the Flask application and Augur application
         """
         # Create Flask application
-
         self.app = VueCompatibleFlask(__name__, static_folder=frontend_folder, template_folder=frontend_folder)
         self.api_version = AUGUR_API_VERSION
         app = self.app
