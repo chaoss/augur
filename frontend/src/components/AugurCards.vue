@@ -94,3 +94,9 @@ export default {
   }
 };
 </script>
+
+<style scoped>
+  d-card {
+    background-color: black;
+  }
+</style>

@@ -37,8 +37,8 @@
                   <d-tooltip 
                     :target="'#' + idx"
                     container=".shards-demo--example--tooltip-01"
-                    placement="right"
-                    offset="10">
+                    placement="left"
+                    offset="4000">
                     Click here to see an overview of this repository's metrics
                   </d-tooltip>
                 </h5>
@@ -59,7 +59,7 @@
                         <d-tooltip 
                           :target="'#inspect' + idx"
                           container=".shards-demo--example--tooltip-01"
-                          placement="right"
+                          placement="top"
                           offset="20">
                           Click to see more about this insight.
                         </d-tooltip>
