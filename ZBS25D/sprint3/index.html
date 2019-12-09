@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" type="text/css" href="stylesheet.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0/dist/Chart.min.js"></script>
+    
+    <title>Augur Information</title>
+
+</head>
+<body>
+    <h1 class="topic">Augur Information</h1>
+    
+     <ul>
+        <li><a href="index.html">Home</a></li>
+        <li class="dropdown">
+            <a href="javascript:void(0)" class="dropbtn">Repo Group</a>
+                <div class="dropdown-content">
+                    <select id="groupSelect" onchange="get_repos(this.value)"></select>
+                </div>
+        </li>
+        <li class="dropdown">
+            <a href="javascript:void(0)" class="dropbtn">Repos</a>
+                <div class="dropdown-content">
+                   <select id="repoSelect" onchange="get_comments(this)"></select>
+                </div>
+        </li>
+        <li class info>
+            <a href="https://github.com/computationalmystic/sengfs19-group6">Group 6 Github</a></li>
+    </ul>
+    
+    <h2> This website shows information on the Augur database. Use the dropdown menus to select the repo group and then the repo to access more information.</h2>
+    
+    
+    <h2 class="topic" id="summary"></h2>
+    <canvas id="graph"></canvas>
+    
+    <h2 class="topic" id="comments"></h2>
+    <canvas id="graph2"></canvas>
+    
+    <script src="javascript.js"></script>
+</body>
+</html>

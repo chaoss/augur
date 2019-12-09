@@ -1,0 +1,28 @@
+<h3>Detailed Information About Repository</h3>
+<br>
+
+<label>Select which detail you'd like to view about this repository:</label>
+<form>
+    <select class="custom-select" style="width: 50em;" [(ngModel)]="selectedInfo" name="selectedInfo">
+        <option></option>
+        <option [ngValue]="'contr'">Contributors</option>
+        <option [ngValue]="'changes'">Commits Over Time</option>
+    </select>
+</form>
+<br>
+<hr>
+
+<ng-container *ngIf="selectedInfo !== '' && selectedInfo === 'contr' ">
+
+  <!-- this is used to open the contributor sub component if the above condition is true. The name of the component is in the ts file
+  the square brackets send the variable specified in "" to the sub component. -->
+    <app-contributors [urlGroupId]="urlGroupId" [urlRepoId]="urlRepoId"></app-contributors>
+
+</ng-container>
+
+<ng-container *ngIf="selectedInfo !== '' && selectedInfo === 'changes' ">
+
+    <app-commits-over-time [urlGroupId]="urlGroupId" [urlRepoId]="urlRepoId"></app-commits-over-time>
+
+</ng-container>
+
