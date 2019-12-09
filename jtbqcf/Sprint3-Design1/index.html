@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <title>Repo Group Info</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0/dist/Chart.min.js"></script>
+</head>
+<body>
+    <h1 class="topic">Augur Contributions</h1>
+    
+    <div class="break"></div>
+
+    <div class="root">
+        <label>Select Repo Group:</label>
+        <select id="repo-group-select" onchange="get_repos(this.value)"></select>
+    </div>
+    
+    <h2 class="topic" id="totCommits"></h2>
+    <canvas id="firstChart"></canvas>
+    
+    <div class="break"></div>
+    
+    <div class="root">
+        <label>Select Repo:</label>
+        <select id="repos" onchange="get_contributors(this)"></select>
+    </div>
+
+    <h2 class="topic" id="committers"></h2>
+    <canvas id="secondChart"></canvas>
+    
+    <div class="break"></div>
+    
+    <h2 class="topic" id="pull"></h2>
+    <canvas id="thirdChart"></canvas>
+    
+    <script src="scripts.js"></script>
+</body>
+</html>

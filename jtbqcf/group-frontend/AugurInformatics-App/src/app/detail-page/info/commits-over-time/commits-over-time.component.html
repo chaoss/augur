@@ -1,0 +1,29 @@
+<h3>Code Changes (Commits over Time)</h3><br>
+
+    <ng-container *ngIf="!changes">
+        <h4>Loading repos in group, please wait a moment...</h4>
+    </ng-container>
+
+    <ng-container *ngIf="changes && changes.length === 0">
+        <h4>No Code changes found in this repository</h4>
+    </ng-container>
+
+    <ng-container *ngIf="changes">
+        
+        <div style="width: 60%; height: 40%; margin: 10px auto;">
+            <div style="display: block;">
+                <canvas baseChart width="600" height="500"
+                    [data]="barChartData"
+                    [labels]="barChartLabels"
+                    [options]="barChartOptions"
+                    [colors]="barChartColors"
+                    [legend]="barChartLegend"
+                    [chartType]="barChartType"
+                    [plugins]="barChartPlugins">
+                </canvas>
+            </div>
+
+        </div>
+
+    </ng-container>
+

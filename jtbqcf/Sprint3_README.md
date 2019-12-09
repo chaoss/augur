@@ -1,0 +1,16 @@
+For this sprint we developed 3 different GUI's for users to use with a variety of endpoints from the augur server. We chose to do three different technologies to see which would fit our needs best. The first uses angular and provides the fastest and most modern looking front end. The second one uses chart.js to do all of the graphing, which has the best graphics. The third server uses a simple html UI which we tested to see if it would be the fastest to load the API.
+
+Links: 
+  *First: http://129.114.104.224/
+  *Second: http://3.135.206.178/
+  *Third: http://18.222.168.62/
+  
+ Originially we planned to host them all on the same server using nginx to serve the webpages, but because angular is designed to be used for single page web applications, this wasn't an option for us. 
+
+Description of the first: This Front-End design was created based off the wireframes drafted in the previous sprint. This UI design was created using the Angular framework, which allows a developer to create very dynamic web applications in a minimal amount of code. It improves on the basic HTML/JS style of building by providing built in tools, and giving acccess to tools that other developers have created for the framework. One such tool we could take advantage of in this angular project is ng2-charts, which is built off the charts.js api. This allows a developer to combine angular dynamic data binding, with a powerful graph drawing tool. This allows for creating dynamic, clean looking graphs with a very minimal amount of work.
+  
+After selecting a repository group and repository, the user will be directed to the detailed info page. Once on this detailed info page, the user will be presented with a page that has a UI selector object on it. This selector allows the user to select which type of data about the selected repository they would like to view. For example, the user can click on the "contributors" selector, and all the contributors in that repository will be displayed on the screen. Selecting another type of info will change the page layout to display that new piece of data. Other information included may be presented as a graphical representation of data, such as line graphs to show total pull requests over time. Information can also be shown in bar graph form, such as showing top committers, and showing their number of commits as a bar so they can be compared with the other committers.
+
+Description of the second: The second UI is a simple visualization of 3 API endpoints. The first dropdown bar selects the repo group and displays the top 10 total repo commits. The second dropdown allows you to select a repo. The chart displays the top committers of that group. The third chart displays that repo group's pull request acceptance rate.
+
+Description of the third: This is also a simple visualization. There are 4 tabs at the top of the page that will direct you to the home page, repo groups dropdown menu, repos dropdown menu and a link to our project github. When selecting the repo group and repo there will be a chart that appears, this will display the mean comments per day of the selected repo. More graphs could be added to appear below the one shown to display more information on the repo groups themselves or even more about the selected repo chosen. 

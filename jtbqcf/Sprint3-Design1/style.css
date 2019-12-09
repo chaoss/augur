@@ -1,0 +1,148 @@
+.break{
+    background-color: #333;
+    padding: 2px;
+    margin-left: 100px;
+    margin-right: 100px;
+    margin-bottom: 25px;
+    margin-top: 25px;
+}
+
+.root {
+    width: 60%;
+    margin: auto;
+    align-items: center;
+    font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
+    letter-spacing: 1px;
+    word-spacing: 2px;
+    color: #000000;
+    font-weight: 400;
+    text-decoration: none;
+    font-style: normal;
+    font-variant: normal;
+    text-transform: none;
+}
+
+#header {
+    text-align: center;
+}
+
+select {
+    display: inline block;
+    margin: 0 auto;
+    padding: 5px;
+    margin-bottom: 10px;
+    font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
+    letter-spacing: 1px;
+    word-spacing: 2px;
+    color: #000000;
+    font-weight: 400;
+    text-decoration: none;
+    font-style: normal;
+    font-variant: normal;
+    text-transform: none;
+}
+
+#firstChart{
+    height: 10px;
+    width: 10px;
+}
+
+html,body{
+  height:100%;
+}
+
+body{
+  text-align:center;
+}
+
+.topic{
+    font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
+    letter-spacing: 1px;
+    word-spacing: 2px;
+    color: #000000;
+    font-weight: 400;
+    text-decoration: none;
+    font-style: normal;
+    font-variant: normal;
+    text-transform: none;
+}
+
+.groupHeaders{
+    font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
+    letter-spacing: 1px;
+    word-spacing: 2px;
+    color: #000000;
+    font-weight: 400;
+    text-decoration: none;
+    font-style: normal;
+    font-variant: normal;
+    text-transform: none;
+}
+
+body:before{
+  content:'';
+  display:inline-block;
+  vertical-align:middle;
+}
+
+.button{
+  background: rgba(54, 162, 235);
+  color:#fff;
+  border:none;
+  position:relative;
+  height:40px;
+  font-size:1.4em;
+  padding:0 2em;
+  cursor:pointer;
+  transition:800ms ease all;
+  outline:none;
+}
+
+.button:hover{
+  background:#fff;
+  color: rgba(54, 162, 235);
+}
+
+.button:before,.button:after{
+  content:'';
+  position:absolute;
+  top:0;
+  right:0;
+  height:2px;
+  width:0;
+  background: rgba(54, 162, 235);
+  transition:400ms ease all;
+}
+
+.button:after{
+  right:inherit;
+  top:inherit;
+  left:0;
+  bottom:0;
+}
+
+.button:hover:before,.button:hover:after{
+  width:100%;
+  transition:800ms ease all;
+}
+
+#groups{
+    font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
+    font-size: 14px;
+    letter-spacing: 1px;
+    word-spacing: 2px;
+    color: #000000;
+    font-weight: 400;
+    text-decoration: none;
+    font-style: normal;
+    font-variant: normal;
+    text-transform: none;
+    border: solid 2px rgba(54, 162, 235);
+    width: 36%;
+    height: 420px;
+    overflow: hidden;
+    resize: none;
+    margin-top: 10px;
+    padding-top: 10px;
+    padding-left: 10px;
+}
