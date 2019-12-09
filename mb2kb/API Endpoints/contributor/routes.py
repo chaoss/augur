@@ -1,0 +1,1 @@
+    server.addRepoGroupMetric(metrics.contributors_organizations, 'contributors-organizations')
