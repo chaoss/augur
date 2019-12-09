@@ -1,0 +1,54 @@
+/*STYLE FOR LOGIN PAGE*/
+body {
+    background-color: #D4E6F1;
+    height: 100%;
+}
+
+#user{
+    margin-left: 27px;
+    margin-top: 20px;
+}
+
+#login{
+    border: solid black 5px;
+    border-radius: 8px;
+    margin: 200px auto;
+    text-align: center;
+    width: 30%;     
+    height: 400px;
+    background-color: #f4F6F6;
+    vertical-align: middle;
+}
+
+h1 {
+    color: black;
+    margin-top: 100px;
+}
+
+button {
+    height: 30px;
+    width: 100px;
+    margin: 0px auto;
+    margin-top: 30px;
+    background-color: lightgrey;
+}
+
+button:hover {
+    background-color: white;
+}
+
+#errArea{
+    color: red;
+}
+
+label {
+    font-weight: bold;
+    color: black;
+}
+
+input {
+    height: 20px;
+    margin: 2px;
+    background-color: lightgrey;
+    border: 2px solid #d4e6f1;
+}
