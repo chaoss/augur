@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        
+        <meta charset="UTF-8">
+        <title>Commits</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          
+   
+        <link rel="stylesheet" type="text/css" href="common.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+      
+        <script src="https://canvasjs.com/assets/script/jquery-1.11.1.min.js"></script>  
+        <script src="https://canvasjs.com/assets/script/jquery.canvasjs.min.js"></script>  
+        
+        <script src="commits.js"></script>
+          
+    </head>
+    <body onload="displayNavBar(3); firstDropdown();">
+        <div class="topbar" id="navbar">
+                    <a href="common.js"></a>
+        </div>
+        <h1>Commits Data</h1>
+     
+        <select id= "groupId" name="repo group" onclick='secondDropdown()'></select>
+        <select id= "repoId" name="repo stuff"></select>
+
+        <button class="buttons" onclick= "loadSecondGraph(); loadGraph();">Go<span class="tip">Please allow up to ten seconds for the list to populate</span></button>
+        <div id="accordion">
+
+        </div>
+        
+        <div id="chartContainer" style="height: 300px; width: 100%;"></div>
+        
+          <div id="chartContainer2" style="height: 300px; width: 100%;"></div>
+       
+        
+        <script src="common.js"></script>
+        
+<!--        <script src="RepoGroupReadIn.js"></script>-->
+<!--        <script src="repoReadIn.js"></script>-->
+        <script src="tableView.js"></script>
+        
+    
+        
+            
+        
+    </body>
+</html>

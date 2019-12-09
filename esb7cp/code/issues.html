@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>Issues</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" type="text/css" href="common.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    
+    </head>
+    <body onload="displayNavBar(2); firstDropdown();">
+        <div class="topbar" id="navbar">
+                    <a href="common.js"></a>
+        </div>
+        <h1>Issues Data</h1>
+        
+        <select id= "groupId" name="repo group" onclick='secondDropdown()'></select>
+        <select id= "repoId" name="repo stuff"></select>
+        <button class="buttons" onclick="cardView()">Go<span class="tip">Please allow up to ten seconds for the list to populate</span></button>
+        <div id="accordion">
+        </div>
+
+        <script src="common.js"></script>
+<!--        <script src="RepoGroupReadIn.js"></script>-->
+<!--        <script src="repoReadIn.js"></script>-->
+        <script src="tableView.js"></script>
+    </body>
+</html>
