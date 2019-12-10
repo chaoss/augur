@@ -1,0 +1,54 @@
+<html>
+<head>
+  <meta name= "viewport" conten = "width=deviced-width, initial-scale=1">
+  <style>
+    ::placeholder{
+      color:gray;
+      opacity:1;
+    }
+    :-ms-input-placeholder{
+        color:gray;
+    }
+    ::-ms-input-placeholder{
+        color:gray
+    }
+  </style>
+</head>
+<body>
+    <h3 style="text-align:center">Table of messages</h3>
+    <ng-container *ngIf="!dataSource">
+        <h4>Loading messages information...</h4>
+    </ng-container>
+
+    <a routerLink="/contributors/{{this.urlGroupId}}"><button class="Contributor" style="color:gray;margin-left: 2.5%;"> Contributor Table</button></a>
+<div class = "search-div">
+        <mat-form-field class="center" floatLabel="never">
+            <input matInput (keyup)="applyFilter($event.target.value)" placeholder="Filter" >
+            <button mat-button matSuffix mat-icon-button aria-label = "Clear"  *ngIf="filterValue" (click)= "onSearchClear()">  
+            </button>
+          </mat-form-field>
+    </div>
+    
+        <div class="center">
+            <mat-table [dataSource]="dataSource"  matSort>
+          
+              <ng-container matColumnDef="cntrb_id">
+                <mat-header-cell *matHeaderCellDef mat-sort-header> ID </mat-header-cell>
+                <mat-cell *matCellDef="let message"> {{message.cntrb_id}} </mat-cell>
+              </ng-container>
+
+                    
+            <ng-container matColumnDef="messages">
+                        <mat-header-cell *matHeaderCellDef mat-sort-header> Message </mat-header-cell>
+                        <mat-cell *matCellDef="let message"> {{message.messages}} </mat-cell>
+                </ng-container>
+              <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+              <mat-row *matRowDef="let row; columns: displayedColumns;"></mat-row>
+           
+    
+            </mat-table>
+            <mat-paginator [pageSizeOptions]="[10, 25, 50,100]" showFirstLastButtons></mat-paginator>
+          </div>
+    </body>
+    </html>
+      

@@ -1,0 +1,91 @@
+<html>
+<head>
+  <meta name= "viewport" conten = "width=deviced-width, initial-scale=1">
+  <style>
+    ::placeholder{
+      color:gray;
+      opacity:1;
+    }
+    :-ms-input-placeholder{
+        color:gray;
+    }
+    ::-ms-input-placeholder{
+        color:gray
+    }
+  </style>
+</head>
+<body>
+    
+    <h3 style="text-align:center">Table of repository group</h3>
+    <ng-container *ngIf="!dataSource">
+        <h4>Loading repository group information...</h4>
+    </ng-container>
+
+<div class = "search-div">
+    <mat-form-field class="center" floatLabel="never">
+        <input matInput (keyup)="applyFilter($event.target.value)" placeholder="Filter" >
+        <button mat-button matSuffix mat-icon-button aria-label = "Clear"  *ngIf="filterValue" (click)= "onSearchClear()">  
+        </button>
+      </mat-form-field>
+</div>
+
+<div class="center">
+        <mat-table [dataSource]="dataSource"  matSort>
+
+          <ng-container matColumnDef="repo_group_id">
+            <mat-header-cell *matHeaderCellDef mat-sort-header> ID </mat-header-cell>
+            <mat-cell *matCellDef="let repog"> 
+                    <a routerLink ="/contributors/{{repog.repo_group_id}}">
+                {{repog.repo_group_id}}</a>
+            </mat-cell>
+          </ng-container>
+      
+          <ng-container matColumnDef="rg_name">
+            <mat-header-cell *matHeaderCellDef mat-sort-header> Name </mat-header-cell>
+            <mat-cell *matCellDef="let repog">
+                    <a routerLink ="/contributors/{{repog.repo_group_id}}">
+                {{repog.rg_name}}</a>  
+              </mat-cell>
+          </ng-container>
+      
+          <ng-container matColumnDef="rg_description">
+            <mat-header-cell *matHeaderCellDef mat-sort-header> Description </mat-header-cell>
+            <mat-cell *matCellDef="let repog" > 
+                <a routerLink ="/contributors/{{repog.repo_group_id}}">
+                  {{repog.rg_description}}</a> 
+                </mat-cell>
+          </ng-container>
+      
+          <ng-container matColumnDef="rg_last_modified">
+            <mat-header-cell *matHeaderCellDef mat-sort-header> Modified </mat-header-cell>
+            <mat-cell *matCellDef="let repog"> 
+                    <a routerLink ="/contributors/{{repog.repo_group_id}}">
+                  {{repog.rg_last_modified}} </a> 
+            </mat-cell>
+          </ng-container>
+
+          <ng-container matColumnDef="data_source">
+                <mat-header-cell *matHeaderCellDef mat-sort-header> DataSource </mat-header-cell>
+                <mat-cell *matCellDef="let repog"> 
+                    <a routerLink ="/contributors/{{repog.repo_group_id}}">
+                         {{repog.data_source}} </a> 
+                </mat-cell>
+          </ng-container>
+
+          <ng-container matColumnDef="data_collection_date">
+                <mat-header-cell *matHeaderCellDef mat-sort-header> Data</mat-header-cell>
+                <mat-cell *matCellDef="let repog"> 
+                    <a routerLink ="/contributors/{{repog.repo_group_id}}">
+                         {{repog.data_collection_date}} </a> 
+                </mat-cell>
+          </ng-container> -->
+
+          <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+          <mat-row *matRowDef="let row; columns: displayedColumns;"></mat-row> 
+       
+
+        </mat-table>
+        <mat-paginator [pageSizeOptions]="[10, 25, 50,100]" showFirstLastButtons></mat-paginator>
+      </div>
+</body>
+</html>

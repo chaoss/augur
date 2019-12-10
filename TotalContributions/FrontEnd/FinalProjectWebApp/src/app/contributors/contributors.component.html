@@ -1,0 +1,59 @@
+<html>
+<head>
+  <meta name= "viewport" conten = "width=deviced-width, initial-scale=1">
+  <style>
+    ::placeholder{
+      color:gray;
+      opacity:1;
+    }
+    :-ms-input-placeholder{
+        color:gray;
+    }
+    ::-ms-input-placeholder{
+        color:gray
+    }
+  </style>
+</head>
+<body>
+    <div >
+    <h3  style="text-align:center">Table of Contributor by company</h3>
+    <ng-container *ngIf="!dataSource">
+        <h4>Loading contributors information...</h4>
+    </ng-container>
+</div>
+ 
+    <a routerLink="/messages/{{this.urlGroupId}}"><button class="Message" style="color:gray;margin-left: 2.5%; "> Message Table</button></a>
+
+<div class = "search-div">
+        <mat-form-field class="center" floatLabel="never">
+            <input matInput (keyup)="applyFilter($event.target.value)" placeholder="Filter" >
+            <button mat-button matSuffix mat-icon-button aria-label = "Clear"  *ngIf="filterValue" (click)= "onSearchClear()">  
+            </button>
+          </mat-form-field>
+    </div>
+    
+        <div class="center">
+            <mat-table [dataSource]="dataSource"  matSort>
+              <ng-container matColumnDef="cntrb_company">
+                <mat-header-cell *matHeaderCellDef mat-sort-header> Company </mat-header-cell>
+                <mat-cell *matCellDef="let contributor"> {{contributor.cntrb_company}} </mat-cell>
+              </ng-container>
+          
+
+                        
+              <ng-container matColumnDef="counter">
+                    <mat-header-cell *matHeaderCellDef mat-sort-header> Counter </mat-header-cell>
+                    <mat-cell *matCellDef="let contributor"> {{contributor.counter}} </mat-cell>
+                  </ng-container>
+
+            
+              <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+              <mat-row *matRowDef="let row; columns: displayedColumns;"></mat-row>
+           
+    
+            </mat-table>
+            <mat-paginator [pageSizeOptions]="[10, 25, 50,100]" showFirstLastButtons></mat-paginator>
+          </div>
+    </body>
+    </html>
+      
