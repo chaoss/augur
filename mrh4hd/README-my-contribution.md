@@ -40,7 +40,7 @@ Contains business logic for the first and second endpoints. These are the `repo_
 contributors.py contains the business logic for the third endpoint. This is the `contributions` (line 571) method.<br>
 (modified) [commit](./augur/metrics/commit/routes.py) and [contributor](./augur/metrics/contributor/routes.py) routes.py files <br>
 Both routes.py files were updated to define the routes for all three endpoints. Routes in [commit](./augur/metrics/commit) are defined using the `server.addRepoMetric()` and `server.addRepoGroupMetric()` methods already present in Augur. The route in [contributor](./augur/metrics/contributor) is defined manually using the `@server.app.route()` annotation and defining the function `contributions` for this endpoint.<br>
-(modified) test_contributor_functions.py<br>
+(modified) test\_contributor\_functions.py<br>
 test created to make sure the queries returned the correct values<br>
-(modified) test_contributor_routes.py<br>
+(modified) test\_contributor\_routes.py<br>
 test created to make sure the routes correctly returned data<br>
