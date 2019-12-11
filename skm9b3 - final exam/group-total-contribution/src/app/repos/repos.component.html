@@ -1,0 +1,26 @@
+<div class="jumbotron">
+    <div class="container">
+        <button mat-button class="btn-primary" onclick="getInfo()">Click me first to retreive data from API</button>
+    </div>
+</div>
+<div class="container">
+    <div class="row">
+        <div class="col-md-4">
+            <div id="headBar">
+                <select id="groupList" onchange="repoList(this.selectedIndex-1)">
+                    <option disabled selected>Project List</option>
+                </select>
+                <select id="repoList"></select>
+                <input type="button" onclick="selectRepo()" value="Get Information">
+            </div>
+        </div>
+        <div class="col-md-4">
+            <h2>Top Committers (Repo)</h2>
+        </div>
+
+        <div class="col-md-4">
+            <span id="groupName3"></span><br><span id="repoName3"></span>
+            <div id="piechart"></div>
+        </div>
+    </div>
+</div>
