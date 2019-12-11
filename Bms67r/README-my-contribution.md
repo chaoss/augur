@@ -1,6 +1,6 @@
 ## My Contributions
 
-- I created an Angular project for the working front end project
+- I created an Angular project for the working front end project, including home page and graphic visualizations
 
 - I helped coordiante group rolls and tasks for working on the project
 
