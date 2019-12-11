@@ -56,4 +56,4 @@
     
     ## Link to Teams TOTAL Contributions
     
-    [Link to team contributions folder](https://github.com/skm9b3/augur/tree/dev-features/skm9b3/group-total-contributions) found here: https://github.com/skm9b3/augur/tree/dev-features/skm9b3/group-total-contributions
+    [Link to team contributions folder](https://github.com/skm9b3/augur/tree/dev-features/skm9b3%20-%20final%20exam/group-total-contribution) found here: https://github.com/skm9b3/augur/tree/dev-features/skm9b3%20-%20final%20exam/group-total-contribution
