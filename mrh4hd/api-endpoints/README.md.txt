@@ -1,0 +1,1 @@
+These contain the updated version of /augur/metrics/commit and /augur/metrics/contributor that contain our project work. Plugging these changes into there constitute our semester project's progress on API endpoints.
