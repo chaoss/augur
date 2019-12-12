@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <link rel="shortcut icon" href="">
+        <meta charset="utf-8">
+        <title>Contributers</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        <link rel="stylesheet" type="text/css" href="common.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+        
+        <script src="https://canvasjs.com/assets/script/jquery-1.11.1.min.js"></script>  
+        <script src="https://canvasjs.com/assets/script/jquery.canvasjs.min.js"></script>  
+        
+        <script src="contributers.js"></script>
+        
+    </head>
+    <body onload="displayNavBar(1); firstDropdown();">
+        <div class="topbar" id="navbar">
+                    <a href="common.js"></a>
+        </div>
+        <h1>Contributers Data</h1>
+        
+        <select id= "groupId" name="repo group" onclick='secondDropdown()'></select>
+        <select id= "repoId" name="repo stuff"></select>
+        <button class="buttons" onclick="loadGraph(); loadGraph2(); loadGraph3()">Go<span class="tip">Please allow up to ten seconds for the list to populate</span></button>
+        <div id="accordion">
+        </div>
+
+        <div id="chartContainer1" style="height: 300px; width: 100%; padding-top: 10px; margin-bottom: 10px"></div>
+        <div id="chartContainer2" style="height: 300px; width: 100%; padding-top: 10px; margin-bottom: 10px"></div>
+        <div id="chartContainer3" style="height: 300px; width: 100%; padding-top: 10px; margin-bottom: 10px"></div>
+        
+        <script src="common.js"></script>
+<!--        <script src="RepoGroupReadIn.js"></script>-->
+<!--        <script src="repoReadIn.js"></script>-->
+        <script src="tableView.js"></script>
+    </body>
+</html>
