@@ -1,0 +1,7 @@
+- Contributed to design document and read me in later stages
+- Worked on issue messages over time metric 
+- Worked on SQL query for ISMT metric
+- Worked on test for ISMT metric
+- Worked on routes.py file in issue
+- Helped in any way possible for getting augur/other technologies to work
+- Helped facilitate discussion regarding deadlines and requirements for each sprint
