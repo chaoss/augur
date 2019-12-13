@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Metrics Information</title>
+    <meta charset="utf-8">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script>
+        $(function(){
+            $("#navbar").load("navbar.html"); 
+        });
+    </script>
+</head>
+<body>
+    <div id="navbar"></div>
+    <div class="container center">
+        <h3 class="header">Definitions for Racial and Ethnic Categories</h3>
+        <p>All gender and ethnicity predictions were performed by the <a href="https://www.namsor.com/">NamSor API</a>.  These predictions are made using the user's full name and are not necessarily representative of the user's identity.  A threshold of .8 probability was used for gender, and a threshold of .5 was used for ethnicity.  Any low or inconclusive values are represented as "unknown".</p>
+        <ul>
+            <li><b>Asian (A)</b> - A person having origins in any of the original peoples of the Far East, Southeast Asia, or the Indian subcontinent including, for example, Cambodia, China, India, Japan, Korea, Malaysia, Pakistan, the Philippine Islands, Thailand, and Vietnam.</li>
+            <li><b>Black or African American (B_NL)</b> - A person having origins in any of the black racial groups of Africa.</li>
+            <li><b>Hispanic or Latino (HL)</b> - A person of Cuban, Mexican, Puerto Rican, South or Central American, or other Spanish culture or origin, regardless of race. The term, "Spanish origin," can be used in addition to "Hispanic or Latino."</li>
+            <li><b>White (W_NL)</b> - A person having origins in any of the original peoples of Europe, the Middle East, or North Africa.</li>
+        </ul>
+        <a href="https://grants.nih.gov/grants/guide/notice-files/not-od-15-089.html" target="_blank"><p>From National Institutes of Health</p></a>
+    </div>
+</body>
+</html>
