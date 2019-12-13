@@ -1,0 +1,45 @@
+body {
+            font-family: sans-serif;
+        }
+        #navbar {
+            width: 100%;
+            background-color: black;
+            height: 50px;
+            position: fixed;
+            z-index: 1;
+            top: 0;
+            left: 0;
+            
+        }
+        p {
+            color: white;
+            margin-left: 10px;
+        }
+        #map {
+            height: 660px;  /* The height is 400 pixels */
+            width: 100%;  /* The width is the width of the web page */
+            
+        }
+        .repo-group {
+            width: 90%;
+            height: 300px;
+            background-color: black;
+            color: white;
+            display: -webkit-flexbox;
+            display: -ms-flexbox;
+            display: -webkit-flex;
+            display: flex;
+            -webkit-align-items: center;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50px;
+            overflow: hidden;
+            font-size: 3vw;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        
+        #groups {
+            margin-top: 65px;
+            column-count: 5;
+        }

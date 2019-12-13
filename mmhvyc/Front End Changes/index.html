@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+        <link rel="stylesheet" href="index.css">
+      <title>Sprint 2</title>
+    </head>
+    <body>
+        <div id="navbar">
+            <p>Home</p>
+        </div>
+        
+        <div id="groups">
+            <div id="apache" class="repo-group">Apache</div>
+            <div id="netflix" class="repo-group">Netflix</div>
+          
+            <div id="chaoss" class="repo-group">CHAOSS</div>
+            <div id="rails" class="repo-group">Rails</div>
+          
+            <div id="comcast" class="repo-group">Comcast</div>
+            <div id="senaite" class="repo-group">Senaite</div>
+          
+            <div id="graphQL" class="repo-group">GraphQL</div>
+            <div id="zephyr" class="repo-group">Zephyr</div>
+          
+            <div id="mhs" class="repo-group">MHS</div>
+            <div id="default" class="repo-group">Default</div>
+        </div>
+      
+        <div id="map"></div>
+    <script>
+        $(document).ready(function () {
+            $("#apache").hover(
+                function() {
+                    $("#apache").css("font-size", "1.35vw");
+                    $("#apache").html("Established in 1999, the ASF is a US 501(c)(3) charitable organization, funded by individual donations and corporate sponsors. Our all-volunteer board oversees more than 350 leading Open Source projects, including Apache HTTP Server -- the world's most popular Web server software.");
+                },
+                function() {
+                    $("#apache").css("font-size", "3vw");
+                    $("#apache").html("Apache");
+                }
+            );
+            $("#chaoss").hover(
+                function() {
+                    $("#chaoss").css("font-size", "2.05vw");
+                    $("#chaoss").html("CHAOSS is a Linux Foundation project focused on creating analytics and metrics to help define community health.");
+                },
+                function() {
+                    $("#chaoss").css("font-size", "3vw");
+                    $("#chaoss").html("CHAOSS");
+                }
+            );
+            $("#comcast").hover(
+                function() {
+                    $("#comcast").css("font-size", "1.85vw");
+                    $("#comcast").html("Comcast brings together the best in media and technology to create the world's best entertainment and online experiences - Comcast.");
+                },
+                function() {
+                    $("#comcast").css("font-size", "3vw");
+                    $("#comcast").html("Comcast");
+                }
+            );
+            $("#graphQL").hover(
+                function() {
+                    $("#graphQL").css("font-size", "1.25vw");
+                    $("#graphQL").html("GraphQL is a query language for APIs and a runtime for fulfilling those queries with your existing data. GraphQL provides a complete and understandable description of the data in your API, gives clients the power to ask for exactly what they need and nothing more, makes it easier to evolve APIs over time, and enables powerful developer tools.");
+                },
+                function() {
+                    $("#graphQL").css("font-size", "3vw");
+                    $("#graphQL").html("GraphQL");
+                }
+            );
+            $("#mhs").hover(
+                function() {
+                    $("#mhs").css("font-size", "1.8vw");
+                    $("#mhs").html("Mission HydroSci (MHS) is a game-based virtual learning environment that brings innovative game design to middle school science education.");
+                },
+                function() {
+                    $("#mhs").css("font-size", "3vw");
+                    $("#mhs").html("MHS");
+                }
+            );
+            $("#netflix").hover(
+                function() {
+                    $("#netflix").css("font-size", "0.8vw");
+                    $("#netflix").html("Netflix both leverages and provides open source technology focused on providing the leading Internet television network. Our technology focuses on providing immersive experiences across all internet-connected screens. Netflix's deployment technology allows for continuous build and integration into our worldwide deployments serving members in over 50 countries. Our focus on reliability defined the bar for cloud based elastic deployments with several layers of failover. Netflix also provides the technology to operate services responsibly with operational insight, peak performance, and security. We provide technologies for data (persistent & semi-persistent) that serve the real-time load to our 62 million members, as well as power the big data analytics that allow us to make informed decisions on how to improve our service.");
+                },
+                function() {
+                    $("#netflix").css("font-size", "3vw");
+                    $("#netflix").html("Netflix");
+                }
+            );
+            $("#rails").hover(
+                function() {
+                    $("#rails").css("font-size", "1.2vw");
+                    $("#rails").html("Ruby on Rails, or Rails, is a server-side web application framework written in Ruby under the MIT License. Rails is a model–view–controller (MVC) framework, providing default structures for a database, a web service, and web pages. It encourages and facilitates the use of web standards such as JSON or XML for data transfer, HTML, CSS and JavaScript for user interfacing.");
+                },
+                function() {
+                    $("#rails").css("font-size", "3vw");
+                    $("#rails").html("Rails");
+                }
+            );
+            $("#senaite").hover(
+                function() {
+                    $("#senaite").css("font-size", "1.3vw");
+                    $("#senaite").html("SENAITE is based on the Content Management System Plone, that has the best security track record of any major CMS. Besides that, SENAITE comes with several mechanisms to prevent members or business associates making accidental or intentional changes that improperly alter or destroy electronic records.");
+                },
+                function() {
+                    $("#senaite").css("font-size", "3vw");
+                    $("#senaite").html("Senaite");
+                }
+            );
+            $("#zephyr").hover(
+                function() {
+                    $("#zephyr").css("font-size", "1.35vw");
+                    $("#zephyr").html("The Zephyr Project, a Linux Foundation hosted Collaboration Project, is an open source collaborative effort uniting leaders from across the industry to build a best-in-breed small, scalable, real-time operating system (RTOS) optimized for resource-constrained devices, across multiple architectures.");
+                },
+                function() {
+                    $("#zephyr").css("font-size", "3vw");
+                    $("#zephyr").html("Zephyr");
+                }
+            );
+        });
+
+        function initMap() {
+            // The location of Uluru
+            var columbia = {lat: 38.9517, lng: -92.3341};
+            // The map, centered at Uluru
+            var map = new google.maps.Map(
+                document.getElementById('map'), {zoom: 2.5, center: columbia});
+                // The marker, positioned at Uluru
+                var locations = new google.maps.Marker(
+                    {position: columbia, map: map},
+                );
+        }
+        
+    </script>
+    <!--Load the API from the specified URL
+    * The async attribute allows the browser to render the page while the API loads
+    * The key parameter will contain your own API key (which is not needed for this tutorial)
+    * The callback parameter executes the initMap() function
+    -->
+      
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyABpUwuSkpbHD8OlwLKUTv0I24exEQQReU&callback=initMap"
+    type="text/javascript"></script>
+    </body>
+</html>
