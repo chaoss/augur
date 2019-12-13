@@ -1,4 +1,4 @@
-##Tim Kuehner
+## Tim Kuehner
 
 My specific contributions can be summarized throughout the project as
 * Helped organize thoughts of my group members and submitted my own ideas to the 3 endpoints that we would create in the AUGUR system
