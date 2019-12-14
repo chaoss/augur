@@ -1,0 +1,1 @@
+For this project, I worked on the testing coverage metric. This metric was under the risk category from Augur and what it essentially does is use tests on subroutines and statements within a repo in order to gain better insight on how well that particular repo was tested.
