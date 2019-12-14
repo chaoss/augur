@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Sample Repository Group Two</title>
+    <meta charset="utf-8">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script>
+        $(function(){
+            $("#navbar").load("navbar.html"); 
+        });
+    </script>
+    <script src="committerData.js"></script>
+    <script src="testData.js"></script>
+    <script type="text/javascript">
+        google.charts.load("current", {packages:["corechart"]});
+        google.charts.setOnLoadCallback(function (){
+            getCommData(20);
+            getTestData(20);
+        });
+    </script>
+</head>
+<body>
+    <div id="navbar"></div>
+     <div class="container center">
+         <h2 class="header">Sample Repository Group Two</h2>
+         <br>
+        <table>
+            <colgroup>
+                <col width="50%">
+                <col width="50%">
+            </colgroup>
+            <tr>
+                <th>
+                    <h4>Subroutine Coverage</h4>
+                </th>
+                <th>
+                    <h4>Statement Coverage</h4>
+                </th>
+            </tr>
+            <tr>
+                <td>
+                    <h5 id="subLabel"></h5>
+                    <meter id="subMeter" min="0" low="79" optimum="80" max="100" value="95" class="center"></meter>
+                    <p>The percentage of subroutines covered <br> in a test suite run against a repository</p>
+                </td>
+                <td>
+                    <h5 id="statLabel"></h5>
+                    <meter id="statMeter" min="0" low="79" optimum="80" max="100" value="95" class="center"></meter>
+                    <p>The percentage of statements covered <br> during the execution of a test suite</p>
+                </td>
+            </tr>
+            <tr>
+                <th>
+                    <h4>Gender Distribution</h4>
+                </th>
+                <th>
+                    <h4>Ethnicity Distribution</h4>
+                </th>
+            </tr>
+            <tr>
+                <td>
+                    <div id="gender" class="center piechart"></div>
+                </td>
+                <td>
+                    <div id="ethnicity" class="center piechart"></div>
+                </td>
+            </tr>
+        </table>
+         <p id="load">Loading Charts...</p>
+        <a href="ethnicities.html" target="_blank"><p>Definitions for Racial and Ethnic Categories</p></a>
+        
+        <table class="dataTable" id="table">
+            <tr>
+                <th class="dataTable">Contributor Name</th>
+                <th class="dataTable">Gender Prediction</th>
+                <th class="dataTable">Ethnicity Prediction</th>
+            </tr>
+            <tbody>
+            </tbody>
+        </table>
+        <div class="container">
+        </div>
+        
+    </div>
+</body>
+</html>
