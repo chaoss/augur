@@ -31,7 +31,7 @@ timeline: [{date: &lt;date 1&gt;, commits: 4}, {date: &lt;date 2&gt;, commits: 5
 	Repos/commits per contributor For this endpoint, it will be provided the ID of a specific contributor. Then, we will use that ID to find every commit by that user, then return a list of repos the contributor has worked on, as well as how many commits per repo.
 
 
-Wrote the SQL queries to create the endpoints and assisted matt with implementing them
+## Wrote the SQL queries to create the endpoints and assisted matt with implementing them
       
       
 Helped write the documentiation, showed up for the meetings, contributed constructively and helped design our implementation for the project
