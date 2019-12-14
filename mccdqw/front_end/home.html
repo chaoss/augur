@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Home</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="augur.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+    <script src="https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/markerclusterer.js"></script>
+    <style>
+        #map1, #map2 {
+            width: 100%;
+            height: 50vh;            
+        }
+        
+        #profile {
+            padding: 5px;
+            line-height: 50%;
+            background-color: white;
+            border: 1px solid black;
+        }
+    </style>
+    <script src="contributorData.js"></script>
+    <script>
+        $(function(){
+            $("#navbar").load("navbar.html"); 
+        });
+    </script>
+</head>
+<body style="min-width: 600px;">
+    <div id="navbar"></div>
+    <div class="container px-2 py-2">
+        <h3 class="header">Contributors Around the World</h3>
+        <div class="row">
+            <div class="col mx-1">
+                <h3 id="one">Sample Repository Group One</h3>
+                <div id="map1" class="center"></div>
+            </div>
+            <div class="col mx-1"> 
+                <h3 id="two">Sample Repository Group Two</h3>
+                <div id="map2" class="center"></div>
+            </div>
+        </div>
+        <p id="load">Loading Table...</p>
+        <div class="row">
+            <div class="col mx-1">
+                <h3>Sample Repository Group One</h3>
+                <table class="dataTable" id="table10">
+                    <tr>
+                        <th class="dataTable">GitHub Username</th>
+                        <th class="dataTable">GitHub URL</th>
+                        <th class="dataTable">When Created</th>
+                        <th class="dataTable">Company</th>
+                        <th class="dataTable">Location</th>
+                    </tr>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+            <div class="col mx-1">
+                <h3>Sample Repository Group Two</h3>
+                <table class="dataTable" id="table20">
+                    <tr>
+                        <th class="dataTable">GitHub Username</th>
+                        <th class="dataTable">GitHub URL</th>
+                        <th class="dataTable">When Created</th>
+                        <th class="dataTable">Company</th>
+                        <th class="dataTable">Location</th>
+                    </tr>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+    </div>
+    
+    <script>
+        getContrData(10);
+        var locations1 = [
+            {lat: 38.9517053, lng: -92.3340724},
+            {lat: 38.9517053, lng: -92.3340724},
+            {lat: 38.9517053, lng: -92.3340724},
+            {lat: 38.9517053, lng: -92.3340724},
+            {lat: 28.6139391, lng: 77.2090212},
+            {lat: 38.9517053, lng: -92.3340724},
+            {lat: 41.2565369, lng: -95.9345034},
+            {lat: 41.2565369, lng: -95.9345034},
+            {lat: 38.9403808, lng: -92.3277375},
+            {lat: 41.2565369, lng: -95.9345034},
+            {lat: 10.691803, lng: -61.222503},
+            {lat: 28.7040592, lng: 77.1024902},
+            {lat: 37.4418834, lng: -122.1430195},
+            {lat: 39.9041999, lng: 116.4073963},
+            {lat: 22.34601, lng: 87.2319753},
+            {lat: 42.3600825, lng: -71.0588801}];
+        getContrData(20);
+        var locations2 = [
+            {lat: 38.9517053, lng: -92.3340724},
+            {lat: 28.6139391, lng: 77.2090212},
+            {lat: 41.2565369, lng: -95.9345034},
+            {lat: 41.2565369, lng: -95.9345034},
+            {lat: 41.2565369, lng: -95.9345034},
+            {lat: 51.5073509, lng: -0.1277583},
+            {lat: 41.2565369, lng: -95.9345034},
+            {lat: 40.3082504, lng: -3.7323934},
+            {lat: 40.2902056, lng: -3.8035477},
+            {lat: 40.4167754, lng: -3.7037902},
+            {lat: 40.4167754, lng: -3.7037902},
+            {lat: 39.9041999, lng: 116.4073963},
+            {lat: 42.3600825, lng: -71.0588801},
+            {lat: 28.3802101, lng: 75.6091696},
+            {lat: 12.9715987, lng: 77.5945627},
+            {lat: -14.235004, lng: -51.92528},
+            {lat: 46.227638, lng: 2.213749},
+            {lat: 49.2827291, lng: -123.1207375},
+            {lat: 51.919438, lng: 19.145136},
+            {lat: 12.9715987, lng: 77.5945627},
+            {lat: 37.36883, lng: -122.0363496},
+            {lat: 8.8932118, lng: 76.6141396},
+            {lat: 39.5500507, lng: -105.7820674},
+            {lat: 37.09024, lng: -95.712891}
+        ]
+        function initMap() {
+            var columbia = {
+                lat: 38.9517, 
+                lng: -92.3341
+            };
+            
+            var map1 = new google.maps.Map(document.getElementById('map1'), {
+                zoom: 1,
+                center: columbia
+            });
+            
+            var map2 = new google.maps.Map(document.getElementById('map2'), {
+                zoom: 1,
+                center: columbia
+            });
+            
+            var markers1 = locations1.map(function(location, i) {
+                return new google.maps.Marker({
+                    position: location
+                });
+            });
+            
+             var markers2 = locations2.map(function(location, i) {
+                return new google.maps.Marker({
+                    position: location
+                });
+            });
+            
+            var markerCluster1 = new MarkerClusterer(map1, markers1, {
+                imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m'
+            });
+            
+            var markerCluster2 = new MarkerClusterer(map2, markers2, {
+                imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m'
+            });
+        }
+        
+    </script>
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyABpUwuSkpbHD8OlwLKUTv0I24exEQQReU&callback=initMap"
+    type="text/javascript"></script>
+</body>
+</html>
