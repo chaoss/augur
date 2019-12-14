@@ -1,0 +1,895 @@
+#menubar a{
+    text-decoration: none;
+    font-size: 25px;
+    font-family: 'Lora', serif;
+    color: white;
+}
+
+#menubar li:hover {
+    color: white;
+    background-color: palevioletred;
+}
+
+.active{
+    background-color: cadetblue;
+    color: white;
+    font-weight: bold;
+}
+
+ul{
+    padding: 0;
+    display: -webkit-box;
+    display: -moz-box;
+    display: box;
+    width: 100%;
+    left: 0;
+    top: 0;
+    position: fixed;
+    background-color: black;
+    overflow: hidden;
+    margin: 0 auto;
+}
+
+li{
+    list-style: none;
+    text-align: center;
+    -webkit-box-flex: 1;
+    -moz-box-flex: 1;
+    box-flex: 1;
+    background-color: black;
+}
+
+#logoNav {
+    margin-top: 3px;
+    margin-left: 10px;
+}
+
+#indexBody {
+    background-color: #8EC5FC;
+    background-image: linear-gradient(62deg, #8EC5FC 0%, #E0C3FC 100%);
+    background-size: 1920px 1080px;
+}
+
+#aboutBody {
+    background-image: radial-gradient( circle farthest-corner at 1.5% 2.8%,  rgba(69,237,244,1) 23.2%, rgba(26,243,158,1) 45%, rgba(241,78,163,1) 93.1% );
+    background-size: 1920px 1080px;
+}
+
+#logInBody {
+    background-color: #ff915b;
+    background-image: linear-gradient(19deg, #ff915b 0%, #90e0fd 100%);
+    background-size: 1920px 1080px;
+}
+
+#madeByBody {
+    background-color: #42378f;
+    background-image: linear-gradient(315deg, #42378f 0%, #f53844 74%);
+    background-size: 1920px 1080px;
+}
+
+#contactBody {
+    background-image: radial-gradient( circle farthest-corner at 10% 20%,  rgba(222,168,248,1) 0%, rgba(168,222,248,1) 21.8%, rgba(189,250,205,1) 35.6%, rgba(243,250,189,1) 52.9%, rgba(250,227,189,1) 66.8%, rgba(248,172,172,1) 90%, rgba(254,211,252,1) 99.7% );
+    background-size: 1920px 1080px;
+}
+
+#welcomeLine {
+    color: indianred;
+    text-decoration: underline;
+    font-weight: bolder;
+    font-family: 'Lora', serif;
+    text-align: center;
+}
+
+#logInLine {
+    text-align: center;
+    color: indianred;
+    text-decoration: underline;
+    font-weight: bolder;
+    font-family: 'Lora', serif;
+    width: 450px;
+    height: 100px;
+    padding: 10px;
+    margin: 10px;
+    margin-left: auto;
+    margin-right: auto;
+    border: 2px outset black;
+}
+
+#greetLine {
+    color: indianred;
+    text-decoration: underline;
+    font-weight: bolder;
+    font-family: 'Lora', serif; 
+    text-align: center;
+    font-size: 1.2em;
+}
+
+#openingParagraphIndex {
+    margin-bottom: 125px;
+}
+
+#openingParagraphIndex::first-letter {
+    font-size: 200%;
+    font-family: 'Lora', serif;
+    color: #8A2BE2;
+}
+
+#closingParagraph::first-letter {
+    font-size: 200%;
+    font-family: 'Lora', serif;
+    color: #8A2BE2;
+}
+
+.wikiEntry {
+    font-size: .95em;
+    font-family: 'Lora', serif; 
+    font-weight: 400;
+}
+
+#clickNotify {
+    text-align: center;
+    font-size: .8em;
+    text-decoration: underline;
+    font-style: italic;
+    font-family: 'Encode Sans Condensed', sans-serif;
+}
+
+#introLine {
+    text-align: center;
+    text-decoration: underline;
+    font-family: 'Lora', sans-serif;
+}
+
+h4 {
+    font-family: 'Lora', sans-serif;
+}
+
+#pageTitle {
+    color: white; 
+    font-family: 'Lora', serif; 
+    text-shadow: #222222 1px 1px,#222222 0px 0px,#222222 1px 1px,#222222 2px 2px,#222222 3px 3px,#222222 4px 4px,#222222 5px 5px,#222222 6px 6px,#222222 7px 7px,#222222 8px 8px,#222222 9px 9px,#222222 10px 10px,#222222 11px 11px,#222222 12px 12px,#222222 13px 13px,#222222 14px 14px,#222222 15px 15px,#222222 16px 16px,#222222 17px 17px,#222222 18px 18px,#222222 19px 19px,#222222 20px 20px;
+    text-align: center;
+    font-size: 65px;
+    margin-bottom: 45px;
+    padding-top: 20px;
+}
+
+#graphPageTitle {
+    color: white; 
+    font-family: 'Lora', serif; 
+    text-shadow: #222222 1px 1px,#222222 0px 0px,#222222 1px 1px,#222222 2px 2px,#222222 3px 3px,#222222 4px 4px,#222222 5px 5px,#222222 6px 6px,#222222 7px 7px,#222222 8px 8px,#222222 9px 9px,#222222 10px 10px,#222222 11px 11px,#222222 12px 12px,#222222 13px 13px,#222222 14px 14px,#222222 15px 15px,#222222 16px 16px,#222222 17px 17px,#222222 18px 18px,#222222 19px 19px,#222222 20px 20px;
+    text-align: center;
+    font-size: 65px;
+    margin-bottom: 45px;
+    padding-top: 50px;
+}
+
+#mainWrapper {
+    width: 1500px;
+    height: 750px;
+    padding: 10px;
+    margin: 20px auto;
+    overflow: auto;
+    border: 5px outset blue;
+    background-color: rgba(255, 255, 255, .7);
+    box-shadow: 0 12px 16px 0 rgba(0, 0, 0, 0.2), 0 10px 24px 0 rgba(0, 0, 0, 0.19);
+}
+
+#innerWrapper {
+    height: 700px;
+    width: 1450px;
+    float: left;
+    padding: 10px;
+    margin: 10px;
+}
+
+#constructWrapper {
+    height: 700px;
+    width: 1450px;
+    float: left;
+    padding: 10px;
+    margin: 0 auto;
+    margin-left: 425px;
+    margin-top: 50px;
+}
+
+#greetWrapper {
+    width: 250px;
+    height: 50px;
+    padding: 10px;
+    margin: 10px;
+    position: absolute;
+    left: 42.4%;
+    top: 19%;
+}
+
+#imagesWrapper {
+    height: 670px;
+    width: 520px;
+    float: right;
+    padding: 8px;
+    margin: 8px;
+}
+
+#videoWrapper {
+    height: 285px;
+    width: 500px;
+    padding: 5px;
+    margin: 5px;
+    padding-bottom: 1px;
+    margin-bottom: 105px;
+    margin-top: 25px;
+    transition: box-shadow .3s;
+}
+
+#videoWrapper:hover {
+   box-shadow: 0 12px 16px 0 rgba(0, 0, 0, 0.2), 0 10px 24px 0 rgba(0, 0, 0, 0.19);
+}
+
+#logoWrapper {
+    height: 210px;
+    width: 450px;
+    padding: 5px;
+    margin: 5px;
+    transition: box-shadow .3s;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#logInDemoWrapper {
+    height: 210px;
+    width: 450px;
+    padding: 5px;
+    margin: 5px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 200px;
+}
+
+#logOutDemoWrapper {
+    height: 210px;
+    width: 450px;
+    padding: 5px;
+    margin: 5px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#logoWrapper:hover {
+   box-shadow: 0 12px 16px 0 rgba(0, 0, 0, 0.2), 0 10px 24px 0 rgba(0, 0, 0, 0.19);
+}
+
+#textWrapper {
+    height: 670px;
+    width: 820px;
+    float: left;
+    padding: 8px;
+    overflow: hidden;
+    margin: 8px;
+    text-align: center;
+}
+
+#indexTextWrapper {
+    height: 670px;
+    width: 820px;
+    float: left;
+    padding: 8px;
+    margin-bottom: 100px;
+    overflow: hidden;
+    margin: 8px;
+    text-align: center;
+}
+
+#albumVideoWrapper {
+    height: 285px;
+    width: 500px;
+    padding: 5px;
+    margin: 5px;
+    padding-bottom: 1px;
+    margin-bottom: 45px;
+    margin-top: 25px;
+    transition: box-shadow .3s;
+}
+
+#albumVideoWrapper:hover {
+   box-shadow: 0 12px 16px 0 rgba(0, 0, 0, 0.2), 0 10px 24px 0 rgba(0, 0, 0, 0.19);
+}
+
+#albumWrapper {
+    height: 300px;
+    width: 300px;
+    padding: 5px;
+    margin: 5px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.albumCover {
+    box-shadow: 0 8px 12px 0 rgba(0, 0, 0, 0.2), 0 8px 22px 0 rgba(0, 0, 0, 0.19);
+}
+
+button {
+    padding: 7px;
+    margin-left: 5px;
+    color: black;
+    font-weight: bold;
+    font-family: 'Lora', serif;
+}
+
+#logButton {
+   border-radius: 10px; 
+   background-color: lightcyan;
+   margin-left: auto;
+   margin-right: auto;
+   border: 1.5px outset black;
+}
+
+#logButton:hover:after { 
+    content: "Submit info."; 
+    position: absolute;
+    top: 42.3%;
+    left: 31.5%;
+    z-index: 1;
+    width: 100px;
+    height: auto;   
+    background-color: black;
+    color: white;
+    border: 1px outset black;
+    border-radius: 5px;
+}
+
+#logButton:hover {
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+}
+
+#submitInfo {
+   display: block;
+   font-size: 1.17em;
+   margin-top: 1em;
+   margin-bottom: 1em;
+   margin-left: 0;
+   margin-right: 0;
+   font-weight: bold;
+   font-family: 'Lora', serif;
+}
+
+#loginGif {
+    width: 580px;
+    height: 320px;
+    margin: 0 auto;
+/*    border: 1px outset black;border: 1px outset black;*/
+    box-shadow: 0 8px 12px 0 rgba(0, 0, 0, 0.2), 0 8px 22px 0 rgba(0, 0, 0, 0.19);
+}
+
+.nameInput {
+   background-image: url("personicon.png");
+   background-size: 38px 38px;
+   background-repeat: no-repeat;
+   border: 1px solid antiquewhite;
+   margin-top: 12px;
+   margin-bottom: 12px;
+   padding-left: 40px;
+   margin-left: 10px;
+   width: 330px;
+   height: 40px;
+   font-size: 13px;
+   box-shadow:0 0 8px;
+   border-radius: 5px; 
+}
+
+#emailInput {
+   background-image: url("emailicon.png");
+   background-size: 30px 30px;
+   background-position: 2px;
+   background-repeat: no-repeat;
+   border: 1px solid antiquewhite;
+   margin-top: 12px;
+   margin-bottom: 12px;
+   padding-left: 40px;
+   margin-left: 10px;
+   width: 330px;
+   height: 40px;
+   font-size: 13px;
+   box-shadow: 0 0 8px;
+   border-radius: 5px;  
+}
+
+#passInput {
+   background-image: url("passwordicon.png");
+   background-size: 27px 27px;
+   background-position: 4px;
+   background-repeat: no-repeat;
+   border: 1px solid antiquewhite;
+   margin-top: 12px;
+   margin-bottom: 20px;
+   margin-left: 10px;
+   padding-left: 40px;
+   width: 330px;
+   height: 40px;
+   font-size: 13px;
+   box-shadow: 0 0 8px;
+   border-radius: 5px; 
+}
+
+input {
+    font-family: 'Lora', serif;
+}
+
+input::placeholder {
+    color: gray;
+    opacity: 50%;
+    font-family: 'Lora', serif;
+}
+
+input:focus::placeholder {
+    color: transparent;
+}
+
+form {
+    margin-left: auto;
+    margin-right: auto;
+    width: 600px;
+}
+
+#graphQLProfileBody {
+/*    background-color: #b0fdba;*/
+    background-image: linear-gradient(120deg, #fccb90 0%, #d57eeb 100%); 
+    background-size: 1920px 1080px;
+}
+
+#zephyrProfileBody {
+/*    background-color: #b0fdba;*/
+    background-image: linear-gradient(to right, #a8caba 0%, #5d4157 100%);
+    background-size: 1920px 1080px;
+}
+
+#mhsProfileBody {
+/*    background-color: #b0fdba;*/
+    background-color: #eec0c6;
+    background-image: linear-gradient(315deg, #eec0c6 0%, #7ee8fa 74%);
+    background-size: 1920px 1080px;
+}
+
+#netflixProfileBody {
+/*    background-color: #b0fdba;*/
+    background-color: #e899dc;
+    background-image: linear-gradient(315deg, #e899dc 0%, #d387ab 74%);
+    background-size: 1920px 1080px;
+}
+
+#railsProfileBody {
+/*    background-color: #b0fdba;*/
+    background-color: #7f5a83;
+    background-image: linear-gradient(315deg, #7f5a83 0%, #0d324d 74%);
+    background-size: 1920px 1080px;
+}
+
+#comcastProfileBody {
+/*    background-color: #b0fdba;*/
+    background-color: #e9bcb7;
+    background-image: linear-gradient(315deg, #e9bcb7 0%, #29524a 74%);
+    background-size: 1920px 1080px;
+}
+
+#chaossProfileBody {
+/*    background-color: #b0fdba;*/
+    background-color: #eec0c6;
+    background-image: linear-gradient(315deg, #eec0c6 0%, #7ee8fa 74%);
+    background-size: 1920px 1080px;
+}
+
+#apacheProfileBody {
+/*    background-color: #b0fdba;*/
+    background-color: #bdd4e7;
+    background-image: linear-gradient(315deg, #bdd4e7 0%, #8693ab 74%);
+    background-size: 1920px 1080px;
+}
+
+#chartWrapper {
+    height: 670px;
+    width: 820px;
+    float: left;
+    padding: 8px;
+    overflow: auto;
+    margin: 8px;
+    text-align: center;
+    font-family: 'Lora', serif;
+}
+
+#indexChartWrapper {
+    height: 420px;
+    width: 820px;
+    float: left;
+    padding: 8px;
+    overflow: hidden;
+    margin-top: 100px;
+    margin: 8px;
+    text-align: center;
+}
+
+#secondaryWrapper {
+    height: 670px;
+    width: 520px;
+    float: right;
+    padding: 8px;
+    margin: 8px;
+}
+
+#logoWrapper {
+    height: 210px;
+    width: 450px;
+    padding: 5px;
+    margin: 5px;
+    transition: box-shadow .3s;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.repoLogo {
+    box-shadow: 0 8px 12px 0 rgba(0, 0, 0, 0.2), 0 8px 22px 0 rgba(0, 0, 0, 0.19);
+}
+
+#otherFunctionWrapper {
+    height: 285px;
+    width: 500px;
+    padding: 5px;
+    margin: 5px;
+    padding-bottom: 1px;
+    margin-bottom: 105px;
+    margin-top: 25px;
+    transition: box-shadow .3s;
+}
+
+.row {
+    margin: 0 auto;
+    margin-left: 120px;
+}
+
+.col-sm-9 {
+    margin: 0 auto;
+}
+
+.col-sm-3 {
+    margin: 0 auto;
+}
+
+#sectionBody {
+    margin: 0 auto;
+}
+
+#sectionBody2 {
+    margin: 0 auto;
+}
+
+#otherFunctionProfileWrapper {
+    height: 285px;
+    width: 500px;
+    padding: 5px;
+    margin: 5px;
+    padding-bottom: 1px;
+    margin-bottom: 35px;
+    margin-top: 25px;
+    transition: box-shadow .3s;
+}
+
+#profileLogoWrapper {
+    height: 210px;
+    width: 450px;
+    padding: 5px;
+    margin: 5px;
+    /*margin-left: auto;
+    margin-right: auto;*/
+    margin-left: 30px;
+    float: right;
+}
+
+.navbar {
+    width: 100%;
+    background-color: black; 
+    overflow: auto;
+    position: fixed;
+    left: 0;
+    top: 0;
+    margin: 0 auto;
+}
+
+.navbar a {
+  padding: 12px;
+  text-decoration: none;
+  font-size: 25px;
+  font-family: 'Lora', serif;
+  color: white;
+  width: 16.66%;
+  float: left;
+  text-align: center;
+}
+
+.dropdown {
+  float: left;
+  overflow: hidden;
+  margin-left: 60px;
+}
+
+.dropbtn {
+  font-size: 16px;  
+  border: none;
+  outline: none;
+  color: white;
+  padding: 14px 16px;
+  background-color: inherit;
+  font-family: inherit;
+  margin: 0 auto;
+}
+
+.navbar a:hover, .dropdown:hover .dropbtn {
+  background-color: palevioletred;
+}
+
+.dropdown-content {
+  display: none;
+  position: fixed;
+  background-color: #f9f9f9;
+  min-width: 50px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  z-index: 1;
+}
+
+.dropdown-content a {   
+  color: black;
+  padding: 4px 8px;
+  text-decoration: none;
+  display: block;
+  text-align: center;
+  font=size: 8px;
+}
+
+.dropdown-content a:hover {
+  background-color: #ddd;
+  text-align: center;
+}
+
+.dropdown:hover .dropdown-content {
+  display: block;
+  text-align: center;
+}
+
+#graphQLDropdown {
+    text-align: center;
+    margin: 0 auto;
+    float: center;
+    margin-left 10px;
+    margin-right: 95px;
+    font-family: 'Lora', serif;
+}
+
+#zephyrDropdown {
+    text-align: center;
+    margin: 0 auto;
+    float: center;
+    margin-left 10px;
+    margin-right: 105px;
+    font-family: 'Lora', serif;
+}
+
+#viewGraphRepoLine {
+    text-align: center;
+    margin-left 10px;
+    margin-right: 95px;
+    font-family: 'Lora', serif;
+}
+
+#viewZephyrRepoLine {
+    text-align: center;
+    margin-left 10px;
+    margin-right: 105px;
+    font-family: 'Lora', serif;
+}
+
+.viewRepoLine {
+    text-align: center;
+    margin-left 10px;
+    margin-right: 105px;
+    font-family: 'Lora', serif;
+}
+
+.repoDropdown {
+    text-align: center;
+    margin: 0 auto;
+    float: center;
+    margin-left 10px;
+    margin-right: 105px;
+    font-family: 'Lora', serif; 
+}
+
+#bhnPageTitle {
+    color: white; 
+    font-family: 'Lora', serif; 
+    text-shadow: #222222 1px 1px,#222222 0px 0px,#222222 1px 1px,#222222 2px 2px,#222222 3px 3px,#222222 4px 4px,#222222 5px 5px,#222222 6px 6px,#222222 7px 7px,#222222 8px 8px,#222222 9px 9px,#222222 10px 10px,#222222 11px 11px,#222222 12px 12px,#222222 13px 13px,#222222 14px 14px,#222222 15px 15px,#222222 16px 16px,#222222 17px 17px,#222222 18px 18px,#222222 19px 19px,#222222 20px 20px;
+    text-align: center;
+    font-size: 65px;
+    margin-bottom: 40px;
+    padding-top: 25px;
+}
+
+#bandMainWrapper {
+    width: 1500px;
+    height: 750px;
+    padding: 10px;
+    margin: 20px auto;
+    overflow: auto;
+    border: 5px outset mediumpurple;
+    background-color: rgba(255, 255, 255, .7);
+    box-shadow: 0 12px 16px 0 rgba(0, 0, 0, 0.2), 0 10px 24px 0 rgba(0, 0, 0, 0.19);
+}
+
+#liamWrapper {
+   height: 300px;
+   width: 650px;
+   border: 2px outset gray;
+   padding: 5px;
+   margin: 5px;
+   position: absolute;
+   top: 27.5%;
+   right: 52.25%;
+   box-shadow: 0 8px 12px 0 rgba(0, 0, 0, 0.2), 0 8px 22px 0 rgba(0, 0, 0, 0.19);
+}
+
+#noelWrapper {
+   height: 300px;
+   width: 650px;
+   border: 2px outset gray;
+   padding: 5px;
+   margin: 5px;
+   position: absolute;
+   top: 60.5%;
+   right: 52.25%;
+   box-shadow: 0 8px 12px 0 rgba(0, 0, 0, 0.2), 0 8px 22px 0 rgba(0, 0, 0, 0.19);
+}
+
+#gemWrapper {
+   height: 300px;
+   width: 650px;
+   border: 2px outset gray;
+   padding: 5px;
+   margin: 5px;
+   position: absolute;
+   top: 27.5%;
+   right: 13%;
+   box-shadow: 0 8px 12px 0 rgba(0, 0, 0, 0.2), 0 8px 22px 0 rgba(0, 0, 0, 0.19);
+}
+
+#andyWrapper {
+   height: 300px;
+   width: 650px;
+   border: 2px outset gray;
+   padding: 5px;
+   margin: 5px;
+   position: absolute;
+   top: 60.5%;
+   right: 13%;
+   box-shadow: 0 8px 12px 0 rgba(0, 0, 0, 0.2), 0 8px 22px 0 rgba(0, 0, 0, 0.19);
+}
+
+#liamPicWrapper {
+   height: 285px;
+   width: 275px;
+   margin: 2px;
+   padding: 2px;
+   top: 2.1%;
+   right: 55%;
+   position: absolute;
+}
+
+#liamBioPic {
+    margin-left: auto;
+    margin-right: auto;
+    right: 1.8%;
+    top: 1.6%;
+    position: absolute;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+    border: 1px outset black;
+}
+
+#liamBioText {
+   height: 285px;
+   width: 325px;
+   margin: 2px;
+   padding: 2px;
+   top: 1.8%;
+   right: 2%;
+   position: absolute;
+   text-align: center;
+}
+
+#noelPicWrapper {
+   height: 285px;
+   width: 275px;
+   margin: 2px;
+   padding: 2px;
+   top: 2.1%;
+   right: 55%;
+   position: absolute;
+}
+
+#noelBioPic {
+    margin-left: auto;
+    margin-right: auto;
+    right: 1.8%;
+    top: 1.6%;
+    position: absolute;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+    border: 1px outset black;
+}
+
+#noelBioText {
+   height: 285px;
+   width: 325px;
+   margin: 2px;
+   padding: 2px;
+   top: 1.8%;
+   right: 2%;
+   position: absolute;
+   text-align: center;
+}
+
+#gemPicWrapper {
+   height: 285px;
+   width: 275px;
+   margin: 2px;
+   padding: 2px;
+   top: 2.1%;
+   right: 55%;
+   position: absolute;
+}
+
+#gemBioPic {
+    margin-left: auto;
+    margin-right: auto;
+    right: 1.8%;
+    top: 1.6%;
+    position: absolute;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+    border: 1px outset black;
+}
+
+#gemBioText {
+   height: 285px;
+   width: 325px;
+   margin: 2px;
+   padding: 2px;
+   top: 1.8%;
+   right: 2%;
+   position: absolute;
+   text-align: center;
+}
+
+#andyPicWrapper {
+   height: 285px;
+   width: 275px;
+   margin: 2px;
+   padding: 2px;
+   top: 2.1%;
+   right: 55%;
+   position: absolute;
+}
+
+#andyBioPic {
+    margin-left: auto;
+    margin-right: auto;
+    right: 1.8%;
+    top: 1.6%;
+    position: absolute;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+    border: 1px outset black;
+}
+
+#andyBioText {
+   height: 285px;
+   width: 325px;
+   margin: 2px;
+   padding: 2px;
+   top: 1.8%;
+   right: 2%;
+   position: absolute;
+   text-align: center;
+}
