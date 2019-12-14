@@ -1,0 +1,1 @@
+I was responsible for the testing coverage metric in our project. What this metric does is use subroutine and statement testing coverage to see how well tested a particular repository has been tested. Unfortunately there was no data to extract, so we had to manually input data in order to display something on the frontend to the user. 
