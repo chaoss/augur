@@ -63,3 +63,16 @@ ORDER BY commits.cmt_committer_date asc
 	    
       
 Helped write the documentiation, showed up for the meetings, contributed constructively and helped design our implementation for the project
+
+## Files/Code Modified
+We modified the following files to add our three endpoints:
+(modified) commit.py
+Contains business logic for the first and second endpoints. These are the repo_timeline (line 201) and repo_group_timeline (line 215) methods, respectively.
+(modified) contributors.py
+contributors.py contains the business logic for the third endpoint. This is the contributions (line 571) method.
+(modified) commit and contributor routes.py files
+Both routes.py files were updated to define the routes for all three endpoints. Routes in commit are defined using the server.addRepoMetric() and server.addRepoGroupMetric() methods already present in Augur. The route in contributor is defined manually using the @server.app.route() annotation and defining the function contributions for this endpoint.
+(modified) test_contributor_functions.py
+test created to make sure the queries returned the correct values
+(modified) test_contributor_routes.py
+test created to make sure the routes correctly returned data
