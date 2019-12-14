@@ -1,0 +1,21 @@
+/*STYLE FOR PAGE THAT DISPLAYS ALL REPO NAMES*/
+body {
+    background-color: #E5E7E9;
+    height: 100%;
+}
+
+.card {
+    border: 5px solid black;
+    border-radius: 3px;
+    box-shadow: 0px 2px 2px 0px black;
+    float: left;
+    width: 30%;
+    background-color: lightblue;
+    margin: 5px;
+    margin-top: 20px;
+}
+
+h1 {
+    text-align: center;
+    margin: 10px;
+}

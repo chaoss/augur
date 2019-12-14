@@ -1,0 +1,150 @@
+/*STYLE FOR MAIN PAGE*/
+body {
+    background-color: #E5E7E9;
+    height: 100%;
+}
+
+h1, p {
+    text-align: center;
+}
+
+h3 {
+    margin: 10px;
+}
+
+#title {
+    float: left;
+    border: 1px solid black;
+    border-radius: 8px;
+    width: 40%;
+    height: 80px;
+    text-align: center;
+    background-color: white;
+    margin: 10px;
+    box-shadow: 0px 5px 5px 0px black;
+}
+
+#contributors {
+    float: right;
+    border: 1px solid black;
+    border-radius: 8px;
+    width: 35%;
+    height: 100px;
+    text-align: center;
+    background-color: white;
+    font-size: 20px;
+    margin: 10px;
+    margin-bottom: 20px;
+    box-shadow: 0px 5px 5px 0px black;
+}
+
+span {
+    font-weight: bold;
+}
+
+hr {
+    width: 100%;
+    height: 3px;
+    color: black;
+    background-color: black;
+}
+
+#menu {
+    float: left;
+    border: 4px solid black;
+    border-radius: 8px;
+    width: 15%;
+    height: 650px;
+    background-color: white;
+    overflow: auto;
+}
+
+#menu ul {
+    font-size: 25px;
+    text-align: center;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+#menu li {
+    padding: 5px 0px 5px 0px;
+    border: 1px solid black;
+}
+
+#menu li:hover {
+    background-color: lightblue;
+    cursor: grab;
+}
+
+#center {
+    float: left;
+    width: 55%;
+    margin: 30px;
+}
+
+#map {
+    height:500px; 
+    width:100%;
+}
+
+#left {
+    margin-top: 20px;
+    float: left;
+    width: 24%;
+}
+
+input {
+    background-color: #E5E7E9;
+    margin: 3px;
+    width: 70%;
+}
+
+#search {
+    border: 4px solid black;
+    border-radius: 8px;
+    background-color: white;
+    width: 100%;
+}
+
+#statistics {
+    border: 4px solid black;
+    border-radius: 8px;
+    background-color: white;
+    width: 100%;
+    margin-top: 20px;
+}
+
+#clickMe {
+    margin: 10px;
+    width: 100%;
+}
+
+#repoButton {
+    width: 40%;
+    height: 40px;
+    margin: 0 auto;
+}
+
+button:hover {
+    background-color: lightblue;
+    cursor: grab;
+}
+
+li a {
+    color: black;
+    text-decoration: none;
+}
+
+#piechart {
+    border: 4px solid black;
+    border-radius: 8px;
+    background-color: white;
+    float: left;
+    position: relative;
+    left: 25%;
+    width: 50%;
+    height: 400px;
+    margin: 30px;
+}
+
