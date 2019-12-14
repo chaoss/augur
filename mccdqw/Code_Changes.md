@@ -1,17 +1,3 @@
-# Augur
-
-branch | status
-   --- | ---
-master | [![Build Status](https://travis-ci.org/chaoss/augur.svg?branch=master)](https://travis-ci.org/chaoss/augur)
-
-[![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/2788/badge)](https://bestpractices.coreinfrastructure.org/projects/2788)
-
-## About Augur
-
-Augur is focused on prototyping open source software metrics.
-
-Functionally, Augur is a prototyped implementation of the Linux Foundation's [CHAOSS Project](http://chaoss.community) on [open source software metrics](https://github.com/chaoss/metrics). Technically, Augur is a [Flask web application](http://augur.osshealth.io), [Python library](https://oss-augur.readthedocs.io/en/dev/library-documentation/python.html) and [REST server](http://augur.osshealth.io/static/api_docs/) that presents metrics on open source software development project health and sustainability.
-
 ## Group 11 - Final Project
 
 For our project, we created three new API endpoints: [contributor-affiliation](http://129.114.16.76:5000/api/unstable/repo-groups/20/contributor-affiliation), [committer-data](http://129.114.16.76:5000/api/unstable/repo-groups/20/committer-data), and [testing-coverage](http://129.114.16.76:5000/api/unstable/repo-groups/20/testing-data).  We also created a website to view these new metrics, at http://129.114.16.76:8080/home.html .
@@ -64,11 +50,4 @@ Function and route tests were written for all three new metrics.  To verify your
 2. The pie charts and table in each repo group will appear after a load time. This can again be confirmed by comparing the diversity API against the table.
 3. The testing coverage meters are easily checked with doing a percentage calculation from the API.
 
-## License, Copyright, and Funding
-----------------
 
-Copyright © 2019 University of Nebraska at Omaha, University of Missouri and CHAOSS Project at the Linux Foundation
-
-Augur is free software: you can redistribute it and/or modify it under the terms of the MIT License as published by the Open Source Initiative. See the [LICENSE](LICENSE) file for more details.
-
-This work has been funded through the Alfred P. Sloan Foundation.
