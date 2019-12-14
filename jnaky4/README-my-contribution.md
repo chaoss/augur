@@ -32,6 +32,34 @@ timeline: [{date: &lt;date 1&gt;, commits: 4}, {date: &lt;date 2&gt;, commits: 5
 
 
 ## Wrote the SQL queries to create the endpoints and assisted matt with implementing them
-      
+
+
+SELECT commits.cmt_committer_date as date, COUNT(*) as commits
+FROM repo, commits
+WHERE repo.repo_id = commits.repo_id
+AND repo.repo_id = :repo_id
+GROUP BY commits.cmt_committer_date
+ORDER BY commits.cmt_committer_date asc
+
+SELECT DISTINCT repo.repo_id
+FROM repo
+WHERE repo.repo_group_id = :repo_group_id
+ORDER BY repo.repo_id asc
+""")
+timelineSQL = s.sql.text("""
+SELECT commits.cmt_committer_date as dates, COUNT(*) as commits
+FROM repo, commits
+WHERE repo.repo_id = commits.repo_id
+AND repo.repo_id = :repo_id
+GROUP BY commits.cmt_committer_date
+ORDER BY commits.cmt_committer_date asc
+
+
+
+	    
+	    
+	    
+	    
+	    
       
 Helped write the documentiation, showed up for the meetings, contributed constructively and helped design our implementation for the project
