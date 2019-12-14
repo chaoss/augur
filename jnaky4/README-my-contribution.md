@@ -1,7 +1,7 @@
 # My contributions:
 Designed the API endpoints that would be made conceptually. 
 
-  The 3 endpoints I designed that we implemented:
+## The 3 endpoints I designed that we implemented:
   
 1.	Data selected from key cntrb_id from Contributors table. Each cntrb_id has a one-to-many commits that have the relevant info needed: cmt_committer_date is the only required data needed and the cntrb_id to query the results.
 
