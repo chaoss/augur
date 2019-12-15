@@ -7,7 +7,7 @@
 
 ### Link to final product website:
 
-[http://ec2-3-133-118-124.us-east-2.compute.amazonaws.com/Sprint4/](http://ec2-3-133-118-124.us-east-2.compute.amazonaws.com/Sprint4/)
+http://ec2-3-133-118-124.us-east-2.compute.amazonaws.com/Sprint4_Final/
 
 ### Contribution
 
