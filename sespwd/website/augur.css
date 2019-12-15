@@ -1,0 +1,53 @@
+.row {
+    margin-bottom: 10px;
+}
+        
+.contributors {
+    width: 100%;
+}
+        
+.mx-1 h3 {
+    text-align: center;
+    background-color: black;
+    color: white;
+    padding: 5px;
+    cursor: pointer;
+}
+        
+.center {
+    display: block;
+    margin: 0 auto;
+}
+
+h5 {
+    text-align: center;
+}
+
+.header {
+    text-align: center;
+    margin: 50px 0;
+}
+
+table {
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+}
+
+td {
+    align-content: center;
+}
+
+table.dataTable, th.dataTable, td.dataTable {
+    border: 1px solid black;
+    border-collapse: collapse
+}
+
+p {
+    text-align: center;
+}
+
+.container {
+    margin-bottom: 50px;
+}
