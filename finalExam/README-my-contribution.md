@@ -1,0 +1,18 @@
+## My Contributions
+- I created the entire design for the frontend of the web application
+  - I drew and planned the layout of the home page
+  - I implemented the layout of the login, home, and repository page
+  - I created div elements for the scroll bar on the left, title and description, the map's location, the search bars, statistics location, and chart
+- I specified the zoom for the Google Map to be displayed
+- I wrote the functions that populated the Statistics field of the home page
+  - I used AJAX requests to grab the information from dummy data at the API endpoints created
+  - I populated the Statistics field using JavaScript
+  - I created statistics including information on contributor location by region and number of contributors
+- I wrote the functions that created the repositories page
+  - This included parsing through the data and displaying the Repository IDs
+  - Designing and making the page visually pleasing
+- I wrote the functions that created the chart visualization
+  - I researched the Google Charts method
+  - I used AJAX requests to access endpoint data
+  - I took the data and organized it into regions and populated the graph
+  - I made the graph visually appealing so that it could be understood clearly and be interactive
