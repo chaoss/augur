@@ -1,0 +1,109 @@
+#card {
+/*    box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);*/
+    width: 350px;
+    height: 150px;
+    margin: auto;
+    padding: 2px 16px;
+    display: inline-block;
+}
+
+#container {
+    display: flex;
+    flex-wrap: wrap;
+    border: 2px solid black;
+    width: 80%;
+    margin: 0 auto;
+    padding-left: 40px;
+    background-color: white;
+    border-radius: 20px;
+}
+
+#testCSS{
+    display: inline-block;
+    width: 30%;
+    border: 2px solid black;
+    text-align: center;
+    margin: 10px;
+    margin-left: 20px;
+    box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+}
+
+#bBorder {
+    background-color: aqua;
+    font-size: 20pt;
+    padding: 20px;
+    border-bottom: 2px solid black;
+}
+
+body > a {
+    text-decoration-line: none;
+    color: white;
+    border: 2px solid white;
+    padding: 5px;
+}
+
+body > a:hover {
+    box-shadow: 5px 5px black;
+}
+
+body {
+    background-color: blue;
+}
+
+h1, h2, h3 {
+    text-align: center;
+    color: white;
+    font-family: 'Lora', serif;
+}
+
+#inform {
+    visibility: hidden;
+}
+
+.link {
+    text-decoration: none;
+    color: black;
+}
+
+.link:hover {
+    border: 2px solid black;
+    padding: 5px;
+    box-shadow: 1px 3px blue;
+    font-family: 'Open Sans', sans-serif;
+}
+
+/*w3schools reference
+
+https://www.w3schools.com/howto/howto_css_loader.asp
+
+*/
+
+.animation {
+  border: 16px solid #f3f3f3;
+  border-radius: 50%;
+  border-top: 16px solid aqua;
+  width: 40px;
+  height: 40px;
+  -webkit-animation: spin 2s linear infinite; 
+  animation: spin 2s linear infinite;
+  margin: 0 auto;
+  padding: 20px;
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+
+@-webkit-keyframes spin {
+  0% { 
+      -webkit-transform: rotate(0deg); 
+    }
+  100% { 
+      -webkit-transform: rotate(360deg); 
+    }
+}
+
+@keyframes rotate {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* End of w3schools Reference */
