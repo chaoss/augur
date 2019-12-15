@@ -1,0 +1,187 @@
+<!--HTML FOR MAIN PAGE-->
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <title>Interactive Map</title>
+    <meta charset="utf-8">
+    
+    <link rel="stylesheet" href="sprint3.css">
+    
+    <script src="sprint3.js"></script>
+    <script src="sprint3-stateScripts.js"></script>
+    <script src="sprint3-searching.js"></script>
+    <script>
+        var map;
+        function initMap() {
+            map = new google.maps.Map(document.getElementById('map'), {
+                center: {lat: 40, lng: -95},
+                zoom: 4.2,
+                disableDefaultUI: true,
+                draggable: false
+            });
+            var infowindow = new google.maps.InfoWindow({
+                content: ""
+            });
+            placePinByRepo(map, 10, infowindow);
+            placePinByRepo(map, 20, infowindow);
+        }   
+    </script> 
+</head>
+
+<body>
+    <!--div across the top "Repos by Location"-->
+    <div id="title">
+        <h1>Repo Contributors by Location</h1>
+    </div>
+    
+    
+    <!--div on the top "Contributors: "-->
+    <div id="contributors">
+        <p><span>Contributors:</span><br>John Birkin, Matt Pilgrim, Joseph Vitale, <br>Kaitlyn Zahn</p>
+    </div>
+    
+    
+    <!--line across the screen for formatting-->
+    <hr>
+    
+    
+    <!--div with scrollable list (form) that lists all of the states-->
+    <div id="menu">
+        <ul id="list">
+            <li onclick="window.map = statePass(this.innerText, map)">Alabama</li>
+            <li onclick="window.map = statePass(this.innerText, map)">Arizona</li>
+            <li onclick="window.map = statePass(this.innerText, map)">Arkansas</li>
+            <li onclick="window.map = statePass(this.innerText, map)">California</li>
+            <li onclick="window.map = statePass(this.innerText, map)">Colorado</li>
+            <li onclick="window.map = statePass(this.innerText, map)">Connecticut</li>
+            <li onclick="window.map = statePass(this.innerText, map)">Delaware</li>
+            <li onclick="window.map = statePass(this.innerText, map)">Florida</li>
+            <li onclick="window.map = statePass(this.innerText, map)">Georgia</li>
+            <li onclick="window.map = statePass(this.innerText, map)">Idaho</li>
+            <li onclick="window.map = statePass(this.innerText, map)">Illinois</li>
+            <li onclick="window.map = statePass(this.innerText, map)">Indiana</li>
+            <li onclick="window.map = statePass(this.innerText, map)">Iowa</li>
+            <li onclick="window.map = statePass(this.innerText, map)">Kansas</li>
+            <li onclick="window.map = statePass(this.innerText, map)">Kentucky</li>
+            <li onclick="window.map = statePass(this.innerText, map)">Louisiana</li>
+            <li onclick="window.map = statePass(this.innerText, map)">Maine</li>
+            <li onclick="window.map = statePass(this.innerText, map)">Maryland</li>
+            <li onclick="window.map = statePass(this.innerText, map)">Massachusetts</li>
+            <li onclick="window.map = statePass(this.innerText, map)">Michigan</li>
+            <li onclick="window.map = statePass(this.innerText, map)">Minnesota</li>
+            <li onclick="window.map = statePass(this.innerText, map)">Mississippi</li>
+            <li onclick="window.map = statePass(this.innerText, map)">Missouri</li>
+            <li onclick="window.map = statePass(this.innerText, map)">Montana</li>
+            <li onclick="window.map = statePass(this.innerText, map)">Nebraska</li>
+            <li onclick="window.map = statePass(this.innerText, map)">Nevada</li>
+            <li onclick="window.map = statePass(this.innerText, map)">New Hampshire</li>
+            <li onclick="window.map = statePass(this.innerText, map)">New Jersey</li>
+            <li onclick="window.map = statePass(this.innerText, map)">New Mexico</li>
+            <li onclick="window.map = statePass(this.innerText, map)">New York</li>
+            <li onclick="window.map = statePass(this.innerText, map)">North Carolina</li>
+            <li onclick="window.map = statePass(this.innerText, map)">North Dakota</li>
+            <li onclick="window.map = statePass(this.innerText, map)">Ohio</li>
+            <li onclick="window.map = statePass(this.innerText, map)">Oklahoma</li>
+            <li onclick="window.map = statePass(this.innerText, map)">Oregon</li>
+            <li onclick="window.map = statePass(this.innerText, map)">Pennsylvania</li>
+            <li onclick="window.map = statePass(this.innerText, map)">Rhode Island</li>
+            <li onclick="window.map = statePass(this.innerText, map)">South Carolina</li>
+            <li onclick="window.map = statePass(this.innerText, map)">South Dakota</li>
+            <li onclick="window.map = statePass(this.innerText, map)">Tennessee</li>
+            <li onclick="window.map = statePass(this.innerText, map)">Texas</li>
+            <li onclick="window.map = statePass(this.innerText, map)">Utah</li>
+            <li onclick="window.map = statePass(this.innerText, map)">Vermont</li>
+            <li onclick="window.map = statePass(this.innerText, map)">Virginia</li>
+            <li onclick="window.map = statePass(this.innerText, map)">Washington</li>
+            <li onclick="window.map = statePass(this.innerText, map)">West Virginia</li>
+            <li onclick="window.map = statePass(this.innerText, map)">Wisconsin</li>
+            <li onclick="window.map = statePass(this.innerText, map)">Wyoming</li>
+        </ul>
+    </div>
+    
+    
+    <!--div that holds center elements-->
+    <div id="center">
+        <!--div that holds text with "United States" elements-->
+        <div>
+            <h1>Map of the United States of America</h1>
+        </div>
+        
+        
+        <!--div that holds map of the united states-->
+        <div onload="initMap()" id="map"> </div>
+        
+        
+        <!--div that holds instruction text-->
+        <div>
+            <p>Above is an interactive map of the United States that displays the contributor information by location. Select a state  or search to zoom. Click on a pin for more information on the contributors!</p>
+        </div>
+    </div>
+    
+    
+    <!--div that holds right column elements-->
+    <div id="left">
+        <!--div that holds search bars-->
+        <div id="search">
+            <div id="citySearch">
+                <h3>Search By City:</h3>
+                <input type="text" name="City" id="cityArea" placeholder="City"><br>
+                <button onclick="searchCity()">Search</button>
+                <br>
+            </div>
+        
+            
+            <div id="zipSearch">
+                <h3>Search By Zip Code:</h3>
+                <input type="number" id="ZIPArea" name="zip" min="10000" max="99999" placeholder="Zip Code">
+                <br>
+                <button onclick="window.map = codeAddress(map)">Search</button><br>
+            </div>
+        </div>
+        
+        
+        <!--div that holds contributor info-->
+        <div id="statistics">
+            <h2>Statistics</h2>
+            <div id="totalCont">
+                <h4>Total number of contributors:</h4>
+                <div id="totalContributors">
+                    <p id="contributorText"></p>
+                    <p id="contributorText2"></p>
+                </div>
+            </div>
+            
+
+            <div id="stateCont">
+                <h4>Region with most contributors:</h4>
+                <div>
+                    <p id="regionText"></p>
+                </div>
+            </div>
+<!--
+
+            
+            <div id="cityCont">
+                <h4>City with most contributors:</h4>
+                <div></div>
+            </div> 
+-->
+        </div>
+        
+        <!--div that holds the button-->
+        <div id="clickMe">
+            <h2>Click below for a list of the repos!</h2>
+            <button id="repoButton" onclick="window.location.href = 'repoNames.html';">Click Here!</button>
+        </div>
+    </div>
+    
+    <div id="piechart"></div>
+    
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyATwY-sevzr8wphNjKWVyOQZR7JvXqb2xw&callback=initMap"
+    async defer></script>
+    
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script src="sprint3.js"></script>
+
+</body>
+</html>
