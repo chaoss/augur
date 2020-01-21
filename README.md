@@ -9,7 +9,7 @@ master | [![Build Status](https://travis-ci.org/chaoss/augur.svg?branch=master)]
 
 ## About Augur
 
-Augur is focused on prototyping open source software metrics.
+Augur is focused on prototyping open source software metrics. Demo change.
 
 Functionally, Augur is a prototyped implementation of the Linux Foundation's [CHAOSS Project](http://chaoss.community) on [open source software metrics](https://github.com/chaoss/metrics). Technically, Augur is a [Flask web application](http://augur.osshealth.io), [Python library](https://oss-augur.readthedocs.io/en/dev/library-documentation/python.html) and [REST server](http://augur.osshealth.io/static/api_docs/) that presents metrics on open source software development project health and sustainability.
 
