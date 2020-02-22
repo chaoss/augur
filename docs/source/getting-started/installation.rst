@@ -69,7 +69,7 @@ You will need:
 
 -  `Vue.js <https://vuejs.org/>`__
 -  `vue-cli <https://cli.vuejs.org/>`__
--  `node <https://nodejs.org/en/>`__
+-  `node <https://nodejs.org/en/>`__ (node 8 recommended. Versions greater than node 8 aren't supported)
 -  `npm <https://www.npmjs.com/>`__
 
 .. note::
