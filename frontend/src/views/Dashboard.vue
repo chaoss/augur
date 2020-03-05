@@ -59,7 +59,6 @@
                         <d-tooltip 
                           :target="'#inspect' + idx"
                           container=".shards-demo--example--tooltip-01"
-                          placement="right"
                           offset="20">
                           Click to see more about this insight.
                         </d-tooltip>
