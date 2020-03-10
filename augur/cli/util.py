@@ -4,7 +4,7 @@ Miscellaneous Augur library commands for controlling the backend components
 """
 
 import os
-import subprocess
+from subprocess import call
 import click
 import pandas as pd
 import sqlalchemy as s
@@ -21,29 +21,43 @@ def cli():
 def export_env(ctx):
     app = ctx.obj
 
-    app.export_config(section='Database', name='key', environment_variable='AUGUR_GITHUB_API_KEY', default=default_config['Database']['key'])
-    app.export_config(section='Server', name='port', environment_variable='AUGUR_PORT', default=int(default_config['Server']['port']))
-    app.export_config(section='Database', name='host', environment_variable='AUGUR_DB_HOST', default=default_config['Database']['host'])
-    app.export_config(section='Database', name='database', environment_variable='AUGUR_DB_NAME', default=default_config['Database']['database'])
-    app.export_config(section='Database', name='port', environment_variable='AUGUR_DB_PORT', default=int(default_config['Database']['port']))
-    app.export_config(section='Database', name='user', environment_variable='AUGUR_DB_USER', default=default_config['Database']['user'])
-    app.export_config(section='Database', name='password', environment_variable='AUGUR_DB_PASSWORD', default=default_config['Database']['password'])
-    app.export_config(section=None, name=None, environment_variable='AUGUR_FACADE_REPO_DIRECTORY', default=default_config['Workers']['facade_worker']['repo_directory'])
+    export_file = open(os.getenv('AUGUR_EXPORT_FILE', 'augur_export_env.sh'), 'w+')
+    export_file.write('#!/bin/bash')
+    export_file.write('\n')
+    env_file = open(os.getenv('AUGUR_ENV_FILE', 'augur_env.txt'), 'w+')
 
+    for env_var in app.env_config.items():
+        export_file.write('export ' + env_var[0] + '="' + str(env_var[1]) + '"\n')
+        env_file.write(env_var[0] + '=' + str(env_var[1]) + '\n')
+
+    export_file.close()
+    env_file.close()
 
 @cli.command('kill', short_help='Kill Augur')
 def kill():
     """
     Kill running augur processes
     """
-    run_control_script("../../scripts/control/kill.sh")
+    run_control_script("scripts/control/kill.sh")
 
 @cli.command('list', short_help='List running Augur processes')
 def list():
     """
     List currently running augur processes
     """
-    run_control_script("../../scripts/control/processes.sh")
+    run_control_script("scripts/control/processes.sh")
+
+@cli.command('status', short_help='List running Augur processes')
+@click.option('--interactive', is_flag=True, help='Display all log files simultaneously with less')
+def list(interactive):
+    """
+    List currently running augur processes
+    """
+    if not interactive:
+        run_control_script("scripts/control/status.sh", "quick")
+    else:
+        run_control_script("scripts/control/status.sh", "interactive")
+
 
 @cli.command('repo-reset', short_help='Reset Repo Collection')
 @click.pass_context
@@ -58,6 +72,9 @@ def repo_reset(ctx):
 
     print("Repos successfully reset.")
 
-def run_control_script(relative_script_path):
-    os.chdir(os.path.dirname(os.path.realpath(__file__)))
-    subprocess.call(relative_script_path)
+def run_control_script(relative_script_path, flag=None):
+    os.chdir(os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__)))))
+    if flag:
+        call(["./{}".format(relative_script_path), flag])
+    else:
+        call(relative_script_path)
