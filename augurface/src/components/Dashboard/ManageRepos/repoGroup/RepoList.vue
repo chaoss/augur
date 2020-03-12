@@ -29,6 +29,7 @@ export default {
 <style scoped>
 #RepoList {
   border-bottom: 1px solid var(--grey);
+  margin-bottom: 2rem !important;
 }
 
 p {

@@ -51,6 +51,29 @@ def create_manager_routes(server):
                         status=200,
                         mimetype="application/json")
 
+    @server.app.route('/{}/create-repo-group'.format(server.api_version), methods=['POST'])
+    def create_repo_group():
+        conn = get_db_engine(server._augur)
+        group = request.json['group']
+        repo_manager = Repo_insertion_manager(group, conn)
+        summary = {}
+        summary['errors'] = []
+        summary['repo_groups_created'] = []
+
+        try:
+            group_id = repo_manager.get_org_id()
+        except TypeError:
+            try:
+                group_id = repo_manager.insert_repo_group()
+            except TypeError:
+                summary['errors'].append("couldn't create group")
+            else: 
+                summary['repo_groups_created'].append({"repo_group_id": group_id, "rg_name": group})
+        else:
+            summary['errors'].append("group already exists")
+
+        summary = json.dumps(summary)
+        return Response(response=summary, status=200, mimetype="application/json")
     
     @server.app.route('/{}/add-repo-group'.format(server.api_version), methods=['POST'])
     def add_repo_group():

@@ -32,6 +32,12 @@
           @valueUpdated="setGroupNameInput"
         />
         <aug-button text="Create" @click="createGroup()" />
+        <img
+          v-if="isCreating"
+          src="../../../assets/loading.gif"
+          alt="adding repos..."
+          style="width: 35px; transform: translateX(-15px);"
+        />
       </div>
       <div class="column">
         <!-- collapse repos -->
@@ -81,9 +87,43 @@ export default {
         console.log("disabled");
         return;
       }
+
+      this.isCreating = true;
+      let requestObject = {
+        group: this.groupNameInput
+      };
+
       // fetch request
       // then -> commit new group to vuex
-      window.alert("Coming soon!");
+      fetch(
+        `${this.$store.state.utilModule.baseEndpointUrl}/create-repo-group`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(requestObject)
+        }
+      )
+        .then(res => {
+          this.isCreating = false;
+          if (res.status === 200) {
+            return res.json();
+          } else {
+            return null;
+          }
+        })
+        .then(res => {
+          if (res != null) {
+            console.log(res);
+            window.alert("created group");
+            let groupCreated = res["repo_groups_created"][0];
+            this.$store.commit("reposModule/addGroup", {
+              repo_group_id: groupCreated.group_id,
+              rg_name: groupCreated.rg_name
+            });
+          }
+        });
     },
     importReposFromOrganization() {
       if (this.isDisabled) {
@@ -108,7 +148,9 @@ export default {
 
           if (res.status === 500) {
             console.log("Server error (possible invalid organization name)");
-            window.alert('Possible invalid organization name entered. Import failed.');
+            window.alert(
+              "Possible invalid organization name entered. Import failed."
+            );
             return null;
           } else {
             return res.json();
@@ -116,9 +158,15 @@ export default {
         })
         .then(res => {
           if (res != null) {
-            window.alert('successfully imported github organization');
-            this.$store.commit("reposModule/addRepos", res.repo_records_created)
-            this.$store.commit("reposModule/addGroup", { repo_group_id: res.group_id, rg_name: res.rg_name });
+            window.alert("successfully imported github organization");
+            this.$store.commit(
+              "reposModule/addRepos",
+              res.repo_records_created
+            );
+            this.$store.commit("reposModule/addGroup", {
+              repo_group_id: res.group_id,
+              rg_name: res.rg_name
+            });
           }
         });
     },
