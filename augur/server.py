@@ -49,11 +49,10 @@ class Server(object):
         augur_app = self._augur
 
         # Initialize cache
-        expire = int(augur_app.read_config('Server', 'cache_expire', 'AUGUR_CACHE_EXPIRE', 3600))
+        expire = int(augur_app.read_config('Server', 'cache_expire'))
         self.cache = augur_app.cache.get_cache('server', expire=expire)
         self.cache.clear()
 
-        app.config['SECRET_KEY'] = augur_app.read_config('Server', 'secret_key', 'AUGUR_SECRET_KEY', os.urandom(32))
         app.config['WTF_CSRF_ENABLED'] = False
 
         self.show_metadata = False
@@ -102,7 +101,6 @@ class Server(object):
             """
             status = {
                 'status': 'OK',
-                'plugins': [p for p in self._augur._loaded_plugins]
             }
             return Response(response=json.dumps(status),
                             status=200,

@@ -57,20 +57,21 @@ class Housekeeper:
         :param delay: time needed to update
         :param shared: shared object that is to also be updated
         """
-        repo_group_id = job['repo_group_id'] if 'repo_group_id' in job else None
-        if repo_group_id:
-            logging.info('Housekeeper spawned {} model updater process for subsection {} with PID {}\n'.format(job['model'], repo_group_id, os.getpid()))
+        
+        if 'repo_group_id' in job:
+            repo_group_id = job['repo_group_id']
+            logging.info('Housekeeper spawned {} model updater process for repo group id {} with PID {}\n'.format(job['model'], repo_group_id, os.getpid()))
         else:
-            logging.info('Housekeeper spawned {} model updater process for repo {} with PID {}\n'.format(job['model'], job['repos'][0]['repo_id'], os.getpid()))
+            repo_group_id = None
+            logging.info('Housekeeper spawned {} model updater process for repo ids {} with PID {}\n'.format(job['model'], job['repo_ids'], os.getpid()))
 
         try:
             compatible_worker_found = False
             # Waiting for compatible worker
             while True:
                 if not compatible_worker_found:
-                    # logging.info("On model updater process: {}\n".format(job['model']))
+                    # logging.info(list(broker._getvalue().keys()))
                     for worker in list(broker._getvalue().keys()):
-                        # logging.info("Checking keys for worker {}. : {}\n".format(worker, broker[worker].keys()))
                         if job['model'] in broker[worker]['models'] and job['given'] in broker[worker]['given']:
                             compatible_worker_found = True
                 if compatible_worker_found:
@@ -273,7 +274,7 @@ class Housekeeper:
                     """.format(where_condition))
                 reorganized_repos = pd.read_sql(repoUrlSQL, self.db, params={})
                 if len(reorganized_repos) == 0:
-                    logging.info("Trying to send tasks for repo group, but the repo group does not contain any repos")
+                    logging.info("Trying to send tasks for repo group, but the repo group does not contain any repos: {}".format(repoUrlSQL))
                     job['repos'] = []
                     continue
 
