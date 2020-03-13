@@ -7,27 +7,21 @@
         @deleteRepoGroup="deleteGroup()"
         @changeGroupName="changeGroupName()"
       />
-      <img
-        src="https://img.icons8.com/material/24/000000/circled-chevron-up--v1.png"
-        v-if="!isCollapsed"
-        @click="$emit('flipCollapse')"
-      />
-      <img
-        src="https://img.icons8.com/material/24/000000/circled-chevron-down--v1.png"
-        v-if="isCollapsed"
-        @click="$emit('flipCollapse')"
-      />
+      <aug-icon-button iconClass="fas fa-arrow-up" v-if="!isCollapsed" @click="$emit('flipCollapse')" :class="{ open: !isCollapsed }" />
+      <aug-icon-button iconClass="fas fa-arrow-down" v-if="isCollapsed" @click="$emit('flipCollapse')" />
     </div>
   </div>
 </template>
 
 <script>
 import AugMenuDropdown from "../../../BaseComponents/AugMenuDropdown.vue";
+import AugIconButton from "../../../BaseComponents/AugIconButton.vue";
 
 export default {
   name: "RepoGroupHeader",
   components: {
-    AugMenuDropdown
+    AugMenuDropdown, 
+    AugIconButton
   },
   props: {
     repoGroup: {
@@ -56,6 +50,7 @@ export default {
 </script>
 
 <style scoped>
+
 #RepoGroupHeader {
   display: flex;
   justify-content: space-between;
@@ -63,13 +58,13 @@ export default {
 }
 
 .buttons {
-  align-items: center;
+  align-items: flex-start !important;
   display: flex;
   justify-content: space-evenly;
 }
 
 .buttons > * {
-  margin-right: 1rem;
+  margin-right: .5rem;
 }
 
 h1 {
@@ -78,11 +73,7 @@ h1 {
   font-size: 1.5rem;
 }
 
-img {
-  padding: 0.4rem;
-  width: 1.5rem;
-  height: 1.5rem;
-  border-radius: 1.65rem;
-  transition: background-color 0.2s ease;
+.open {
+  background-color: var(--grey) !important;
 }
 </style>

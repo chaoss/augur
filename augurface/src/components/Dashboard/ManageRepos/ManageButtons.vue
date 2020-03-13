@@ -110,13 +110,14 @@ export default {
           if (res.status === 200) {
             return res.json();
           } else {
+            window.alert('unable to create group');
             return null;
           }
         })
         .then(res => {
           if (res != null) {
             console.log(res);
-            window.alert("created group");
+            // window.alert("created group");
             let groupCreated = res["repo_groups_created"][0];
             this.$store.commit("reposModule/addGroup", {
               repo_group_id: groupCreated.group_id,

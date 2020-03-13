@@ -3,18 +3,16 @@
     <div class="nav-links">
       <nav-link v-for="link in links" :key="link.path" v-bind="link" />
     </div>
-    <div class="button">
-      <img src="https://img.icons8.com/material-rounded/24/000000/menu-2.png" class="menu-button" />
-      <img
-        src="https://img.icons8.com/material/24/000000/user-male-circle--v1.png"
-        class="menu-button"
-      />
+    <div class="buttons">
+      <aug-icon-button iconClass="fas fa-bars" :circular="true"/>
+      <aug-icon-button iconClass="fas fa-user" :circular="true"/>
     </div>
   </div>
 </template>
 
 <script>
 import NavLink from "./NavLink.vue";
+import AugIconButton from "../../BaseComponents/AugIconButton.vue";
 
 export default {
   name: "NavBar",
@@ -25,7 +23,8 @@ export default {
     }
   },
   components: {
-    NavLink
+    NavLink, 
+    AugIconButton
   }
 };
 </script>
@@ -42,23 +41,10 @@ export default {
   width: 800px;
 }
 
-.menu-button {
-  padding: 0.4rem;
-  width: 1.5rem;
-  height: 1.5rem;
-  border-radius: 1.65rem;
-  transition: background-color 0.2s ease;
-  margin-right: .5rem;
-}
-
 .buttons {
     display: flex;
-    align-items: center;
+    align-items: flex-end;
     justify-content: space-evenly;
-}
-
-.menu-button:hover {
-  background-color: var(--light-grey);
-  cursor: pointer;
+    margin-right: 1rem;
 }
 </style>
