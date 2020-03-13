@@ -1,6 +1,6 @@
 <template>
   <div id="RepoGroup" :class="{ open : !isCollapsed }">
-    <repo-group-header :repoGroup="repoGroup" :isCollapsed="isCollapsed" @flipCollapse="flipCollapse"/>
+    <repo-group-header ref="header" :repoGroup="repoGroup" :isCollapsed="isCollapsed" @flipCollapse="flipCollapse" @dropdownclick="$emit('dropdownclick')"/>
     <transition name="ease">
       <repo-group-content
         :repoGroup="repoGroup"

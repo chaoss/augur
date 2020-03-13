@@ -11,6 +11,7 @@
         :key="rg.repo_group_id"
         :repoGroup="rg"
         ref="repoGroups"
+        @dropdownclick="dropdownClick()"
       />
     </div>
   </div>
@@ -30,6 +31,11 @@ export default {
   methods: {
     collapseAll() {
       this.$refs.repoGroups.forEach(rg => rg.collapse());
+    }, 
+    dropdownClick() {
+      this.$refs.repoGroups.forEach(rg => {
+        rg.$refs.header.$refs.dropdown.collapse()
+      });
     }
   }, 
   computed: {

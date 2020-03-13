@@ -1,6 +1,6 @@
 <template>
   <div id="AugMenuDropdown" @click.stop>
-    <aug-icon-button iconClass="fas fa-ellipsis-v" @click.stop="flipCollapse" :class="{ open: !isCollapsed }" />
+    <aug-icon-button iconClass="fas fa-ellipsis-v" @click="flipCollapse" :class="{ open: !isCollapsed }" :circular="true"/>
 
     <div class="dropdown" v-if="!isCollapsed" v-click-outside="collapse">
       <div
@@ -35,7 +35,7 @@ export default {
   },
   methods: {
     flipCollapse() {
-      console.log('hello?');
+      this.$emit('click');
       this.isCollapsed = !this.isCollapsed;
     },
     collapse() {

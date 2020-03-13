@@ -6,9 +6,11 @@
         :menuOptions="[ { key: 'deleteRepoGroup', text: 'delete repo group' }, { key: 'changeGroupName', text: 'change group name' } ]"
         @deleteRepoGroup="deleteGroup()"
         @changeGroupName="changeGroupName()"
+        @click="$emit('dropdownclick')"
+        ref="dropdown"
       />
-      <aug-icon-button iconClass="fas fa-arrow-up" v-if="!isCollapsed" @click="$emit('flipCollapse')" :class="{ open: !isCollapsed }" />
-      <aug-icon-button iconClass="fas fa-arrow-down" v-if="isCollapsed" @click="$emit('flipCollapse')" />
+      <aug-icon-button iconClass="fas fa-arrow-up" v-if="!isCollapsed" @click="$emit('flipCollapse')" :class="{ open: !isCollapsed }" :circular="true" />
+      <aug-icon-button iconClass="fas fa-arrow-down" v-if="isCollapsed" @click="$emit('flipCollapse')" :circular="true" />
     </div>
   </div>
 </template>
@@ -39,6 +41,9 @@ export default {
     }
   }, 
   methods: {
+    hello() {
+      console.log('hello');
+    }, 
     deleteGroup() {
       console.log('delete');
     }, 
