@@ -139,6 +139,9 @@ export default {
     },
     getRepoGroups(state) {
       return state.repoGroups;
+    }, 
+    repoCountInGroup: (state) => (rg_id) => {
+      return state.repos.filter(repo => repo.repo_group_id === rg_id).length;
     }
   }
 }

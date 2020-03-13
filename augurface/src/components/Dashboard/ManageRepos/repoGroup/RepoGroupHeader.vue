@@ -1,6 +1,6 @@
 <template>
   <div id="RepoGroupHeader">
-    <h1>{{ repoGroup.rg_name }}</h1>
+    <h1>{{ repoGroup.rg_name }} ({{repoCountInGroup(repoGroup.repo_group_id)}})</h1>
     <div class="buttons">
       <aug-menu-dropdown
         :menuOptions="[ { key: 'deleteRepoGroup', text: 'delete repo group' }, { key: 'changeGroupName', text: 'change group name' } ]"
@@ -18,6 +18,7 @@
 <script>
 import AugMenuDropdown from "../../../BaseComponents/AugMenuDropdown.vue";
 import AugIconButton from "../../../BaseComponents/AugIconButton.vue";
+import { mapGetters } from 'vuex';
 
 export default {
   name: "RepoGroupHeader",
@@ -39,6 +40,9 @@ export default {
       type: Boolean,
       default: true
     }
+  }, 
+  computed: {
+    ...mapGetters("reposModule", ["repoCountInGroup"])
   }, 
   methods: {
     hello() {
