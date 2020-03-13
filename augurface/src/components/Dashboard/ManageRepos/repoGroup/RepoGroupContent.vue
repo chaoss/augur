@@ -3,7 +3,7 @@
     <div id="add-repos-input">
       <aug-text-area
         text="Add repos to group"
-        placeholder="comma seperated git urls"
+        placeholder="git urls (seperated by commas, newlines, and spaces)"
         inputName="urls"
         @valueUpdated="setUrlsInput"
       />
@@ -15,7 +15,7 @@
         style="width: 35px; transform: translateX(-15px);"
       />
     </div>
-    <repo-list :repos="getReposInGroup(repoGroup.repo_group_id)" style="margin-top: 3rem"/>
+    <repo-list v-if="repoCountInGroup(repoGroup.repo_group_id) > 0" :repos="getReposInGroup(repoGroup.repo_group_id)" style="margin-top: 3rem"/>
   </div>
 </template>
 
@@ -68,11 +68,13 @@ export default {
       this.isCurrentlyAddingRepos = true;
 
       // setup
-      let urls = this.urlsInput.split(",").map(url => url.trim());
+      let urls = this.urlsInput.split(/[ ,\n]+/).map(url => url.trim());  // regex splits by spaces, newlines and commas
       let requestBody = {
         group: this.repoGroup.rg_name,
         repos: urls
       };
+
+      // console.log(requestBody);
 
       // make request
       fetch(`${this.$store.state.utilModule.baseEndpointUrl}/add-repos`, {
@@ -92,9 +94,16 @@ export default {
         })
         .then(res => {
           if (res) {
-            console.log(res);
             // update state
             this.$store.commit("reposModule/addRepos", res.repos_inserted);
+
+            // check for failed adds
+            if (res.repos_not_inserted.invalid_inputs.length > 0) {
+              window.alert(`${res.repos_inserted.length} repos successfully added\n${res.repos_not_inserted.invalid_inputs.length} repos failed\ncheck console for detail`);
+              console.log('following repos failed to be inserted: ');
+              console.log(res.repos_not_inserted.invalid_inputs);
+            }
+
             this.isCurrentlyAddingRepos = false;
           }
         });
@@ -108,7 +117,7 @@ export default {
   },
 
   computed: {
-    ...mapGetters("reposModule", ["getReposInGroup"])
+    ...mapGetters("reposModule", ["getReposInGroup", "repoCountInGroup"])
   }
 };
 </script>
@@ -119,6 +128,7 @@ export default {
   top: 0.3rem;
   border-top: 1px solid var(--grey);
   padding-top: 1rem;
+  padding-bottom: .5rem;
 }
 
 #RepoGroupContent > * {
