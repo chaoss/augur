@@ -60,6 +60,10 @@ def create_manager_routes(server):
         summary['errors'] = []
         summary['repo_groups_created'] = []
 
+        if group == '':
+            summary['errors'].append("invalid group name")
+            return Response(response=summary, status=200, mimetype="application/json")
+            
         try:
             group_id = repo_manager.get_org_id()
         except TypeError:

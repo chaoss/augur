@@ -109,6 +109,10 @@ export default {
         .then(res => {
           if (res != null) {
             console.log(res);
+            if (res.errors.length > 0) {
+              res.errors.forEach(error => console.log(error));
+              return;
+            }
             // window.alert("created group");
             let groupCreated = res["repo_groups_created"][0];
             this.$store.commit("reposModule/addGroup", {
