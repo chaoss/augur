@@ -8,20 +8,20 @@
         @valueUpdated="setUrlsInput"
       />
       <aug-button text="add" @click="addRepos()" />
-      <img
-        v-if="isCurrentlyAddingRepos"
-        src="../../../../assets/loading.gif"
-        alt="adding repos..."
-        style="width: 35px; transform: translateX(-15px);"
-      />
+      <aug-spinner v-if="isCurrentlyAddingRepos" size="2" />
     </div>
-    <repo-list v-if="repoCountInGroup(repoGroup.repo_group_id) > 0" :repos="getReposInGroup(repoGroup.repo_group_id)" style="margin-top: 3rem"/>
+    <repo-list
+      v-if="repoCountInGroup(repoGroup.repo_group_id) > 0"
+      :repos="getReposInGroup(repoGroup.repo_group_id)"
+      style="margin-top: 3rem"
+    />
   </div>
 </template>
 
 <script>
 import AugButton from "../../../BaseComponents/AugButton.vue";
 import AugTextArea from "../../../BaseComponents/AugTextArea";
+import AugSpinner from "../../../BaseComponents/AugSpinner";
 import RepoList from "./RepoList.vue";
 import { mapGetters } from "vuex";
 
@@ -68,7 +68,7 @@ export default {
       this.isCurrentlyAddingRepos = true;
 
       // setup
-      let urls = this.urlsInput.split(/[ ,\n]+/).map(url => url.trim());  // regex splits by spaces, newlines and commas
+      let urls = this.urlsInput.split(/[ ,\n]+/).map(url => url.trim()); // regex splits by spaces, newlines and commas
       let requestBody = {
         group: this.repoGroup.rg_name,
         repos: urls
@@ -99,8 +99,10 @@ export default {
 
             // check for failed adds
             if (res.repos_not_inserted.invalid_inputs.length > 0) {
-              window.alert(`${res.repos_inserted.length} repos successfully added\n${res.repos_not_inserted.invalid_inputs.length} repos failed\ncheck console for detail`);
-              console.log('following repos failed to be inserted: ');
+              window.alert(
+                `${res.repos_inserted.length} repos successfully added\n${res.repos_not_inserted.invalid_inputs.length} repos failed\ncheck console for detail`
+              );
+              console.log("following repos failed to be inserted: ");
               console.log(res.repos_not_inserted.invalid_inputs);
             }
 
@@ -113,6 +115,7 @@ export default {
   components: {
     AugButton,
     AugTextArea,
+    AugSpinner,
     RepoList
   },
 
@@ -128,7 +131,7 @@ export default {
   top: 0.3rem;
   border-top: 1px solid var(--grey);
   padding-top: 1rem;
-  padding-bottom: .5rem;
+  padding-bottom: 0.5rem;
 }
 
 #RepoGroupContent > * {

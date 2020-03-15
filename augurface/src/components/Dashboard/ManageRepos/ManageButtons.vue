@@ -10,12 +10,7 @@
           @valueUpdated="setOrgUsernameInput"
         />
         <aug-button text="Import" @click="importReposFromOrganization()" />
-        <img
-          v-if="isImporting"
-          src="../../../assets/loading.gif"
-          alt="adding repos..."
-          style="width: 35px; transform: translateX(-15px);"
-        />
+        <aug-spinner size="2" v-if="isImporting"/>
       </div>
       <div class="column">
         <!-- refresh repos -->
@@ -32,12 +27,7 @@
           @valueUpdated="setGroupNameInput"
         />
         <aug-button text="Create" @click="createGroup()" />
-        <img
-          v-if="isCreating"
-          src="../../../assets/loading.gif"
-          alt="adding repos..."
-          style="width: 35px; transform: translateX(-15px);"
-        />
+        <aug-spinner size="2" v-if="isCreating"/>
       </div>
       <div class="column">
         <!-- collapse repos -->
@@ -50,12 +40,14 @@
 <script>
 import AugButton from "../../BaseComponents/AugButton.vue";
 import AugTextInput from "../../BaseComponents/AugTextInput.vue";
+import AugSpinner from "../../BaseComponents/AugSpinner.vue";
 import { mapGetters } from "vuex";
 export default {
   name: "ManageButtons",
   components: {
     AugButton,
-    AugTextInput
+    AugTextInput, 
+    AugSpinner
   },
   data() {
     return {

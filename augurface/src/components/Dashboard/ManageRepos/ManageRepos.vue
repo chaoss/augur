@@ -2,8 +2,8 @@
   <div id="ManageRepos">
     <manage-buttons @collapseAll="collapseAll()"/>
     <div class="loading" v-if="!isLoaded">
-      <img src="../../../assets/loading.gif" alt="loading repos" />
-      <p>loading repositories...</p>
+      <aug-spinner size="4" />
+      <p>loading repositories</p>
     </div>
     <div class="groups" v-if="isLoaded">
       <repo-group
@@ -20,13 +20,16 @@
 <script>
 import RepoGroup from "./repoGroup/RepoGroup.vue";
 import ManageButtons from "./ManageButtons.vue";
+import AugSpinner from "../../BaseComponents/AugSpinner.vue";
+
 import { mapGetters } from "vuex";
 
 export default {
   name: "ManageRepos",
   components: {
     RepoGroup,
-    ManageButtons
+    ManageButtons, 
+    AugSpinner
   },
   methods: {
     collapseAll() {
@@ -61,11 +64,11 @@ export default {
 }
 
 .loading {
-  margin-top: 2rem;
-}
-
-.loading > img {
-  transform: translateX(-20px);
+  margin-top: 4rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .loading > p {
