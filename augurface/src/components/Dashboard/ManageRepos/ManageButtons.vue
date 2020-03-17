@@ -80,6 +80,11 @@ export default {
         return;
       }
 
+      if (this.groupNameInput === '') {
+        window.alert('invalid group name');
+        return;
+      }
+
       this.isCreating = true;
       let requestObject = {
         group: this.groupNameInput
@@ -110,10 +115,10 @@ export default {
           if (res != null) {
             console.log(res);
             if (res.errors.length > 0) {
-              res.errors.forEach(error => console.log(error));
+              window.alert(res.errors[0]);
               return;
             }
-            // window.alert("created group");
+            window.alert("successfully created group");
             let groupCreated = res["repo_groups_created"][0];
             this.$store.commit("reposModule/addGroup", {
               repo_group_id: groupCreated.group_id,
