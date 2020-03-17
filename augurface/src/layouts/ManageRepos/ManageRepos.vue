@@ -18,9 +18,9 @@
 </template>
 
 <script>
-import RepoGroup from "./repoGroup/RepoGroup.vue";
+import RepoGroup from "../../components/RepoGroup/RepoGroup.vue";
 import ManageButtons from "./ManageButtons.vue";
-import AugSpinner from "../../BaseComponents/AugSpinner.vue";
+import AugSpinner from "../../components/BaseComponents/AugSpinner.vue";
 
 import { mapGetters } from "vuex";
 

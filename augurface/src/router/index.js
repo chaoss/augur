@@ -1,10 +1,10 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
-import Login from '../components/Login/Login.vue';
-import Dashboard from '../components/Dashboard/Dashboard.vue';
-import ManageRepos from '../components/Dashboard/ManageRepos/ManageRepos.vue';
+import Login from '../layouts/Login/Login.vue';
+import Dashboard from '../layouts/Dashboard/Dashboard.vue';
+import ManageRepos from '../layouts/ManageRepos/ManageRepos.vue';
 // import AnalyzeRepos from '../components/Dashboard/AnalyzeRepos/AnalyzeRepos.vue';
-import AboutAugur from '../components/Dashboard/AboutAugur/AboutAugur.vue';
+import AboutAugur from '../layouts/AboutAugur/AboutAugur.vue';
 
 Vue.use(VueRouter)
 

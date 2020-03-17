@@ -19,9 +19,9 @@
 </template>
 
 <script>
-import AugButton from "../../../BaseComponents/AugButton.vue";
-import AugTextArea from "../../../BaseComponents/AugTextArea";
-import AugSpinner from "../../../BaseComponents/AugSpinner";
+import AugButton from "../BaseComponents/AugButton.vue";
+import AugTextArea from "../BaseComponents/AugTextArea";
+import AugSpinner from "../BaseComponents/AugSpinner";
 import RepoList from "./RepoList.vue";
 import { mapGetters } from "vuex";
 

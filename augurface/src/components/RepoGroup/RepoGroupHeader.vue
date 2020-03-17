@@ -16,8 +16,8 @@
 </template>
 
 <script>
-import AugMenuDropdown from "../../../BaseComponents/AugMenuDropdown.vue";
-import AugIconButton from "../../../BaseComponents/AugIconButton.vue";
+import AugMenuDropdown from "../BaseComponents/AugMenuDropdown.vue";
+import AugIconButton from "../BaseComponents/AugIconButton.vue";
 import { mapGetters } from 'vuex';
 
 export default {

@@ -22,8 +22,8 @@
 
 
 <script>
-import AugButton from "../BaseComponents/AugButton.vue";
-import AugTextInput from "../BaseComponents/AugTextInput.vue";
+import AugButton from "../../components/BaseComponents/AugButton.vue";
+import AugTextInput from "../../components/BaseComponents/AugTextInput.vue";
 
 export default {
   data() {

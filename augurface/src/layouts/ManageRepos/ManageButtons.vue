@@ -38,9 +38,9 @@
 </template>
 
 <script>
-import AugButton from "../../BaseComponents/AugButton.vue";
-import AugTextInput from "../../BaseComponents/AugTextInput.vue";
-import AugSpinner from "../../BaseComponents/AugSpinner.vue";
+import AugButton from "../../components/BaseComponents/AugButton.vue";
+import AugTextInput from "../../components/BaseComponents/AugTextInput.vue";
+import AugSpinner from "../../components/BaseComponents/AugSpinner.vue";
 import { mapGetters } from "vuex";
 export default {
   name: "ManageButtons",

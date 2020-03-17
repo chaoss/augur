@@ -12,7 +12,7 @@
 
 <script>
 import NavLink from "./NavLink.vue";
-import AugIconButton from "../../BaseComponents/AugIconButton.vue";
+import AugIconButton from "../../../components/BaseComponents/AugIconButton.vue";
 
 export default {
   name: "NavBar",
