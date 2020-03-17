@@ -10,11 +10,11 @@
           @valueUpdated="setOrgUsernameInput"
         />
         <aug-button text="Import" @click="importReposFromOrganization()" />
-        <aug-spinner size="2" v-if="isImporting"/>
+        <aug-spinner size="2" v-if="isImporting" />
       </div>
       <div class="column">
         <!-- refresh repos -->
-        <aug-button text="Refresh" @click="refreshRepos()" />
+        <aug-button text="Refresh" @click="refreshRepos" />
       </div>
     </div>
     <div class="row">
@@ -27,7 +27,7 @@
           @valueUpdated="setGroupNameInput"
         />
         <aug-button text="Create" @click="createGroup()" />
-        <aug-spinner size="2" v-if="isCreating"/>
+        <aug-spinner size="2" v-if="isCreating" />
       </div>
       <div class="column">
         <!-- collapse repos -->
@@ -46,7 +46,7 @@ export default {
   name: "ManageButtons",
   components: {
     AugButton,
-    AugTextInput, 
+    AugTextInput,
     AugSpinner
   },
   data() {
@@ -67,110 +67,40 @@ export default {
     refreshRepos() {
       if (this.isDisabled) {
         console.log("disabled");
-        return;
+      } else {
+        this.$store.dispatch("reposModule/refreshRepos");
       }
-      this.$store.commit("reposModule/setReposLoaded", false);
-      this.$store.commit("reposModule/setGroupsLoaded", false);
-      this.$store.dispatch("reposModule/retrieveRepoGroups", false);
-      this.$store.dispatch("reposModule/retrieveRepos", false);
     },
     createGroup() {
       if (this.isDisabled) {
         console.log("disabled");
-        return;
-      }
-
-      if (this.groupNameInput === '') {
-        window.alert('invalid group name');
-        return;
-      }
-
-      this.isCreating = true;
-      let requestObject = {
-        group: this.groupNameInput
-      };
-
-      // fetch request
-      // then -> commit new group to vuex
-      fetch(
-        `${this.$store.state.utilModule.baseEndpointUrl}/create-repo-group`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify(requestObject)
+      } 
+      else {
+        if (this.groupNameInput === "") {
+          window.alert("invalid group name");
+          return;
         }
-      )
-        .then(res => {
-          this.isCreating = false;
-          if (res.status === 200) {
-            return res.json();
-          } else {
-            window.alert('unable to create group');
-            return null;
-          }
-        })
-        .then(res => {
-          if (res != null) {
-            console.log(res);
-            if (res.errors.length > 0) {
-              window.alert(res.errors[0]);
-              return;
-            }
-            window.alert("successfully created group");
-            let groupCreated = res["repo_groups_created"][0];
-            this.$store.commit("reposModule/addGroup", {
-              repo_group_id: groupCreated.group_id,
-              rg_name: groupCreated.rg_name
-            });
-          }
-        });
+
+        this.isCreating = true;
+        this.$store
+          .dispatch("reposModule/createGroup", this.groupNameInput)
+          .then(() => {
+            this.isCreating = false;
+          });
+      }
     },
     importReposFromOrganization() {
       if (this.isDisabled) {
         console.log("disabled");
-        return;
+      } 
+      else {
+        this.isImporting = true;
+        this.$store
+          .dispatch("reposModule/importGroup", this.orgUsernameInput)
+          .then(() => {
+            this.isImporting = false;
+          });
       }
-      this.isImporting = true;
-      // fetch request
-      // then -> commit new repos to vuex
-      let requestObject = {
-        group: this.orgUsernameInput
-      };
-      fetch(`${this.$store.state.utilModule.baseEndpointUrl}/add-repo-group`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(requestObject)
-      })
-        .then(res => {
-          this.isImporting = false;
-
-          if (res.status === 500) {
-            console.log("Server error (possible invalid organization name)");
-            window.alert(
-              "Possible invalid organization name entered. Import failed."
-            );
-            return null;
-          } else {
-            return res.json();
-          }
-        })
-        .then(res => {
-          if (res != null) {
-            window.alert("successfully imported github organization");
-            this.$store.commit(
-              "reposModule/addRepos",
-              res.repo_records_created
-            );
-            this.$store.commit("reposModule/addGroup", {
-              repo_group_id: res.group_id,
-              rg_name: res.rg_name
-            });
-          }
-        });
     },
     setGroupNameInput(newValue) {
       this.groupNameInput = newValue;

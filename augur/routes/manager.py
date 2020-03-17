@@ -79,16 +79,16 @@ def create_manager_routes(server):
         summary = json.dumps(summary)
         return Response(response=summary, status=200, mimetype="application/json")
     
-    @server.app.route('/{}/add-repo-group'.format(server.api_version), methods=['POST'])
+    @server.app.route('/{}/import-org'.format(server.api_version), methods=['POST'])
     def add_repo_group():
         """ creates a new augur repo group and adds to it the given organization or user's repos
             takes an organization or user name 
         """
         conn = get_db_engine(server._augur)
-        group = request.json['group']
+        org_name = request.json['org']
         repo_manager = Repo_insertion_manager(group, conn)
         summary = {}
-        summary['group_errors'] = []
+        summary['errors'] = []
         summary['failed_repo_records'] = []
         summary['repo_records_created'] = []
         
@@ -98,15 +98,20 @@ def create_manager_routes(server):
             try:
                 group_id = repo_manager.insert_repo_group()
             except TypeError:
-                summary['group_errors'].append("failed to create group")
+                summary['errors'].append("failed to create group")
             else:
                 group_exists = True
         else:
             group_exists = True
+            summary['errors'].append("group already exists")
+            summary = json.dumps(summary)
+            return Response(response=summary, status=200, mimetype="application/json")
+
 
         if group_exists:
             summary['group_id'] = str(group_id)
-            summary['rg_name'] = group
+            summary['rg_name'] = org_name
+            group_name = org_name
             try:
                 repos = repo_manager.fetch_repos()
                 i = 0
@@ -114,13 +119,13 @@ def create_manager_routes(server):
                     try:
                         i += 1
                         print(str(i))
-                        repo_id = repo_manager.insert_repo(group_id, group, repo)
+                        repo_id = repo_manager.insert_repo(group_id, group_name, repo)
                     except exc.SQLAlchemyError:
                         summary['failed_repo_records'].append(repo)
                     else:
-                        summary['repo_records_created'].append(get_inserted_repo(group_id, repo_id, repo, group, repo_manager.github_urlify(group, repo)))
+                        summary['repo_records_created'].append(get_inserted_repo(group_id, repo_id, repo, group_name, repo_manager.github_urlify(group_name, repo)))
             except requests.ConnectionError:
-                summary['group_errors'] = "failed to find the group's child repos"
+                summary['errors'] = "failed to find the group's child repos"
 
         summary = json.dumps(summary)
         return Response(response=summary,

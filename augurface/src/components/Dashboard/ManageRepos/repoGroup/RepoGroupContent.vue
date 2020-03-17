@@ -63,52 +63,18 @@ export default {
     addRepos() {
       if (this.isCurrentlyAddingRepos) {
         return;
-      }
-
-      this.isCurrentlyAddingRepos = true;
-
-      // setup
-      let urls = this.urlsInput.split(/[ ,\n]+/).map(url => url.trim()); // regex splits by spaces, newlines and commas
-      let requestBody = {
-        group: this.repoGroup.rg_name,
-        repos: urls
-      };
-
-      // console.log(requestBody);
-
-      // make request
-      fetch(`${this.$store.state.utilModule.baseEndpointUrl}/add-repos`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(requestBody)
-      })
-        .then(res => {
-          console.log(`STATUS: ${res.status}`);
-          if (res.status === 200) {
-            return res.json();
-          } else {
-            return null;
-          }
-        })
-        .then(res => {
-          if (res) {
-            // update state
-            this.$store.commit("reposModule/addRepos", res.repos_inserted);
-
-            // check for failed adds
-            if (res.repos_not_inserted.invalid_inputs.length > 0) {
-              window.alert(
-                `${res.repos_inserted.length} repos successfully added\n${res.repos_not_inserted.invalid_inputs.length} repos failed\ncheck console for detail`
-              );
-              console.log("following repos failed to be inserted: ");
-              console.log(res.repos_not_inserted.invalid_inputs);
-            }
-
+      } else {
+        this.isCurrentlyAddingRepos = true;
+        let urls = this.urlsInput.split(/[ ,\n]+/).map(url => url.trim()); // regex splits by spaces, newlines and commas
+        let requestBody = {
+          group: this.repoGroup.rg_name,
+          repos: urls
+        };
+        this.$store.dispatch("reposModule/addRepos", requestBody)
+          .then(() => {
             this.isCurrentlyAddingRepos = false;
-          }
-        });
+          });
+      }
     }
   },
 
