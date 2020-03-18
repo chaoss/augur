@@ -84,6 +84,7 @@ def create_manager_routes(server):
         """ creates a new augur repo group and adds to it the given organization or user's repos
             takes an organization or user name 
         """
+        print('asdfsa')
         conn = get_db_engine(server._augur)
         group = request.json['org']
         repo_manager = Repo_insertion_manager(group, conn)
@@ -113,14 +114,19 @@ def create_manager_routes(server):
             summary['group_id'] = str(group_id)
             summary['rg_name'] = group
             try:
-                repos = repo_manager.fetch_repos()
-                for repo in repos:
+                repos_gh = repo_manager.fetch_repos()
+                repos_in_augur = repo_manager.get_existing_repos(group_id)
+                print('asdf')
+                print(repos_in_augur)
+                """
+                for repo in repos_gh:
                     try:
                         repo_id = repo_manager.insert_repo(group_id, group, repo)
                     except exc.SQLAlchemyError:
                         summary['failed_repo_records'].append(repo)
                     else:
                         summary['repo_records_created'].append(get_inserted_repo(group_id, repo_id, repo, group, repo_manager.github_urlify(group, repo)))
+                """
             except requests.ConnectionError:
                 summary['group_errors'] = "failed to find the group's child repos"
 
@@ -142,6 +148,17 @@ class Repo_insertion_manager():
     def __init__(self, organization_name, database_connection):
         self.org = organization_name
         self.db = database_connection
+
+    def get_existing_repos(self, group_id):
+        """returns repos belonging to repogroup in augur db"""
+        select_repos_query = s.sql.text("""
+            SELECT repo_git from augur_data.repo
+            WHERE repo_group_id = :repo_group_id
+        """)
+        select_repos_query = select_repos_query.bindparams(repo_group_id = group_id)
+        result = self.db.execute(select_repos_query).fethall()
+        return result
+
 
     def group_exists_gh(self):
         url = url = "https://api.github.com/orgs/{}".format(self.org)
