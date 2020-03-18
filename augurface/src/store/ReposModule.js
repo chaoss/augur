@@ -96,8 +96,8 @@ export default {
         })
         .then(res => {
           if (res != null) {
-            if (res.errors.length > 0) {
-              window.alert(res.errors[0]);
+            if (res.group_errors.length > 0) {
+              window.alert(res.group_errors[0]);
               return;
             }
             window.alert("successfully imported github organization");

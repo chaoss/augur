@@ -80,52 +80,49 @@ def create_manager_routes(server):
         return Response(response=summary, status=200, mimetype="application/json")
     
     @server.app.route('/{}/import-org'.format(server.api_version), methods=['POST'])
-    def add_repo_group():
+    def import_org():
         """ creates a new augur repo group and adds to it the given organization or user's repos
             takes an organization or user name 
         """
         conn = get_db_engine(server._augur)
-        org_name = request.json['org']
+        group = request.json['org']
         repo_manager = Repo_insertion_manager(group, conn)
         summary = {}
-        summary['errors'] = []
+        summary['group_errors'] = []
         summary['failed_repo_records'] = []
         summary['repo_records_created'] = []
-        
+        group_exists = False
         try:
+            #look for group in augur db
             group_id = repo_manager.get_org_id()
         except TypeError:
-            try:
-                group_id = repo_manager.insert_repo_group()
-            except TypeError:
-                summary['errors'].append("failed to create group")
+            #look for group on github
+            if repo_manager.group_exists_gh():
+                try:
+                    group_id = repo_manager.insert_repo_group()
+                except TypeError:
+                    summary['group_errors'].append("failed to create group")
+                else:
+                    group_exists = True
             else:
-                group_exists = True
+                summary['group_errors'].append("could not locate group in database or on github")
         else:
             group_exists = True
-            summary['errors'].append("group already exists")
-            summary = json.dumps(summary)
-            return Response(response=summary, status=200, mimetype="application/json")
-
 
         if group_exists:
             summary['group_id'] = str(group_id)
-            summary['rg_name'] = org_name
-            group_name = org_name
+            summary['rg_name'] = group
             try:
                 repos = repo_manager.fetch_repos()
-                i = 0
                 for repo in repos:
                     try:
-                        i += 1
-                        print(str(i))
-                        repo_id = repo_manager.insert_repo(group_id, group_name, repo)
+                        repo_id = repo_manager.insert_repo(group_id, group, repo)
                     except exc.SQLAlchemyError:
                         summary['failed_repo_records'].append(repo)
                     else:
-                        summary['repo_records_created'].append(get_inserted_repo(group_id, repo_id, repo, group_name, repo_manager.github_urlify(group_name, repo)))
+                        summary['repo_records_created'].append(get_inserted_repo(group_id, repo_id, repo, group, repo_manager.github_urlify(group, repo)))
             except requests.ConnectionError:
-                summary['errors'] = "failed to find the group's child repos"
+                summary['group_errors'] = "failed to find the group's child repos"
 
         summary = json.dumps(summary)
         return Response(response=summary,
@@ -145,6 +142,15 @@ class Repo_insertion_manager():
     def __init__(self, organization_name, database_connection):
         self.org = organization_name
         self.db = database_connection
+
+    def group_exists_gh(self):
+        url = url = "https://api.github.com/orgs/{}".format(self.org)
+        res = requests.get(url).json()
+        try:
+            if res['message'] == "Not Found":
+                return False
+        except KeyError:
+            return True
 
     def insert_repo(self, orgid, given_org, reponame):
         """creates a new repo record"""
