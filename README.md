@@ -45,4 +45,4 @@ Copyright © 2019 University of Nebraska at Omaha, University of Missouri and CH
 
 Augur is free software: you can redistribute it and/or modify it under the terms of the MIT License as published by the Open Source Initiative. See the [LICENSE](LICENSE) file for more details.
 
-This work has been funded through the Alfred P. Sloan Foundation.
+This work has been funded through the Alfred P. Sloan Foundation, and the Reynolds Journalism Institute
