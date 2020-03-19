@@ -84,7 +84,6 @@ def create_manager_routes(server):
         """ creates a new augur repo group and adds to it the given organization or user's repos
             takes an organization or user name 
         """
-        print('asdfsa')
         conn = get_db_engine(server._augur)
         group = request.json['org']
         repo_manager = Repo_insertion_manager(group, conn)
@@ -116,17 +115,21 @@ def create_manager_routes(server):
             try:
                 repos_gh = repo_manager.fetch_repos()
                 repos_in_augur = repo_manager.get_existing_repos(group_id)
-                print('asdf')
-                print(repos_in_augur)
-                """
-                for repo in repos_gh:
+                repos_db_set = set()
+                for name in repos_in_augur:
+                    #repo_git is more reliable than repo name, so we'll just grab everything after the last slash 
+                    name = (name['repo_git'].rsplit('/', 1)[1])
+                    repos_db_set.add(name)
+                repos_to_insert = set(repos_gh) - repos_db_set
+                
+                for repo in repos_to_insert:
                     try:
                         repo_id = repo_manager.insert_repo(group_id, group, repo)
                     except exc.SQLAlchemyError:
                         summary['failed_repo_records'].append(repo)
                     else:
                         summary['repo_records_created'].append(get_inserted_repo(group_id, repo_id, repo, group, repo_manager.github_urlify(group, repo)))
-                """
+                
             except requests.ConnectionError:
                 summary['group_errors'] = "failed to find the group's child repos"
 
@@ -156,8 +159,8 @@ class Repo_insertion_manager():
             WHERE repo_group_id = :repo_group_id
         """)
         select_repos_query = select_repos_query.bindparams(repo_group_id = group_id)
-        result = self.db.execute(select_repos_query).fethall()
-        return result
+        result = self.db.execute(select_repos_query)
+        return result.fetchall()
 
 
     def group_exists_gh(self):
