@@ -20,7 +20,9 @@ import Tabs from '../components/Tabs.vue'
 import TableView from '../components/TableView.vue'
 import ProjectDropdown from '../components/ProjectDropdown.vue'
 
+
 let routes = [
+,
       {path: '/', component: AugurCards,
         children: [
           {
@@ -36,6 +38,7 @@ let routes = [
         ]
       },
       {path: '/login', component: LoginForm},
+ 
       {path: '/metrics_status', 
         component: MetricsStatusCard
       }, 

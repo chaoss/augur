@@ -31,8 +31,41 @@ import InspectInsight from './views/InspectInsight.vue';
 import RiskMetrics from "@/views/RiskMetrics.vue";
 import NProgress from "nprogress";
 import SlackConfig from './views/SlackConfig.vue';
+import Login from './views/login.vue';
+import Secure from './views/secure.vue';
 
 const routes = [
+  {
+    path: '/',
+    component: Default,
+    children: [
+      {
+        path: '',
+        name: 'login',
+        components: {
+         // sidebar: MainSidebar,
+         //navbar: MainNavbar,
+          content: Login,
+        },
+      },
+    ],
+  },
+  
+  {
+    path: '/secure',
+    component: Default,
+    children: [
+      {
+        path: '',
+        name: 'secure',
+        components: {
+         sidebar: MainSidebar,
+         navbar: MainNavbar,
+          content: Secure,
+        },
+      },
+    ],
+  },
   {
     path: '/insights',
     component: Default,
