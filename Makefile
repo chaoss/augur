@@ -69,7 +69,7 @@ dev-start: dev-stop
 	@ scripts/control/start_frontend.sh
 
 dev-stop: 
-	@ augur/cli/scripts/kill_processes.sh
+	@ augur util kill
 	@ scripts/control/kill_frontend.sh
 
 dev: dev-stop dev-start
@@ -97,6 +97,9 @@ test-python-versions:
 #
 .PHONY: library-docs library-docs-view 
 .PHONY:api-docs api-docs-view docs
+
+test-data:
+	@ docker run -d -p 5434:5432 --name augur_test_data augurlabs/augur:test_data
 
 library-docs:
 	@ bash -c 'cd docs/ && rm -rf build/ && make html;'
@@ -141,9 +144,6 @@ docker-build-frontend:
 docker-build-database:
 	@ docker build -t augurlabs/augur:database -f util/docker/database/Dockerfile .
 
-docker-build-testing-database:
-	@ docker build -t augurlabs/augur:testing-database -f util/docker/testing-database/Dockerfile .
-
 
 docker-run-backend:
 	@ docker run -d -p 5000:5000 --name augur_backend --env-file augur_env.txt augurlabs/augur:backend
@@ -152,8 +152,5 @@ docker-run-frontend:
 	@ docker run -d -p 8080:8080 --name augur_frontend augurlabs/augur:frontend
 
 docker-run-database:
-	@ docker run -p 5434:5432 --name augur_database augurlabs/augur:database
-
-docker-run-testing-database:
-	@ docker run -d -p 5432:5432 --name augur_test_database augurlabs/augur:testing-database
+	@ docker run -d -p 5434:5432 --name augur_database augurlabs/augur:database
 
