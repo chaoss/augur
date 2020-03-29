@@ -295,6 +295,11 @@ def top_committers(self, repo_group_id, repo_id=None, year=None, threshold=0.5):
 
         results = pd.read_sql(total_commits_SQL, self.database,
                             params={'year': year, 'repo_group_id': repo_group_id})
+        if(results.iloc[0]['sum']==None):
+            year -=1
+            results = pd.read_sql(total_commits_SQL, self.database,
+                                params={'year': year, 'repo_group_id': repo_group_id})
+
     else:
         total_commits_SQL = s.sql.text("""
             SELECT SUM(patches)::int
@@ -307,6 +312,11 @@ def top_committers(self, repo_group_id, repo_id=None, year=None, threshold=0.5):
 
         results = pd.read_sql(total_commits_SQL, self.database,
                             params={'year': year, 'repo_id': repo_id})
+        if(results.iloc[0]['sum']==None):
+            year -=1
+            results = pd.read_sql(total_commits_SQL, self.database,
+                                params={'year': year, 'repo_id': repo_id})
+
 
     total_commits = int(results.iloc[0]['sum'])
     threshold_commits = round(threshold * total_commits)
