@@ -414,6 +414,10 @@ def create_pull_request_routes(server):
     """
     server.addRepoGroupMetric(metrics.pull_requests_closed_no_merge, 'pull-requests-closed-no-merge')
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 2e962e4fe9eb7aa8322b97eec0340012954b683e
     """
     @api {get} /repos/:repo_id/pull-request-closed-no-merge Pull Request Closed but not merged(Repo)
     @apiName pull-request-closed-no-merge
@@ -512,4 +516,8 @@ def create_pull_request_routes(server):
                     ]
     """
 
+<<<<<<< HEAD
     server.addRepoGroupMetric(metrics.pull_request_message, 'pull-request-message')
+=======
+    server.addRepoGroupMetric(metrics.pull_request_message, 'pull-request-message')
+>>>>>>> 2e962e4fe9eb7aa8322b97eec0340012954b683e

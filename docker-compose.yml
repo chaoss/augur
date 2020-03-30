@@ -1,5 +1,6 @@
 version: '3'
 services:
+<<<<<<< HEAD
       backend:
        image: augurlabs/augur:backend
        restart: unless-stopped
@@ -10,6 +11,17 @@ services:
 
       frontend:
         image: augurlabs/augur:frontend
+=======
+      augur:
+       image: augurlabs/augur:latest
+       restart: unless-stopped
+       ports:
+         - 5000:5000
+       env_file: env.txt
+
+      frontend:
+        image: augurlabs/augur:frontend-dev
+>>>>>>> a3ae5aa8... Refactor Docker Compose configuration to use images
         restart: unless-stopped
         ports:
           - 8080:8080

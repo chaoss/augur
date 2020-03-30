@@ -1,7 +1,16 @@
 version: '3'
 services:
    database:
+<<<<<<< HEAD
     image: augurlabs/augur:database
     restart: unless-stopped
     ports:
      - 5434:5432
+=======
+    image: augurlabs/augur:database-dev
+    restart: unless-stopped
+    volumes:
+     - .:/augur_data
+    ports:
+     - 5432:5432
+>>>>>>> a3ae5aa8... Refactor Docker Compose configuration to use images
