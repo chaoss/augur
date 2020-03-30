@@ -477,5 +477,37 @@ def pull_request_merged_status_counts(self, repo_group_id, repo_id=None, begin_d
     
     return pr_counts
 
+
+@annotate(tag='pull-request-message')
+def pull_request_message(self, repo_group_id, repo_id=None):
+    """
+    Returns text messages for pull requests
+    :param repo_id : The repository's repo_id, defaults to None
+    """
+
+    if repo_id:
+        PullRequestMessageSQL = s.sql.text("""
+            SELECT pr.pull_request_id as pull_request_id,
+                   msg.msg_id as message_id, msg.msg_text as message_text,DATE(msg.msg_timestamp) as message_date
+                   FROM pull_requests pr
+                   LEFT JOIN pull_request_message_ref pr_message_ref on pr_message_ref.pull_request_id = pr.pull_request_id
+                   LEFT JOIN message msg on msg.msg_id =  pr_message_ref.msg_id
+                   WHERE pr.repo_id = :repo_id
+        """)
+        results = pd.read_sql(PullRequestMessageSQL, self.database, params={"repo_id": repo_id})
+
+    else:
+        PullRequestMessageSQL = s.sql.text("""
+            SELECT pr.pull_request_id,
+                   msg.msg_id, msg.msg_text as message_text,DATE(msg.msg_timestamp) as message_date
+                   FROM repo 
+                   LEFT JOIN pull_requests pr on  repo.repo_id = pr.repo_id
+                   LEFT JOIN pull_request_message_ref pr_message_ref on pr_message_ref.pull_request_id = pr.pull_request_id
+                   LEFT JOIN message msg on msg.msg_id =  pr_message_ref.msg_id
+                   WHERE repo.repo_group_id = :repo_group_id
+        """)
+        results = pd.read_sql(PullRequestMessageSQL, self.database, params={"repo_group_id": repo_group_id})
+
+    return results
 def create_pull_request_metrics(metrics):
     add_metrics(metrics, __name__)

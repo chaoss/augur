@@ -451,3 +451,64 @@ def create_pull_request_routes(server):
     """
     server.addRepoGroupMetric(metrics.pull_request_merged_status_counts, 'pull-request-merged-status-counts')
 
+
+    """
+    @api {get} /repos/:repo_id/pull-request-message Pull Requests message (Repo)
+    @apiName pull-request-message
+    @apiGroup Experimental
+    @apiDescription Text messages of Pull Requests
+    @apiParam {string} repo_group_id Repository Group ID.
+    @apiParam {string} repo_id Repository ID.
+    @apiSuccessExample {json} Success-Response:
+                    [
+                        {
+                            'pull_request_id': 209022,
+                            'message_id': 1694083.0,
+                            'message_text': '@germonprez What is wrong with the pip install from github? Also, would you like me to move the install script in the separate repo to this repo?',
+                            'message_date': '2017-01-23T00:00:00.000Z'
+
+                        }, 
+
+                        {
+                            'pull_request_id': 209022,
+                            'message_id': 1694084.0, 
+                            'message_text': 'Nothing wrong with it. Happy to change. \r\n\r\nYea,I think that the install script should be in this repo. ',
+                            'message_date': '2017-01-23T00:00:00.000Z'
+                                
+                        }
+                        
+                    ]
+    """
+
+
+    server.addRepoMetric(metrics.pull_request_message, 'pull-request-message')
+
+
+    """
+    @api {get} /repo-groups/:repo_group_id/pull-request-message Pull Requests message (Repo_Group)
+    @apiName pull-request-message
+    @apiGroup Experimental
+    @apiDescription Text messages of Pull Requests
+    @apiParam {string} repo_group_id Repository Group ID.
+    @apiParam {string} repo_id Repository ID.
+    @apiSuccessExample {json} Success-Response:
+                    [
+                        {
+                            'pull_request_id': 209229,
+                            'msg_id': 1694273.0,
+                            'message_text': 'Could any of you please review this change? I can merge it later.',
+                            'message_date': '2017-09-28T00:00:00.000Z'
+                            
+                        },
+
+                        {
+                            'pull_request_id': 209229,
+                            'msg_id': 1694274.0,
+                            'message_text': 'Thanks, @sduenas , merging...',
+                            'message_date': '2017-10-04T00:00:00.000Z'
+                            
+                        }
+                    ]
+    """
+
+    server.addRepoGroupMetric(metrics.pull_request_message, 'pull-request-message')
