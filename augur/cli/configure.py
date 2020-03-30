@@ -9,7 +9,33 @@ import json
 
 ENVVAR_PREFIX = "AUGUR_"
 
+<<<<<<< HEAD
 default_config = {
+=======
+@click.group('configure', short_help='Generate an augur.config.json')
+def cli():
+    pass
+
+@cli.command('generate', short_help='Generate an augur.config.json')
+@click.option('--db_name', help="Database name for your data collection database", envvar=ENVVAR_PREFIX + 'DB_NAME')
+@click.option('--db_host', help="Host for your data collection database", envvar=ENVVAR_PREFIX + 'DB_HOST')
+@click.option('--db_user', help="User for your data collection database", envvar=ENVVAR_PREFIX + 'DB_USER')
+@click.option('--db_port', help="Port for your data collection database", envvar=ENVVAR_PREFIX + 'DB_PORT')
+@click.option('--db_password', help="Password for your data collection database", envvar=ENVVAR_PREFIX + 'DB_PASSWORD')
+@click.option('--github_api_key', help="GitHub API key for data collection from the GitHub API", envvar=ENVVAR_PREFIX + 'GITHUB_API_KEY')
+@click.option('--facade_repo_directory', help="Directory on the database server where Facade should clone repos", envvar=ENVVAR_PREFIX + 'FACADE_REPO_DIRECTORY')
+@click.option('--file', type=click.Path(exists=True))
+def generate(db_name, db_host, db_user, db_port, db_password, github_api_key, facade_repo_directory, file):
+
+    config = {
+        "Cache": {
+            "config": {
+                "cache.data_dir": "runtime/cache/",
+                "cache.lock_dir": "runtime/cache/",
+                "cache.type": "file"
+            }
+        },
+>>>>>>> a3ae5aa8... Refactor Docker Compose configuration to use images
         "Database": {
             "name": "augur",
             "host": "localhost",
@@ -166,6 +192,7 @@ default_config = {
         }
     }
 
+<<<<<<< HEAD
 @click.group('configure', short_help='Generate an augur.config.json')
 def cli():
     pass
@@ -207,6 +234,9 @@ def generate(db_name, db_host, db_user, db_port, db_password, github_api_key, fa
 
         except Exception as e:
             print(f"Error opening {rc_config_file}: {str(e)}")
+=======
+    # os.chdir(os.path.dirname(os.path.realpath(__file__)))
+>>>>>>> a3ae5aa8... Refactor Docker Compose configuration to use images
 
     if db_name is not None:
         config['Database']['database'] = db_name # this is for backwards compatibility
@@ -225,6 +255,19 @@ def generate(db_name, db_host, db_user, db_port, db_password, github_api_key, fa
     if facade_repo_directory is not None:
         config['Workers']['facade_worker']['repo_directory'] = facade_repo_directory
 
+<<<<<<< HEAD
+=======
+    config['Database']['schema'] = "augur_data"
+
+    if file != None:
+        try:
+            with open(os.path.abspath(file), 'r') as f:
+                config = json.load(f)
+                print('Predefined config successfully loaded')
+        except Exception as e:
+            print(f"Error opening {file}: {str(e)}")
+
+>>>>>>> a3ae5aa8... Refactor Docker Compose configuration to use images
     try:
         with open(os.path.abspath('augur.config.json'), 'w') as f:
             json.dump(config, f, indent=4)

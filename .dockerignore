@@ -1,5 +1,6 @@
 # Augur
 augur.config.json
+<<<<<<< HEAD
 notebooks/
 cache/
 
@@ -16,11 +17,26 @@ logs/
 frontend/public/api_docs/
 docs/
 
+=======
+!default.config.json
+node_modules/
+logs/
+>>>>>>> a3ae5aa8... Refactor Docker Compose configuration to use images
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *$py.class
 *.pyc
 runtime/
+<<<<<<< HEAD
+=======
+logs/
+frontend/public/api_docs/
+*.err
+.git/
+.git
+.tox/
+.tox
+>>>>>>> a3ae5aa8... Refactor Docker Compose configuration to use images
 
 # Augur-spdx
 ./spdx-scanner/dosocs2.conf
