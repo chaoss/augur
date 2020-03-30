@@ -414,6 +414,7 @@ def create_pull_request_routes(server):
     """
     server.addRepoGroupMetric(metrics.pull_requests_closed_no_merge, 'pull-requests-closed-no-merge')
 
+<<<<<<< HEAD
     """
     @api {get} /repos/:repo_id/pull-request-closed-no-merge Pull Request Closed but not merged(Repo)
     @apiName pull-request-closed-no-merge
@@ -450,6 +451,9 @@ def create_pull_request_routes(server):
                     ]
     """
     server.addRepoGroupMetric(metrics.pull_request_merged_status_counts, 'pull-request-merged-status-counts')
+=======
+
+>>>>>>> f3ea4dab943c5ed124b599450a94cb09551842c8
 
 
 
@@ -513,4 +517,7 @@ def create_pull_request_routes(server):
     """
 
     server.addRepoGroupMetric(metrics.pull_request_message, 'pull-request-message')
+<<<<<<< HEAD
 
+=======
+>>>>>>> f3ea4dab943c5ed124b599450a94cb09551842c8
