@@ -50,10 +50,18 @@ install-augur-sbom:
 	@ ./scripts/install/nomos.sh
 
 clean:
+<<<<<<< HEAD
 	@ scripts/control/clean.sh
 
 rebuild:
 	@ scripts/control/rebuild.sh prod
+=======
+	@ echo "Removing node_modules, logs, caches, and some other dumb stuff that can be annoying..."
+	@ rm -rf runtime node_modules frontend/node_modules frontend/public augur.egg-info .pytest_cache logs
+	@ rm -rf workers/**/*.log workers/**/*.err
+	@ find . -name \*.pyc -delete
+	@ find . -type f -name "*.lock" -delete
+>>>>>>> 1d7ed4e0... Add make commands for Docker builds
 
 rebuild-dev:
 	@ scripts/control/rebuild.sh dev
@@ -64,6 +72,7 @@ rebuild-dev:
 #
 .PHONY: dev-start dev-stop dev monitor-frontend monitor-backend monitor frontend backend-stop backend-start backend-restart backend clean rebuild
 
+<<<<<<< HEAD
 dev-start: dev-stop
 	@ scripts/control/start_augur.sh
 	@ scripts/control/start_frontend.sh
@@ -75,6 +84,8 @@ dev-stop:
 dev: dev-stop dev-start
 
 
+=======
+>>>>>>> 1d7ed4e0... Add make commands for Docker builds
 #
 # Testing
 #
@@ -118,6 +129,7 @@ docs: api-docs library-docs
 
 #
 # Docker Shortcuts
+<<<<<<< HEAD
 #
 .PHONY: compose-run compose-run-database
 .PHONY: build-backend run-backend build-frontend run-frontend build-database run-database 
@@ -153,4 +165,37 @@ docker-run-frontend:
 
 docker-run-database:
 	@ docker run -d -p 5434:5432 --name augur_database augurlabs/augur:database
+=======
+# 
+.PHONY: compose-run compose-run-with-database
+.PHONY: build-augur run-augur build-frontend run-frontend build-database run-database 
+
+compose-run:
+	@ docker-compose -f docker-compose.yml up --build
+	@ docker-compose down --remove-orphans
+
+compose-run-with-database:
+	@ docker-compose -f docker-compose.yml -f database-compose.yml up --build
+	@ docker-compose down --remove-orphans
+
+
+docker-build-augur:
+	@ docker build -t augurlabs/augur:latest -f util/packaging/docker/augur/Dockerfile .
+
+docker-build-frontend:
+	@ docker build -t augurlabs/augur:frontend-dev -f util/packaging/docker/frontend/Dockerfile .
+
+docker-build-database:
+	@ docker build -t augurlabs/augur:database-dev -f util/packaging/docker/database/Dockerfile .
+
+
+docker-run-augur:
+	@ docker run -p 5000:5000 --name augur_latest augurlabs/augur:latest
+
+docker-run-frontend:
+	@ docker run -p 8080:8080 --name augur_frontend-dev augurlabs/augur:frontend-dev
+
+docker-run-database:
+	@ docker run -p 5432:5432 --name augur_database-dev augurlabs/augur:database-dev
+>>>>>>> 1d7ed4e0... Add make commands for Docker builds
 
