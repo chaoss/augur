@@ -917,6 +917,42 @@ def create_issue_routes(server):
     server.addRepoGroupMetric(metrics.issue_comments_mean_std, 'issue-comments-mean-std')
 
     """
+    @api {get} /repos/:repo_id/issue-with-comments (Repo)
+    @apiName issue-with-comments
+    @apiGroup Experimental
+    @apiDescription Issues with comments
+    @apiParam {string} repo_group_id Repository Group ID.
+    @apiParam {string} repo_id Repository ID.
+    @apiSuccessExample {json} Success-Response:
+                    [
+                        {
+                            "repo_id": 21326,
+                            "date": "2018-01-01T00:00:00.000Z",
+                            "count": 3
+                        }
+                    ]
+    """
+    server.addRepoMetric(metrics.issue_with_comments, 'issue-with-comments')
+
+    """
+    @api {get} /repo-groups/:repo_group_id/issue-with-comments Issue with Comments (Repo Group)
+    @apiName issue-with-comments
+    @apiGroup Experimental
+    @apiDescription Issues with comments
+    @apiParam {string} repo_group_id Repository Group ID.
+    @apiParam {string} [group_by="week"] Allows for results to be grouped by day, week, month, or year. E.g. values: `year`, `day`, `month`
+    @apiSuccessExample {json} Success-Response:
+                    [
+                        {
+                            "repo_name": rails,
+                            "date": "2018-01-01T00:00:00.000Z",
+                            "count": 3
+                        }
+                    ]
+    """
+    server.addRepoGroupMetric(metrics.issue_with_comments, 'issue-with-comments')
+
+    """
     @api {get} /repos/:repo_id/issue-comments-mean-std Issue Comments Mean Std (Repo)
     @apiName issue-comments-mean-repo
     @apiGroup Experimental
