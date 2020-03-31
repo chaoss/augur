@@ -1,5 +1,5 @@
 from flask import Flask, jsonify, request
-from insight_worker.worker import InsightWorker
+from contributor_worker.worker import ContributorWorker
 import click, os, json, logging, requests
 from workers.standard_methods import read_config
 
@@ -16,16 +16,16 @@ def create_server(app, gw):
         """
         if request.method == 'POST': #will post a task to be added to the queue
             logging.info("Sending to work on task: {}\n".format(str(request.json)))
-            app.insight_worker.task = request.json
+            app.contributor_worker.task = request.json
             
             #set task
             return jsonify({"success": "sucess"})
 
         if request.method == 'GET': #will retrieve the current tasks/status of the worker
             return jsonify({
-                "status": app.insight_worker._queue,
+                "status": app.contributor_worker._queue,
                 "tasks": [{
-                    "given": list(app.insight_worker._queue)
+                    "given": list(app.contributor_worker._queue)
                 }]
             })
 
@@ -40,7 +40,7 @@ def create_server(app, gw):
     def augwop_config():
         """ Retrieve worker's config
         """
-        return app.insight_worker.config
+        return app.contributor_worker.config
 
 @click.command()
 @click.option('--augur-url', default='http://localhost:5000/', help='Augur URL')
@@ -55,7 +55,7 @@ def main(augur_url, host, port):
     broker_host = read_config("Server", "host", "AUGUR_HOST", "0.0.0.0")
     broker_port = read_config("Server", "port", "AUGUR_PORT", 5000)
     database_host = read_config('Database', 'host', 'AUGUR_DB_HOST', 'host')
-    worker_info = read_config('Workers', 'insight_worker', None, {})
+    worker_info = read_config('Workers', 'contributor_worker', None, {})
 
     worker_port = worker_info['port'] if 'port' in worker_info else port
 
@@ -71,7 +71,7 @@ def main(augur_url, host, port):
     logging.basicConfig(filename='worker_{}.log'.format(worker_port), filemode='w', level=logging.INFO)
 
     config = { 
-            "id": "com.augurlabs.core.insight_worker.{}".format(worker_port),
+            "id": "com.augurlabs.core.contributor_worker.{}".format(worker_port),
             "broker_port": broker_port,
             "broker_host": broker_host,
             "location": "http://{}:{}".format(read_config('Server', 'host', 'AUGUR_HOST', 'localhost'),worker_port),
@@ -92,7 +92,7 @@ def main(augur_url, host, port):
         }
 
     #create instance of the worker
-    app.insight_worker = InsightWorker(config) # declares the worker that will be running on this server with specified config
+    app.contributor_worker = ContributorWorker(config) # declares the worker that will be running on this server with specified config
     
     create_server(app, None)
     print("Starting Flask App on host {} with port {} with pid: ".format(broker_host, worker_port) + str(os.getpid()) + "...")
