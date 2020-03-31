@@ -1,5 +1,6 @@
-from os import walk, chdir, environ
+from os import walk, chdir, environ, chmod
 from sys import exit
+import stat
 from collections import OrderedDict
 from subprocess import call
 import csv
@@ -115,8 +116,7 @@ def print_db_version(ctx):
 @cli.command('upgrade', short_help="Upgrade the configured database to the latest version")
 @click.pass_context
 def upgrade_db_version(ctx):
-    # current_db_version = get_db_version(ctx.obj)
-    current_db_version = 8
+    current_db_version = get_db_version(ctx.obj)
 
     update_scripts_filenames = []
     for (_, _, filenames) in walk('schema/generate'):
@@ -152,32 +152,6 @@ def get_db_version(app):
 
     return int(db.execute(db_version_sql).fetchone()[2])
 
-# I'm not sure if this is the correct way to do this
-# TODO: Use default user and credentials if possible to create the database
-# @cli.command('init-database', short_help="Create database on the configured port")
-# @click.option('--name', default='augur')
-# @click.option('--user', default='augur')
-# @click.option('--password', default='augur')
-# @click.option('--host', default='localhost')
-# @click.option('--port', default='5432')
-# @click.pass_context
-# def init_database(ctx, name, user, password, host, port):
-#     app = ctx.obj
-#     config = {
-#         'Database': {
-#             'name': name,
-#             'user': user,
-#             'password': password,
-#             'host': host,
-#             'port': port
-#         }
-#     }
-#     check_pgpass_credentials(config)
-#     run_db_creation_psql_command(host, port, user, name, f'CREATE DATABASE {name};')
-#     run_db_creation_psql_command(host, port, user, name, f'CREATE USER {user} WITH ENCRYPTED PASSWORD \'{password}\';')
-#     run_db_creation_psql_command(host, port, user, name, f'ALTER DATABASE {name} OWNER TO {user};')
-#     run_db_creation_psql_command(host, port, user, name, f'GRANT ALL PRIVILEGES ON DATABASE {name} TO {user};')
-
 @cli.command('create-schema', short_help="Create schema in the configured database")
 @click.pass_context
 def create_schema(ctx):
@@ -191,6 +165,39 @@ def load_data(ctx):
     app = ctx.obj
     check_pgpass_credentials(app.config)
     run_psql_command_in_database(app, '-f', 'schema/sample_data/load_sample_data.sql')
+
+@cli.command('check-pgpass', short_help="Check the ~/.pgpass file for Augur's database credentials")
+@click.pass_context
+def load_data(ctx):
+    app = ctx.obj
+    check_pgpass_credentials(app.config)
+
+@cli.command('init-database', short_help="Create database on the configured port")
+@click.option('--default-db-name', default='postgres')
+@click.option('--default-user', default='postgres')
+@click.option('--default-password', default='postgres')
+@click.option('--target-db-name', default='augur')
+@click.option('--target-user', default='augur')
+@click.option('--target-password', default='augur')
+@click.option('--host', default='localhost')
+@click.option('--port', default='5432')
+@click.pass_context
+def init_database(ctx, default_db_name, default_user, default_password, target_db_name, target_user, target_password, host, port):
+    app = ctx.obj
+    config = {
+        'Database': {
+            'name': default_db_name,
+            'user': default_user,
+            'password': default_password,
+            'host': host,
+            'port': port
+        }
+    }
+    check_pgpass_credentials(config)
+    run_db_creation_psql_command(host, port, default_user, default_db_name, f'CREATE DATABASE {target_db_name};')
+    run_db_creation_psql_command(host, port, default_user, default_db_name, f'CREATE USER {target_user} WITH ENCRYPTED PASSWORD \'{target_password}\';')
+    run_db_creation_psql_command(host, port, default_user, default_db_name, f'ALTER DATABASE {target_db_name} OWNER TO {target_user};')
+    run_db_creation_psql_command(host, port, default_user, default_db_name, f'GRANT ALL PRIVILEGES ON DATABASE {target_db_name} TO {target_user};')
 
 def run_db_creation_psql_command(host, port, user, name, command):
     call(['psql', '-h', host, '-p', port, '-U', user, '-d', name, '-a', '-w', '-c', command])
@@ -208,12 +215,14 @@ def run_psql_command_in_database(app, target_type, target):
     ])
 
 def check_pgpass_credentials(config):
-    with open(environ['HOME'] + '/.pgpass', 'a+') as pgpass_file:
+    pgpass_file_path = environ['HOME'] + '/.pgpass'
+    chmod(pgpass_file_path, stat.S_IWRITE | stat.S_IREAD)
+    with open(pgpass_file_path, 'a+') as pgpass_file:
         end = pgpass_file.tell()
         credentials_string = str(config['Database']['host']) \
                           + ':' + str(config['Database']['port']) \
                           + ':' + str(config['Database']['name']) \
-                          + ':' + str(config['Database']['name']) \
+                          + ':' + str(config['Database']['user']) \
                           + ':' + str(config['Database']['password'])
         pgpass_file.seek(0)
         if credentials_string.lower() not in [''.join(line.split()).lower() for line in pgpass_file.readlines()]:
