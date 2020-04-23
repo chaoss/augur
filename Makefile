@@ -1,5 +1,4 @@
 SERVE_COMMAND=augur run
-ENABLE_HOUSEKEEPER=--enable-housekeeper
 EDITOR?="vi"
 AUGUR_PIP?='pip'
 AUGUR_PYTHON?='python'
@@ -8,7 +7,7 @@ AUGUR_PORT?=5000
 default:
 	@ echo "Installation Commands:"
 	@ echo "    install                         Installs Augur's full stack for production"
-	@ echo "    install                         Installs Augur's full stack for development"
+	@ echo "    install-dev                     Installs Augur's full stack for development"
 	@ echo "    clean                           Removes potentially troublesome compiled files"
 	@ echo "    rebuild                         Removes build/compiled files & binaries and reinstalls the project"
 	@ echo
@@ -99,7 +98,7 @@ test-python-versions:
 .PHONY:api-docs api-docs-view docs
 
 test-data:
-	@ docker run -d -p 5434:5432 --name augur_test_data augurlabs/augur:test_data
+	@ docker run -p 5434:5432 --name augur_test_data augurlabs/augur:test_data@sha256:3c496445d7219b824315a37369fcddbe83b10773259560df5645162ce81dfb33
 
 library-docs:
 	@ bash -c 'cd docs/ && rm -rf build/ && make html;'
@@ -118,7 +117,7 @@ docs: api-docs library-docs
 
 #
 # Docker Shortcuts
-#
+# Do not use these unless you know what they mean.
 .PHONY: compose-run compose-run-database
 .PHONY: build-backend run-backend build-frontend run-frontend build-database run-database 
 
@@ -128,7 +127,7 @@ compose-run:
 
 compose-run-database:
 	@ echo "**************************************************************************"
-	@ echo "Make sure there are no database credentials in augur_env.txt!"
+	@ echo "Make sure there are no database credentials in docker_env.txt!"
 	@ echo "**************************************************************************"
 	@ echo
 	@ docker-compose -f docker-compose.yml -f database-compose.yml up --build
@@ -146,11 +145,11 @@ docker-build-database:
 
 
 docker-run-backend:
-	@ docker run -d -p 5000:5000 --name augur_backend --env-file augur_env.txt augurlabs/augur:backend
+	@ docker run -p 5000:5000 --name augur_backend --env-file docker_env.txt augurlabs/augur:backend
 
 docker-run-frontend:
-	@ docker run -d -p 8080:8080 --name augur_frontend augurlabs/augur:frontend
+	@ docker run -p 8080:8080 --name augur_frontend augurlabs/augur:frontend
 
 docker-run-database:
-	@ docker run -d -p 5434:5432 --name augur_database augurlabs/augur:database
+	@ docker run -p 5434:5432 --name augur_database augurlabs/augur:database
 

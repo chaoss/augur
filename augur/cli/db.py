@@ -1,8 +1,11 @@
-from os import walk, chdir, environ, chmod
+from os import walk, chdir, environ, chmod, path
+import os
 from sys import exit
 import stat
 from collections import OrderedDict
 from subprocess import call
+import random
+import string
 import csv
 import click
 import sqlalchemy as s
@@ -13,10 +16,13 @@ from sqlalchemy import exc
 def cli():
     pass
 
-@cli.command('add-repos', short_help="Add repositories to Augur's database")
+@cli.command('add-repos')
 @click.argument('filename', type=click.Path(exists=True))
 @click.pass_context
 def add_repos(ctx, filename):
+    """
+    Add repositories to Augur's database
+    """
     app = ctx.obj
 
     db = get_db_connection(app)
@@ -45,9 +51,12 @@ def add_repos(ctx, filename):
                 # Since there's no rows to fetch after a successful insert, this is how we know it worked.
                 # I know it's weird
 
-@cli.command('get-repo-groups', short_help="List all repo groups and their associated IDs")
+@cli.command('get-repo-groups')
 @click.pass_context
 def get_repo_groups(ctx):
+    """
+    List all repo groups and their associated IDs
+    """
     app = ctx.obj
 
     db = get_db_connection(app)
@@ -57,10 +66,13 @@ def get_repo_groups(ctx):
 
     return df
 
-@cli.command('add-repo-groups', short_help="Create new repo groups in Augur's database")
+@cli.command('add-repo-groups')
 @click.argument('filename', type=click.Path(exists=True))
 @click.pass_context
 def add_repo_groups(ctx, filename):
+    """
+    Create new repo groups in Augur's database
+    """
     app = ctx.obj
 
     db = get_db_connection(app)
@@ -88,10 +100,13 @@ def add_repo_groups(ctx, filename):
                 # Since there's no rows to fetch after a successful insert, this is how we know it worked.
                 # I know it's weird, sue me (jk please don't)
 
-@cli.command('update-repo-directory', short_help="Update Facade worker repo cloning directory")
+@cli.command('update-repo-directory')
 @click.argument('repo_directory')
 @click.pass_context
 def update_repo_directory(ctx, repo_directory):
+    """
+    Update Facade worker repo cloning directory
+    """
     app = ctx.obj
 
     db = get_db_connection(app)
@@ -108,15 +123,33 @@ def update_repo_directory(ctx, repo_directory):
         # Since there's no rows to fetch after a successful insert, this is how we know it worked.
         # I know it's weird, sue me (jk please don't)
 
-@cli.command('version', short_help="Get the version of the configured database")
+# get_db_version is a helper function to print_db_version and upgrade_db_version
+def get_db_version(app):
+    db = get_db_connection(app)
+
+    db_version_sql = s.sql.text("""
+        SELECT * FROM augur_operations.augur_settings WHERE setting = 'augur_data_version'
+    """)
+
+    return int(db.execute(db_version_sql).fetchone()[2])
+
+@cli.command('print-db-version')
 @click.pass_context
 def print_db_version(ctx):
-    print(f"Augur DB version: {get_db_version(ctx.obj)}")
+    """
+    Get the version of the configured database
+    """
+    print(get_db_version(ctx.obj))
 
-@cli.command('upgrade', short_help="Upgrade the configured database to the latest version")
+@cli.command('upgrade-db-version')
 @click.pass_context
 def upgrade_db_version(ctx):
-    current_db_version = get_db_version(ctx.obj)
+    """
+    Upgrade the configured database to the latest version
+    """
+    app = ctx.obj
+    check_pgpass_credentials(app.config)
+    current_db_version = get_db_version(app)
 
     update_scripts_filenames = []
     for (_, _, filenames) in walk('schema/generate'):
@@ -140,39 +173,132 @@ def upgrade_db_version(ctx):
     for target_version, script_location in target_version_script_map.items():
         if target_version == current_db_version + 1:
             print("Upgrading from", current_db_version, "to", target_version)
-            run_psql_command_in_database(ctx.obj, '-f', f"schema/generate/{script_location}")
+            run_psql_command_in_database(app, '-f', f"schema/generate/{script_location}")
             current_db_version += 1
 
-def get_db_version(app):
-    db = get_db_connection(app)
+@cli.command('check-for-upgrade')
+@click.pass_context
+def check_for_upgrade(ctx):
+    """
+    Upgrade the configured database to the latest version
+    """
+    app = ctx.obj
+    check_pgpass_credentials(app.config)
+    current_db_version = get_db_version(app)
 
-    db_version_sql = s.sql.text("""
-        SELECT * FROM augur_operations.augur_settings WHERE setting = 'augur_data_version'
-    """)
+    update_scripts_filenames = []
+    for (_, _, filenames) in walk('schema/generate'):
+        update_scripts_filenames.extend([file for file in filenames if 'update' in file])
+        # files_temp.extend([file.split("-")[1][14:].split(".")[0] for file in filenames if 'update' in file])
+        break
 
-    return int(db.execute(db_version_sql).fetchone()[2])
+    target_version_script_map = {}
+    for script in update_scripts_filenames:
+        upgrades_to = int(script.split("-")[1][14:].split(".")[0])
+        target_version_script_map[upgrades_to] = str(script)
 
-@cli.command('create-schema', short_help="Create schema in the configured database")
+    target_version_script_map = OrderedDict(sorted(target_version_script_map.items()))
+
+    most_recent_version = list(target_version_script_map.keys())[-1]
+    if current_db_version == most_recent_version:
+        print("Database is already up to date.")
+    elif current_db_version < most_recent_version:
+        print(f"Current database version: v{current_db_version}\nPlease upgrade to the most recent version (v{most_recent_version}) with augur db upgrade-db-version.")
+    elif current_db_version > most_recent_version:
+        print(f"Unrecognized version: {current_db_version}\nThe most recent version is {most_recent_version}. Please contact your system administrator to resolve this error.")
+
+
+@cli.command('create-schema')
 @click.pass_context
 def create_schema(ctx):
+    """
+    Create schema in the configured database
+    """
     app = ctx.obj
     check_pgpass_credentials(app.config)
     run_psql_command_in_database(app, '-f', 'schema/create_schema.sql')
 
-@cli.command('load-data', short_help="Load sample data into the configured database")
+
+def generate_key(length):
+    return ''.join(random.choice(string.ascii_letters + string.digits) for _ in range(length))
+
+@cli.command('generate-api-key')
 @click.pass_context
-def load_data(ctx):
+def generate_api_key(ctx):
+    """
+    Generate and set a new Augur API key
+    """
     app = ctx.obj
-    check_pgpass_credentials(app.config)
-    run_psql_command_in_database(app, '-f', 'schema/sample_data/load_sample_data.sql')
+    key = generate_key(32)
+    ctx.invoke(update_api_key, api_key=key)
+    print(key)
+
+@cli.command('update-api-key')
+@click.argument("api_key")
+@click.pass_context
+def update_api_key(ctx, api_key):
+    """
+    Update the API key in the database to the given key
+    """
+    app = ctx.obj
+
+    # we need to connect to augur_operations and not augur_data, so don't use
+    # get_db_connection
+    user = app.read_config('Database', 'user')
+    password = app.read_config('Database', 'password')
+    host = app.read_config('Database', 'host')
+    port = app.read_config('Database', 'port')
+    dbname = app.read_config('Database', 'name')
+
+    DB_STR = 'postgresql://{}:{}@{}:{}/{}'.format(
+            user, password, host, port, dbname
+    )
+
+    db = s.create_engine(DB_STR, poolclass=s.pool.NullPool)
+
+    update_api_key_sql = s.sql.text("""
+        UPDATE augur_operations.augur_settings SET VALUE = :api_key WHERE setting='augur_api_key';
+    """)
+
+    db.execute(update_api_key_sql, api_key=api_key)
+
+@cli.command('get-api-key')
+@click.pass_context
+def get_api_key(ctx):
+    app = ctx.obj
+
+    # we need to connect to augur_operations and not augur_data, so don't use
+    # get_db_connection
+    user = app.read_config('Database', 'user')
+    password = app.read_config('Database', 'password')
+    host = app.read_config('Database', 'host')
+    port = app.read_config('Database', 'port')
+    dbname = app.read_config('Database', 'name')
+
+    DB_STR = 'postgresql://{}:{}@{}:{}/{}'.format(
+            user, password, host, port, dbname
+    )
+
+    db = s.create_engine(DB_STR, poolclass=s.pool.NullPool)
+
+    get_api_key_sql = s.sql.text("""
+        SELECT value FROM augur_operations.augur_settings WHERE setting='augur_api_key';
+    """)
+
+    try:
+        print(db.execute(get_api_key_sql).fetchone()[0])
+    except TypeError:
+        print("No Augur API key found.")
+
+
 
 @cli.command('check-pgpass', short_help="Check the ~/.pgpass file for Augur's database credentials")
 @click.pass_context
-def load_data(ctx):
+def check_pgpass(ctx):
     app = ctx.obj
     check_pgpass_credentials(app.config)
 
-@cli.command('init-database', short_help="Create database on the configured port")
+@cli.command('init-database')
 @click.option('--default-db-name', default='postgres')
 @click.option('--default-user', default='postgres')
 @click.option('--default-password', default='postgres')
@@ -183,6 +309,9 @@ def load_data(ctx):
 @click.option('--port', default='5432')
 @click.pass_context
 def init_database(ctx, default_db_name, default_user, default_password, target_db_name, target_user, target_password, host, port):
+    """
+    Create database with the given credentials using the given maintenance database 
+    """
     app = ctx.obj
     config = {
         'Database': {
@@ -216,7 +345,18 @@ def run_psql_command_in_database(app, target_type, target):
 
 def check_pgpass_credentials(config):
     pgpass_file_path = environ['HOME'] + '/.pgpass'
-    chmod(pgpass_file_path, stat.S_IWRITE | stat.S_IREAD)
+
+    if not path.isfile(pgpass_file_path):
+        print("~/.pgpass does not exist, creating.")
+        open(pgpass_file_path, 'w+')
+        chmod(pgpass_file_path, stat.S_IWRITE | stat.S_IREAD)
+
+    pgpass_file_mask = oct(os.stat(pgpass_file_path).st_mode & 0o777)
+
+    if pgpass_file_mask != '0o600':
+        print("Updating ~/.pgpass file permissions.")
+        chmod(pgpass_file_path, stat.S_IWRITE | stat.S_IREAD)
+
     with open(pgpass_file_path, 'a+') as pgpass_file:
         end = pgpass_file.tell()
         credentials_string = str(config['Database']['host']) \
