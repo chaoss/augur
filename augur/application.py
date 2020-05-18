@@ -5,326 +5,147 @@ Handles global context, I/O, and configuration
 
 import os
 import time
-import argparse
 import multiprocessing as mp
 import logging
+import coloredlogs
 import json
 import pkgutil
 from beaker.cache import CacheManager
 from beaker.util import parse_cache_config_options
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, scoped_session
-from augur.models.common import Base
-from augur import logger
-from augur.metrics import MetricDefinitions
-import augur.plugins
-import logging
+import sqlalchemy as s
+import psycopg2
 
-logging.basicConfig(filename='test.log', level=logging.INFO)
+from augur import logger
+from augur.metrics import Metrics
+from augur.cli.configure import default_config
 
 class Application(object):
     """Initalizes all classes from Augur using a config file or environment variables"""
 
-    def __init__(self, config_file='augur.config.json', no_config_file=0, description='Augur application', config=None):
+    def __init__(self):
         """
         Reads config, creates DB session, and initializes cache
         """
-        # Open the config file
-        self.__already_exported = {}
-        self.__default_config = { 'Plugins': [] }
-        self.__using_config_file = True
-        self.__config_bad = False
-        self.__config_file_path = os.path.abspath(os.getenv('AUGUR_CONFIG_FILE', config_file))
-        self.__config_location = os.path.dirname(self.__config_file_path)
-        self.__runtime_location = 'runtime/'
-        self.__export_env = os.getenv('AUGUR_ENV_EXPORT', '0') == '1'
+        self.config_file_name = 'augur.config.json'
         self.__shell_config = None
-        if os.getenv('AUGUR_ENV_ONLY', '0') != '1' and no_config_file == 0:
-            try:
-                self.__config_file = open(self.__config_file_path, 'r+')
-            except:
-                logger.info('Couldn\'t open {}, attempting to create. If you have a augur.cfg, you can convert it to a json file using "make to-json"'.format(config_file))
-                if not os.path.exists(self.__config_location):
-                    os.makedirs(self.__config_location)
-                self.__config_file = open(self.__config_file_path, 'w+')
-                self.__config_bad = True
-            # Options to export the loaded configuration as environment variables for Docker
-           
-            if self.__export_env:
-                export_filename = os.getenv('AUGUR_ENV_EXPORT_FILE', 'augur.cfg.sh')
-                self.__export_file = open(export_filename, 'w+')
-                logger.info('Exporting {} to environment variable export statements in {}'.format(config_file, export_filename))
-                self.__export_file.write('#!/bin/bash\n')
+        self.__export_file = None
+        self.__env_file = None
+        self.config = default_config
+        self.env_config = {}
+        self.root_augur_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+        default_config_path = self.root_augur_dir + '/' + self.config_file_name
+        using_config_file = False
 
-            # Load the config file
-            try:
-                config_text = self.__config_file.read()
-                self.__config = json.loads(config_text)
-            except json.decoder.JSONDecodeError as e:
-                if not self.__config_bad:
-                    self.__using_config_file = False
-                    logger.error('%s could not be parsed, using defaults. Fix that file, or delete it and run this again to regenerate it. Error: %s', self.__config_file_path, str(e))
 
-                self.__config = self.__default_config
+        config_locations = [self.config_file_name, default_config_path, f"/opt/augur/{self.config_file_name}"]
+        if os.getenv('AUGUR_CONFIG_FILE') is not None:
+            config_file_path = os.getenv('AUGUR_CONFIG_FILE')
+            using_config_file = True
         else:
-            self.__using_config_file = False
-            self.__config = self.__default_config
+            for index, location in enumerate(config_locations):
+                try:
+                    f = open(location, "r+")
+                    config_file_path = os.path.abspath(location)
+                    using_config_file = True
+                    f.close()
+                    break
+                except FileNotFoundError:
+                    pass
 
-        if isinstance(config, dict):
-            self.__config.update(config)
+        if using_config_file:
+            try:
+                with open(config_file_path, 'r+') as config_file_handle:
+                    self.config = json.loads(config_file_handle.read())
+            except json.decoder.JSONDecodeError as e:
+                logger.warning('%s could not be parsed, using defaults. Fix that file, or delete it and run this again to regenerate it. Error: %s', config_file_path, str(e))
+        else:
+            logger.warning('%s could not be parsed, using defaults.')
 
-        # List of data sources that can do periodic updates
-        self.__updatable = []
-        self.__processes = []
+        self.load_env_configuration()
 
-        # Create cache
-        cache_config = {
+        logger.setLevel(self.read_config("Development", "log_level"))
+
+        self.cache_config = {
             'cache.type': 'file',
-            'cache.data_dir': self.path('$(RUNTIME)/cache/'),
-            'cache.lock_dir': self.path('$(RUNTIME)/cache/')
+            'cache.data_dir': 'runtime/cache/',
+            'cache.lock_dir': 'runtime/cache/'
         }
-        cache_config.update(self.read_config('Cache', 'config', None, cache_config))
-        cache_config['cache.data_dir'] = self.path(cache_config['cache.data_dir'])
-        cache_config['cache.lock_dir'] = self.path(cache_config['cache.lock_dir'])
-        if not os.path.exists(cache_config['cache.data_dir']):
-            os.makedirs(cache_config['cache.data_dir'])
-        if not os.path.exists(cache_config['cache.lock_dir']):
-            os.makedirs(cache_config['cache.lock_dir'])
-        cache_parsed = parse_cache_config_options(cache_config)
+        if not os.path.exists(self.cache_config['cache.data_dir']):
+            os.makedirs(self.cache_config['cache.data_dir'])
+        if not os.path.exists(self.cache_config['cache.lock_dir']):
+            os.makedirs(self.cache_config['cache.lock_dir'])
+        cache_parsed = parse_cache_config_options(self.cache_config)
         self.cache = CacheManager(**cache_parsed)
 
-        # Create DB Session
-        self.db = None
-        self.session = None
-        db_str = self.read_config('Database', 'connection_string', 'AUGUR_DATABASE', 'sqlite:///:memory:')
-        self.db = create_engine(db_str)
-        self.__Session = scoped_session(sessionmaker(bind=self.db))
-        self.session = self.__Session()
-        Base.query = self.__Session.query_property()
+        self.database = self.__connect_to_database()
+        self.spdx_db = self.__connect_to_database(include_spdx=True)
 
-        self.metrics = MetricDefinitions(self)
+        self.metrics = Metrics(self)
 
+    def __connect_to_database(self, include_spdx=False):
+        user = self.read_config('Database', 'user')
+        host = self.read_config('Database', 'host')
+        port = self.read_config('Database', 'port')
+        dbname = self.read_config('Database', 'name')
 
-        # # Initalize all objects to None
-        # self.__metrics_status = None
-        self._loaded_plugins = {}
+        database_connection_string = 'postgresql://{}:{}@{}:{}/{}'.format(
+            user, self.read_config('Database', 'password'), host, port, dbname
+        )
 
-        # Application.default_plugins
-        # for plugin_name in Application.default_plugins:
-        #     self[plugin_name]
+        csearch_path_options = 'augur_data'
+        if include_spdx == True:
+            csearch_path_options += ',spdx'
 
+        engine = s.create_engine(database_connection_string, poolclass=s.pool.NullPool,
+            connect_args={'options': f'-csearch_path={csearch_path_options}'}, pool_pre_ping=True)
 
-
-    def __getitem__(self, plugin_name):
-        """
-        Returns plugin matching the name of the parameter 'plugin_name'
-
-        :param plugin_name: name of specified plugin
-        """ 
-        if plugin_name not in self._loaded_plugins:
-            if plugin_name not in Application.plugins:
-                raise ValueError('Plugin %s not found.' % plugin_name)
-            self._loaded_plugins[plugin_name] = Application.plugins[plugin_name](self)
-            logger.debug('{plugin_name} plugin loaded')
-        return self._loaded_plugins[plugin_name]
-
-    @classmethod
-    def import_plugins(cls):
-        """
-        Imports all plugins
-        """
-        if not hasattr(cls, 'plugins'):
-            setattr(cls, 'plugins', {})
-        plugins = [augur.plugins]
-        for module in plugins:
-            for importer, modname, ispkg in pkgutil.iter_modules(module.__path__):
-                if ispkg:
-                    try:
-                        importer.find_module(modname).load_module(modname)
-                    except Exception as e:
-                        logger.warn('Error when loading plugin {module.__name__}.{modname}:')
-                        logger.exception(e)
-
-    @classmethod
-    def register_plugin(cls, plugin):
-        """
-        Registers specified plugin
-
-        :param plugin: specified plugin to register
-        """
-        if 'name' not in plugin.augur_plugin_meta:
-            raise NameError("{} didn't have a name")
-        cls.plugins[plugin.augur_plugin_meta['name']] = plugin
-        if plugin.augur_plugin_meta.get('datasource'):
-            Application.default_plugins.append(plugin.augur_plugin_meta['name'])
-
-    def replace_config_variables(self, string, reverse=False):
-        """
-        Replaces the configuration of a variable sent
-        """
-        variable_map = {
-            'AUGUR': self.__config_location,
-            'RUNTIME': self.__runtime_location
-        }
-        for variable, source in variable_map.items():
-            if not reverse:
-                string = string.replace('$({})'.format(variable), source)
-            else:
-                string = string.replace(source, '$({})'.format(variable))
-        return string
-
-    def path(self, path):
-        """
-        Returns the absolute path for the given relative path
-        """
-        path = self.replace_config_variables(path)
-        path = os.path.abspath(os.path.expanduser(path))
-        return path
-
-    @staticmethod
-    def updater_process(name, delay, shared):
-        """
-        Controls a given plugin's update process
-
-        :param name: name of object to be updated 
-        :param delay: time needed to update
-        :param shared: shared object that is to also be updated
-        """
-        logger.info('Spawned {} updater process with PID {}'.format(name, os.getpid()))
-        app = Application()
-        datasource = getattr(app, name)()
         try:
-            while True:
-                logger.info('Updating {}...'.format(name))
-                datasource.update(shared)
-                time.sleep(delay)
-        except KeyboardInterrupt:
-            os._exit(0)
-        except:
-            raise
+            test_connection = engine.connect()
+            test_connection.close()
+            return engine
+        except s.exc.OperationalError as e:
+            logger.fatal(f"Unable to connect to the database. Terminating...")
+            exit()
 
-    def __updater(self, updates=None):
-        """
-        Starts update processes
-        """
-        if updates is None:
-            updates = self.__updatable
-        for update in updates:
-            if not 'started' in update:
-                up = mp.Process(target=Application.updater_process, args=(update['name'], update['delay']), daemon=True)
-                up.start()
-                self.__processes.append(up)
-                update['started'] = True
-
-    def read_config(self, section, name=None, environment_variable=None, default=None):
+    def read_config(self, section, name=None):
         """
         Read a variable in specified section of the config file, unless provided an environment variable
 
         :param section: location of given variable
         :param name: name of variable
         """
-        value = None
-        if environment_variable is not None:
-            value = os.getenv(environment_variable)
-        if value is None:
+        if name is not None:
             try:
-                if name is not None:
-                    value = self.__config[section][name]
-                else:
-                    value = self.__config[section]
-            except Exception as e:
-                value = default
-                if not section in self.__config:
-                    self.__config[section] = {}
-                if self.__using_config_file:
-                    self.__config_bad = True
-                    self.__config[section][name] = default
-        if (environment_variable is not None
-                and value is not None
-                and self.__export_env
-                and not hasattr(self.__already_exported, environment_variable)):
-            self.__export_file.write('export ' + environment_variable + '="' + str(value) + '"\n')
-            self.__already_exported[environment_variable] = True
-        if os.getenv('AUGUR_DEBUG_LOG_ENV', '0') == '1':
-            logger.debug('{}:{} = {}'.format(section, name, value))
+                value = self.config[section][name]
+            except KeyError as e:
+                value = default_config[section][name]
+        else:
+            try:
+                value = self.config[section]
+            except KeyError as e:
+                value = default_config[section]
+
         return value
 
-    @property
-    def shell(self, banner1='-- Augur Shell --', **kwargs):
-        from IPython.terminal.embed import InteractiveShellEmbed
-        if not self.__shell_config:
-            from augur.util import init_shell_config
-            self.__shell_config = init_shell_config()
-        return InteractiveShellEmbed(config=self.__shell_config, banner1=banner1, **kwargs)
+    def load_env_configuration(self):
+        self.set_env_value(section='Database', name='key', environment_variable='AUGUR_GITHUB_API_KEY')
+        self.set_env_value(section='Database', name='host', environment_variable='AUGUR_DB_HOST')
+        self.set_env_value(section='Database', name='name', environment_variable='AUGUR_DB_NAME')
+        self.set_env_value(section='Database', name='port', environment_variable='AUGUR_DB_PORT')
+        self.set_env_value(section='Database', name='user', environment_variable='AUGUR_DB_USER')
+        self.set_env_value(section='Database', name='password', environment_variable='AUGUR_DB_PASSWORD')
+        self.set_env_value(section='Development', name='log_level', environment_variable='AUGUR_LOG_LEVEL')
 
-    def set_config(self, section, name, value):
+    def set_env_value(self, section, name, environment_variable, sub_config=None):
         """
-        Sets names and values of specified config section
+        Sets names and values of specified config section according to their environment variables.
+        """
+        # using sub_config lets us grab values from nested config blocks
+        if sub_config is None:
+            sub_config = self.config
 
-        :param section: area of object
-        :param name: name of specified object
-        :param value: new value to be set to object
-        """
-        if not section in self.__config:
-            self.__config[section] = {}
-        self.__config[section][name] = value
+        env_value = os.getenv(environment_variable)
 
-    def finalize_config(self):
-        """
-        Parse args and generates a valid config if the given one is bad
-        """
-        # Close files and save config
-        if self.__config_bad:
-            logger.info('Regenerating config with missing values...')
-            self.__config_file.close()
-            self.__config_file = open(self.__config_file_path, 'w')
-            config_text = json.dumps(self.__config, sort_keys=True, indent=4)
-            config_text = config_text.replace(self.__config_location, '$(AUGUR)')
-            self.__config_file.write(config_text)
-        self.__config_file.close()
-
-    def path_relative_to_config(self, path):
-        """
-        Returns path relative to the config file
-
-        :param path: specified path of variable
-        """
-        if not os.path.isabs(path):
-            return os.path.join(self.__config_location, path)
-        else:
-            return path
-
-    def update_all(self):
-        """
-        Updates all plugins
-        """
-        for updatable in self.__updatable:
-            logger.info('Updating {}...'.format(updatable['name']))
-            updatable['update']()
-
-    def schedule_updates(self):
-        """
-        Schedules updates
-        """
-        # don't use this, 
-        logger.debug('Scheduling updates...')
-        self.__updater()
-
-    def join_updates(self):
-        """
-        Join to the update processes
-        """
-        for process in self.__processes:
-            process.join()
-
-    def shutdown_updates(self):
-        """
-        Ends all running update processes
-        """
-        for process in self.__processes:
-            process.terminate()            
-
-
-Application.plugins = {}
-Application.default_plugins = []
-Application.import_plugins()
+        if env_value is not None:
+            self.env_config[environment_variable] = env_value
+            sub_config[section][name] = env_value

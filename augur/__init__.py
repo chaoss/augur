@@ -1,13 +1,10 @@
 #SPDX-License-Identifier: MIT
 
-# Metadata
-from .metadata import __version__
+import logging
+import coloredlogs
 
-# Functions
-from .util import logger
+coloredlogs.install()
+logger = logging.getLogger('augur')
 
 # Classes
-from .application import Application
-
-# Plugins
-from .augurplugin import AugurPlugin
+from .application import Application, logger
