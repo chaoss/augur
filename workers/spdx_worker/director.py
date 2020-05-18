@@ -19,6 +19,7 @@ if __name__ == "__main__":
         port = config["Database"]["port"]
         dsfile = config["Workers"]["license_worker"]["tagfile"]
         ipath = config["Workers"]["facade_worker"]["repo_directory"]
+        print("IPATH EQUALS " + ipath)
 
         configtools = 'postgresql://{}:{}@{}:{}/{}'.format(
             user, password, host, port, dbname

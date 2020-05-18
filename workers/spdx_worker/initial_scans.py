@@ -31,7 +31,11 @@ def scan(dbname, user, password, host, port, dsfile, ipath):
             records = cur.fetchall()
             print("****************")
             print("CREATING NEW RECORD")
-            path = ipath + str(sector[2]) + "/" + str(sector[0]) + str(sector[3])
+            print(str(sector[0]))
+            path = ipath + "/" + str(sector[3])
+            print("llllllllllllllllllllllll")
+            print(path)
+            print("llllllllllllllllllllllll")
             cur.execute("SELECT repo_path FROM spdx.augur_repo_map WHERE" + chr(39) + path + chr(39) + " " + chr(61) + " repo_path;")
             check = bool(cur.rowcount)
             if check == True:
@@ -51,7 +55,11 @@ def scan(dbname, user, password, host, port, dsfile, ipath):
                 print(output)
                 print("RECORD CREATED")
         else:
-            print("DUPLICATE RECORD FOUND. SKIPPING")
+            print("DUPLICATE RECORD FOUND. SKIPPING...")
         cur.execute("update augur_repo_map a set dosocs_pkg_name = b.name from packages b where a.repo_path = b.download_location;")
+        print("FIRST QUERY RESULTS")
+        print(cur.fetchall)
         cur.execute("update augur_repo_map a set dosocs_pkg_id = b.package_id from packages b where a.repo_path = b.download_location;")
+        print("SECOND QUERY RESUTS")
+        print(cur.fetchall)
     return
