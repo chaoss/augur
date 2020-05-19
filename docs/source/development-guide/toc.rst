@@ -16,6 +16,8 @@ If you have questions or would like to help please open an issue on GitHub_.
    installation
    make/toc
    documentation
+   schema-deployment
+
 
 .. configuration-file-reference
 .. metrics-api/toc
