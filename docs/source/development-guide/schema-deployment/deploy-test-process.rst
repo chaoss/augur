@@ -9,7 +9,7 @@ Since Augur is a data centric system, software testing is not sufficient for ens
 
 3. There are 3 main environments: 
         - development ('dev branch')
-	    - testing ('deploy-test' branch)
-	    - production ('master' branch)
+        - testing ('deploy-test' branch)
+        - production ('master' branch)
 
 4. Only maintainers can push to any of these branches (by merging pull requests.)  We will do this quickly when things are ready.
