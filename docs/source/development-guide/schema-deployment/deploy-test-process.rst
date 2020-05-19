@@ -8,7 +8,7 @@ Since Augur is a data centric system, software testing is not sufficient for ens
 2. Commit and push your work no less frequently than the end of each day. 
 
 3. There are 3 main environments: 
-    	- development ('dev branch')
+        - development ('dev branch')
 	    - testing ('deploy-test' branch)
 	    - production ('master' branch)
 
