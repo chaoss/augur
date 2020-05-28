@@ -41,4 +41,6 @@ OWNED BY "augur_data"."releases"."release_id";
 
 ALTER SEQUENCE "augur_data"."releases_release_id_seq" OWNER TO "augur";
 
+ALTER TABLE "augur_data"."releases" ADD CONSTRAINT "fk_releases_repo_1" FOREIGN KEY ("repo_id") REFERENCES "augur_data"."repo" ("repo_id") ON DELETE NO ACTION ON UPDATE NO ACTION;
+
 update "augur_operations"."augur_settings" set value = 18 where setting = 'augur_data_version'; 
