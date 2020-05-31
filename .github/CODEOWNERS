@@ -1,0 +1,30 @@
+/augur/cli/ @ccarterlandis
+/augur/metrics/ @ccarterlandis
+/augur/housekeeper/ @gabe-heim
+/augur/server.py @ccarterlandis @gabe-heim
+/augur/application.py @ccarterlandis @gabe-heim
+/augur/routes/ @ccarterlandis @gabe-heim
+
+/frontend/ @gabe-heim
+
+/schema/ @sgoggins @ccarterlandis
+
+/workers/ @ccarterlandis @gabe-heim
+
+/README.md @sgoggins @ccarterlandis
+/CONTRIBUTING.md @sgoggins @ccarterlandis
+/LICENSE @sgoggins @ccarterlandis
+/CODE_OF_CONDUCT.md @sgoggins @ccarterlandis
+
+/tests/ @ccarterlandis
+/util/docker @ccarterlandis
+/scripts/ @ccarterlandis
+/docs/ @ccarterlandis
+/.dockerignore @ccarterlandis
+/.travis.yml @ccarterlandis
+*compose.yml @ccarterlandis
+/readthedocs.yml @ccarterlandis
+/Makefile @ccarterlandis
+/tox.ini @ccarterlandis
+*requirements.txt @ccarterlandis
+/setup.py @ccarterlandis
