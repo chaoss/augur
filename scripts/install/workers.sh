@@ -1,8 +1,6 @@
 #!/bin/bash
 set -eo pipefail
 
-echo
-echo "**********************************"
 echo "Installing workers and their dependencies..."
 echo "**********************************"
 echo
@@ -13,7 +11,11 @@ for WORKER in $(ls -d workers/*/)
 do
     if [[ $WORKER == *"_worker"* ]]; then
 
-      if [[ $WORKER != *"spdx_worker"* ]]; then
+      if [[ \
+        $WORKER != *"spdx_worker"* \
+     && $WORKER != *"template_worker"* \
+     && $WORKER != *"metric_status_worker"* \
+     ]]; then
 
         # make it pretty for formatting
         FORMATTED_WORKER=${WORKER/#workers\//}
@@ -31,7 +33,7 @@ do
         if [[ $target == *"prod"* ]]; then
             pip install .
         else
-            pip install -e .
+            pip install -e .[dev]
         fi
         cd ../..
       fi
