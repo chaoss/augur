@@ -78,7 +78,8 @@ class GitLabIssuesWorker(Worker):
         self.msg_id_inc = self.get_max_id('message', 'msg_id')
         self.logger.info('Beginning the process of GitLab Issue Collection...'.format(str(os.getpid())))
         gitlab_base = 'https://gitlab.com/api/v4'
-        intermediate_url = '{}/projects/{}/issues?per_page=100&state=opened&'.format(gitlab_base, 18754962)
+        # adding the labels attribute in the query params to avoid additional API calls
+        intermediate_url = '{}/projects/{}/issues?per_page=100&state=opened&with_labels_details=True&'.format(gitlab_base, 10525408)
         gitlab_issues_url = intermediate_url + "page={}"
         
 
@@ -120,7 +121,7 @@ class GitLabIssuesWorker(Worker):
                     "closed_at": issue_dict['closed_at'],
                     "repository_url": issue_dict['_links']['project'],
                     "issue_url": issue_dict['_links']['self'],
-                    "labels_url": issue_dict['labels'],
+                    "labels_url": None,
                     "comments_url": issue_dict['_links']['notes'],
                     "events_url": None,
                     "html_url": issue_dict['_links']['self'],
@@ -184,6 +185,29 @@ class GitLabIssuesWorker(Worker):
                         " with login/cntrb_id: " + assignee_dict['username'] + " " + str(assignee['cntrb_id']) + "\n")
             else:
                 self.logger.info("Issue does not have any assignees\n")
+
+            # Insert the issue labels to the issue_labels table
+            for label_dict in issue_dict['labels']:
+                desc = None
+                if 'description' in label_dict:
+                    desc = label_dict['description']
+                label = {
+                    "issue_id": self.issue_id_inc,
+                    "label_text": label_dict["name"],
+                    "label_description": desc,
+                    "label_color": label_dict['color'],
+                    "tool_source": self.tool_source,
+                    "tool_version": self.tool_version,
+                    "data_source": self.data_source,
+                    "label_src_id": label_dict['id'],
+                    "label_src_node_id": None
+                }
+
+                result = self.db.execute(self.issue_labels_table.insert().values(label))
+                self.logger.info("Primary key inserted into the issue_labels table: " + str(result.inserted_primary_key))
+                self.results_counter += 1
+
+                self.logger.info("Inserted issue label with text: " + label_dict['name'] + "\n")
 
         # Register this task as completed.
         #   This is a method of the worker class that is required to be called upon completion

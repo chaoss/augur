@@ -779,7 +779,7 @@ class Worker():
                     if j['message'] == 'You have triggered an abuse detection mechanism. Please wait a few minutes before you try again.':
                         num_attempts -= 1
                         self.logger.info("rate limit update code goes here")
-                        self.update_rate_limit(r, temporarily_disable=True,platform=platform)
+                        self.update_rate_limit(r, temporarily_disable=True, platform=platform)
                     if j['message'] == 'Bad credentials':
                         self.logger.info("rate limit update code goes here")
                         self.update_rate_limit(r, bad_credentials=True, platform=platform)
