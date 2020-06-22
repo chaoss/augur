@@ -209,6 +209,52 @@ class GitLabIssuesWorker(Worker):
 
                 self.logger.info("Inserted issue label with text: " + label_dict['name'] + "\n")
 
+            # issue notes (comments are called 'notes' in Gitlab's language)
+            notes_endpoint = gitlab_base + "/projects/{}/issues/{}/notes?per_page=100".format(10525408, issue_dict['id'])
+            notes_paginated_url = notes_endpoint + "&page={}"
+            self.logger.info("to hit", notes_endpoint)
+            # Get contributors that we already have stored
+            #   Set our duplicate and update column map keys (something other than PK) to 
+            #   check dupicates/needed column updates with
+            table = 'message'
+            table_pkey = 'msg_id'
+            update_col_map = None #updates for comments not necessary
+            duplicate_col_map = {'msg_id': 'id'}
+
+            issue_comments = self.paginate(notes_paginated_url, duplicate_col_map, update_col_map, table, table_pkey, 
+                where_clause="WHERE msg_id IN (SELECT msg_id FROM issue_message_ref WHERE issue_id = {})".format(
+                    self.issue_id_inc))
+            
+            self.logger.info("Number of comments needing insertion: {}\n".format(len(issue_comments)))
+
+            for comment in issue_comments:
+                try:
+                    commenter_cntrb_id = self.find_id_from_login(comment['author']['username'])
+                except:
+                    commenter_cntrb_id = None
+                issue_comment = {
+                    "pltfrm_id": self.platform_id,
+                    "msg_text": comment['body'],
+                    "msg_timestamp": comment['created_at'],
+                    "cntrb_id": commenter_cntrb_id,
+                    "tool_source": self.tool_source,
+                    "tool_version": self.tool_version,
+                    "data_source": self.data_source
+                }
+                try:
+                    result = self.db.execute(self.message_table.insert().values(issue_comment))
+                    self.logger.info("Primary key inserted into the message table: {}".format(result.inserted_primary_key))
+                    self.results_counter += 1
+                    self.msg_id_inc = int(result.inserted_primary_key[0])
+
+                    self.logger.info("Inserted issue comment with id: {}\n".format(self.msg_id_inc))
+                except Exception as e:
+                    self.logger.info("Worker ran into error when inserting a message, likely had invalid characters. error: {}".format(e))
+
+            
+
+
+
         # Register this task as completed.
         #   This is a method of the worker class that is required to be called upon completion
         #   of any data collection model, this lets the broker know that this worker is ready

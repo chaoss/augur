@@ -708,11 +708,11 @@ class Worker():
         :param url: String, the url of the API endpoint we are paginating through, expects
             a curly brace string formatter within the string to format the Integer 
             representing the page number that is wanted to be returned
-        :param duplicate_col_map: Dictionary, maps the column names of the source data
-            to the field names in our database for columns that should be checked for
-            duplicates (if source data value == value in existing database row, then this
+        :param duplicate_col_map: Dictionary, maps the field names in our database 
+            to the column names of the source data that should be checked for
+            duplicates (if value in existing database row == source data value, then this
             element is a duplicate and would not need an insertion). Key is source data 
-            column name, value is database field name. Example: {'id': 'gh_issue_id'}
+            column name, value is database field name. Example: {'gh_issue_id': 'id'}
         :param update_col_map: Dictionary, maps the column names of the source data
             to the field names in our database for columns that should be checked for
             updates (if source data value != value in existing database row, then an
