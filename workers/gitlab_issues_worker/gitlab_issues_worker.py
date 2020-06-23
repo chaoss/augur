@@ -253,7 +253,21 @@ class GitLabIssuesWorker(Worker):
                 except Exception as e:
                     self.logger.info("Worker ran into error when inserting a message, likely had invalid characters. error: {}".format(e))
 
-            
+                ### ISSUE MESSAGE REF TABLE ###
+
+                issue_message_ref = {
+                    "issue_id": self.issue_id_inc,
+                    "msg_id": self.msg_id_inc,
+                    "tool_source": self.tool_source,
+                    "tool_version": self.tool_version,
+                    "data_source": self.data_source,
+                    "issue_msg_ref_src_comment_id": comment['id'],
+                    "issue_msg_ref_src_node_id": None
+                }
+
+                result = self.db.execute(self.issue_message_ref_table.insert().values(issue_message_ref))
+                self.logger.info("Primary key inserted into the issue_message_ref table: {}".format(result.inserted_primary_key))
+                self.results_counter += 1 
 
 
 
