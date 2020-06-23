@@ -210,7 +210,7 @@ class GitLabIssuesWorker(Worker):
                 self.logger.info("Inserted issue label with text: " + label_dict['name'] + "\n")
 
             # issue notes (comments are called 'notes' in Gitlab's language)
-            notes_endpoint = gitlab_base + "/projects/{}/issues/{}/notes?per_page=100".format(10525408, issue_dict['id'])
+            notes_endpoint = gitlab_base + "/projects/{}/issues/{}/notes?per_page=100".format(10525408, issue_dict['iid'])
             notes_paginated_url = notes_endpoint + "&page={}"
             self.logger.info("to hit", notes_endpoint)
             # Get contributors that we already have stored
