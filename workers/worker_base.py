@@ -221,7 +221,7 @@ class Worker():
 
         # Organize different api keys/oauths available
         if 'gh_api_key' in self.config or 'gitlab_api_key' in self.config:
-            self.init_oauths(self.platform)
+            self.init_oauths(platform=self.platform)
         else:
             self.oauths = [{'oauth_id': 0}]
 
@@ -677,7 +677,7 @@ class Worker():
             if platform == "github":
                 self.headers = {'Authorization': 'token %s' % oauth['access_token']}
             elif platform == "gitlab":
-                self.headers = {'Authorization': 'Bearer %s' % oauth['access_token']}
+                self.headers = {'PRIVATE-TOKEN': oauth['access_token']}
             self.logger.info("Getting rate limit info for oauth: {}\n".format(oauth))
             response = requests.get(url=url, headers=self.headers)
             self.oauths.append({
@@ -696,9 +696,8 @@ class Worker():
         if platform == "github":
             self.headers = {'Authorization': 'token %s' % self.oauths[0]['access_token']}
         elif platform == "gitlab":
-            self.headers = {'Authorization': 'Bearer %s' % self.oauths[0]['access_token']}
+            self.headers = {'PRIVATE-TOKEN': self.oauths[0]['access_token']}
 
-        self.headers = {'Authorization': 'token %s' % self.oauths[0]['access_token']}
         self.logger.info("OAuth initialized")
 
     def paginate(self, url, duplicate_col_map, update_col_map, table, table_pkey, where_clause="", value_update_col_map={}, platform="github"):
@@ -761,6 +760,8 @@ class Worker():
                         last_page = r.links['last']['url'][-6:].split('=')[1]
                     elif platform == "gitlab":
                         last_page =  r.links['last']['url'].split('&')[2].split("=")[1]
+                    self.logger.info(r.links['last']['url'])
+                    self.logger.info(platform)
                     self.logger.info("Analyzing page {} of {}\n".format(i, int(last_page) + 1 if last_page is not None else '*last page not known*'))
 
                 try:

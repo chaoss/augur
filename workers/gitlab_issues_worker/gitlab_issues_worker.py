@@ -33,7 +33,7 @@ class GitLabIssuesWorker(Worker):
         operations_tables = ['worker_history', 'worker_job']
 
         # Run the general worker initialization
-        super().__init__(worker_type, config, given, models, data_tables, operations_tables)
+        super().__init__(worker_type, config, given, models, data_tables, operations_tables, platform='gitlab')
 
         # Request headers updation
 
@@ -48,6 +48,7 @@ class GitLabIssuesWorker(Worker):
         self.tool_source = 'Gitlab API Worker'
         self.tool_version = '0.0.0'
         self.data_source = 'GitLab API'
+        self.platform_id = 25150
 
 
     def gitlab_issues_model(self, task, repo_id):
@@ -99,6 +100,7 @@ class GitLabIssuesWorker(Worker):
         self.logger.info("Count of issues needing update or insertion: " + str(len(issues)) + "\n")
         for issue_dict in issues:
             self.logger.info("Begin analyzing the issue with title: " + issue_dict['title'] + "\n")
+            self.logger.info(self.headers)
             pr_id = None
             if "pull_request" in issue_dict:
                 self.logger.info("This is an MR\n")
@@ -212,7 +214,7 @@ class GitLabIssuesWorker(Worker):
             # issue notes (comments are called 'notes' in Gitlab's language)
             notes_endpoint = gitlab_base + "/projects/{}/issues/{}/notes?per_page=100".format(10525408, issue_dict['iid'])
             notes_paginated_url = notes_endpoint + "&page={}"
-            self.logger.info("to hit", notes_endpoint)
+            self.logger.info("to hit---------------", notes_paginated_url)
             # Get contributors that we already have stored
             #   Set our duplicate and update column map keys (something other than PK) to 
             #   check dupicates/needed column updates with
@@ -223,7 +225,7 @@ class GitLabIssuesWorker(Worker):
 
             issue_comments = self.paginate(notes_paginated_url, duplicate_col_map, update_col_map, table, table_pkey, 
                 where_clause="WHERE msg_id IN (SELECT msg_id FROM issue_message_ref WHERE issue_id = {})".format(
-                    self.issue_id_inc))
+                    self.issue_id_inc), platform='gitlab')
             
             self.logger.info("Number of comments needing insertion: {}\n".format(len(issue_comments)))
 
