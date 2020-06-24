@@ -140,9 +140,8 @@ class GitlabMergeRequestWorker(Worker):
                 self.pr_id_inc = int(pd.read_sql(pr_id_sql, self.db).iloc[0]['pull_request_id'])
 
             self.query_labels(pr_dict['labels'], self.pr_id_inc, url_encoded_format_project_address)
+            self.query_mr_comments(self.pr_id_inc, pr_dict['iid'], url_encoded_format_project_address)
             '''
-            self.query_pr_events(owner, repo, pr_dict['number'], self.pr_id_inc)
-            self.query_pr_comments(owner, repo, pr_dict['number'], self.pr_id_inc)
             self.query_reviewers(pr_dict['requested_reviewers'], self.pr_id_inc)
             self.query_pr_meta(pr_dict['head'], pr_dict['base'], self.pr_id_inc)
             '''
@@ -150,6 +149,69 @@ class GitlabMergeRequestWorker(Worker):
             self.results_counter += 1
         self.query_mr_events(url_encoded_format_project_address)
         self.register_task_completion(task, repo_id, 'pull_requests')
+
+    def query_mr_comments(self, pr_id, pr_src_iid, url_encoded_project_address):
+
+        self.logger.info('Querying PR Comments\n')
+
+        url = (f'https://gitlab.com/api/v4/projects/{url_encoded_project_address}/merge_requests/{pr_src_iid}/notes?per_page=100' +
+               '&page={}&sort=asc')
+
+        # Get merge request comments that we already have stored
+        #   Set our duplicate and update column map keys (something other than PK) to
+        #   check dupicates/needed column updates with
+        table = 'pull_request_message_ref'
+        table_pkey = 'pr_msg_ref_id'
+        update_col_map = {}
+        duplicate_col_map = {'pr_message_ref_src_comment_id': 'id'}
+
+        # list to hold contributors needing insertion or update
+        pr_messages = self.paginate(url, duplicate_col_map, update_col_map, table, table_pkey, platform='gitlab')
+
+        self.logger.info("Count of pull request comments needing insertion: " + str(len(pr_messages)) + "\n")
+
+        for pr_msg_dict in pr_messages:
+
+            if pr_msg_dict['author'] and 'username' in pr_msg_dict['author']:
+                cntrb_id = self.find_id_from_login(pr_msg_dict['author']['username'], platform='gitlab')
+            else:
+                cntrb_id = 1
+
+            msg = {
+                'rgls_id': None,
+                'msg_text': pr_msg_dict['body'].replace("0x00", "____") if \
+                    'body' in pr_msg_dict else None,
+                'msg_timestamp': pr_msg_dict['created_at'],
+                'msg_sender_email': None,
+                'msg_header': None,
+                'pltfrm_id': '25150',
+                'cntrb_id': cntrb_id,
+                'tool_source': self.tool_source,
+                'tool_version': self.tool_version,
+                'data_source': self.data_source
+            }
+
+            result = self.db.execute(self.message_table.insert().values(msg))
+            self.logger.info(f'Added PR Comment {result.inserted_primary_key}')
+
+            pr_msg_ref = {
+                'pull_request_id': pr_id,
+                'msg_id': int(result.inserted_primary_key[0]),
+                'pr_message_ref_src_comment_id': pr_msg_dict['id'],
+                'pr_message_ref_src_node_id': None,
+                'tool_source': self.tool_source,
+                'tool_version': self.tool_version,
+                'data_source': self.data_source
+            }
+
+            result = self.db.execute(
+                self.pull_request_message_ref_table.insert().values(pr_msg_ref)
+            )
+            self.logger.info(f'Added PR Message Ref {result.inserted_primary_key}')
+
+            self.results_counter += 1
+
+        self.logger.info(f'Finished adding PR Message data for PR with id {pr_id}')
 
     def get_mr_id_from_pr_src_id(self, pr_src_id, platform='gitlab'):
         idSQL = s.sql.text("""
