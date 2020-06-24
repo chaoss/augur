@@ -487,7 +487,7 @@ class Worker():
         if platform == 'github':
             cntrb_url = ("https://api.github.com/users/" + login)
         elif platform == 'gitlab':
-            cntrb_url = ("https://gitlab.com/api/v4/users?username=" + login )
+            cntrb_url = ("https://gitlab.com/api/v4/users?username=" + login)
         self.logger.info("Hitting endpoint: {} ...\n".format(cntrb_url))
         r = requests.get(url=cntrb_url, headers=self.headers)
         self.update_rate_limit(r)
@@ -760,7 +760,7 @@ class Worker():
                         last_page = r.links['last']['url'][-6:].split('=')[1]
                     elif platform == "gitlab":
                         last_page = r.links['last']['url'].split('&')[2].split("=")[1]
-                    self.logger.info("Analyzing page {} of {}\n".format(i, int(last_page) + 1 if last_page is not None else '*last page not known*'))
+                    self.logger.info("Analyzing page {} of {}\n".format(i, int(last_page) if last_page is not None else '*last page not known*'))
 
                 try:
                     j = r.json()
@@ -974,8 +974,8 @@ class Worker():
 
         table = 'contributors'
         table_pkey = 'cntrb_id'
-        update_col_map = {'cntrb_email': 'email'}
-        duplicate_col_map = {'cntrb_login': 'email'}
+        update_col_map = {}
+        duplicate_col_map = {'cntrb_email': 'email'}
 
         # list to hold contributors needing insertion or update
         contributors = self.paginate("https://gitlab.com/api/v4/projects/" + url_encoded_format + "/repository/contributors?per_page=100&page={}", duplicate_col_map, update_col_map, table, table_pkey, platform='gitlab')

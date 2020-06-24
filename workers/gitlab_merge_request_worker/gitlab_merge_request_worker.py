@@ -48,7 +48,7 @@ class GitlabMergeRequestWorker(Worker):
         self.history_id = self.get_max_id('worker_history', 'history_id', operations_table=True) + 1
         self.pr_id_inc = self.get_max_id('pull_requests', 'pull_request_id')
         self.pr_meta_id_inc = self.get_max_id('pull_request_meta', 'pr_repo_meta_id')
-
+        self.query_gitlab_contribtutors(task, repo_id)
         gitlab_url = task['given']['gitlab_url']
 
         self.logger.info('Beginning collection of Merge Requests...\n')
@@ -57,7 +57,7 @@ class GitlabMergeRequestWorker(Worker):
         owner, repo = self.get_owner_repo(gitlab_url)
         url_encoded_format_project_address = quote(owner + '/' + repo, safe='')
         url = (f'https://gitlab.com/api/v4/projects/{url_encoded_format_project_address}/merge_requests?' +
-               'per_page=100&page={}')
+               'per_page=100&page={}&sort=asc')
 
         # Get pull requests that we already have stored
         #   Set pseudo key (something other than PK) to
@@ -113,7 +113,7 @@ class GitlabMergeRequestWorker(Worker):
                 'pr_src_author_association': None,
                 'tool_source': self.tool_source,
                 'tool_version': self.tool_version,
-                'data_source': 'Gitlab-API'
+                'data_source': self.data_source
             }
 
             if pr_dict['flag'] == 'need_insertion':
@@ -140,7 +140,6 @@ class GitlabMergeRequestWorker(Worker):
                 self.pr_id_inc = int(pd.read_sql(pr_id_sql, self.db).iloc[0]['pull_request_id'])
 
             self.query_labels(pr_dict['labels'], self.pr_id_inc, url_encoded_format_project_address)
-
             '''
             self.query_pr_events(owner, repo, pr_dict['number'], self.pr_id_inc)
             self.query_pr_comments(owner, repo, pr_dict['number'], self.pr_id_inc)
@@ -149,8 +148,61 @@ class GitlabMergeRequestWorker(Worker):
             '''
             self.logger.info(f"Inserted PR data for {owner}/{repo}")
             self.results_counter += 1
-
+        self.query_mr_events(url_encoded_format_project_address)
         self.register_task_completion(task, repo_id, 'pull_requests')
+
+    def get_mr_id_from_pr_src_id(self, pr_src_id, platform='gitlab'):
+        idSQL = s.sql.text("""
+                    SELECT pull_request_id FROM pull_requests WHERE pr_src_id = '{}' \
+                    AND LOWER(data_source) = '{} api'
+                    """.format(pr_src_id, platform))
+
+        self.logger.info(idSQL)
+
+        rs = pd.read_sql(idSQL, self.db, params={})
+        data_list = [list(row) for row in rs.itertuples(index=False)]
+        try:
+            return data_list[0][0]
+        except:
+            self.logger.info('MR not found')
+
+    def query_mr_events(self, url_encoded_project_address):
+        self.logger.info("Querying MR Events")
+        url = (f'https://gitlab.com/api/v4/projects/{url_encoded_project_address}/events?target_type=merge_request' +
+               '&page={}&per_page=100&sort=asc')
+        table = 'pull_request_events'
+        table_pkey = 'pr_event_id'
+        update_col_map = {}
+        duplicate_col_map = {'issue_event_src_id': 'target_id'}
+
+        pr_events = self.paginate(url, duplicate_col_map, update_col_map, table, table_pkey,
+                            platform='gitlab')
+
+        for pr_event_dict in pr_events:
+            if pr_event_dict['author']:
+                cntrb_id = self.find_id_from_login(pr_event_dict['author']['username'], 'gitlab')
+            else:
+                cntrb_id = 1
+
+            pr_id = self.get_mr_id_from_pr_src_id(pr_event_dict['target_id'])
+            pr_event = {
+                'pull_request_id': pr_id,
+                'cntrb_id': cntrb_id,
+                'action': pr_event_dict['action_name'],
+                'action_commit_hash': None,
+                'created_at': pr_event_dict['created_at'],
+                'issue_event_src_id': pr_event_dict['target_id'],
+                'node_id': None,
+                'node_url': None,
+                'tool_source': self.tool_source,
+                'tool_version': self.tool_version,
+                'data_source': self.data_source
+            }
+
+            result = self.db.execute(self.pull_request_events_table.insert().values(pr_event))
+            self.logger.info(f"Added PR Event: {result.inserted_primary_key}\n")
+
+            self.results_counter += 1
 
     def query_labels(self, labels, pr_id, project_address_encoded):
         self.logger.info('Querying PR Labels\n')
@@ -201,34 +253,3 @@ class GitlabMergeRequestWorker(Worker):
                 self.logger.info(f"Inserted PR Labels data for PR with id {pr_id}\n")
 
                 self.results_counter += 1
-
-    def fake_data_model(self, task, repo_id):
-        """ This is just an example of a data collection method. All data collection 
-            methods for all workers currently accept this format of parameters. If you 
-            want to change these parameters, you can re-define the collect() method to 
-            overwrite the Worker class' version of it (which is the method that calls
-            this method).
-
-            :param task: the task generated by the housekeeper and sent to the broker which 
-            was then sent to this worker. Takes the example dict format of:
-                {
-                    'job_type': 'MAINTAIN', 
-                    'models': ['fake_data'], 
-                    'display_name': 'fake_data model for url: https://github.com/vmware/vivace',
-                    'given': {
-                        'git_url': 'https://github.com/vmware/vivace'
-                    }
-                }
-            :param repo_id: the collect() method queries the repo_id given the git/github url
-            and passes it along to make things easier. An int such as: 27869
-        """
-
-        # Collection and insertion of data happens here
-
-        # ...
-
-        # Register this task as completed.
-        #   This is a method of the worker class that is required to be called upon completion
-        #   of any data collection model, this lets the broker know that this worker is ready
-        #   for another task
-        self.register_task_completion(task, repo_id, 'fake_data')
