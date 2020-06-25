@@ -100,7 +100,6 @@ class GitLabIssuesWorker(Worker):
         self.logger.info("Count of issues needing update or insertion: " + str(len(issues)) + "\n")
         for issue_dict in issues:
             self.logger.info("Begin analyzing the issue with title: " + issue_dict['title'] + "\n")
-            self.logger.info(self.headers)
             pr_id = None
             if "pull_request" in issue_dict:
                 self.logger.info("This is an MR\n")
@@ -214,7 +213,6 @@ class GitLabIssuesWorker(Worker):
             # issue notes (comments are called 'notes' in Gitlab's language)
             notes_endpoint = gitlab_base + "/projects/{}/issues/{}/notes?per_page=100".format(10525408, issue_dict['iid'])
             notes_paginated_url = notes_endpoint + "&page={}"
-            self.logger.info("to hit---------------", notes_paginated_url)
             # Get contributors that we already have stored
             #   Set our duplicate and update column map keys (something other than PK) to 
             #   check dupicates/needed column updates with
@@ -267,7 +265,41 @@ class GitLabIssuesWorker(Worker):
 
                 result = self.db.execute(self.issue_message_ref_table.insert().values(issue_message_ref))
                 self.logger.info("Primary key inserted into the issue_message_ref table: {}".format(result.inserted_primary_key))
-                self.results_counter += 1 
+                self.results_counter += 1
+            
+            # issue events
+
+            issue_events_url = gitlab_base + '/projects/{}/events?target_type=issue&per_page=100'.format(10525408)
+            issue_events_url += "&page={}"
+
+            table = 'issue_events'
+            table_pkey = 'event_id'
+            update_col_map = None # updates for issue events not applicable here
+            duplicate_col_map = {'event_id': 'target_id'}
+
+            issue_events = self.paginate(issue_events_url, duplicate_col_map, update_col_map, table, table_pkey, 
+                                           where_clause="", platform='gitlab')
+
+            for event in issue_events:
+                issue_event = {
+                    "issue_event_src_id": event['target_id'],
+                    "issue_id": self.issue_id_inc,
+                    "node_id": None,
+                    "node_url": None,
+                    "cntrb_id": self.find_id_from_login(event['author_username'], platform='gitlab'),
+                    "created_at": event['created_at'],
+                    "action": event["action_name"],
+                    "action_commit_hash": None,
+                    "tool_source": self.tool_source,
+                    "tool_version": self.tool_version,
+                    "data_source": self.data_source
+                }
+
+                result = self.db.execute(self.issue_events_table.insert().values(issue_event))
+                self.logger.info("Primary key inserted into the issue_events table: " + str(result.inserted_primary_key))
+                self.results_counter += 1
+
+                self.logger.info("Inserted issue event: " + event['action_name'] + " for issue id: {}\n".format(self.issue_id_inc))
 
 
 
