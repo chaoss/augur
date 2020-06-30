@@ -137,6 +137,10 @@ def test_issue_comments_mean(metrics):
     assert metrics.issue_comments_mean(10, group_by='year').any().any()
     assert metrics.issue_comments_mean(10, 25430, group_by='year').any().any()
 
+def test_issue_with_comments(metrics):
+    assert metrics.issues_with_comments(10, period='year').iloc[0]['issues'] > 0
+    assert metrics.issues_with_comments(10, 25430, period='year').iloc[0]['issues'] > 0
+
 def test_issue_comments_mean_std(metrics):
     assert metrics.issue_comments_mean_std(10).any().any()
     assert metrics.issue_comments_mean_std(10, 25430).any().any()
