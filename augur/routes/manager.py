@@ -84,7 +84,7 @@ def create_manager_routes(server):
                 summary['errors'].append("group already exists")
 
             summary = json.dumps(summary)
-            status_code = 200
+            status_code=900
         else:
             status_code = 401
             summary = json.dumps({'error': "Augur API key is either missing or invalid"})
