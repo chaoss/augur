@@ -27,10 +27,11 @@ def gitlab_issues_worker():
     return gitlab_issues_worker
 
 def test_gitlab_issues_worker(gitlab_issues_worker, test_task):
-    gitlab_issues_worker(test_task, 6853087)
+    gitlab_issues_worker.gitlab_issues_model(test_task, 6853087)
     # data persistence test
     issues = requests.get('https://gitlab.com/api/v4/projects/6853087/issues', headers=gitlab_issues_worker.headers)
-    assert issues
+    print(issues)
+    assert 1==2
 
     
     
