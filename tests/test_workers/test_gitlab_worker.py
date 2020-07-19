@@ -3,7 +3,7 @@ import requests
 from time import sleep
 
 from workers.gitlab_issues_worker.gitlab_issues_worker import GitLabIssuesWorker
-
+from workers.worker_base import Worker
 @pytest.fixture
 def test_task():
     return {
@@ -27,10 +27,17 @@ def gitlab_issues_worker():
     return gitlab_issues_worker
 
 def test_gitlab_issues_worker(gitlab_issues_worker, test_task):
-    gitlab_issues_worker.gitlab_issues_model(test_task, 6853087)
+    gitlab_issues_worker._queue.put(test_task)
+    gitlab_issues_worker.collect()
+
     # data persistence test
+    print('collection done')
     issues = requests.get('https://gitlab.com/api/v4/projects/6853087/issues', headers=gitlab_issues_worker.headers)
-    print(issues)
+    issues_list = issues.json()
+    id_list = [issue['_id'] for issue in issues_list]
+
+    
+
     assert 1==2
 
     
