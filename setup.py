@@ -39,6 +39,7 @@ setup(
         "flask",
         "pandas",
         "numpy==1.18.5",
+        "pandas==1.0.5",
         "requests",
         "flask_cors",
         "flask_wtf",
