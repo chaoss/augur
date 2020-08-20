@@ -17,3 +17,12 @@
 \i schema/generate/13-schema_update_15.sql
 \i schema/generate/14-schema_update_16.sql
 \i schema/generate/15-schema_update_17.sql
+\i schema/generate/16-schema_update_18.sql
+\i schema/generate/17-schema_update_19.sql
+\i schema/generate/18-schema_update_20.sql
+\i schema/generate/19-schema_update_21.sql
+\i schema/generate/20-schema_update_22.sql
+\i schema/generate/21-schema_update_23.sql
+\i schema/generate/22-schema_update_24.sql
+\i schema/generate/23-schema_update_25.sql
+

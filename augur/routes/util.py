@@ -6,8 +6,6 @@ from flask import Response
 
 def create_routes(server):
 
-    metrics = server.augur_app.metrics
-
     @server.app.route('/{}/repo-groups'.format(server.api_version))
     def get_all_repo_groups(): #TODO: make this name automatic - wrapper?
         repoGroupsSQL = s.sql.text("""
@@ -38,7 +36,7 @@ def create_routes(server):
             FROM
                 repo
                 left outer join
-                (select repo_id,    COUNT ( commits.cmt_id ) AS commits_all_time from commits group by repo_id ) a on
+                (select repo_id,    COUNT ( distinct commits.cmt_commit_hash ) AS commits_all_time from commits group by repo_id ) a on
                 repo.repo_id = a.repo_id
                 left outer join
                 (select repo_id, count ( * ) as issues_all_time from issues where issues.pull_request IS NULL  group by repo_id) b
@@ -74,7 +72,7 @@ def create_routes(server):
             FROM
                 repo
                 left outer join
-                (select repo_id, COUNT ( commits.cmt_id ) AS commits_all_time from commits group by repo_id ) a on
+                (select repo_id, COUNT ( distinct commits.cmt_commit_hash ) AS commits_all_time from commits group by repo_id ) a on
                 repo.repo_id = a.repo_id
                 left outer join
                 (select repo_id, count ( issues.issue_id) as issues_all_time from issues where issues.pull_request IS NULL group by repo_id) b
@@ -202,7 +200,7 @@ def create_routes(server):
 
     @server.app.route('/{}/api-port'.format(server.api_version))
     def api_port():
-        response = {'port': server.augur_app.read_config('Server', 'port')}
+        response = {'port': server.augur_app.config.get_value('Server', 'port')}
         return Response(response=json.dumps(response),
                         status=200,
                         mimetype="application/json")
