@@ -129,7 +129,7 @@ default_config = {
                 "switch": 0,
                 "workers": 1,
                 "training_days": 365,
-                "anomaly_days": 2
+                "anomaly_days": 14
             },
             "linux_badge_worker": {
                 "port": 50400,
@@ -159,7 +159,7 @@ default_config = {
             },
             "contributor_worker": {
                 "port": 50900,
-                "switch": 1,
+                "switch": 0,
                 "workers": 1
             },
             "gitlab_issues_worker": {
@@ -176,6 +176,13 @@ default_config = {
                 "port": 51200,
                 "switch": 1,
                 "workers": 1
+            }, 
+            "license_worker": {
+                "port": 51242,
+                "switch": 0,
+                "workers": 1,
+                "tagfile": "3.0.tag",
+                "search_depth": 8
             }
         },
         "Facade": {
