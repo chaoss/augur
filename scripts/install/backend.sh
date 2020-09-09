@@ -8,7 +8,7 @@ echo
 target=$1
 
 if [[ $target == *"prod"* ]]; then
-    pip install .
+    pip install -e .
 else
     pip install -e .[dev]
 fi

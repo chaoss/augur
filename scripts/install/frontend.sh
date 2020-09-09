@@ -10,6 +10,7 @@ function install_deps() {
     echo
     npm install;
     npm install brunch canvas vega @vue/cli;
+    npm run build; 
     cd ../;
     echo "Done!"
     else
