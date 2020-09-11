@@ -343,7 +343,7 @@ class GitHubPullRequestWorker(Worker):
 
         github_url = entry_info['given']['github_url']
 
-        self.logger.info('Beginning collection of Pull Requests...\n')
+        self.logger.info("Beginning collection of Pull Requests...\n")
         self.logger.info(f'Repo ID: {repo_id}, Git URL: {github_url}\n')
 
         owner, repo = self.get_owner_repo(github_url)
