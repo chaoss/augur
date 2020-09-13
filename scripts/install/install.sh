@@ -18,23 +18,29 @@ else
   echo
 fi
 
-scripts/install/backend.sh $target 2>&1 | tee logs/backend-install.log
+echo "Installing the backend and its dependencies..."
+scripts/install/backend.sh $target > logs/install/backend.log 2>&1
 echo "Done!"
 
-scripts/install/workers.sh $target 2>&1 | tee logs/workers-install.log
+echo "Installing workers and their dependencies..."
+scripts/install/workers.sh $target > logs/install/workers.log 2>&1
 echo "Done!"
 
-if [[ ! -e augur.config.json && ! -e $HOME/.augur/augur.config.json ]]; then
+if [[ ! -e augur.config.json ]]; then
   echo "No config file found. Generating..."
-  scripts/install/config.sh $target
+  scripts/install/config.sh
+  echo
 else
   read -r -p "We noticed you have a config file already. Would you like to overwrite it with a new one? [Y/n] " response
   case "$response" in
       [yY][eE][sS]|[yY])
           echo "Generating a config file..."
           scripts/install/config.sh $target
+          echo
           ;;
       *)
+          echo "Skipping config generation process and resuming installation..."
+          echo
           ;;
   esac
 fi
