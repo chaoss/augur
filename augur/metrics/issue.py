@@ -40,7 +40,7 @@ def issues_first_time_opened(self, repo_group_id, repo_id=None, period='day', be
                     issues JOIN repo ON issues.repo_id = repo.repo_id
                 WHERE
                     issues.repo_id = :repo_id
-                    AND issues.pull_request IS NULL
+                    AND (issues.pull_request IS NULL OR issues.pull_request = 0)
                     AND issues.created_at BETWEEN :begin_date AND :end_date
                 GROUP BY gh_user_id, repo_name
             ) as abc
@@ -64,7 +64,7 @@ def issues_first_time_opened(self, repo_group_id, repo_id=None, period='day', be
                 FROM
                     issues
                 WHERE
-                    issues.pull_request IS NULL 
+                    (issues.pull_request IS NULL OR issues.pull_request = 0) 
                     AND repo_id in (SELECT repo_id FROM repo WHERE repo_group_id=:repo_group_id)
                     AND created_at BETWEEN :begin_date AND :end_date
                 GROUP BY gh_user_id, repo_id
@@ -109,7 +109,7 @@ def issues_first_time_closed(self, repo_group_id, repo_id=None, period='day', be
                     WHERE repo.repo_id = :repo_id
                     AND action = 'closed'
                     AND repo.repo_id = issues.repo_id
-                    AND issues.pull_request IS NULL 
+                    AND (issues.pull_request IS NULL OR issues.pull_request = 0) 
                     AND issues.issue_id = issue_events.issue_id
                     And issue_events.created_at BETWEEN :begin_date AND :end_date
                     GROUP BY issue_events.cntrb_id, repo_name
@@ -129,7 +129,7 @@ def issues_first_time_closed(self, repo_group_id, repo_id=None, period='day', be
                         repo,
                         issues
                     WHERE repo.repo_group_id = :repo_group_id
-                    AND issues.pull_request IS NULL 
+                    AND (issues.pull_request IS NULL OR issues.pull_request = 0) 
                     AND action = 'closed'
                     AND repo.repo_id = issues.repo_id
                     AND issues.issue_id = issue_events.issue_id
@@ -171,15 +171,13 @@ def issues_new(self, repo_group_id, repo_id=None, period='day', begin_date=None,
             FROM issues JOIN repo ON issues.repo_id = repo.repo_id
             WHERE issues.repo_id IN (SELECT repo_id FROM repo WHERE repo_group_id = :repo_group_id)
             AND issues.created_at BETWEEN to_timestamp(:begin_date, 'YYYY-MM-DD HH24:MI:SS') AND to_timestamp(:end_date, 'YYYY-MM-DD HH24:MI:SS')
-            AND issues.pull_request IS NULL
+            AND (issues.pull_request IS NULL OR issues.pull_request = 0)
             GROUP BY issues.repo_id, date, repo_name
             ORDER BY issues.repo_id, date
         """)
 
         results = pd.read_sql(issues_new_SQL, self.database, params={'repo_group_id': repo_group_id, 'period': period,
                                                                'begin_date': begin_date, 'end_date': end_date})
-
-        return results
 
     else:
         issues_new_SQL = s.sql.text("""
@@ -190,14 +188,15 @@ def issues_new(self, repo_group_id, repo_id=None, period='day', begin_date=None,
             FROM issues JOIN repo ON issues.repo_id = repo.repo_id
             WHERE issues.repo_id = :repo_id
             AND issues.created_at BETWEEN to_timestamp(:begin_date, 'YYYY-MM-DD HH24:MI:SS') AND to_timestamp(:end_date, 'YYYY-MM-DD HH24:MI:SS')
-            AND issues.pull_request IS NULL
+            AND (issues.pull_request IS NULL OR issues.pull_request = 0)
             GROUP BY date, repo_name
             ORDER BY date;
         """)
 
         results = pd.read_sql(issues_new_SQL, self.database, params={'repo_id': repo_id, 'period': period,
                                                                'begin_date': begin_date, 'end_date': end_date})
-        return results
+
+    return results
 
 @register_metric()
 def issues_active(self, repo_group_id, repo_id=None, period='day', begin_date=None, end_date=None):
@@ -227,7 +226,7 @@ def issues_active(self, repo_group_id, repo_id=None, period='day', begin_date=No
             AND issues.repo_id = repo.repo_id
             AND issues.repo_id IN (SELECT repo_id FROM repo WHERE repo_group_id = :repo_group_id)
             AND issue_events.created_at BETWEEN to_timestamp(:begin_date, 'YYYY-MM-DD HH24:MI:SS') AND to_timestamp(:end_date, 'YYYY-MM-DD HH24:MI:SS')
-            and issues.pull_request IS NULL
+            and (issues.pull_request IS NULL OR issues.pull_request = 0)
             GROUP BY issues.repo_id, date, repo_name
             ORDER BY issues.repo_id, date
         """)
@@ -247,7 +246,7 @@ def issues_active(self, repo_group_id, repo_id=None, period='day', begin_date=No
             AND issues.repo_id = repo.repo_id
             AND issues.repo_id = :repo_id
             AND issue_events.created_at BETWEEN to_timestamp(:begin_date, 'YYYY-MM-DD HH24:MI:SS') AND to_timestamp(:end_date, 'YYYY-MM-DD HH24:MI:SS')
-            AND issues.pull_request IS NULL
+            AND (issues.pull_request IS NULL OR issues.pull_request = 0)
             GROUP BY date, repo_name
             ORDER BY date
         """)
@@ -283,7 +282,7 @@ def issues_closed(self, repo_group_id, repo_id=None, period='day', begin_date=No
             WHERE issues.repo_id IN (SELECT repo_id FROM repo WHERE repo_group_id = :repo_group_id)
             AND closed_at IS NOT NULL
             AND closed_at BETWEEN to_timestamp(:begin_date, 'YYYY-MM-DD HH24:MI:SS') AND to_timestamp(:end_date, 'YYYY-MM-DD HH24:MI:SS')
-            AND issues.pull_request IS NULL
+            AND (issues.pull_request IS NULL OR issues.pull_request = 0)
             GROUP BY issues.repo_id, date, repo_name
             ORDER BY issues.repo_id, date
         """)
@@ -303,7 +302,7 @@ def issues_closed(self, repo_group_id, repo_id=None, period='day', begin_date=No
             WHERE issues.repo_id = :repo_id
             AND closed_at IS NOT NULL
             AND closed_at BETWEEN to_timestamp(:begin_date, 'YYYY-MM-DD HH24:MI:SS') AND to_timestamp(:end_date, 'YYYY-MM-DD HH24:MI:SS')
-            AND issues.pull_request IS NULL
+            AND (issues.pull_request IS NULL OR issues.pull_request = 0)
             GROUP BY date, repo_name
             ORDER BY date;
         """)
@@ -339,7 +338,7 @@ def issue_duration(self, repo_group_id, repo_id=None, begin_date=None, end_date=
             FROM issues JOIN repo ON issues.repo_id = repo.repo_id
             WHERE issues.repo_id IN (SELECT repo_id FROM repo WHERE repo_group_id = :repo_group_id)
             AND closed_at IS NOT NULL
-            AND issues.pull_request IS NULL
+            AND (issues.pull_request IS NULL OR issues.pull_request = 0)
             AND issues.created_at
                 BETWEEN to_timestamp(:begin_date, 'YYYY-MM-DD HH24:MI:SS')
                 AND to_timestamp(:end_date, 'YYYY-MM-DD HH24:MI:SS')
@@ -362,7 +361,7 @@ def issue_duration(self, repo_group_id, repo_id=None, begin_date=None, end_date=
                 (closed_at - issues.created_at) AS duration
             FROM issues JOIN repo ON issues.repo_id = repo.repo_id
             WHERE issues.repo_id = :repo_id
-            AND issues.pull_request IS NULL
+            AND (issues.pull_request IS NULL OR issues.pull_request = 0)
             AND closed_at IS NOT NULL
             AND issues.created_at
                 BETWEEN to_timestamp(:begin_date, 'YYYY-MM-DD HH24:MI:SS')
@@ -400,14 +399,15 @@ def issue_participants(self, repo_group_id, repo_id=None, begin_date=None, end_d
                 issues.created_at,
                 COUNT(DISTINCT derived.cntrb_id) AS participants
             FROM (
-                (SELECT issue_id, cntrb_id FROM issues WHERE cntrb_id IS NOT NULL AND issues.pull_request IS NULL)
+                (SELECT issue_id, cntrb_id FROM issues WHERE cntrb_id IS NOT NULL AND (
+                    (issues.pull_request IS NULL OR issues.pull_request = 0)))
                 UNION
                 (SELECT issue_id, cntrb_id FROM issue_message_ref, message
                 WHERE issue_message_ref.msg_id = message.msg_id)
             ) AS derived, issues, repo
             WHERE derived.issue_id = issues.issue_id
             AND issues.repo_id = repo.repo_id
-            AND issues.pull_request IS NULL
+            AND (issues.pull_request IS NULL OR issues.pull_request = 0)
             AND issues.repo_id IN (SELECT repo_id FROM repo WHERE repo_group_id = :repo_group_id)
             AND issues.created_at
                 BETWEEN to_timestamp(:begin_date, 'YYYY-MM-DD HH24:MI:SS')
@@ -428,14 +428,15 @@ def issue_participants(self, repo_group_id, repo_id=None, begin_date=None, end_d
                 issues.created_at,
                 COUNT(DISTINCT derived.cntrb_id) AS participants
             FROM (
-                (SELECT issue_id, cntrb_id FROM issues WHERE cntrb_id IS NOT NULL AND issues.pull_request IS NULL)
+                (SELECT issue_id, cntrb_id FROM issues WHERE cntrb_id IS NOT NULL AND (
+                    (issues.pull_request IS NULL OR issues.pull_request = 0)))
                 UNION
                 (SELECT issue_id, cntrb_id FROM issue_message_ref, message
                 WHERE issue_message_ref.msg_id = message.msg_id)
             ) AS derived, issues, repo
             WHERE derived.issue_id = issues.issue_id
             AND issues.repo_id = repo.repo_id
-            AND issues.pull_request IS NULL
+            AND (issues.pull_request IS NULL OR issues.pull_request = 0)
             AND issues.repo_id = :repo_id
             AND issues.created_at
                 BETWEEN to_timestamp(:begin_date, 'YYYY-MM-DD HH24:MI:SS')
@@ -463,7 +464,7 @@ def issue_backlog(self, repo_group_id, repo_id=None):
             FROM issues JOIN repo ON issues.repo_id = repo.repo_id
             WHERE issues.repo_id IN (SELECT repo_id FROM repo WHERE  repo_group_id = :repo_group_id)
             AND issue_state = 'open'
-            AND issues.pull_request IS NULL
+            AND (issues.pull_request IS NULL OR issues.pull_request = 0)
             GROUP BY issues.repo_id, repo_name
             ORDER BY issues.repo_id
         """)
@@ -475,7 +476,7 @@ def issue_backlog(self, repo_group_id, repo_id=None):
             SELECT repo_name, COUNT(issue_id) as issue_backlog
             FROM issues JOIN repo ON issues.repo_id = repo.repo_id
             WHERE issues.repo_id = :repo_id
-            AND issues.pull_request IS NULL
+            AND (issues.pull_request IS NULL OR issues.pull_request = 0)
             AND issue_state='open'
             GROUP BY repo_name
         """)
@@ -496,12 +497,13 @@ def issue_throughput(self, repo_group_id, repo_id=None):
             SELECT table1.repo_id, repo.repo_name, (tot1 / tot2) AS throughput
             FROM
                 (SELECT repo_id, COUNT(issue_id)::REAL AS tot1
-                FROM issues WHERE issue_state='closed' AND issues.pull_request IS NULL
+                FROM issues WHERE issue_state='closed' AND (issues.pull_request IS NULL OR issues.pull_request = 0)
                 AND repo_id IN (SELECT repo_id FROM repo WHERE  repo_group_id = :repo_group_id)
                 GROUP BY repo_id) AS table1,
                 (SELECT repo_id, COUNT(issue_id)::REAL AS tot2
                 FROM issues
-                WHERE repo_id IN (SELECT repo_id FROM repo WHERE  repo_group_id = :repo_group_id AND issues.pull_request IS NULL)
+                WHERE repo_id IN (SELECT repo_id FROM repo WHERE  repo_group_id = :repo_group_id AND (
+                    (issues.pull_request IS NULL OR issues.pull_request = 0)))
                 GROUP BY repo_id) AS table2,
                 repo
             WHERE table1.repo_id = table2.repo_id
@@ -516,10 +518,10 @@ def issue_throughput(self, repo_group_id, repo_id=None):
             SELECT repo.repo_name, (tot1 / tot2) AS throughput
             FROM
                 (SELECT repo_id, COUNT(issue_id)::REAL AS tot1 FROM issues
-                WHERE issue_state='closed' AND repo_id=:repo_id AND issues.pull_request IS NULL
+                WHERE issue_state='closed' AND repo_id=:repo_id AND (issues.pull_request IS NULL OR issues.pull_request = 0)
                 GROUP BY repo_id) AS table1,
                 (SELECT COUNT(issue_id)::REAL AS tot2 FROM issues
-                WHERE repo_id=:repo_id AND issues.pull_request IS NULL) AS table2,
+                WHERE repo_id=:repo_id AND (issues.pull_request IS NULL OR issues.pull_request = 0)) AS table2,
                 repo
             WHERE table1.repo_id = repo.repo_id
         """)
@@ -551,7 +553,7 @@ def issues_open_age(self, repo_group_id, repo_id=None, period='day', begin_date=
                 repo,
                 repo_groups
             WHERE issue_state = 'open'
-            AND issues.pull_request IS NULL
+            AND (issues.pull_request IS NULL OR issues.pull_request = 0)
             AND issues.repo_id IN (SELECT repo_id FROM repo WHERE repo_group_id = :repo_group_id)
             AND repo.repo_id = issues.repo_id
             AND issues.created_at BETWEEN :begin_date and :end_date
@@ -566,7 +568,7 @@ def issues_open_age(self, repo_group_id, repo_id=None, period='day', begin_date=
                 repo_groups
             WHERE issue_state = 'open'
             AND issues.repo_id = :repo_id
-            AND issues.pull_request IS NULL
+            AND (issues.pull_request IS NULL OR issues.pull_request = 0)
             AND repo.repo_id = issues.repo_id
             AND issues.created_at BETWEEN :begin_date and :end_date
             GROUP BY repo.repo_id,issue_id, date, open_date
@@ -606,7 +608,7 @@ def issues_closed_resolution_duration(self, repo_group_id, repo_id=None, period=
             FROM issues,
                 repo
             WHERE issues.closed_at IS NOT NULL
-            AND issues.pull_request IS NULL
+            AND (issues.pull_request IS NULL OR issues.pull_request = 0)
             AND issues.repo_id IN (SELECT repo_id FROM repo WHERE repo_group_id = :repo_group_id)
             AND repo.repo_id = issues.repo_id
             AND issues.created_at BETWEEN :begin_date and :end_date
@@ -625,7 +627,7 @@ def issues_closed_resolution_duration(self, repo_group_id, repo_id=None, period=
             FROM issues,
                 repo
             WHERE issues.closed_at IS NOT NULL
-            AND issues.pull_request IS NULL
+            AND (issues.pull_request IS NULL OR issues.pull_request = 0)
             AND issues.repo_id = :repo_id
             AND repo.repo_id = issues.repo_id
             AND issues.created_at BETWEEN :begin_date and :end_date
@@ -660,7 +662,7 @@ def average_issue_resolution_time(self, repo_group_id, repo_id=None):
             WHERE issues.repo_id IN
                 (SELECT repo_id FROM repo WHERE  repo_group_id = :repo_group_id)
             AND closed_at IS NOT NULL
-            AND pull_request IS NULL 
+            AND pull_request IS NULL or issues.pull_request = 0 
             GROUP BY issues.repo_id, repo.repo_name
             ORDER BY issues.repo_id
         """)
@@ -677,7 +679,7 @@ def average_issue_resolution_time(self, repo_group_id, repo_id=None):
             FROM issues JOIN repo ON issues.repo_id = repo.repo_id
             WHERE issues.repo_id = :repo_id
             AND closed_at IS NOT NULL
-            AND pull_request IS NULL 
+            AND pull_request IS NULL or issues.pull_request = 0 
             GROUP BY repo.repo_name
         """)
 
@@ -714,7 +716,7 @@ def issues_maintainer_response_duration(self, repo_group_id, repo_id=None, begin
                                 message
                             where repo.repo_id = :repo_id
                                 and repo.repo_id = issues.repo_id
-                                AND issues.pull_request IS NULL
+                                AND (issues.pull_request IS NULL OR issues.pull_request = 0)
                                 and issues.issue_id = issue_message_ref.issue_id
                                 and issue_message_ref.msg_id = message.msg_id
                                 and issues.created_at between :begin_date and :end_date
@@ -744,7 +746,7 @@ def issues_maintainer_response_duration(self, repo_group_id, repo_id=None, begin
                                 message
                             where repo.repo_id IN (SELECT repo.repo_id from repo where repo_group_id = :repo_group_id)
                                 and repo.repo_id = issues.repo_id
-                                AND issues.pull_request IS NULL
+                                AND (issues.pull_request IS NULL OR issues.pull_request = 0)
                                 and issues.issue_id = issue_message_ref.issue_id
                                 and issue_message_ref.msg_id = message.msg_id
                                 and issues.created_at between :begin_date and :end_date
@@ -774,7 +776,7 @@ def open_issues_count(self, repo_group_id, repo_id=None):
             AND issues.repo_id IN (SELECT repo_id FROM repo WHERE  repo_group_id = :repo_group_id)
             AND repo.repo_id = issues.repo_id
             AND repo.repo_group_id = repo_groups.repo_group_id
-            AND issues.pull_request IS NULL 
+            AND (issues.pull_request IS NULL OR issues.pull_request = 0) 
             GROUP BY date, repo_groups.rg_name
             ORDER BY date
         """)
@@ -788,7 +790,7 @@ def open_issues_count(self, repo_group_id, repo_id=None):
             AND issues.repo_id = :repo_id
             AND repo.repo_id = issues.repo_id
             AND repo.repo_group_id = repo_groups.repo_group_id
-            AND issues.pull_request IS NULL 
+            AND (issues.pull_request IS NULL OR issues.pull_request = 0) 
             GROUP BY date, repo.repo_id
             ORDER BY date
         """)
@@ -811,7 +813,7 @@ def closed_issues_count(self, repo_group_id, repo_id=None):
             AND issues.repo_id IN (SELECT repo_id FROM repo WHERE  repo_group_id = :repo_group_id)
             AND repo.repo_id = issues.repo_id
             AND repo.repo_group_id = repo_groups.repo_group_id
-            AND issues.pull_request IS NULL 
+            AND (issues.pull_request IS NULL OR issues.pull_request = 0) 
             GROUP BY date, repo_groups.rg_name
             ORDER BY date
         """)
@@ -825,7 +827,7 @@ def closed_issues_count(self, repo_group_id, repo_id=None):
             AND issues.repo_id = :repo_id
             AND repo.repo_id = issues.repo_id
             AND repo.repo_group_id = repo_groups.repo_group_id
-            AND issues.pull_request IS NULL 
+            AND (issues.pull_request IS NULL OR issues.pull_request = 0) 
             GROUP BY date, repo.repo_id
             ORDER BY date
         """)
@@ -845,7 +847,7 @@ def issue_comments_mean(self, repo_group_id, repo_id=None, group_by='week'):
                     COUNT(*) / 7.0 AS mean
                 FROM issues i, issue_message_ref im, message m
                 WHERE i.issue_id = im.issue_id
-                AND i.pull_request IS NULL 
+                AND i.pull_request IS NULL or issues.pull_request = 0 
                 AND im.msg_id = m.msg_id
                 AND i.repo_id IN
                     (SELECT repo_id FROM repo
@@ -862,7 +864,7 @@ def issue_comments_mean(self, repo_group_id, repo_id=None, group_by='week'):
                     COUNT(*) / 30.0 AS mean
                 FROM issues i, issue_message_ref im, message m
                 WHERE i.issue_id = im.issue_id
-                AND i.pull_request IS NULL 
+                AND i.pull_request IS NULL or issues.pull_request = 0 
                 AND im.msg_id = m.msg_id
                 AND i.repo_id IN
                     (SELECT repo_id FROM repo
@@ -880,7 +882,7 @@ def issue_comments_mean(self, repo_group_id, repo_id=None, group_by='week'):
                 FROM issues i, issue_message_ref im, message m
                 WHERE i.issue_id = im.issue_id
                 AND im.msg_id = m.msg_id
-                AND i.pull_request IS NULL 
+                AND i.pull_request IS NULL or issues.pull_request = 0 
                 AND i.repo_id IN
                     (SELECT repo_id FROM repo
                      WHERE  repo_group_id = :repo_group_id)
@@ -904,7 +906,7 @@ def issue_comments_mean(self, repo_group_id, repo_id=None, group_by='week'):
                     COUNT(*) / 7.0 AS mean
                 FROM issues i, issue_message_ref im, message m
                 WHERE i.issue_id = im.issue_id
-                AND i.pull_request IS NULL 
+                AND i.pull_request IS NULL or issues.pull_request = 0 
                 AND i.repo_id = :repo_id
                 AND im.msg_id = m.msg_id
                 GROUP BY i.repo_id, date
@@ -919,7 +921,7 @@ def issue_comments_mean(self, repo_group_id, repo_id=None, group_by='week'):
                     COUNT(*) / 30.0 AS mean
                 FROM issues i, issue_message_ref im, message m
                 WHERE i.issue_id = im.issue_id
-                AND i.pull_request IS NULL 
+                AND i.pull_request IS NULL or issues.pull_request = 0 
                 AND i.repo_id = :repo_id
                 AND im.msg_id = m.msg_id
                 GROUP BY i.repo_id, date
@@ -934,7 +936,7 @@ def issue_comments_mean(self, repo_group_id, repo_id=None, group_by='week'):
                     COUNT(*) / 365.0 AS mean
                 FROM issues i, issue_message_ref im, message m
                 WHERE i.issue_id = im.issue_id
-                AND i.pull_request IS NULL 
+                AND i.pull_request IS NULL or issues.pull_request = 0 
                 AND i.repo_id = :repo_id
                 AND im.msg_id = m.msg_id
                 GROUP BY i.repo_id, date
@@ -964,7 +966,7 @@ def issue_comments_mean_std(self, repo_group_id, repo_id=None, group_by='week'):
                     COUNT(*) AS total
                 FROM issues i, issue_message_ref im, message m
                 WHERE i.issue_id = im.issue_id
-                AND i.pull_request IS NULL 
+                AND i.pull_request IS NULL or issues.pull_request = 0 
                 AND im.msg_id = m.msg_id
                 AND i.repo_id IN
                     (SELECT repo_id FROM repo
@@ -994,7 +996,7 @@ def issue_comments_mean_std(self, repo_group_id, repo_id=None, group_by='week'):
                     COUNT(*) AS total
                 FROM issues i, issue_message_ref im, message m
                 WHERE i.issue_id = im.issue_id
-                AND i.pull_request IS NULL 
+                AND i.pull_request IS NULL or issues.pull_request = 0 
                 AND im.msg_id = m.msg_id
                 AND i.repo_id = :repo_id
                 GROUP BY i.repo_id, daily
