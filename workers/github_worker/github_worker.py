@@ -76,38 +76,34 @@ class GitHubWorker(Worker):
             self.register_task_completion(entry_info, repo_id, 'issues')
             return
 
-        try:
-            issues_insert = [
-                {
-                    'repo_id': repo_id,
-                    'reporter_id': self.find_id_from_login(issue['user']['login']),
-                    'pull_request': 1 if 'pull_request' in issue else 0,
-                    'pull_request_id': 1 if 'pull_request' in issue else 0,
-                    'created_at': issue['created_at'],
-                    'issue_title': issue['title'],
-                    'issue_body': issue['body'].replace('0x00', '____') if issue['body'] else None,
-                    'comment_count': issue['comments'],
-                    'updated_at': issue['updated_at'],
-                    'closed_at': issue['closed_at'],
-                    'repository_url': issue['repository_url'],
-                    'issue_url': issue['url'],
-                    'labels_url': issue['labels_url'],
-                    'comments_url': issue['comments_url'],
-                    'events_url': issue['events_url'],
-                    'html_url': issue['html_url'],
-                    'issue_state': issue['state'],
-                    'issue_node_id': issue['node_id'],
-                    'gh_issue_id': issue['id'],
-                    'gh_issue_number': issue['number'],
-                    'gh_user_id': issue['user']['id'],
-                    'tool_source': self.tool_source,
-                    'tool_version': self.tool_version,
-                    'data_source': self.data_source
-                } for issue in source_issues['insert']
-            ]
-
-        except Exception as e:
-            self.logger.info(e)
+        issues_insert = [
+            {
+                'repo_id': repo_id,
+                'reporter_id': self.find_id_from_login(issue['user']['login']),
+                'pull_request': 1 if 'pull_request' in issue else 0,
+                'pull_request_id': 1 if 'pull_request' in issue else 0,
+                'created_at': issue['created_at'],
+                'issue_title': issue['title'],
+                'issue_body': issue['body'].replace('0x00', '____') if issue['body'] else None,
+                'comment_count': issue['comments'],
+                'updated_at': issue['updated_at'],
+                'closed_at': issue['closed_at'],
+                'repository_url': issue['repository_url'],
+                'issue_url': issue['url'],
+                'labels_url': issue['labels_url'],
+                'comments_url': issue['comments_url'],
+                'events_url': issue['events_url'],
+                'html_url': issue['html_url'],
+                'issue_state': issue['state'],
+                'issue_node_id': issue['node_id'],
+                'gh_issue_id': issue['id'],
+                'gh_issue_number': issue['number'],
+                'gh_user_id': issue['user']['id'],
+                'tool_source': self.tool_source,
+                'tool_version': self.tool_version,
+                'data_source': self.data_source
+            } for issue in source_issues['insert']
+        ]
 
         if len(source_issues['insert']) > 0 or len(source_issues['update']) > 0:
 
@@ -222,8 +218,6 @@ class GitHubWorker(Worker):
         pk_issue_events = self.enrich_data_primary_keys(issue_events['insert'], 
             self.issues_table, ['issue.id'], ['gh_issue_id'])
 
-        self.logger.info(pk_issue_events[:10])
-
         issue_events_insert = [
             {
                 'issue_event_src_id': event['id'],
@@ -240,9 +234,7 @@ class GitHubWorker(Worker):
             } for event in pk_issue_events if event['actor'] is not None
         ]
 
-        self.logger.info(issue_events_insert[:10])
-
-        self.bulk_insert(self.issue_events_table, insert=issue_events['insert'], 
+        self.bulk_insert(self.issue_events_table, insert=issue_events_insert, 
             unique_columns=event_action_map['insert']['augur'])
 
         closed_issue_updates = []
@@ -321,14 +313,18 @@ class GitHubWorker(Worker):
             if 'closed_at' in issue:
 
                 events_df = pd.DataFrame(issue_events['insert'])
-                closer_login = events_df.loc[events_df['event'] == 'closed'].tail(1)['actor'].values[0]['login']
+                                
+                closed_event = events_df.loc[events_df['event'] == 'closed'].tail(1)
+                
+                if len(closed_event) == 0:
+                    self.logger.info("Warning! We do not have the closing event of this issue stored\n")
+                else:
+                    closer_cntrb_id = self.find_id_from_login(closed_event['actor'].values[0]['login'])
 
-                closer_cntrb_id = self.find_id_from_login(event['actor']['login'])
-
-                closed_issue_updates.append({
-                    'b_issue_id': issue['issue_id'],
-                    'cntrb_id': closer_cntrb_id
-                })
+                    closed_issue_updates.append({
+                        'b_issue_id': issue['issue_id'],
+                        'cntrb_id': closer_cntrb_id
+                    })
 
         # Closed issues, update with closer id
         self.bulk_insert(self.issues_table, update=closed_issue_updates, unique_columns=['issue_id'], 
