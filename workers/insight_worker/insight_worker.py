@@ -54,7 +54,7 @@ class InsightWorker(Worker):
         
     def insights_model(self, entry_info, repo_id):
 
-        logging.info("Discovering insights for task with entry info: {}\n".format(entry_info))
+        self.logger.info("Discovering insights for task with entry info: {}\n".format(entry_info))
 
         """ Collect data """
         base_url = 'http://{}:{}/api/unstable/repo-groups/9999/repos/{}/'.format(
@@ -70,18 +70,18 @@ class InsightWorker(Worker):
         for endpoint, field in self.metrics.items():
             # Hit endpoint
             url = base_url + endpoint
-            logging.info("Hitting endpoint: " + url + "\n")
+            self.logger.info("Hitting endpoint: " + url + "\n")
             try:
                 data = requests.get(url=url).json()
             except:
                 data = json.loads(json.dumps(requests.get(url=url).text))
 
             if len(data) == 0:
-                logging.info("Endpoint with url: {} returned an empty response. Moving on to next endpoint.\n".format(url))
+                self.logger.info("Endpoint with url: {} returned an empty response. Moving on to next endpoint.\n".format(url))
                 continue
                 
             if 'date' not in data[0]:
-                logging.info("Endpoint {} is not a timeseries, moving to next endpoint.\n".format(endpoint))
+                self.logger.info("Endpoint {} is not a timeseries, moving to next endpoint.\n".format(endpoint))
                 continue
             
             metric_df = pd.DataFrame.from_records(data)
@@ -93,7 +93,7 @@ class InsightWorker(Worker):
 
         # If none of the endpoints returned data
         if df.size == 0:
-            logging.info("None of the provided endpoints provided data for this repository. Anomaly detection is 'done'.\n")
+            self.logger.info("None of the provided endpoints provided data for this repository. Anomaly detection is 'done'.\n")
             self.register_task_completion(entry_info, repo_id, "insights")
             return
 
@@ -101,8 +101,8 @@ class InsightWorker(Worker):
 
         # Delete previous insights not in the anomaly_days param
         min_date = datetime.datetime.now() - datetime.timedelta(days=self.anomaly_days)
-        logging.info("MIN DATE: {}\n".format(min_date))
-        logging.info("Deleting out of date records ...\n")
+        self.logger.info("MIN DATE: {}\n".format(min_date))
+        self.logger.info("Deleting out of date records ...\n")
         delete_record_SQL = s.sql.text("""
             DELETE 
                 FROM
@@ -113,7 +113,7 @@ class InsightWorker(Worker):
         """)
         result = self.db.execute(delete_record_SQL, repo_id=repo_id, min_date=min_date)
 
-        logging.info("Deleting out of date data points ...\n")
+        self.logger.info("Deleting out of date data points ...\n")
         delete_points_SQL = s.sql.text("""
             DELETE 
                 FROM
@@ -204,13 +204,13 @@ class InsightWorker(Worker):
             while True:
 
                 if anomaly_df.loc[anomaly_df['anomaly_class'] == 2].empty:
-                    logging.info("No more anomalies to be found for metric: {}\n".format(metric))
+                    self.logger.info("No more anomalies to be found for metric: {}\n".format(metric))
                     break
 
                 next_recent_anomaly_date = anomaly_df.loc[anomaly_df['anomaly_class'] == 2]['anomaly_class'].idxmax()
-                logging.info("Next most recent date: \n{}\n".format(next_recent_anomaly_date))
+                self.logger.info("Next most recent date: \n{}\n".format(next_recent_anomaly_date))
                 next_recent_anomaly = anomaly_df.loc[anomaly_df.index == next_recent_anomaly_date]
-                logging.info("Next most recent anomaly: \n{}\n{}\n".format(next_recent_anomaly.columns.values, 
+                self.logger.info("Next most recent anomaly: \n{}\n{}\n".format(next_recent_anomaly.columns.values, 
                     next_recent_anomaly.values))
 
                 if insight_count == 0:
@@ -241,7 +241,7 @@ class InsightWorker(Worker):
                         "data_source": self.data_source
                     }
                     result = self.db.execute(self.repo_insights_records_table.insert().values(record))
-                    logging.info("Primary key inserted into the repo_insights_records table: {}\n".format(
+                    self.logger.info("Primary key inserted into the repo_insights_records table: {}\n".format(
                         result.inserted_primary_key))
                     self.results_counter += 1
 
@@ -250,7 +250,7 @@ class InsightWorker(Worker):
 
                     insight_count += 1
                 else:
-                    logging.info("Duplicate insight found, skipping insertion. "
+                    self.logger.info("Duplicate insight found, skipping insertion. "
                         "Continuing iteration of anomalies...\n")
 
                 anomaly_df = anomaly_df[anomaly_df.index < next_recent_anomaly_date]
@@ -283,12 +283,12 @@ class InsightWorker(Worker):
                         "data_source": self.data_source
                     }
                     result = self.db.execute(self.repo_insights_table.insert().values(data_point))
-                    logging.info("Primary key inserted into the repo_insights table: {}\n".format(
+                    self.logger.info("Primary key inserted into the repo_insights table: {}\n".format(
                         result.inserted_primary_key))
 
-                    logging.info("Inserted data point for metric: {}, date: {}, value: {}\n".format(metric, ts, tuple._3))
+                    self.logger.info("Inserted data point for metric: {}, date: {}, value: {}\n".format(metric, ts, tuple._3))
                 except Exception as e:
-                    logging.info("error occurred while storing datapoint: {}\n".format(repr(e)))
+                    self.logger.info("error occurred while storing datapoint: {}\n".format(repr(e)))
                     break
 
         self.register_task_completion(entry_info, repo_id, "insights")
@@ -298,7 +298,7 @@ class InsightWorker(Worker):
         """
 
         # Update table of endpoints before we query them all
-        logging.info("Discovering insights for task with entry info: {}".format(entry_info))
+        self.logger.info("Discovering insights for task with entry info: {}".format(entry_info))
 
         # Set the endpoints we want to discover insights for
         endpoints = [{'cm_info': "issues-new"}, {'cm_info': "code-changes"}, {'cm_info': "code-changes-lines"}, 
@@ -330,7 +330,7 @@ class InsightWorker(Worker):
 
             # Hit endpoint
             url = base_url + endpoint['cm_info']
-            logging.info("Hitting endpoint: " + url + "\n")
+            self.logger.info("Hitting endpoint: " + url + "\n")
             r = requests.get(url=url)
             data = r.json()
 
@@ -346,13 +346,13 @@ class InsightWorker(Worker):
                 try:
                     unique_keys = list(filter(is_unique_key, data[0].keys()))
                 except Exception as e:
-                    logging.info("Length bigger than 0 but cannot get 0th element? : {}, {}".format(data, e))
+                    self.logger.info("Length bigger than 0 but cannot get 0th element? : {}, {}".format(data, e))
             else:
-                logging.info("Endpoint with url: {} returned an empty response. Moving on to next endpoint.\n".format(url))
+                self.logger.info("Endpoint with url: {} returned an empty response. Moving on to next endpoint.\n".format(url))
                 continue
 
             # num issues, issue comments, num commits, num pr, comments pr
-            logging.info("Found the following unique keys for this endpoint: {}".format(unique_keys))
+            self.logger.info("Found the following unique keys for this endpoint: {}".format(unique_keys))
             date_filtered_data = []
             i = 0
             not_timeseries = False
@@ -365,10 +365,10 @@ class InsightWorker(Worker):
                 try:
                     if dict['date'] > begin_date:
                         date_filtered_data = data[i:]
-                        logging.info("data {} days ago date found: {}, {}".format(self.training_days, dict['date'], begin_date))
+                        self.logger.info("data {} days ago date found: {}, {}".format(self.training_days, dict['date'], begin_date))
                         break
                 except:
-                    logging.info("Endpoint {} is not a timeseries, moving to next".format(endpoint))
+                    self.logger.info("Endpoint {} is not a timeseries, moving to next".format(endpoint))
                     not_timeseries = True
                     break
                 i += 1
@@ -385,7 +385,7 @@ class InsightWorker(Worker):
                 if dict_date > begin_date and not date_found:
                     date_found = True
                     date_found_index = x
-                    logging.info("raw values within {} days ago date found: {}, {}".format(self.anomaly_days, dict['date'], begin_date))
+                    self.logger.info("raw values within {} days ago date found: {}, {}".format(self.anomaly_days, dict['date'], begin_date))
                 x += 1
                 for key in unique_keys:
                     try:
@@ -396,12 +396,12 @@ class InsightWorker(Worker):
                             trash = int(dict[key]) * 2 + 1
                             raw_values[key] = [int(dict[key])]
                         except:
-                            logging.info("Key: {} is non-numerical, moving to next key.".format(key))
+                            self.logger.info("Key: {} is non-numerical, moving to next key.".format(key))
 
             for key in raw_values.keys():
                 if len(raw_values[key]) > 0:
                     mean, lower, upper = self.confidence_interval(raw_values[key], confidence=self.confidence)
-                    logging.info("Upper: {}, middle: {}, lower: {}".format(upper, mean, lower))
+                    self.logger.info("Upper: {}, middle: {}, lower: {}".format(upper, mean, lower))
                     i = 0
                     discovery_index = None
                     insight = False
@@ -410,10 +410,10 @@ class InsightWorker(Worker):
 
                     date_filtered_raw_values = []
                     date_filtered_raw_values = date_filtered_data[date_found_index:]
-                    logging.info("Raw values: {}".format(date_filtered_raw_values))
+                    self.logger.info("Raw values: {}".format(date_filtered_raw_values))
                     for dict in date_filtered_raw_values:
                         if (dict[key] > upper and dict[key] - upper > max_difference) or (dict[key] < lower and lower - dict[key] > max_difference):
-                            logging.info("Band breached at {}. Marking discovery. dict: {}, key: {}, mean: {}".format(i, dict, key, mean))
+                            self.logger.info("Band breached at {}. Marking discovery. dict: {}, key: {}, mean: {}".format(i, dict, key, mean))
                             max_difference = max(dict[key] - upper,lower - dict[key])
                             score = abs(dict[key] - mean) / mean * 100
                             insight = True
@@ -446,7 +446,7 @@ class InsightWorker(Worker):
                                 "data_source": self.data_source
                             }
                             result = self.db.execute(self.repo_insights_records_table.insert().values(record))
-                            logging.info("Primary key inserted into the repo_insights_records table: {}".format(result.inserted_primary_key))
+                            self.logger.info("Primary key inserted into the repo_insights_records table: {}".format(result.inserted_primary_key))
                             self.results_counter += 1
                             # Send insight to Jonah for slack bot
                             self.send_insight(record, abs(date_filtered_raw_values[discovery_index][key] - mean))
@@ -455,7 +455,7 @@ class InsightWorker(Worker):
                         if instructions['insight']:
 
                             j = 0
-                            logging.info("Starting j: {}, discovery_index: {}, data: {}".format(j, discovery_index, date_filtered_data[j]))
+                            self.logger.info("Starting j: {}, discovery_index: {}, data: {}".format(j, discovery_index, date_filtered_data[j]))
                             for tuple in date_filtered_raw_values:
                                 try:
                                     data_point = {
@@ -472,16 +472,16 @@ class InsightWorker(Worker):
                                         "data_source": self.data_source
                                     }
                                     result = self.db.execute(self.repo_insights_table.insert().values(data_point))
-                                    logging.info("Primary key inserted into the repo_insights table: " + str(result.inserted_primary_key))
+                                    self.logger.info("Primary key inserted into the repo_insights table: " + str(result.inserted_primary_key))
 
-                                    logging.info("Inserted data point for endpoint: {}\n".format(endpoint['cm_info']))
+                                    self.logger.info("Inserted data point for endpoint: {}\n".format(endpoint['cm_info']))
                                     j += 1
-                                    logging.info("incremented j: {}, discovery_index: {}, data: {}".format(j, discovery_index, date_filtered_data[j]))
+                                    self.logger.info("incremented j: {}, discovery_index: {}, data: {}".format(j, discovery_index, date_filtered_data[j]))
                                 except Exception as e:
-                                    logging.info("error occurred while storing datapoint: {}".format(repr(e)))
+                                    self.logger.info("error occurred while storing datapoint: {}".format(repr(e)))
                                     break
                 else:
-                    logging.info("Key: {} has empty raw_values, should not have key here".format(key))
+                    self.logger.info("Key: {} has empty raw_values, should not have key here".format(key))
 
         self.register_task_completion(entry_info, "insights")
 
@@ -498,7 +498,7 @@ class InsightWorker(Worker):
             begin_date = datetime.datetime.now() - datetime.timedelta(days=self.anomaly_days)
             dict_date = insight['ri_date'].strftime("%Y-%m-%d %H:%M:%S")
             if insight['ri_date'] > begin_date and self.send_insights:
-                logging.info("Insight less than {} days ago date found: {}\n\nSending to Jonah...".format(self.anomaly_days, insight))
+                self.logger.info("Insight less than {} days ago date found: {}\n\nSending to Jonah...".format(self.anomaly_days, insight))
                 to_send = {
                     'insight': True,
                     # 'rg_name': repo['rg_name'],
@@ -512,11 +512,11 @@ class InsightWorker(Worker):
                 }
                 requests.post('https://ejmoq97307.execute-api.us-east-1.amazonaws.com/dev/insight-event', json=to_send)
         except Exception as e:
-            logging.info("sending insight to jonah failed: {}".format(e))
+            self.logger.info("sending insight to jonah failed: {}".format(e))
 
     def clear_insights(self, repo_id, new_endpoint, new_field):
 
-        logging.info("Deleting all tuples in repo_insights_records table with info: "
+        self.logger.info("Deleting all tuples in repo_insights_records table with info: "
             "repo {} endpoint {} field {}".format(repo_id, new_endpoint, new_field))
         deleteSQL = """
             DELETE 
@@ -530,10 +530,10 @@ class InsightWorker(Worker):
         try:
             result = self.db.execute(deleteSQL)
         except Exception as e:
-            logging.info("Error occured deleting insight slot: {}".format(e))
+            self.logger.info("Error occured deleting insight slot: {}".format(e))
 
         # Delete all insights 
-        logging.info("Deleting all tuples in repo_insights table with info: "
+        self.logger.info("Deleting all tuples in repo_insights table with info: "
             "repo {} endpoint {} field {}".format(repo_id, new_endpoint, new_field))        
         deleteSQL = """
             DELETE 
@@ -547,10 +547,10 @@ class InsightWorker(Worker):
         try:
             result = self.db.execute(deleteSQL)
         except Exception as e:
-            logging.info("Error occured deleting insight slot: {}".format(e))
+            self.logger.info("Error occured deleting insight slot: {}".format(e))
 
     def clear_insight(self, repo_id, new_score, new_metric, new_field):
-        logging.info("Checking if insight slots filled...")
+        self.logger.info("Checking if insight slots filled...")
 
         # Dict that will be returned that instructs the rest of the worker where the insight insertion is 
         #   needed (determined by if this new insights score is higher than already stored ones)
@@ -566,13 +566,13 @@ class InsightWorker(Worker):
             ORDER BY ri_score DESC
         """.format(repo_id, new_metric, new_field))
         rec = json.loads(pd.read_sql(recordSQL, self.db, params={}).to_json(orient='records'))
-        logging.info("recordsql: {}, \n{}".format(recordSQL, rec))
+        self.logger.info("recordsql: {}, \n{}".format(recordSQL, rec))
         # If new score is higher, continue with deletion
         if len(rec) > 0:
             if new_score > rec[0]['ri_score'] or self.refresh:
                 insertion_directions['record'] = True
                 for record in rec:
-                    logging.info("Refresh is on or Insight record found with a greater score than current slot filled for "
+                    self.logger.info("Refresh is on or Insight record found with a greater score than current slot filled for "
                         "repo {} metric {} new score {}, old score {}".format(repo_id, record['ri_metric'], new_score, record['ri_score']))
                     deleteSQL = """
                         DELETE 
@@ -586,7 +586,7 @@ class InsightWorker(Worker):
                     try:
                         result = self.db.execute(deleteSQL)
                     except Exception as e:
-                        logging.info("Error occured deleting insight slot: {}".format(e))
+                        self.logger.info("Error occured deleting insight slot: {}".format(e))
         else:
             insertion_directions['record'] = True
 
@@ -599,7 +599,7 @@ class InsightWorker(Worker):
             ORDER BY ri_score ASC
         """.format(repo_id))
         ins = json.loads(pd.read_sql(insightSQL, self.db, params={}).to_json(orient='records'))
-        logging.info("This repos insights: {}".format(ins))
+        self.logger.info("This repos insights: {}".format(ins))
 
         # Determine if inisghts need to be deleted based on if there are more insights than we want stored,
         #   or if the current insights have a lower score
@@ -607,11 +607,11 @@ class InsightWorker(Worker):
         to_delete = []
         for insight in ins:
             insight['ri_score'] = insight['ri_score'] if insight['ri_score'] else 0.0
-            logging.info("{}, {}, {}, {}".format(insight['ri_metric'], new_metric, insight['ri_score'], num_insights_per_repo))
+            self.logger.info("{}, {}, {}, {}".format(insight['ri_metric'], new_metric, insight['ri_score'], num_insights_per_repo))
             if (insight['ri_score'] < new_score and num_insights >= num_insights_per_repo) or num_insights > num_insights_per_repo or (insight['ri_metric'] == new_metric and self.refresh):
                 num_insights -= 1
                 to_delete.append(insight)
-                logging.info("condition met, new len: {}, insight score: {}, new_score: {}".format(num_insights,
+                self.logger.info("condition met, new len: {}, insight score: {}, new_score: {}".format(num_insights,
                     insight['ri_score'], new_score))
 
         # After psuedo-deletion, determine if insertion of the new insight is needed
@@ -620,7 +620,7 @@ class InsightWorker(Worker):
 
         # Delete all insights marked for deletion
         for insight in to_delete:
-            logging.info("insight found with a greater score than current slots filled for repo {} new score {}, old score {}".format(repo_id, new_score, insight['ri_score']))
+            self.logger.info("insight found with a greater score than current slots filled for repo {} new score {}, old score {}".format(repo_id, new_score, insight['ri_score']))
             deleteSQL = """
                 DELETE 
                     FROM
@@ -632,7 +632,7 @@ class InsightWorker(Worker):
             try:
                 result = self.db.execute(deleteSQL)
             except Exception as e:
-                logging.info("Error occured deleting insight slot: {}".format(e))
+                self.logger.info("Error occured deleting insight slot: {}".format(e))
         
         return insertion_directions
 
@@ -640,17 +640,17 @@ class InsightWorker(Worker):
     def confidence_interval(self, data, timeperiod='week', confidence=.95):
         """ Method to find high activity issues in the past specified timeperiod """
         a = 1.0 * np.array(data)
-        logging.info("np array: {}".format(a))
+        self.logger.info("np array: {}".format(a))
         n = len(a)
         m, se = np.mean(a), scipy.stats.sem(a)
-        logging.info("Mean: {}, standard error: {}".format(m, se))
+        self.logger.info("Mean: {}, standard error: {}".format(m, se))
         h = se * scipy.stats.t.ppf((1 + confidence) / 2., n-1)
-        logging.info("H: {}".format(h))
+        self.logger.info("H: {}".format(h))
         return m, m-h, m+h
 
 
     def update_metrics(self):
-        logging.info("Preparing to update metrics ...\n\n" + 
+        self.logger.info("Preparing to update metrics ...\n\n" + 
             "Hitting endpoint: http://{}:{}/api/unstable/metrics/status ...\n".format(
             self.config['api_host'],self.config['api_port']))
         r = requests.get(url='http://{}:{}/api/unstable/metrics/status'.format(
@@ -661,7 +661,7 @@ class InsightWorker(Worker):
 
         # Duplicate checking ...
         need_insertion = self.filter_duplicates({'cm_api_endpoint_repo': "endpoint"}, ['chaoss_metric_status'], active_metrics)
-        logging.info("Count of contributors needing insertion: " + str(len(need_insertion)) + "\n")
+        self.logger.info("Count of contributors needing insertion: " + str(len(need_insertion)) + "\n")
 
         for metric in need_insertion:
 
@@ -683,10 +683,10 @@ class InsightWorker(Worker):
             }
             # Commit metric insertion to the chaoss metrics table
             result = self.db.execute(self.chaoss_metric_status_table.insert().values(tuple))
-            logging.info("Primary key inserted into the metrics table: " + str(result.inserted_primary_key))
+            self.logger.info("Primary key inserted into the metrics table: " + str(result.inserted_primary_key))
             self.results_counter += 1
 
-            logging.info("Inserted metric: " + metric['display_name'] + "\n")
+            self.logger.info("Inserted metric: " + metric['display_name'] + "\n")
 
     def filter_duplicates(self, cols, tables, og_data):
         need_insertion = []
@@ -703,10 +703,10 @@ class InsightWorker(Worker):
 
             for obj in og_data:
                 if values.isin([obj[cols[col]]]).any().any():
-                    logging.info("value of tuple exists: " + str(obj[cols[col]]) + "\n")
+                    self.logger.info("value of tuple exists: " + str(obj[cols[col]]) + "\n")
                 elif obj not in need_insertion:
                     need_insertion.append(obj)
-        logging.info("While filtering duplicates, we reduced the data size from " + str(len(og_data)) + 
+        self.logger.info("While filtering duplicates, we reduced the data size from " + str(len(og_data)) + 
             " to " + str(len(need_insertion)) + "\n")
         return need_insertion
 
