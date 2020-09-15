@@ -199,11 +199,11 @@ export default {
                     //     });
                 }
                 if ('endpoints' in payload && !('repos' in payload) && !('repoGroups' in payload)) {
+                    console.log("Action: endpoint; General endpoint about to be hit")
                     payload.endpoints.forEach((endpoint: string) => {
-                        console.log(endpoint)
                         context.state.AugurAPI[endpoint]().then((data: object[]) => {
                             tempCache[endpoint] = data;
-                            console.log(tempCache)
+                            console.log("Action: endpoint; General endpoint response", tempCache)
                             resolve(tempCache)
                         });
                     });

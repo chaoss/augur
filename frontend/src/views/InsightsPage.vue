@@ -13,7 +13,7 @@
 
         <d-card class="card-small card-post card-post--1">
 
-          <div style="min-height: 34.2px !important;" v-if="!loading">
+          <div style="min-height: 34.2px !important;" v-if="loading">
             <spinner class="dashboardSpinner"></spinner>
           </div>
 
