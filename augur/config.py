@@ -111,6 +111,40 @@ default_config = {
                     ],
                     "model": "releases",
                     "repo_group_id": 0
+                },
+                {
+                    "all_focused": 1,
+                    "delay": 150000,
+                    "given": [
+                        "git_url"
+                    ],
+                    "model": "gitlab_issues",
+                    "repo_group_id": 0
+                },
+                {
+                    "all_focused": 1,
+                    "delay": 150000,
+                    "given": [
+                        "gitlab_url"
+                    ],
+                    "model": "merge_requests",
+                    "repo_group_id": 0
+                },
+                {
+                    "delay": 150000,
+                    "given": [
+                        "gitlab_url"
+                    ],
+                    "model": "merge_request_files",
+                    "repo_group_id": 0
+                },
+                {
+                    "delay": 150000,
+                    "given": [
+                        "gitlab_url"
+                    ],
+                    "model": "merge_request_commits",
+                    "repo_group_id": 0
                 }
             ]
         },
