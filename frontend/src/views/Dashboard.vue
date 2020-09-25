@@ -232,8 +232,6 @@ export default class Dashboard extends Vue {
   desiredTopInsights: number = 12
   insights: any = {}
   timeframes: any = {}
-  test: any[] = ['https://github.com/rails/ruby-coffee-script.git', 'https://github.com/Comcast/Hygieia.git','https://github.com/apache/jclouds-site.git',
-    'https://github.com/apache/karaf-jclouds.git', 'https://github.com/openssl/openssl', 'https://github.com/rails/ruby-coffee-script.git']
   highest_frame: any = [{}, {}, {}, {}, {}, {}]
   highest: any = []
 
