@@ -34,7 +34,7 @@ class InsightWorker(Worker):
         # Run the general worker initialization
         super().__init__(worker_type, config, given, models, data_tables, operations_tables)
 
-        self.config.update({ 
+        self.config.update({
             'api_host': self.augur_config.get_value('Server', 'host'),
             'api_port': self.augur_config.get_value('Server', 'port')
         })
@@ -51,7 +51,7 @@ class InsightWorker(Worker):
         self.contamination = self.config['contamination']
         self.confidence = self.config['confidence_interval'] / 100
         self.metrics = self.config['metrics']
-        
+
     def insights_model(self, entry_info, repo_id):
 
         logging.info("Discovering insights for task with entry info: {}\n".format(entry_info))
@@ -59,13 +59,13 @@ class InsightWorker(Worker):
         """ Collect data """
         base_url = 'http://{}:{}/api/unstable/repo-groups/9999/repos/{}/'.format(
             self.config['api_host'], self.config['api_port'], repo_id)
-        
+
         # Dataframe to hold all endpoint results
         # Subtract configurable amount of time
         begin_date = datetime.datetime.now().replace(hour=0, minute=0, second=0, microsecond=0) - datetime.timedelta(days=self.training_days)
         index = pd.date_range(begin_date, periods=self.training_days, freq='D')
         df = pd.DataFrame(index=index)
-        
+
         # Hit and discover insights for every endpoint we care about
         for endpoint, field in self.metrics.items():
             # Hit endpoint
@@ -79,11 +79,11 @@ class InsightWorker(Worker):
             if len(data) == 0:
                 logging.info("Endpoint with url: {} returned an empty response. Moving on to next endpoint.\n".format(url))
                 continue
-                
+
             if 'date' not in data[0]:
                 logging.info("Endpoint {} is not a timeseries, moving to next endpoint.\n".format(endpoint))
                 continue
-            
+
             metric_df = pd.DataFrame.from_records(data)
             metric_df.index = pd.to_datetime(metric_df['date'], utc=True).dt.date
             df = df.join(metric_df[field]).fillna(0)
@@ -104,7 +104,7 @@ class InsightWorker(Worker):
         logging.info("MIN DATE: {}\n".format(min_date))
         logging.info("Deleting out of date records ...\n")
         delete_record_SQL = s.sql.text("""
-            DELETE 
+            DELETE
                 FROM
                     repo_insights_records
                 WHERE
@@ -115,13 +115,13 @@ class InsightWorker(Worker):
 
         logging.info("Deleting out of date data points ...\n")
         delete_points_SQL = s.sql.text("""
-            DELETE 
+            DELETE
                 FROM
                     repo_insights
                 USING (
-                    SELECT ri_metric, ri_field 
+                    SELECT ri_metric, ri_field
                     FROM (
-                        SELECT * 
+                        SELECT *
                         FROM repo_insights
                         WHERE ri_fresh = TRUE
                         AND repo_id = :repo_id
@@ -144,11 +144,11 @@ class InsightWorker(Worker):
 
         def classify_anomalies(df,metric):
             df = df.sort_values(by='date_col', ascending=False)
-            
+
             # Shift metric values by one date to find the percentage chage between current and previous data point
             df['shift'] = df[metric].shift(-1)
             df['percentage_change'] = ((df[metric] - df['shift']) / df[metric]) * 100
-            
+
             # Categorise anomalies as 0 - no anomaly, 1 - low anomaly , 2 - high anomaly
             df['anomaly_class'].loc[df['anomaly_class'] == 1] = 0
             df['anomaly_class'].loc[(df['anomaly_class'] == -1) & (df[metric] != 0) & (df[metric] != 1)] = 2
@@ -167,7 +167,7 @@ class InsightWorker(Worker):
             anomaly_df = pd.DataFrame()
             anomaly_df['date_col'] = df.index
             anomaly_df.index = df.index
-            
+
             # Find decision function to find the score and classify anomalies
             anomaly_df['score'] = model.decision_function(df.iloc[:,i:i+1])
             anomaly_df[metric] = df.iloc[:,i:i+1]
@@ -210,7 +210,7 @@ class InsightWorker(Worker):
                 next_recent_anomaly_date = anomaly_df.loc[anomaly_df['anomaly_class'] == 2]['anomaly_class'].idxmax()
                 logging.info("Next most recent date: \n{}\n".format(next_recent_anomaly_date))
                 next_recent_anomaly = anomaly_df.loc[anomaly_df.index == next_recent_anomaly_date]
-                logging.info("Next most recent anomaly: \n{}\n{}\n".format(next_recent_anomaly.columns.values, 
+                logging.info("Next most recent anomaly: \n{}\n{}\n".format(next_recent_anomaly.columns.values,
                     next_recent_anomaly.values))
 
                 if insight_count == 0:
@@ -292,7 +292,7 @@ class InsightWorker(Worker):
                     break
 
         self.register_task_completion(entry_info, repo_id, "insights")
-        
+
     def confidence_interval_insights(self, entry_info):
         """ Anomaly detection method based on confidence intervals
         """
@@ -301,7 +301,7 @@ class InsightWorker(Worker):
         logging.info("Discovering insights for task with entry info: {}".format(entry_info))
 
         # Set the endpoints we want to discover insights for
-        endpoints = [{'cm_info': "issues-new"}, {'cm_info': "code-changes"}, {'cm_info': "code-changes-lines"}, 
+        endpoints = [{'cm_info': "issues-new"}, {'cm_info': "code-changes"}, {'cm_info': "code-changes-lines"},
             {'cm_info': 'reviews'}]
 
         """"""
@@ -338,7 +338,7 @@ class InsightWorker(Worker):
                 """ Helper method used to find which keys we want to analyze in each data point """
                 return 'date' not in key and key != 'repo_group_id' and key != 'repo_id' and (
                     key != 'repo_name') and key != 'rg_name'
-            
+
             # Filter out keys that we do not want to analyze (e.g. repo_id)
             raw_values = {}
             unique_keys = None
@@ -378,7 +378,7 @@ class InsightWorker(Worker):
             date_found_index = None
             date_found = False
             x = 0
-            
+
             begin_date = datetime.datetime.now() - datetime.timedelta(days=self.anomaly_days)
             for dict in date_filtered_data:
                 dict_date = datetime.datetime.strptime(dict['date'], '%Y-%m-%dT%H:%M:%S.%fZ')#2018-08-20T00:00:00.000Z
@@ -488,13 +488,13 @@ class InsightWorker(Worker):
     def send_insight(self, insight, units_from_mean):
         try:
             repoSQL = s.sql.text("""
-                SELECT repo_git, rg_name 
+                SELECT repo_git, rg_name
                 FROM repo, repo_groups
-                WHERE repo_id = {}
-            """.format(insight['repo_id']))
+                WHERE repo_id = :repo_id
+            """)
 
-            repo = pd.read_sql(repoSQL, self.db, params={}).iloc[0]
-            
+            repo = pd.read_sql(repoSQL, self.db, params={'repo_id': insight['repo_id']}).iloc[0]
+
             begin_date = datetime.datetime.now() - datetime.timedelta(days=self.anomaly_days)
             dict_date = insight['ri_date'].strftime("%Y-%m-%d %H:%M:%S")
             if insight['ri_date'] > begin_date and self.send_insights:
@@ -519,7 +519,7 @@ class InsightWorker(Worker):
         logging.info("Deleting all tuples in repo_insights_records table with info: "
             "repo {} endpoint {} field {}".format(repo_id, new_endpoint, new_field))
         deleteSQL = """
-            DELETE 
+            DELETE
                 FROM
                     repo_insights_records I
                 WHERE
@@ -532,11 +532,11 @@ class InsightWorker(Worker):
         except Exception as e:
             logging.info("Error occured deleting insight slot: {}".format(e))
 
-        # Delete all insights 
+        # Delete all insights
         logging.info("Deleting all tuples in repo_insights table with info: "
-            "repo {} endpoint {} field {}".format(repo_id, new_endpoint, new_field))        
+            "repo {} endpoint {} field {}".format(repo_id, new_endpoint, new_field))
         deleteSQL = """
-            DELETE 
+            DELETE
                 FROM
                     repo_insights I
                 WHERE
@@ -552,7 +552,7 @@ class InsightWorker(Worker):
     def clear_insight(self, repo_id, new_score, new_metric, new_field):
         logging.info("Checking if insight slots filled...")
 
-        # Dict that will be returned that instructs the rest of the worker where the insight insertion is 
+        # Dict that will be returned that instructs the rest of the worker where the insight insertion is
         #   needed (determined by if this new insights score is higher than already stored ones)
         insertion_directions = {'record': False, 'insight': False}
 
@@ -560,12 +560,13 @@ class InsightWorker(Worker):
         recordSQL = s.sql.text("""
             SELECT ri_metric, repo_id, ri_score, ri_field
             FROM repo_insights_records
-            WHERE repo_id = {}
-            AND ri_metric = '{}'
-            AND ri_field = '{}'
+            WHERE repo_id = :repo_id
+            AND ri_metric = :new_metric
+            AND ri_field = :new_field
             ORDER BY ri_score DESC
-        """.format(repo_id, new_metric, new_field))
-        rec = json.loads(pd.read_sql(recordSQL, self.db, params={}).to_json(orient='records'))
+        """)
+        params = {'repo_id': repo_id, 'new_metric': new_metric, 'new_field': new_field}
+        rec = json.loads(pd.read_sql(recordSQL, self.db, params=params).to_json(orient='records'))
         logging.info("recordsql: {}, \n{}".format(recordSQL, rec))
         # If new score is higher, continue with deletion
         if len(rec) > 0:
@@ -575,7 +576,7 @@ class InsightWorker(Worker):
                     logging.info("Refresh is on or Insight record found with a greater score than current slot filled for "
                         "repo {} metric {} new score {}, old score {}".format(repo_id, record['ri_metric'], new_score, record['ri_score']))
                     deleteSQL = """
-                        DELETE 
+                        DELETE
                             FROM
                                 repo_insights_records I
                             WHERE
@@ -595,10 +596,10 @@ class InsightWorker(Worker):
         insightSQL = s.sql.text("""
             SELECT distinct(ri_metric),repo_id, ri_score
             FROM repo_insights
-            WHERE repo_id = {}
+            WHERE repo_id = :repo_id
             ORDER BY ri_score ASC
-        """.format(repo_id))
-        ins = json.loads(pd.read_sql(insightSQL, self.db, params={}).to_json(orient='records'))
+        """)
+        ins = json.loads(pd.read_sql(insightSQL, self.db, params={'repo_id': repo_id}).to_json(orient='records'))
         logging.info("This repos insights: {}".format(ins))
 
         # Determine if inisghts need to be deleted based on if there are more insights than we want stored,
@@ -622,7 +623,7 @@ class InsightWorker(Worker):
         for insight in to_delete:
             logging.info("insight found with a greater score than current slots filled for repo {} new score {}, old score {}".format(repo_id, new_score, insight['ri_score']))
             deleteSQL = """
-                DELETE 
+                DELETE
                     FROM
                         repo_insights I
                     WHERE
@@ -633,7 +634,7 @@ class InsightWorker(Worker):
                 result = self.db.execute(deleteSQL)
             except Exception as e:
                 logging.info("Error occured deleting insight slot: {}".format(e))
-        
+
         return insertion_directions
 
 
@@ -650,7 +651,7 @@ class InsightWorker(Worker):
 
 
     def update_metrics(self):
-        logging.info("Preparing to update metrics ...\n\n" + 
+        logging.info("Preparing to update metrics ...\n\n" +
             "Hitting endpoint: http://{}:{}/api/unstable/metrics/status ...\n".format(
             self.config['api_host'],self.config['api_port']))
         r = requests.get(url='http://{}:{}/api/unstable/metrics/status'.format(
@@ -697,16 +698,17 @@ class InsightWorker(Worker):
             table_str += ", " + table
         for col in cols.keys():
             colSQL = s.sql.text("""
-                SELECT {} FROM {}
-                """.format(col, table_str))
-            values = pd.read_sql(colSQL, self.db, params={})
+                SELECT :col FROM :table_str
+                """)
+            params = {'col': col, 'table_str': table_str}
+            values = pd.read_sql(colSQL, self.db, params=params)
 
             for obj in og_data:
                 if values.isin([obj[cols[col]]]).any().any():
                     logging.info("value of tuple exists: " + str(obj[cols[col]]) + "\n")
                 elif obj not in need_insertion:
                     need_insertion.append(obj)
-        logging.info("While filtering duplicates, we reduced the data size from " + str(len(og_data)) + 
+        logging.info("While filtering duplicates, we reduced the data size from " + str(len(og_data)) +
             " to " + str(len(need_insertion)) + "\n")
         return need_insertion
 
