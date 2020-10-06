@@ -119,52 +119,52 @@ def annual_commit_count_ranked_by_new_repo_in_repo_group(self, repo_group_id, re
         table = 'dm_repo_group_annual' if period == 'year' or period == 'all' else 'dm_repo_group_monthly' if period == 'month' else 'dm_repo_group_weekly'
         cdRgNewrepRankedCommitsSQL = s.sql.text("""
             SELECT repo_groups.repo_group_id, rg_name, year, sum(cast(added AS INTEGER) - cast(removed AS INTEGER) - cast(whitespace AS INTEGER)) AS net, sum(cast(patches AS INTEGER)) AS commits
-            FROM :table, repo_groups
-            WHERE :table.repo_group_id = repo_groups.repo_group_id
+            FROM {table}, repo_groups
+            WHERE {table}.repo_group_id = repo_groups.repo_group_id
             AND repo_groups.repo_group_id = :repo_group_id
             AND (
                 year > date_part('year', TIMESTAMP :begin_date)
                 OR (
                     year = date_part('year', TIMESTAMP :begin_date)
-                    AND :period >= date_part(':period', TIMESTAMP :begin_date)
+                    AND {period} >= date_part(:period, TIMESTAMP :begin_date)
                 )
             )
             AND (
                 year < date_part('year', TIMESTAMP :end_date)
                 OR (
                     year = date_part('year', TIMESTAMP :end_date)
-                    AND :period <= date_part(':period', TIMESTAMP :end_date)
+                    AND {period} <= date_part(:period, TIMESTAMP :end_date)
                 )
             )
             GROUP BY repo_groups.repo_group_id, rg_name, YEAR
             ORDER BY YEAR ASC
-        """)
+        """.format(table=table, period=period))
     else:
         table = 'dm_repo_annual' if period == 'year' or period == 'all' else 'dm_repo_monthly' if period == 'month' else 'dm_repo_weekly'
         cdRgNewrepRankedCommitsSQL = s.sql.text("""
             SELECT repo.repo_id, repo_name, year, sum(cast(added AS INTEGER) - cast(removed AS INTEGER) - cast(whitespace AS INTEGER)) AS net, sum(cast(patches AS INTEGER)) AS commits
-            FROM :table, repo
-            WHERE :table.repo_id = repo.repo_id
+            FROM {table}, repo
+            WHERE {table}.repo_id = repo.repo_id
             AND repo.repo_id = :repo_id
             AND (
                 year > date_part('year', TIMESTAMP :begin_date)
                 OR (
                     year = date_part('year', TIMESTAMP :begin_date)
-                    AND :period >= date_part(':period', TIMESTAMP :begin_date)
+                    AND {period} >= date_part(:period, TIMESTAMP :begin_date)
                 )
             )
             AND (
                 year < date_part('year', TIMESTAMP :end_date)
                 OR (
                     year = date_part('year', TIMESTAMP :end_date)
-                    AND :period <= date_part(':period', TIMESTAMP :end_date)
+                    AND {period} <= date_part(:period, TIMESTAMP :end_date)
                 )
             )
             GROUP BY repo.repo_id, repo_name, YEAR
             ORDER BY YEAR ASC
-        """)
+        """.format(table=table, period=period))
     results = pd.read_sql(cdRgNewrepRankedCommitsSQL, self.database, params={'repo_id': repo_id,
-        'repo_group_id': repo_group_id,'begin_date': begin_date, 'end_date': end_date, 'table': table, 'period': period})
+        'repo_group_id': repo_group_id,'begin_date': begin_date, 'end_date': end_date, 'period': period})
     return results
 
 @register_metric()
