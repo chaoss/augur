@@ -55,45 +55,45 @@ class ContributorWorker(Worker):
 
         # Get all distinct combinations of emails and names by querying the repo's commits
         userSQL = s.sql.text("""
-            SELECT cmt_author_name AS commit_name, cntrb_id, cmt_author_raw_email AS commit_email, cntrb_email, 
-                cntrb_full_name, cntrb_login, cntrb_canonical, 
-                cntrb_company, cntrb_created_at::timestamp, cntrb_type, cntrb_fake, cntrb_deleted, cntrb_long, 
-                cntrb_lat, cntrb_country_code, cntrb_state, cntrb_city, cntrb_location, gh_user_id, 
-                gh_login, gh_url, gh_html_url, gh_node_id, gh_avatar_url, gh_gravatar_id, gh_followers_url, 
-                gh_following_url, gh_gists_url, gh_starred_url, gh_subscriptions_url, gh_organizations_url, 
+            SELECT cmt_author_name AS commit_name, cntrb_id, cmt_author_raw_email AS commit_email, cntrb_email,
+                cntrb_full_name, cntrb_login, cntrb_canonical,
+                cntrb_company, cntrb_created_at::timestamp, cntrb_type, cntrb_fake, cntrb_deleted, cntrb_long,
+                cntrb_lat, cntrb_country_code, cntrb_state, cntrb_city, cntrb_location, gh_user_id,
+                gh_login, gh_url, gh_html_url, gh_node_id, gh_avatar_url, gh_gravatar_id, gh_followers_url,
+                gh_following_url, gh_gists_url, gh_starred_url, gh_subscriptions_url, gh_organizations_url,
                 gh_repos_url, gh_events_url, gh_received_events_url, gh_type, gh_site_admin, cntrb_last_used
             FROM commits, contributors
             WHERE repo_id = :repo_id
             AND contributors.cntrb_full_name = cmt_author_name
                 UNION
-            SELECT cmt_author_name AS commit_name, cntrb_id, cmt_author_raw_email AS commit_email, cntrb_email, 
-                cntrb_full_name, cntrb_login, cntrb_canonical, 
-                cntrb_company, cntrb_created_at::timestamp, cntrb_type, cntrb_fake, cntrb_deleted, cntrb_long, 
-                cntrb_lat, cntrb_country_code, cntrb_state, cntrb_city, cntrb_location, gh_user_id, 
-                gh_login, gh_url, gh_html_url, gh_node_id, gh_avatar_url, gh_gravatar_id, gh_followers_url, 
-                gh_following_url, gh_gists_url, gh_starred_url, gh_subscriptions_url, gh_organizations_url, 
+            SELECT cmt_author_name AS commit_name, cntrb_id, cmt_author_raw_email AS commit_email, cntrb_email,
+                cntrb_full_name, cntrb_login, cntrb_canonical,
+                cntrb_company, cntrb_created_at::timestamp, cntrb_type, cntrb_fake, cntrb_deleted, cntrb_long,
+                cntrb_lat, cntrb_country_code, cntrb_state, cntrb_city, cntrb_location, gh_user_id,
+                gh_login, gh_url, gh_html_url, gh_node_id, gh_avatar_url, gh_gravatar_id, gh_followers_url,
+                gh_following_url, gh_gists_url, gh_starred_url, gh_subscriptions_url, gh_organizations_url,
                 gh_repos_url, gh_events_url, gh_received_events_url, gh_type, gh_site_admin, cntrb_last_used
             FROM commits, contributors
             WHERE repo_id = :repo_id
             AND contributors.cntrb_email = cmt_author_raw_email
                 UNION
-            SELECT cmt_committer_name AS commit_name, cntrb_id, cmt_committer_raw_email AS commit_email, 
-                cntrb_email, cntrb_full_name, cntrb_login, cntrb_canonical, 
-                cntrb_company, cntrb_created_at::timestamp, cntrb_type, cntrb_fake, cntrb_deleted, cntrb_long, 
-                cntrb_lat, cntrb_country_code, cntrb_state, cntrb_city, cntrb_location, gh_user_id, 
-                gh_login, gh_url, gh_html_url, gh_node_id, gh_avatar_url, gh_gravatar_id, gh_followers_url, 
-                gh_following_url, gh_gists_url, gh_starred_url, gh_subscriptions_url, gh_organizations_url, 
+            SELECT cmt_committer_name AS commit_name, cntrb_id, cmt_committer_raw_email AS commit_email,
+                cntrb_email, cntrb_full_name, cntrb_login, cntrb_canonical,
+                cntrb_company, cntrb_created_at::timestamp, cntrb_type, cntrb_fake, cntrb_deleted, cntrb_long,
+                cntrb_lat, cntrb_country_code, cntrb_state, cntrb_city, cntrb_location, gh_user_id,
+                gh_login, gh_url, gh_html_url, gh_node_id, gh_avatar_url, gh_gravatar_id, gh_followers_url,
+                gh_following_url, gh_gists_url, gh_starred_url, gh_subscriptions_url, gh_organizations_url,
                 gh_repos_url, gh_events_url, gh_received_events_url, gh_type, gh_site_admin, cntrb_last_used
             FROM commits, contributors
             WHERE repo_id = :repo_id
             AND contributors.cntrb_full_name = cmt_committer_name
                 UNION
-            SELECT cmt_committer_name AS commit_name, cntrb_id, cmt_committer_raw_email AS commit_email, 
-                cntrb_email, cntrb_full_name, cntrb_login, cntrb_canonical, 
-                cntrb_company, cntrb_created_at::timestamp, cntrb_type, cntrb_fake, cntrb_deleted, cntrb_long, 
-                cntrb_lat, cntrb_country_code, cntrb_state, cntrb_city, cntrb_location, gh_user_id, 
-                gh_login, gh_url, gh_html_url, gh_node_id, gh_avatar_url, gh_gravatar_id, gh_followers_url, 
-                gh_following_url, gh_gists_url, gh_starred_url, gh_subscriptions_url, gh_organizations_url, 
+            SELECT cmt_committer_name AS commit_name, cntrb_id, cmt_committer_raw_email AS commit_email,
+                cntrb_email, cntrb_full_name, cntrb_login, cntrb_canonical,
+                cntrb_company, cntrb_created_at::timestamp, cntrb_type, cntrb_fake, cntrb_deleted, cntrb_long,
+                cntrb_lat, cntrb_country_code, cntrb_state, cntrb_city, cntrb_location, gh_user_id,
+                gh_login, gh_url, gh_html_url, gh_node_id, gh_avatar_url, gh_gravatar_id, gh_followers_url,
+                gh_following_url, gh_gists_url, gh_starred_url, gh_subscriptions_url, gh_organizations_url,
                 gh_repos_url, gh_events_url, gh_received_events_url, gh_type, gh_site_admin, cntrb_last_used
             FROM commits, contributors
             WHERE repo_id = :repo_id
@@ -128,7 +128,7 @@ class ContributorWorker(Worker):
                 commit_times_sql = s.sql.text("""
                         SELECT min(cmt_author_date) as min_author, max(cmt_author_date) as max_author,
                             min(cmt_committer_date) as min_committer, max(cmt_committer_date) as max_committer
-                        FROM commits 
+                        FROM commits
                         WHERE cmt_author_raw_email = :commit_email
                         OR cmt_committer_raw_email = :commit_email
                     """)
@@ -161,7 +161,7 @@ class ContributorWorker(Worker):
                 self.logger.info("Inserted cntrb_full_name column for existing tuple in the contributors "
                     "table with email: {}\n".format(contributor['cntrb_email']))
 
-            # If cntrb_canonical column is not filled, go ahead and fill it w main email bc 
+            # If cntrb_canonical column is not filled, go ahead and fill it w main email bc
             #   an old version of the worker did not
             if not contributor['cntrb_canonical'] and contributor['cntrb_email']:
                 canonical_col = {
@@ -177,7 +177,7 @@ class ContributorWorker(Worker):
                     "table with email: {}\n".format(contributor['cntrb_email']))
 
 
-            """ Attempt to fill cntrb_login (github login) column by performing a github api search of the 
+            """ Attempt to fill cntrb_login (github login) column by performing a github api search of the
                 user's name and email """
 
             # If the contributor already has a login, there is no use in performing the github search
@@ -187,8 +187,8 @@ class ContributorWorker(Worker):
                 # try/except to handle case of a first/last split or just first name
                 try:
                     cmt_cntrb = {
-                        'fname': contributor['commit_name'].split()[0], 
-                        'lname': contributor['commit_name'].split()[1], 
+                        'fname': contributor['commit_name'].split()[0],
+                        'lname': contributor['commit_name'].split()[1],
                         'email': contributor['commit_email']
                     }
                     url = 'https://api.github.com/search/users?q={}+in:email+fullname:{}+{}'.format(
@@ -196,7 +196,7 @@ class ContributorWorker(Worker):
                 except:
                     try:
                         cmt_cntrb = {
-                            'fname': contributor['commit_name'].split()[0], 
+                            'fname': contributor['commit_name'].split()[0],
                             'email': contributor['commit_email']
                         }
                         url = 'https://api.github.com/search/users?q={}+in:email+fullname:{}'.format(
@@ -278,7 +278,7 @@ class ContributorWorker(Worker):
             SELECT contributors.*
             FROM contributors inner join (
                 SELECT MIN(cntrb_id) as cntrb_id
-                FROM contributors 
+                FROM contributors
                 GROUP BY cntrb_email HAVING COUNT(*) > 1
                 ORDER BY cntrb_email
             ) a on contributors.cntrb_id = a.cntrb_id
@@ -302,12 +302,12 @@ class ContributorWorker(Worker):
             del cntrb_new['cntrb_id']
             del cntrb_new['data_collection_date']
             cntrb_new = cntrb_new.to_dict()
-            
+
             result = self.db.execute(self.contributors_table.insert().values(cntrb_new))
             pk = int(result.inserted_primary_key[0])
-            
+
             dupe_ids_sql = s.sql.text("""
-                SELECT cntrb_id 
+                SELECT cntrb_id
                 FROM contributors
                 WHERE
                     cntrb_id <> :pk
@@ -320,16 +320,16 @@ class ContributorWorker(Worker):
             self.map_new_id(dupe_ids, pk)
 
             delete_dupe_ids_sql = s.sql.text("""
-                DELETE  
+                DELETE
                 FROM contributors
-                WHERE cntrb_id <> {}
-                AND cntrb_email = '{}';
-            """.format(pk, cntrb_new['cntrb_email']))
+                WHERE cntrb_id <> :pk
+                AND cntrb_email = :cntrb_email;
+            """.
 
             self.logger.info(f'Trying to delete dupes with sql: {delete_dupe_ids_sql}')
 
             try:
-                result = self.db.execute(delete_dupe_ids_sql)
+                result = self.db.execute(delete_dupe_ids_sql, pk=pk, cntrb_email=cntrb_new['cntrb_email'])
             except Exception as e:
                 self.logger.info(f'Deleting dupes failed with error: {e}')
 
@@ -344,12 +344,12 @@ class ContributorWorker(Worker):
         # Get all distinct combinations of emails and names by querying the repo's commits
         userSQL = s.sql.text("""
             SELECT cmt_author_email as email, cmt_author_date as date, cmt_author_name as name
-            FROM commits 
+            FROM commits
             WHERE repo_id = :repo_id
             AND not exists (SELECT cntrb_email FROM contributors where cntrb_email = cmt_author_email)
             and (cmt_author_date, cmt_author_name) in (
                 select Max(cmt_author_date) as date, cmt_author_name
-                from commits as c 
+                from commits as c
                 where c.cmt_author_email = commits.cmt_author_email
                 and repo_id = :repo_id
                 group by cmt_author_name
@@ -364,7 +364,7 @@ class ContributorWorker(Worker):
             AND not exists (SELECT cntrb_email FROM augur_data.contributors where cntrb_email = cmt_committer_email)
             and (cmt_committer_date, cmt_committer_name) in (
                 select Max(cmt_committer_date) as date, cmt_committer_name
-                from augur_data.commits as c 
+                from augur_data.commits as c
                 where c.cmt_committer_email = commits.cmt_committer_email
                 and repo_id = :repo_id
                 group by cmt_committer_name
@@ -418,7 +418,7 @@ class ContributorWorker(Worker):
             del cntrb['commit_name']
             del cntrb['commit_email']
             del cntrb['cntrb_id']
-            
+
             result = self.db.execute(self.contributors_table.insert().values(cntrb))
             self.logger.info("Inserted alias into the contributors table with email: {}\n".format(cntrb['cntrb_email']))
             self.results_counter += 1
@@ -426,10 +426,10 @@ class ContributorWorker(Worker):
             alias_id = self.cntrb_id_inc
 
         elif len(existing_tuples) > 1:
-            # fix all dupe references to dupe cntrb ids before we delete them 
+            # fix all dupe references to dupe cntrb ids before we delete them
             self.logger.info("THERE IS A CASE FOR A DUPLICATE CONTRIBUTOR in the contributors table, we will delete all tuples with this cntrb_email and re-insert only 1\n")
             self.logger.info("For cntrb_email: {}".format(tuple['commit_email']))
-            
+
             """ Insert alias tuple into the contributor table """
 
             # Prepare tuple for insertion to contributor table (build it off of the tuple queried)
@@ -451,7 +451,7 @@ class ContributorWorker(Worker):
             del cntrb['commit_name']
             del cntrb['commit_email']
             del cntrb['cntrb_id']
-            
+
             result = self.db.execute(self.contributors_table.insert().values(cntrb))
             self.logger.info("Inserted alias into the contributors table with email: {}\n".format(cntrb['cntrb_email']))
             self.results_counter += 1
@@ -461,20 +461,20 @@ class ContributorWorker(Worker):
             dupeIdsSQL = s.sql.text("""
                 SELECT cntrb_id from contributors
                 WHERE
-                    cntrb_email = '{0}'
+                    cntrb_email = :commit_email
                 AND
                     cntrb_id NOT IN (SELECT cntrb_id FROM contributors_aliases);
-            """.format(commit_email))
+            """
 
-            dupe_ids = pd.read_sql(dupeIdsSQL, self.db, params={})['cntrb_id'].values.tolist()
+            dupe_ids = pd.read_sql(dupeIdsSQL, self.db, params={'commit_email': commit_email})['cntrb_id'].values.tolist()
 
             self.map_new_id(dupe_ids, self.cntrb_id_inc)
 
             deleteSQL = """
-                DELETE 
+                DELETE
                     FROM
-                        contributors c 
-                    USING 
+                        contributors c
+                    USING
                         contributors_aliases
                     WHERE
                         c.cntrb_email = '{0}'
@@ -483,20 +483,20 @@ class ContributorWorker(Worker):
                     AND
                         c.cntrb_id <> {1};
             """.format(commit_email, self.cntrb_id_inc)
-            
+
             try:
-                # Delete all dupes 
+                # Delete all dupes
                 result = self.db.execute(deleteSQL)
                 self.logger.info("Deleted all non-canonical contributors with the email: {}\n".format(commit_email))
             except Exception as e:
                 self.logger.info("When trying to delete a duplicate contributor, worker ran into error: {}".format(e))
-        
+
         else: #then there would be exactly 1 existing tuple, so that id is the one we want
             alias_id = existing_tuples[0]['cntrb_id']
 
         self.logger.info('Checking canonicals match.\n')
         alias_sql = s.sql.text("""
-            SELECT * 
+            SELECT *
             FROM contributors
             WHERE cntrb_id = :alias_id
         """)
@@ -522,7 +522,7 @@ class ContributorWorker(Worker):
         if len(existing_tuples) == 0:
             self.logger.info("Finding cntrb_id for canonical email: {}".format(cntrb_email))
             canonical_id_sql = s.sql.text("""
-                SELECT cntrb_id as canonical_id 
+                SELECT cntrb_id as canonical_id
                 from contributors
                 where cntrb_email = :email
             """)
@@ -557,8 +557,8 @@ class ContributorWorker(Worker):
         # def delete_fk(table, column):
 
         # tables_with_fk = {
-        #         'contributors_aliases_table': ['cntrb_a_id', alias_update_col], 
-        #         'issue_events_table':, 
+        #         'contributors_aliases_table': ['cntrb_a_id', alias_update_col],
+        #         'issue_events_table':,
         #         'pull_request_events_table',
         #         'issues_table',
         #         'issues_table'
