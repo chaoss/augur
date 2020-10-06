@@ -36,7 +36,7 @@ class GitHubPullRequestWorker(Worker):
         self.tool_source = 'GitHub Pull Request Worker'
         self.tool_version = '1.0.0'
         self.data_source = 'GitHub API'
-     
+
     def graphql_paginate(self, query, data_subjects, before_parameters=None):
         """ Paginate a GitHub GraphQL query backwards
 
@@ -69,7 +69,7 @@ class GitHubPullRequestWorker(Worker):
             self.logger.info(f'Finding {key_subject} root of {data}')
             key_nest = None
             for subject, nest in data.items():
-                if key_subject in nest: 
+                if key_subject in nest:
                     key_nest = nest[key_subject]
                     break
                 elif type(nest) == dict:
@@ -77,7 +77,7 @@ class GitHubPullRequestWorker(Worker):
             else:
                 raise KeyError
             return key_nest
-            
+
         for data_subject, nest in data_subjects.items():
 
             self.logger.info(f'Beginning paginate process for field {data_subject} '
@@ -111,7 +111,7 @@ class GitHubPullRequestWorker(Worker):
                             self.update_gh_rate_limit(response)
                             num_attempts -= 1
                         continue
-                        
+
 
                     if 'data' in data:
                         success = True
@@ -147,7 +147,7 @@ class GitHubPullRequestWorker(Worker):
             if not nest:
                 return tuples
 
-            return tuples + self.graphql_paginate(query, data_subjects[subject], 
+            return tuples + self.graphql_paginate(query, data_subjects[subject],
                 before_parameters=before_parameters)
 
 
@@ -159,18 +159,18 @@ class GitHubPullRequestWorker(Worker):
         pr_number_sql = s.sql.text("""
             SELECT DISTINCT pr_src_number as pr_src_number, pull_requests.pull_request_id
             FROM pull_requests--, pull_request_meta
-            WHERE repo_id = {}
-        """.format(repo_id))
-        pr_numbers = pd.read_sql(pr_number_sql, self.db, params={})
+            WHERE repo_id = :repo_id
+        """)
+        pr_numbers = pd.read_sql(pr_number_sql, self.db, params={'repo_id': repo_id})
 
         pr_file_rows = []
 
-        for index, pull_request in enumerate(pr_numbers.itertuples()): 
+        for index, pull_request in enumerate(pr_numbers.itertuples()):
 
             self.logger.info(f'Querying files for pull request #{index + 1} of {len(pr_numbers)}')
-        
+
             query = """
-                {{ 
+                {{
                   repository(owner:"%s", name:"%s"){{
                     pullRequest (number: %s) {{
                 """ % (owner, repo, pull_request.pr_src_number) + """
@@ -192,7 +192,7 @@ class GitHubPullRequestWorker(Worker):
                     }}
                   }}
                 }}
-            """ 
+            """
 
             pr_file_rows += [{
                 'pull_request_id': pull_request.pull_request_id,
@@ -207,7 +207,7 @@ class GitHubPullRequestWorker(Worker):
 
         # Get current table values
         table_values_sql = s.sql.text("""
-            SELECT pull_request_files.* 
+            SELECT pull_request_files.*
             FROM pull_request_files, pull_requests
             WHERE pull_request_files.pull_request_id = pull_requests.pull_request_id
             AND repo_id = :repo_id
@@ -234,13 +234,13 @@ class GitHubPullRequestWorker(Worker):
                             how='outer', indicator=True, on=dupe_columns).loc[
                                 lambda x : x['_merge']=='left_only'][table_columns]
 
-        need_updates = pr_file_rows_df.merge(table_values, on=dupe_columns, suffixes=('','_table'), 
-                        how='inner',indicator=False)[table_columns].merge(table_values, 
+        need_updates = pr_file_rows_df.merge(table_values, on=dupe_columns, suffixes=('','_table'),
+                        how='inner',indicator=False)[table_columns].merge(table_values,
                             on=update_columns, suffixes=('','_table'), how='outer',indicator=True
                                 ).loc[lambda x : x['_merge']=='left_only'][table_columns]
 
-        need_updates['b_pull_request_id'] = need_updates['pull_request_id'] 
-        need_updates['b_pr_file_path'] = need_updates['pr_file_path'] 
+        need_updates['b_pull_request_id'] = need_updates['pull_request_id']
+        need_updates['b_pr_file_path'] = need_updates['pr_file_path']
 
         pr_file_insert_rows = need_insertion.to_dict('records')
         pr_file_update_rows = need_updates.to_dict('records')
@@ -256,7 +256,7 @@ class GitHubPullRequestWorker(Worker):
                         self.pull_request_files_table.update().where(
                             self.pull_request_files_table.c.pull_request_id == bindparam('b_pull_request_id') and
                             self.pull_request_files_table.c.pr_file_path == bindparam('b_pr_file_path')).values(
-                                pr_file_additions=bindparam('pr_file_additions'), 
+                                pr_file_additions=bindparam('pr_file_additions'),
                                 pr_file_deletions=bindparam('pr_file_deletions')),
                         pr_file_update_rows
                     )
@@ -295,9 +295,9 @@ class GitHubPullRequestWorker(Worker):
         pr_url_sql = s.sql.text("""
             SELECT DISTINCT pr_url, pull_requests.pull_request_id
             FROM pull_requests--, pull_request_meta
-            WHERE repo_id = {}
-        """.format(repo_id))
-        urls = pd.read_sql(pr_url_sql, self.db, params={})
+            WHERE repo_id = :repo_id
+        """)
+        urls = pd.read_sql(pr_url_sql, self.db, params={'repo_id': repo_id})
 
         for pull_request in urls.itertuples(): # for each url of PRs we have inserted
             commits_url = pull_request.pr_url + '/commits?page={}'
@@ -307,7 +307,7 @@ class GitHubPullRequestWorker(Worker):
             update_col_map = {}
 
             # Use helper paginate function to iterate the commits url and check for dupes
-            pr_commits = self.paginate(commits_url, duplicate_col_map, update_col_map, table, table_pkey, 
+            pr_commits = self.paginate(commits_url, duplicate_col_map, update_col_map, table, table_pkey,
                 where_clause="where pull_request_id = {}".format(pull_request.pull_request_id))
 
             for pr_commit in pr_commits: # post-pagination, iterate results
@@ -352,15 +352,15 @@ class GitHubPullRequestWorker(Worker):
             'direction=asc&per_page=100&page={}')
 
         # Get pull requests that we already have stored
-        #   Set pseudo key (something other than PK) to 
+        #   Set pseudo key (something other than PK) to
         #   check dupicates with
         table = 'pull_requests'
         table_pkey = 'pull_request_id'
-        update_col_map = {'pr_src_state': 'state'} 
+        update_col_map = {'pr_src_state': 'state'}
         duplicate_col_map = {'pr_src_id': 'id'}
 
         #list to hold pull requests needing insertion
-        prs = self.paginate(url, duplicate_col_map, update_col_map, table, table_pkey, 
+        prs = self.paginate(url, duplicate_col_map, update_col_map, table, table_pkey,
             where_clause='WHERE repo_id = {}'.format(repo_id),
             value_update_col_map={'pr_augur_contributor_id': float('nan')})
 
@@ -428,10 +428,10 @@ class GitHubPullRequestWorker(Worker):
                 self.logger.info("PR does not need to be inserted. Fetching its id from DB")
                 pr_id_sql = s.sql.text("""
                     SELECT pull_request_id FROM pull_requests
-                    WHERE pr_src_id={}
-                """.format(pr_dict['id']))
+                    WHERE pr_src_id=:id
+                """)
 
-                self.pr_id_inc = int(pd.read_sql(pr_id_sql, self.db).iloc[0]['pull_request_id'])
+                self.pr_id_inc = int(pd.read_sql(pr_id_sql, self.db, params={'id': pr_dict['id']}).iloc[0]['pull_request_id'])
 
             self.query_labels(pr_dict['labels'], self.pr_id_inc)
             self.query_pr_events(owner, repo, pr_dict['number'], self.pr_id_inc)
@@ -461,7 +461,7 @@ class GitHubPullRequestWorker(Worker):
 
         pr_labels_table_values = self.get_table_values(cols_query, [table])
 
-        new_labels = self.assign_tuple_action(labels, pr_labels_table_values, update_col_map, duplicate_col_map, 
+        new_labels = self.assign_tuple_action(labels, pr_labels_table_values, update_col_map, duplicate_col_map,
                 table_pkey)
 
         self.logger.info(f'Found {len(new_labels)} labels\n')
@@ -495,7 +495,7 @@ class GitHubPullRequestWorker(Worker):
             '/events?per_page=100&page={}')
 
         # Get pull request events that we already have stored
-        #   Set our duplicate and update column map keys (something other than PK) to 
+        #   Set our duplicate and update column map keys (something other than PK) to
         #   check dupicates/needed column updates with
         table = 'pull_request_events'
         table_pkey = 'pr_event_id'
@@ -504,7 +504,7 @@ class GitHubPullRequestWorker(Worker):
 
         #list to hold contributors needing insertion or update
         pr_events = self.paginate(url, duplicate_col_map, update_col_map, table, table_pkey)
-        
+
         self.logger.info("Count of pull request events needing insertion: " + str(len(pr_events)) + "\n")
 
         for pr_event_dict in pr_events:
@@ -552,7 +552,7 @@ class GitHubPullRequestWorker(Worker):
 
         reviewers_table_values = self.get_table_values(cols_query, [table])
 
-        new_reviewers = self.assign_tuple_action(reviewers, reviewers_table_values, update_col_map, duplicate_col_map, 
+        new_reviewers = self.assign_tuple_action(reviewers, reviewers_table_values, update_col_map, duplicate_col_map,
                 table_pkey)
 
         for reviewers_dict in new_reviewers:
@@ -595,7 +595,7 @@ class GitHubPullRequestWorker(Worker):
 
         assignee_table_values = self.get_table_values(cols_query, [table])
 
-        assignees = self.assign_tuple_action(assignees, assignee_table_values, update_col_map, duplicate_col_map, 
+        assignees = self.assign_tuple_action(assignees, assignee_table_values, update_col_map, duplicate_col_map,
                 table_pkey)
 
         for assignee_dict in assignees:
@@ -637,9 +637,9 @@ class GitHubPullRequestWorker(Worker):
         meta_table_values = self.get_table_values(cols_query, [table])
 
         pr_meta_dict = {
-            'head': self.assign_tuple_action([head], meta_table_values, update_col_map, duplicate_col_map, 
+            'head': self.assign_tuple_action([head], meta_table_values, update_col_map, duplicate_col_map,
                 table_pkey, value_update_col_map=value_update_col_map)[0],
-            'base': self.assign_tuple_action([base], meta_table_values, update_col_map, duplicate_col_map, 
+            'base': self.assign_tuple_action([base], meta_table_values, update_col_map, duplicate_col_map,
                 table_pkey, value_update_col_map=value_update_col_map)[0]
         }
 
@@ -660,7 +660,7 @@ class GitHubPullRequestWorker(Worker):
             if pr_meta_data['flag'] == 'need_update':
                 result = self.db.execute(self.pull_request_meta_table.update().where(
                         self.pull_request_meta_table.c.pr_sha==pr_meta['pr_sha'] and
-                        self.pull_request_meta_table.c.pr_head_or_base==pr_side 
+                        self.pull_request_meta_table.c.pr_head_or_base==pr_side
                     ).values(pr_meta))
                 # self.logger.info("Updated tuple in the issues table with existing gh_issue_id: {}".format(issue_dict['id']))
                 self.pr_meta_id_inc = pr_meta_data['pkey']
@@ -693,7 +693,7 @@ class GitHubPullRequestWorker(Worker):
             '/comments?per_page=100&page={}')
 
         # Get pull request comments that we already have stored
-        #   Set our duplicate and update column map keys (something other than PK) to 
+        #   Set our duplicate and update column map keys (something other than PK) to
         #   check dupicates/needed column updates with
         table = 'pull_request_message_ref'
         table_pkey = 'pr_msg_ref_id'
@@ -702,7 +702,7 @@ class GitHubPullRequestWorker(Worker):
 
         #list to hold contributors needing insertion or update
         pr_messages = self.paginate(url, duplicate_col_map, update_col_map, table, table_pkey)
-        
+
         self.logger.info("Count of pull request comments needing insertion: " + str(len(pr_messages)) + "\n")
 
         for pr_msg_dict in pr_messages:
@@ -761,7 +761,7 @@ class GitHubPullRequestWorker(Worker):
 
         pr_repo_table_values = self.get_table_values(cols_query, [table])
 
-        new_pr_repo = self.assign_tuple_action([pr_repo], pr_repo_table_values, update_col_map, duplicate_col_map, 
+        new_pr_repo = self.assign_tuple_action([pr_repo], pr_repo_table_values, update_col_map, duplicate_col_map,
                 table_pkey)[0]
 
         if new_pr_repo['owner'] and 'login' in new_pr_repo['owner']:
