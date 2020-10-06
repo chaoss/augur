@@ -901,18 +901,29 @@ def average_weekly_commits(self, repo_group_id=None, repo_id=None, calendar_year
         calendar_year = datetime.datetime.now().strftime('%Y')
 
     extra_and = "AND repo.repo_group_id = :repo_group_id" if repo_group_id and not repo_id else "AND repo.repo_id = :repo_id" if repo_group_id and repo_id else ""
-    average_weekly_commits_sql = s.sql.text("""
-        SELECT repo.repo_id, repo.repo_name, year, sum(patches)/52 AS average_weekly_commits 
-        FROM dm_repo_annual, repo
-        WHERE YEAR = :calendar_year -- or other year
-        AND dm_repo_annual.repo_id = repo.repo_id 
-        {}
-        GROUP BY repo.repo_id, repo.repo_name, YEAR
-        ORDER BY repo_name
-    """.format(extra_and))
+    if extra_and != '':
+        average_weekly_commits_sql = s.sql.text("""
+            SELECT repo.repo_id, repo.repo_name, year, sum(patches)/52 AS average_weekly_commits
+            FROM dm_repo_annual, repo
+            WHERE YEAR = :calendar_year -- or other year
+            AND dm_repo_annual.repo_id = repo.repo_id
+            :extra_and
+            GROUP BY repo.repo_id, repo.repo_name, YEAR
+            ORDER BY repo_name
+        """)
+        params = {"repo_group_id": repo_group_id, "repo_id": repo_id, "calendar_year": calendar_year, 'extra_and': extra_and}
+    else:
+        average_weekly_commits_sql = s.sql.text("""
+            SELECT repo.repo_id, repo.repo_name, year, sum(patches)/52 AS average_weekly_commits
+            FROM dm_repo_annual, repo
+            WHERE YEAR = :calendar_year -- or other year
+            AND dm_repo_annual.repo_id = repo.repo_id
+            GROUP BY repo.repo_id, repo.repo_name, YEAR
+            ORDER BY repo_name
+        """)
+        params = {{"repo_group_id": repo_group_id, "repo_id": repo_id, "calendar_year": calendar_year}}
 
-    results = pd.read_sql(average_weekly_commits_sql, self.database, params={"repo_group_id": repo_group_id,
-        "repo_id": repo_id, "calendar_year": calendar_year})
+    results = pd.read_sql(average_weekly_commits_sql, self.database, params=params)
     return results
 
 @register_metric()
