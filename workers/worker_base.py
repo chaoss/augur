@@ -288,8 +288,9 @@ class Worker():
             # Query repo_id corresponding to repo url of given task
             repoUrlSQL = s.sql.text("""
                 SELECT min(repo_id) as repo_id FROM repo WHERE repo_git = :repo_git
-                """
-            repo_id = int(pd.read_sql(repoUrlSQL, self.db, params={'repo_git': (message['given'][self.given[0][0]]})).iloc[0]['repo_id'])
+                """)
+            params = {'repo_git': message['given'][self.given[0][0]]}
+            repo_id = int(pd.read_sql(repoUrlSQL, self.db, params=params)).iloc[0]['repo_id']
             self.logger.info("repo_id for which data collection is being initiated: {}".format(str(repo_id)))
             # Call method corresponding to model sent in task
             try:
@@ -473,7 +474,7 @@ class Worker():
         idSQL = s.sql.text("""
             SELECT cntrb_id FROM contributors WHERE cntrb_login = :login \
             AND LOWER(data_source) = :platform
-            """
+            """)
 
         self.logger.info(idSQL)
 
@@ -608,7 +609,7 @@ class Worker():
         maxIdSQL = s.sql.text("""
             SELECT max(:table.:column AS :column
             FROM :table
-        """
+        """)
         db = self.db if not operations_table else self.helper_db
         rs = pd.read_sql(maxIdSQL, db, params={'table': table, 'column': column})
         if rs.iloc[0][column] is not None:
@@ -646,12 +647,12 @@ class Worker():
         if where_clause != '':
             table_values_sql = s.sql.text("""
                 SELECT :col_str FROM :table_str :where_clause
-            """
+            """)
             params['where_clause'] = where_clause
         else:
             table_values_sql = s.sql.text("""
                 SELECT :col_str FROM :table_str
-            """
+            """)
         self.logger.info('Getting table values with the following PSQL query: \n{}\n'.format(
             table_values_sql))
         values = pd.read_sql(table_values_sql, self.db, params=params)
@@ -669,8 +670,8 @@ class Worker():
             url = "https://api.github.com/users/gabe-heim"
             oauthSQL = s.sql.text("""
                 SELECT * FROM worker_oauth WHERE access_token <> :api_key and platform = 'github'
-                """
-            params['api_key'] = self.config['gh_api_key'])
+                """)
+            params['api_key'] = self.config['gh_api_key']
             key_name = "gh_api_key"
             rate_limit_header_key = "X-RateLimit-Remaining"
             rate_limit_reset_header_key = "X-RateLimit-Reset"
@@ -678,8 +679,8 @@ class Worker():
             url = "https://gitlab.com/api/v4/version"
             oauthSQL = s.sql.text("""
                 SELECT * FROM worker_oauth WHERE access_token <> :api_key and platform = 'gitlab'
-                """
-            params['api_key'] = self.config['gitlab_api_key'])
+                """)
+            params['api_key'] = self.config['gitlab_api_key']
             key_name = "gitlab_api_key"
             rate_limit_header_key = "ratelimit-remaining"
             rate_limit_reset_header_key = "ratelimit-reset"
@@ -1152,7 +1153,7 @@ class Worker():
         """ Query all repos with repo url of given task """
         repoUrlSQL = s.sql.text("""
             SELECT min(repo_id) as repo_id FROM repo WHERE repo_git = :url
-            """
+            """)
         repo_id = int(pd.read_sql(repoUrlSQL, self.db, params={'url': url}).iloc[0]['repo_id'])
 
         task['worker_id'] = self.config['id']
