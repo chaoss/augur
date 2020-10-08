@@ -31,10 +31,17 @@ def start(disable_housekeeper, skip_cleanup):
     Start Augur's backend server
     """
     augur_app = Application()
+
+    if (sys.prefix == sys.base_prefix): #these ALWAYS differ when using a virtualenv
+        logger.fatal("You are seeing this message because you installed Augur outside a virtual environment and are now attempting to run it.")
+        logger.fatal("For safety reasons, Augur MUST be installed AND run in the same virtual environment. Please create one, activate it, re-install Augur, and then run Augur again.")
+        logger.fatal("Please make sure to remove this installation after you create the virtual environment.")
+        exit(None, None, None, 1)
+
     logger.info("Augur application initialized")
     logger.info(f"Using config file: {augur_app.config.config_file_location}")
     if not skip_cleanup:
-        logger.debug("Cleaning up old Augur processes...")
+        logger.debug("Stopping existing Augur instances...")
         _broadcast_signal_to_processes()
         time.sleep(2)
     else:
@@ -42,10 +49,10 @@ def start(disable_housekeeper, skip_cleanup):
 
     master = initialize_components(augur_app, disable_housekeeper)
 
-    logger.info('Starting Gunicorn webserver...')
-    logger.info(f"Augur is running at: http://0.0.0.0:5000")
-    logger.info("Gunicorn server logs & errors will be written to logs/gunicorn.log")
-    logger.info('Housekeeper update process logs will now take over.')
+    logger.debug('Starting Gunicorn webserver...')
+    logger.info(f"Augur's API server is running at: http://0.0.0.0:5000")
+    logger.info("All API server logging (including errors) will be written to logs/gunicorn.log")
+    logger.info('Housekeeper update process logs will now take over')
     Arbiter(master).run()
 
 @cli.command('stop')
@@ -55,7 +62,6 @@ def stop_server():
     Sends SIGTERM to all Augur server & worker processes
     """
     _broadcast_signal_to_processes(attach_logger=True)
-
 
 @cli.command('kill')
 @initialize_logging
@@ -142,10 +148,11 @@ def worker_start(worker_name=None, instance_number=0, worker_port=None):
     except KeyboardInterrupt as e:
         pass
 
-def exit(augur_app, worker_processes, master):
+def exit(augur_app, worker_processes, master, exit_code=0):
 
-    logger.info("Shutdown started for this Gunicorn worker...")
-    augur_app.shutdown()
+    if augur_app:
+        logger.info("Shutdown started for this Gunicorn worker...")
+        augur_app.shutdown()
 
     if worker_processes:
         for process in worker_processes:
@@ -157,4 +164,4 @@ def exit(augur_app, worker_processes, master):
         master.halt()
 
     logger.info("Shutdown complete")
-    sys.exit(0)
+    sys.exit(exit_code)
