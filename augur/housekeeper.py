@@ -65,7 +65,6 @@ class Housekeeper:
     def updater_process(broker_host, broker_port, broker, job, logging_config):
         """
         Controls a given plugin's update process
-
         """
         logging.config.dictConfig(logging_config[0])
         logger = logging.getLogger(f"augur.jobs.{job['model']}")
@@ -160,112 +159,145 @@ class Housekeeper:
             process.terminate()
 
     def prep_jobs(self):
+        SELECT = s.sql.select
+        TEXT = s.sql.text
+        OJ = s.sql.outerjoin
+        AND = s.sql.and_
         logger.info("Preparing housekeeper jobs")
         for job in self.jobs:
             if 'repo_group_id' in job or 'repo_ids' in job:
                 # If RG id is 0 then it just means to query all repos
-                where_and = 'AND' if job['model'] == 'issues' and 'repo_group_id' in job else 'WHERE'
-                where_condition = '{} repo_group_id = {}'.format(where_and, job['repo_group_id']
-                    ) if 'repo_group_id' in job and job['repo_group_id'] != 0 else '{} repo.repo_id IN ({})'.format(
-                    where_and, ",".join(str(id) for id in job['repo_ids'])) if 'repo_ids' in job else ""
+                if 'repo_group_id' in job and job['repo_group_id'] != 0:
+                    where_clause = 'repo_group_id = {}'.format(job['repo_group_id'])
+                else:
+                    if 'repo_ids' in job:
+                        where_clause = 'repo.repo_id IN ({})'.format(",".join(str(id) for id in job['repo_ids']))
+                    else:
+                        where_clause = 'True'
 
                 if job['model'] == 'pull_requests' and 'repo_group_id' in job:
-                    query_body = """
-                        SELECT
-                            *
-                        FROM
-                            (
-                                ( SELECT repo_git, repo.repo_id, issues_enabled, COUNT ( * ) AS meta_count
-                                FROM repo left outer join repo_info on repo.repo_id = repo_info.repo_id
-                                GROUP BY repo.repo_id, issues_enabled
-                                ORDER BY repo.repo_id ) zz
-                                LEFT OUTER JOIN (
-                                SELECT repo.repo_id,
-                                    repo.repo_name,
-                                    b.pull_request_count,
-                                    d.repo_id AS pull_request_repo_id,
-                                    e.last_collected,
-                                    (
-                                    b.pull_request_count - COUNT ( * )) AS pull_requests_missing,
-                                    ABS (
-                                    CAST (( COUNT ( * )) AS DOUBLE PRECISION ) / CAST ( b.pull_request_count + 1 AS DOUBLE PRECISION )) AS ratio_abs,
-                                    (
-                                    CAST (( COUNT ( * )) AS DOUBLE PRECISION ) / CAST ( b.pull_request_count + 1 AS DOUBLE PRECISION )) AS ratio_issues
-                                FROM
-                                    augur_data.repo left outer join
-                                    augur_data.pull_requests d on d.repo_id = repo.repo_id left outer join
-                                                                        ( SELECT repo_id, MAX ( data_collection_date ) AS last_collected FROM augur_data.repo_info GROUP BY repo_id ORDER BY repo_id ) e
-                                    on e.repo_id = d.repo_id left outer join
-                                    augur_data.repo_info b on e.repo_id = b.repo_id and b.data_collection_date = e.last_collected
-                                {where}
-                                GROUP BY
-                                    repo.repo_id,
-                                    d.repo_id,
-                                    b.pull_request_count,
-                                    e.last_collected
-                                ORDER BY ratio_abs
-                                ) yy ON zz.repo_id = yy.repo_id
-                            ) D
-                        ORDER BY ratio_abs NULLS FIRST""".format(where=where_condition)
+                    query_body = SELECT([TEXT("*")]).\
+                            select_from(
+                                OJ(
+                                    SELECT([TEXT("repo_git, repo.repo_id, issues_enabled, COUNT ( * ) AS meta_count")]).\
+                                        select_from(
+                                            OJ(
+                                                TEXT("repo"),
+                                                TEXT("repo_info"),
+                                                TEXT("repo.repo_id = repo_info.repo_id")
+                                            )
+                                        ).\
+                                        group_by(TEXT("repo.repo_id, issues_enabled")).\
+                                        order_by(TEXT("repo.repo_id")).alias('zz'),
+                                    SELECT([TEXT("""
+                                        repo.repo_id,
+                                        repo.repo_name,
+                                        b.pull_request_count,
+                                        d.repo_id AS pull_request_repo_id,
+                                        e.last_collected,
+                                        (b.pull_request_count - COUNT ( * )) AS pull_requests_missing,
+                                        ABS (CAST (( COUNT ( * )) AS DOUBLE PRECISION ) / CAST ( b.pull_request_count + 1 AS DOUBLE PRECISION )) AS ratio_abs,
+                                        (CAST (( COUNT ( * )) AS DOUBLE PRECISION ) / CAST ( b.pull_request_count + 1 AS DOUBLE PRECISION )) AS ratio_issues
+                                        """)]).\
+                                        select_from(
+                                            OJ(
+                                                TEXT("augur_data.repo"),
+                                                TEXT("augur_data.pull_requests d"),
+                                                TEXT("d.repo_id = repo.repo_id")
+                                            ).outerjoin(
+                                                SELECT([TEXT("repo_id, MAX ( data_collection_date ) AS last_collected")]).\
+                                                        select_from(TEXT("augur_data.repo_info")).\
+                                                        group_by(TEXT("repo_id")).\
+                                                        order_by(TEXT("repo_id")).alias('e'),
+                                                    TEXT("e.repo_id = d.repo_id")
+                                            ).outerjoin(
+                                                TEXT("augur_data.repo_info b"),
+                                                TEXT("e.repo_id = b.repo_id AND b.data_collection_date = e.last_collected")
+                                            )
+                                        ).\
+                                        where(TEXT(where_clause)).\
+                                        group_by(TEXT("repo.repo_id, d.repo_id, b.pull_request_count, e.last_collected")).\
+                                        order_by(TEXT("ratio_abs")).alias('yy'),
+                                    TEXT("zz.repo_id = yy.repo_id")
+                                )
+                            ).\
+                            order_by(TEXT("ratio_abs NULLS FIRST"))
+
                 elif job['model'] == 'issues' and 'repo_group_id' in job:
-                    query_body = """
-                        SELECT
-                            *
-                        FROM
-                            (
-                                ( SELECT repo_git, repo.repo_id, issues_enabled, COUNT ( * ) AS meta_count
-                                FROM repo left outer join repo_info on repo.repo_id = repo_info.repo_id
-                                --WHERE issues_enabled = 'true'
-                                GROUP BY repo.repo_id, issues_enabled
-                                ORDER BY repo.repo_id ) zz
-                                LEFT OUTER JOIN (
-                                SELECT repo.repo_id,
-                                    repo.repo_name,
-                                    b.issues_count,
-                                    d.repo_id AS issue_repo_id,
-                                    e.last_collected,
-                                    COUNT ( * ) AS issues_collected_count,
-                                    (
-                                    b.issues_count - COUNT ( * )) AS issues_missing,
-                                    ABS (
-                                    CAST (( COUNT ( * )) AS DOUBLE PRECISION ) / CAST ( b.issues_count + 1 AS DOUBLE PRECISION )) AS ratio_abs,
-                                    (
-                                    CAST (( COUNT ( * )) AS DOUBLE PRECISION ) / CAST ( b.issues_count + 1 AS DOUBLE PRECISION )) AS ratio_issues
-                                FROM
-                                    augur_data.repo left outer join
-                                    augur_data.pull_requests d on d.repo_id = repo.repo_id left outer join
-                                    augur_data.repo_info b on d.repo_id = b.repo_id left outer join
-                                    ( SELECT repo_id, MAX ( data_collection_date ) AS last_collected FROM augur_data.repo_info GROUP BY repo_id ORDER BY repo_id ) e
-                                                                        on e.repo_id = d.repo_id and b.data_collection_date = e.last_collected
-                                WHERE d.pull_request_id IS NULL
-                                {where}
-                                GROUP BY
-                                    repo.repo_id,
-                                    d.repo_id,
-                                    b.issues_count,
-                                    e.last_collected
-                                ORDER BY ratio_abs
-                                ) yy ON zz.repo_id = yy.repo_id
-                            ) D
-                        ORDER BY ratio_abs NULLS FIRST""".format(where=where_condition)
+                    query_body = SELECT([TEXT("*")]).\
+                            select_from(
+                                OJ(
+                                    SELECT([TEXT("repo_git, repo.repo_id, issues_enabled, COUNT ( * ) AS meta_count")]).\
+                                        select_from(
+                                            OJ(
+                                                TEXT("repo"),
+                                                TEXT("repo_info"),
+                                                TEXT("repo.repo_id = repo_info.repo_id")
+                                            )
+                                        ).\
+                                        where(TEXT("issues_enabled = 'true'")).\
+                                        group_by(TEXT("repo.repo_id, issues_enabled")).\
+                                        order_by(TEXT("repo.repo_id")).alias('zz'),
+                                    SELECT([TEXT("""
+                                        repo.repo_id,
+                                        repo.repo_name,
+                                        b.issues_count,
+                                        d.repo_id AS issue_repo_id,
+                                        e.last_collected,
+                                        COUNT ( * ) AS issues_collected_count,
+                                        (b.issues_count - COUNT ( * )) AS issues_missing,
+                                        ABS (CAST (( COUNT ( * )) AS DOUBLE PRECISION ) / CAST ( b.issues_count + 1 AS DOUBLE PRECISION )) AS ratio_abs,
+                                        (CAST (( COUNT ( * )) AS DOUBLE PRECISION ) / CAST ( b.issues_count + 1 AS DOUBLE PRECISION )) AS ratio_issues
+                                        """)]).\
+                                        select_from(
+                                            OJ(
+                                                TEXT("augur_data.repo"),
+                                                TEXT("augur_data.pull_requests d"),
+                                                TEXT("d.repo_id = repo.repo_id")
+                                            ).outerjoin(
+                                                TEXT("augur_data.repo_info b"),
+                                                TEXT("d.repo_id = b.repo_id")
+                                            ).outerjoin(
+                                                SELECT([TEXT("repo_id, MAX ( data_collection_date ) AS last_collected")]).\
+                                                        select_from(TEXT("augur_data.repo_info")).\
+                                                        group_by(TEXT("repo_id")).\
+                                                        order_by(TEXT("repo_id")).alias('e'),
+                                                TEXT("e.repo_id = b.repo_id AND b.data_collection_date = e.last_collected")
+                                            )
+                                        ).\
+                                        where(
+                                            AND(
+                                                TEXT("d.pull_request_id IS NULL"),
+                                                TEXT(where_clause)
+                                            )
+                                        ).\
+                                        group_by(TEXT("repo.repo_id, d.repo_id, b.issues_count, e.last_collected")).\
+                                        order_by(TEXT("ratio_abs")).alias('yy'),
+                                    TEXT("zz.repo_id = yy.repo_id")
+                                )
+                            ).\
+                            order_by(TEXT("ratio_abs NULLS FIRST"))
                 elif 'order' not in job:
-                    query_body = """
-                        SELECT repo_git, repo_id FROM repo {where} ORDER BY repo_id ASC""".format(where=where_condition)
+                    query_body = SELECT([TEXT("repo_git, repo_id")]).\
+                            select_from(TEXT("repo")).\
+                            order_by(s.asc(TEXT("repo_id"))).\
+                            where(TEXT(where_clause))
                 else:
-                    query_body = """
-                        SELECT repo_git, repo.repo_id, count(*) as commit_count
-                        FROM augur_data.repo left outer join augur_data.commits
-                            on repo.repo_id = commits.repo_id
-                        {where}
-                        group by repo.repo_id ORDER BY commit_count :job_order""".format(where=where_condition)
+                    query_body = SELECT([TEXT("repo_git, repo.repo_id, count(*) as commit_count")]).\
+                            select_from(
+                                OJ(
+                                    TEXT('augur_data.repo'),
+                                    TEXT('augur_data.commits'),
+                                    TEXT('repo.repo_id = commits.repo_id')
+                                )
+                            ).\
+                            group_by(TEXT("repo.repo_id")).\
+                            order_by(TEXT("commit_count, {order}".format(order=job['order']))).\
+                            where(TEXT(where_clause))
 
                 params = {}
 
-                if 'order' in job:
-                    params['job_order'] = job['order']
-
-                reorganized_repos = pd.read_sql(s.sql.text(query_body), self.db, params=params)
-
+                reorganized_repos = pd.read_sql(query_body, self.db)
 
                 if len(reorganized_repos) == 0:
                     logger.warning("Trying to send tasks for repo group, but the repo group does not contain any repos: {}".format(repo_url_sql))
@@ -342,4 +374,3 @@ class Housekeeper:
 
                 job['repos'] = rs
             # time.sleep(120)
-
