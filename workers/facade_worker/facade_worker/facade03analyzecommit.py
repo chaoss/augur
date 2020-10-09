@@ -36,7 +36,7 @@ import os
 import getopt
 import xlsxwriter
 import configparser
-import traceback 
+import traceback
 
 from workers.util import read_config
 
@@ -90,48 +90,48 @@ def analyze_commit(cfg, repo_id, repo_loc, commit, multithreaded):
 		else:
 			return email
 
-	def update_contributors(author_em, committer_em, auth_nm, cmtr_nm): 
+	def update_contributors(author_em, committer_em, auth_nm, cmtr_nm):
 
-		#Check if an email already exists in the database for either the committer or the author 
+		#Check if an email already exists in the database for either the committer or the author
 		#There is a committer and an author on each commit, but only one record in the contributor table (ideally)
 		# For each email address. So, for each email address, we need to check if it exists in the contributor
-		# Table. 
+		# Table.
 		def contributor_exists(some_email):
 
 			#SQL String to insert values into the contributors table
 			some_email = some_email.replace("'","")
-			email_check = ("""SELECT cntrb_email, tool_source, tool_version, data_source FROM contributors WHERE cntrb_email = '{}'""".format(some_email))
-
+			email_check = """SELECT cntrb_email, tool_source, tool_version, data_source FROM contributors WHERE cntrb_email = :email"""
+			email_check = email_check.bindparams(email=some_email)
 			cursor_local.execute(email_check)
 
-			if cursor_local.fetchone() is not None: 
+			if cursor_local.fetchone() is not None:
 				db_local.commit()
 				emails_to_add = some_email
 				return True
-			else: 
+			else:
 				return False
-		#SQL to update the contributors table 
+		#SQL to update the contributors table
 		cntrb = ("INSERT INTO contributors "
 			"(cntrb_email,cntrb_canonical,cntrb_full_name,tool_source, tool_version, data_source) "
 			"VALUES (%s,%s,%s,'FacadeAugur','0.0.1','git_repository')")
 
-		## Logic block for updating contributors. 
-		if contributor_exists(author_em): 
+		## Logic block for updating contributors.
+		if contributor_exists(author_em):
 			cfg.log_activity('Info', 'Author contributor record already exists: {}'.format(author_em))
-		else: 
+		else:
 			# add a contributor record for the author
 			cursor_local.execute(cntrb, (author_em, discover_alias(author_em), str(auth_nm)))
 			db_local.commit()
 			cfg.log_activity('Info','Stored author contributor with email: {}'.format(author_em))
 
-		if  contributor_exists(committer_em): 
+		if  contributor_exists(committer_em):
 			cfg.log_activity('Info', 'Author contributor record already exists: {}'.format(committer_em))
-		else: 
-			#add a contributor record for the committer 
+		else:
+			#add a contributor record for the committer
 			cursor_local.execute(cntrb, (committer_em, discover_alias(committer_em), str(cmtr_nm)))
 			db_local.commit()
 			cfg.log_activity('Info','Stored committer contributor with email: {}'.format(committer_em))
-				
+
 
 	def store_commit(repos_id,commit,filename,
 		author_name,author_email,author_date,author_timestamp,
@@ -181,13 +181,13 @@ def analyze_commit(cfg, repo_id, repo_loc, commit, multithreaded):
 		# Check if email already exists in db
 #		email_check = ("""SELECT cntrb_email, tool_source, tool_version, data_source
 #			FROM contributors WHERE cntrb_email = {augur_email} OR cntrb_email = {committer_email}}""")
-		
+
 		## Commented out so as to not update contributors
 		## sean: 11/6/2019
 		## Goal: Address with the contributors model worker
-		# try: 
-		# 	update_contributors(author_email, committer_email, author_name, committer_name) 
-		# except Exception: #print(e) 
+		# try:
+		# 	update_contributors(author_email, committer_email, author_name, committer_name)
+		# except Exception: #print(e)
 		# 	cfg.log_activity('Info', str(traceback.print_exc()))
 
 ### The real function starts here ###
@@ -245,7 +245,7 @@ def analyze_commit(cfg, repo_id, repo_loc, commit, multithreaded):
 		"parents: %%p%%nEndPatch' "
 		% (repo_loc,commit)], stdout=subprocess.PIPE, shell=True)
 
-	## 
+	##
 
 	# Stash the commit we're going to analyze so we can back it out if something
 	# goes wrong later.
@@ -392,7 +392,7 @@ def analyze_commit(cfg, repo_id, repo_loc, commit, multithreaded):
 		added,removed,whitespace)
 
 	# Remove the working commit.
-	try: 
+	try:
 		remove_commit = ("DELETE FROM working_commits "
 			"WHERE repos_id = %s AND working_commit = %s")
 		cursor_local.execute(remove_commit, (repo_id,commit))

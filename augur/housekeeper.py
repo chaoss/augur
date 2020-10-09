@@ -295,8 +295,6 @@ class Housekeeper:
                             order_by(TEXT("commit_count, {order}".format(order=job['order']))).\
                             where(TEXT(where_clause))
 
-                params = {}
-
                 reorganized_repos = pd.read_sql(query_body, self.db)
 
                 if len(reorganized_repos) == 0:

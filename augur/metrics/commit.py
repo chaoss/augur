@@ -7,6 +7,10 @@ import sqlalchemy as s
 import pandas as pd
 from augur.util import register_metric
 
+SELECT = s.sql.select
+TEXT = s.sql.text
+AND = s.sql.and_
+
 @register_metric()
 def committers(self, repo_group_id, repo_id=None, begin_date=None, end_date=None, period='month'):
     """
@@ -106,6 +110,7 @@ def annual_commit_count_ranked_by_new_repo_in_repo_group(self, repo_group_id, re
     :param end_date: Specifies the end date, defaults to datetime.now()
     :return: DataFrame of data
     """
+    print('#####################')
     if not begin_date:
         begin_date = '1970-1-1 00:00:01'
     if not end_date:
@@ -117,52 +122,56 @@ def annual_commit_count_ranked_by_new_repo_in_repo_group(self, repo_group_id, re
 
     if not repo_id:
         table = 'dm_repo_group_annual' if period == 'year' or period == 'all' else 'dm_repo_group_monthly' if period == 'month' else 'dm_repo_group_weekly'
-        cdRgNewrepRankedCommitsSQL = s.sql.text("""
-            SELECT repo_groups.repo_group_id, rg_name, year, sum(cast(added AS INTEGER) - cast(removed AS INTEGER) - cast(whitespace AS INTEGER)) AS net, sum(cast(patches AS INTEGER)) AS commits
-            FROM {table}, repo_groups
-            WHERE {table}.repo_group_id = repo_groups.repo_group_id
-            AND repo_groups.repo_group_id = :repo_group_id
-            AND (
-                year > date_part('year', TIMESTAMP :begin_date)
-                OR (
-                    year = date_part('year', TIMESTAMP :begin_date)
-                    AND {period} >= date_part(:period, TIMESTAMP :begin_date)
-                )
-            )
-            AND (
-                year < date_part('year', TIMESTAMP :end_date)
-                OR (
-                    year = date_part('year', TIMESTAMP :end_date)
-                    AND {period} <= date_part(:period, TIMESTAMP :end_date)
-                )
-            )
-            GROUP BY repo_groups.repo_group_id, rg_name, YEAR
-            ORDER BY YEAR ASC
-        """.format(table=table, period=period))
+        cdRgNewrepRankedCommitsSQL = SELECT([TEXT('repo_groups.repo_group_id, rg_name, year, sum(cast(added AS INTEGER) - cast(removed AS INTEGER) - cast(whitespace AS INTEGER)) AS net, sum(cast(patches AS INTEGER)) AS commits')]).\
+                select_from(TEXT(table + ', repo_groups')).\
+                where(
+                    AND(
+                        TEXT(table + '.repo_group_id = repo_groups.repo_group_id'),
+                        TEXT('repo_groups.repo_group_id = :repo_group_id'),
+                        TEXT("""(
+                            year > date_part('year', TIMESTAMP :begin_date)
+                            OR (
+                                year = date_part('year', TIMESTAMP :begin_date)
+                                AND """ + period + """ >= date_part(:period, TIMESTAMP :begin_date)
+                            )
+                        )"""),
+                        TEXT("""(
+                            year < date_part('year', TIMESTAMP :end_date)
+                            OR (
+                                year = date_part('year', TIMESTAMP :end_date)
+                                AND """ + period + """ <= date_part(:period, TIMESTAMP :end_date)
+                            )
+                        )""")
+                    )
+                ).\
+                group_by(TEXT("repo_groups.repo_group_id, rg_name, YEAR")).\
+                order_by(TEXT("YEAR ASC"))
     else:
         table = 'dm_repo_annual' if period == 'year' or period == 'all' else 'dm_repo_monthly' if period == 'month' else 'dm_repo_weekly'
-        cdRgNewrepRankedCommitsSQL = s.sql.text("""
-            SELECT repo.repo_id, repo_name, year, sum(cast(added AS INTEGER) - cast(removed AS INTEGER) - cast(whitespace AS INTEGER)) AS net, sum(cast(patches AS INTEGER)) AS commits
-            FROM {table}, repo
-            WHERE {table}.repo_id = repo.repo_id
-            AND repo.repo_id = :repo_id
-            AND (
-                year > date_part('year', TIMESTAMP :begin_date)
-                OR (
-                    year = date_part('year', TIMESTAMP :begin_date)
-                    AND {period} >= date_part(:period, TIMESTAMP :begin_date)
-                )
-            )
-            AND (
-                year < date_part('year', TIMESTAMP :end_date)
-                OR (
-                    year = date_part('year', TIMESTAMP :end_date)
-                    AND {period} <= date_part(:period, TIMESTAMP :end_date)
-                )
-            )
-            GROUP BY repo.repo_id, repo_name, YEAR
-            ORDER BY YEAR ASC
-        """.format(table=table, period=period))
+        cdRgNewrepRankedCommitsSQL = SELECT([TEXT('repo.repo_id, repo_name, year, sum(cast(added AS INTEGER) - cast(removed AS INTEGER) - cast(whitespace AS INTEGER)) AS net, sum(cast(patches AS INTEGER)) AS commits')]).\
+                select_from(TEXT(table + ', repo')).\
+                where(
+                    AND(
+                        TEXT(table + '.repo_id = repo.repo_id'),
+                        TEXT('repo.repo_id = :repo_id'),
+                        TEXT("""(
+                            year > date_part('year', TIMESTAMP :begin_date)
+                            OR (
+                                year = date_part('year', TIMESTAMP :begin_date)
+                                AND """ + period + """ >= date_part(:period, TIMESTAMP :begin_date)
+                            )
+                        )"""),
+                        TEXT("""(
+                            year < date_part('year', TIMESTAMP :end_date)
+                            OR (
+                                year = date_part('year', TIMESTAMP :end_date)
+                                AND """ + period + """ <= date_part(:period, TIMESTAMP :end_date)
+                            )
+                        )""")
+                    )
+                ).\
+                group_by(TEXT("repo.repo_id, repo_name, YEAR")).\
+                order_by(TEXT("YEAR ASC"))
     results = pd.read_sql(cdRgNewrepRankedCommitsSQL, self.database, params={'repo_id': repo_id,
         'repo_group_id': repo_group_id,'begin_date': begin_date, 'end_date': end_date, 'period': period})
     return results

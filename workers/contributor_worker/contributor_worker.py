@@ -464,7 +464,7 @@ class ContributorWorker(Worker):
                     cntrb_email = :commit_email
                 AND
                     cntrb_id NOT IN (SELECT cntrb_id FROM contributors_aliases);
-            """
+            """)
 
             dupe_ids = pd.read_sql(dupeIdsSQL, self.db, params={'commit_email': commit_email})['cntrb_id'].values.tolist()
 
@@ -477,15 +477,16 @@ class ContributorWorker(Worker):
                     USING
                         contributors_aliases
                     WHERE
-                        c.cntrb_email = '{0}'
+                        c.cntrb_email = :email
                     AND
                         c.cntrb_id NOT IN (SELECT cntrb_id FROM contributors_aliases)
                     AND
-                        c.cntrb_id <> {1};
-            """.format(commit_email, self.cntrb_id_inc)
+                        c.cntrb_id <> :cntrb_id_inc;
+            """
 
             try:
                 # Delete all dupes
+                deleteSQL = deleteSQL.bindparms(email=commit_email, cntrb_id_inc=self.cntrb_id_inc)
                 result = self.db.execute(deleteSQL)
                 self.logger.info("Deleted all non-canonical contributors with the email: {}\n".format(commit_email))
             except Exception as e:

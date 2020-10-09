@@ -674,10 +674,10 @@ class GitHubPullRequestWorker(Worker):
             else:
                 pr_meta_id_sql = """
                     SELECT pr_repo_meta_id FROM pull_request_meta
-                    WHERE pr_sha='{}'
-                """.format(pr_meta_data['sha'])
+                    WHERE pr_sha=:sha
+                """
 
-                self.pr_meta_id_inc = int(pd.read_sql(pr_meta_id_sql, self.db).iloc[0]['pr_repo_meta_id'])
+                self.pr_meta_id_inc = int(pd.read_sql(pr_meta_id_sql, self.db, params={'sha': pr_meta_data['sha']}).iloc[0]['pr_repo_meta_id'])
 
             if pr_meta_data['repo']:
                 self.query_pr_repo(pr_meta_data['repo'], pr_side, self.pr_meta_id_inc)

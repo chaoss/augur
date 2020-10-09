@@ -523,10 +523,11 @@ class InsightWorker(Worker):
                 FROM
                     repo_insights_records I
                 WHERE
-                    repo_id = {}
-                    AND ri_metric = '{}'
-                    AND ri_field = '{}'
-        """.format(repo_id, new_endpoint, new_field)
+                    repo_id = :repo_id
+                    AND ri_metric = :endpoint
+                    AND ri_field = :field
+        """
+        deleteSQL = deleteSQL.bindparams(repo_id=repo_id, endpoint=new_endpoint, field=new_field)
         try:
             result = self.db.execute(deleteSQL)
         except Exception as e:
@@ -540,11 +541,12 @@ class InsightWorker(Worker):
                 FROM
                     repo_insights I
                 WHERE
-                    repo_id = {}
-                    AND ri_metric = '{}'
-                    AND ri_field = '{}'
-        """.format(repo_id, new_endpoint, new_field)
+                    repo_id = :repo_id
+                    AND ri_metric = :endpoint
+                    AND ri_field = :field
+        """
         try:
+            deleteSQL = deleteSQL.bindparams(repo_id=repo_id, endpoint=new_endpoint, field=new_field)
             result = self.db.execute(deleteSQL)
         except Exception as e:
             logging.info("Error occured deleting insight slot: {}".format(e))
@@ -580,11 +582,12 @@ class InsightWorker(Worker):
                             FROM
                                 repo_insights_records I
                             WHERE
-                                repo_id = {}
-                                AND ri_metric = '{}'
-                                AND ri_field = '{}'
-                    """.format(record['repo_id'], record['ri_metric'], record['ri_field'])
+                                repo_id = :repo_id
+                                AND ri_metric = :metric
+                                AND ri_field = :field
+                    """
                     try:
+                        deleteSQL = deleteSQL.bindparams(repo_id=record['repo_id'], metric=record['ri_metric'], field=record['ri_field'])
                         result = self.db.execute(deleteSQL)
                     except Exception as e:
                         logging.info("Error occured deleting insight slot: {}".format(e))
@@ -627,10 +630,11 @@ class InsightWorker(Worker):
                     FROM
                         repo_insights I
                     WHERE
-                        repo_id = {}
-                        AND ri_metric = '{}'
-            """.format(insight['repo_id'], insight['ri_metric'])
+                        repo_id = :repo_id
+                        AND ri_metric = :metric
+            """
             try:
+                deleteSQL = deleteSQL.bindparams(repo_id=insight['repo_id'], metric=insight['ri_metric'])
                 result = self.db.execute(deleteSQL)
             except Exception as e:
                 logging.info("Error occured deleting insight slot: {}".format(e))

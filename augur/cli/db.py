@@ -54,7 +54,6 @@ def get_repo_groups(augur_app):
     List all repo groups and their associated IDs
     """
     df = pd.read_sql(s.sql.text("SELECT repo_group_id, rg_name, rg_description FROM augur_data.repo_groups"), augur_app.database)
-    print(df)
 
     return df
 

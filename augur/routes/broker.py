@@ -40,7 +40,7 @@ def send_task(worker_proxy):
     # Want to check user-created job requests first
     if len(user_queue) > 0:
         new_task = user_queue.pop(0)
-    
+
     # If no user-created job requests, move on to regulated/maintained ones
     elif len(maintain_queue) > 0:
         new_task = maintain_queue.pop(0)
@@ -48,7 +48,7 @@ def send_task(worker_proxy):
     else:
         logger.debug("Both queues are empty for worker {}\n".format(worker_id))
         worker_proxy['status'] = 'Idle'
-        return     
+        return
 
     logger.info("Worker {} is idle, preparing to send the {} task to {}\n".format(worker_id, new_task['display_name'], task_endpoint))
     try:
@@ -59,7 +59,7 @@ def send_task(worker_proxy):
         worker_proxy['status'] = 'Disconnected'
         # If the worker died, then restart it
         worker_start(worker_id.split('.')[len(worker_id.split('.')) - 2])
-    
+
 
 def create_routes(server):
 
@@ -81,7 +81,7 @@ def create_routes(server):
         worker_found = False
         compatible_workers = {}
 
-        # For every worker the broker is aware of that can fill the task's given and model 
+        # For every worker the broker is aware of that can fill the task's given and model
         for worker_id in [id for id in list(server.broker._getvalue().keys()) if model in server.broker[id]['models'] and given in server.broker[id]['given']]:
             if type(server.broker[worker_id]._getvalue()) != dict:
                 continue
@@ -91,7 +91,7 @@ def create_routes(server):
             # Group workers by type (all gh workers grouped together etc)
             worker_type = worker_id.split('.')[len(worker_id.split('.'))-2]
             compatible_workers[worker_type] = compatible_workers[worker_type] if worker_type in compatible_workers else {'task_load': len(server.broker[worker_id]['user_queue']) + len(server.broker[worker_id]['maintain_queue']), 'worker_id': worker_id}
-            
+
             # Make worker that is prioritized the one with the smallest sum of task queues
             if (len(server.broker[worker_id]['user_queue']) + len(server.broker[worker_id]['maintain_queue'])) < min([compatible_workers[w]['task_load'] for w in compatible_workers.keys() if worker_type == w]):
                 logger.info("Worker id: {} has the smallest task load encountered so far: {}\n".format(worker_id, len(server.broker[worker_id]['user_queue']) + len(server.broker[worker_id]['maintain_queue'])))
