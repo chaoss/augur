@@ -45,6 +45,7 @@ setup(
         "click",
         "psutil",
         "gunicorn",
+        "tenacity",
         "six>=1.14.0"
     ],
     extras_require={

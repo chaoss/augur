@@ -13,6 +13,8 @@ from beaker.cache import CacheManager
 from beaker.util import parse_cache_config_options
 import sqlalchemy as s
 import psycopg2
+from tenacity import wait_fixed, before_log, \
+    after_log, retry_if_exception_type, stop_after_attempt, retry
 
 from augur import ROOT_AUGUR_DIRECTORY
 from augur.metrics import Metrics
@@ -63,6 +65,14 @@ class Application():
 
             self.metrics = Metrics(self)
 
+    @retry(
+        reraise=True, 
+        stop=stop_after_attempt(5),
+        wait=wait_fixed(2),
+        before=before_log(logger, logging.INFO),
+        after=after_log(logger, logging.WARN),
+        retry=retry_if_exception_type(s.exc.OperationalError)
+    )
     def _connect_to_database(self):
         user = self.config.get_value('Database', 'user')
         host = self.config.get_value('Database', 'host')
@@ -92,7 +102,7 @@ class Application():
             logger.debug("Database connection successfully established")
             return engine, helper_engine, spdx_engine
         except s.exc.OperationalError as e:
-            logger.error("Unable to connect to the database. Terminating...")
+            logger.error("Unable to connect to the database.")
             raise(e)
 
     def shutdown(self):
