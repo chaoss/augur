@@ -22,3 +22,10 @@ def create_routes(server):
         return Response(response=data,
                         status=200,
                         mimetype="application/json")
+
+    @server.app.route(f"/{server.api_version}/frontend-insights-page")
+    def frontend_insights_page():
+        data = server.transform(metrics.frontend_insights_page)
+        return Response(response=data,
+                        status=200,
+                        mimetype="application/json")
