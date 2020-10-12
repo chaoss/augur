@@ -41,8 +41,6 @@ class ContributorWorker(Worker):
     def contributors_model(self, entry_info, repo_id):
 
         # Get max ids so we know where we are in our insertion and to have the current id when inserting FK's
-        self.logger.info("Querying starting ids info...\n")
-
         self.cntrb_id_inc = self.get_max_id('contributors', 'cntrb_id')
 
         # Get and insert all users (emails) found by the facade worker
@@ -238,33 +236,32 @@ class ContributorWorker(Worker):
 
                 # Fill in all github information
                 cntrb_gh_info = {
-                    "cntrb_login": contributor['login'],
-                    "cntrb_created_at": contributor['created_at'],
-                    "cntrb_email": cmt_cntrb['email'],
-                    "cntrb_company": contributor['company'] if 'company' in contributor else None,
-                    "cntrb_location": contributor['location'] if 'location' in contributor else None,
-                    # "cntrb_type": , dont have a use for this as of now ... let it default to null
-                    "gh_user_id": contributor['id'],
-                    "gh_login": contributor['login'],
-                    "gh_url": contributor['url'],
-                    "gh_html_url": contributor['html_url'],
-                    "gh_node_id": contributor['node_id'],
-                    "gh_avatar_url": contributor['avatar_url'],
-                    "gh_gravatar_id": contributor['gravatar_id'],
-                    "gh_followers_url": contributor['followers_url'],
-                    "gh_following_url": contributor['following_url'],
-                    "gh_gists_url": contributor['gists_url'],
-                    "gh_starred_url": contributor['starred_url'],
-                    "gh_subscriptions_url": contributor['subscriptions_url'],
-                    "gh_organizations_url": contributor['organizations_url'],
-                    "gh_repos_url": contributor['repos_url'],
-                    "gh_events_url": contributor['events_url'],
-                    "gh_received_events_url": contributor['received_events_url'],
-                    "gh_type": contributor['type'],
-                    "gh_site_admin": contributor['site_admin'],
-                    "tool_source": self.tool_source,
-                    "tool_version": self.tool_version,
-                    "data_source": self.data_source
+                    'cntrb_login': contributor['login'],
+                    'cntrb_created_at': contributor['created_at'],
+                    'cntrb_email': cmt_cntrb['email'],
+                    'cntrb_company': contributor['company'] if 'company' in contributor else None,
+                    'cntrb_location': contributor['location'] if 'location' in contributor else None,
+                    'gh_user_id': contributor['id'],
+                    'gh_login': contributor['login'],
+                    'gh_url': contributor['url'],
+                    'gh_html_url': contributor['html_url'],
+                    'gh_node_id': contributor['node_id'],
+                    'gh_avatar_url': contributor['avatar_url'],
+                    'gh_gravatar_id': contributor['gravatar_id'],
+                    'gh_followers_url': contributor['followers_url'],
+                    'gh_following_url': contributor['following_url'],
+                    'gh_gists_url': contributor['gists_url'],
+                    'gh_starred_url': contributor['starred_url'],
+                    'gh_subscriptions_url': contributor['subscriptions_url'],
+                    'gh_organizations_url': contributor['organizations_url'],
+                    'gh_repos_url': contributor['repos_url'],
+                    'gh_events_url': contributor['events_url'],
+                    'gh_received_events_url': contributor['received_events_url'],
+                    'gh_type': contributor['type'],
+                    'gh_site_admin': contributor['site_admin'],
+                    'tool_source': self.tool_source,
+                    'tool_version': self.tool_version,
+                    'data_source': self.data_source
                 }
                 result = self.db.execute(self.contributors_table.update().where(
                     self.contributors_table.c.cntrb_id==self.cntrb_id_inc).values(cntrb_gh_info))
