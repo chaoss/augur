@@ -3,7 +3,7 @@ import logging.config
 import logging.handlers
 from logging import FileHandler, StreamHandler, Formatter
 from multiprocessing import Process, Queue, Event, current_process
-from time import sleep 
+from time import sleep
 import os
 from pathlib import Path
 import atexit
@@ -98,7 +98,6 @@ class AugurLogging():
         if disable_logs:
             self._disable_all_logging()
 
-
     def _disable_all_logging(self):
         for logger in ["augur", "augur.application", "augur.housekeeper", "augur.config", "augur.cli", "root"]:
             lg = logging.getLogger(logger)
@@ -142,7 +141,6 @@ class AugurLogging():
         self._configure_logfiles()
         self._configure_cli_logger()
         self._configure_gunicorn_logging()
-        logger.debug("Loggers are fully configured")
 
     def _configure_logfiles(self):
         self.logfile_config = {
@@ -221,8 +219,7 @@ class AugurLogging():
         for logger_name in ["augur", "augur.housekeeper", "augur.jobs"]:
             coloredlogs.install(logger=logging.getLogger(logger_name), level=self.LOG_LEVEL, fmt=self.format_string)
 
-        logger.debug("Logfiles initialized")
-        logger.debug("Logs will be written to: " + self.LOGS_DIRECTORY)
+        logger.debug("Logfiles initialized at " + self.LOGS_DIRECTORY)
 
     def initialize_housekeeper_logging_listener(self):
             queue = Queue()

@@ -10,8 +10,8 @@ import gunicorn.app.base
 from gunicorn.arbiter import Arbiter
 
 from augur.housekeeper import Housekeeper
-from augur.server import Server
-from augur.cli.util import kill_processes
+from augur.server import Server, AUGUR_API_VERSION
+from augur.cli.util import stop_processes
 from augur.application import Application
 
 logger = logging.getLogger("augur")
@@ -25,20 +25,20 @@ def cli(disable_housekeeper, skip_cleanup):
     """
     augur_app = Application()
     logger.info("Augur application initialized")
+    logger.info(f"Using config file: {augur_app.config.config_file_location}")
     if not skip_cleanup:
         logger.debug("Cleaning up old Augur processes...")
-        kill_processes()
+        stop_processes()
         time.sleep(2)
     else:
         logger.debug("Skipping process cleanup")
 
     master = initialize_components(augur_app, disable_housekeeper)
-    logger.info('Starting Gunicorn server in the background...')
-    if not disable_housekeeper:
-        logger.info('Housekeeper update process logs will now take over.')
-    else:
-        logger.info("Gunicorn server logs will be written to gunicorn.log")
-        logger.info("Augur is still running...don't close this process!")
+
+    logger.info('Starting Gunicorn webserver...')
+    logger.info(f"Augur is running at: http://0.0.0.0:5000/{AUGUR_API_VERSION}")
+    logger.info("Gunicorn server logs & errors will be written to logs/gunicorn.log")
+    logger.info('Housekeeper update process logs will now take over.')
     Arbiter(master).run()
 
 def initialize_components(augur_app, disable_housekeeper):
@@ -50,16 +50,12 @@ def initialize_components(augur_app, disable_housekeeper):
     mp.set_start_method('forkserver', force=True)
 
     if not disable_housekeeper:
-        logger.info("Booting manager")
+
         manager = mp.Manager()
-
-        logger.info("Booting broker")
         broker = manager.dict()
-
         housekeeper = Housekeeper(broker=broker, augur_app=augur_app)
 
         controller = augur_app.config.get_section('Workers')
-
         for worker in controller.keys():
             if controller[worker]['switch']:
                 for i in range(controller[worker]['workers']):
@@ -98,7 +94,6 @@ def exit(augur_app, worker_processes, master):
         if master is not None:
             logger.debug("Shutting down Gunicorn server")
             master.halt()
-            master = None
 
         logger.info("Shutdown complete")
         sys.exit(0)
