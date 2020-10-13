@@ -370,7 +370,7 @@ def pull_request_acceptance_rate(self, repo_group_id, repo_id=None, begin_date=N
                     FROM issue_events JOIN issues ON issues.issue_id = issue_events.issue_id
                         JOIN repo ON issues.repo_id = repo.repo_id
                     WHERE action = 'merged'
-                    AND issues.pull_request IS NOT NULL 
+                    AND issues.pull_request IS NOT NULL
                     AND repo_group_id = :repo_group_id
                     AND issue_events.created_at BETWEEN :begin_date AND :end_date
                     GROUP BY accepted_on
@@ -383,7 +383,7 @@ def pull_request_acceptance_rate(self, repo_group_id, repo_id=None, begin_date=N
                     FROM issue_events JOIN issues ON issues.issue_id = issue_events.issue_id
                         JOIN repo ON issues.repo_id = repo.repo_id
                     WHERE action = 'ready_for_review'
-                    AND issues.pull_request IS NOT NULL 
+                    AND issues.pull_request IS NOT NULL
                     AND repo_group_id = :repo_group_id
                     AND issue_events.created_at BETWEEN :begin_date AND :end_date
                     GROUP BY date_created
@@ -415,7 +415,7 @@ def pull_request_acceptance_rate(self, repo_group_id, repo_id=None, begin_date=N
                         date_trunc(:group_by,issue_events.created_at) AS date_created
                     FROM issue_events JOIN issues ON issues.issue_id = issue_events.issue_id
                     WHERE action = 'ready_for_review'
-                    AND issues.pull_request IS NOT NULL 
+                    AND issues.pull_request IS NOT NULL
                     AND repo_id = :repo_id
                     AND issue_events.created_at BETWEEN :begin_date AND :end_date
                     GROUP BY date_created
@@ -456,7 +456,7 @@ def pull_request_average_time_to_close(self, repo_group_id, repo_id=None, group_
 
     if not repo_id:
         pr_all_SQL = s.sql.text("""
-        SELECT     
+        SELECT
             repo_id,
             repo_name,
             repo_group_id,
@@ -470,7 +470,7 @@ def pull_request_average_time_to_close(self, repo_group_id, repo_id=None, group_
         CASE WHEN pr_merged_at IS NULL THEN 'Rejected' ELSE 'Merged' END AS merged_status,
             count(*) AS num_pull_requests
         FROM (
-        SELECT 
+        SELECT
             pull_requests.pull_request_id,
             pull_requests.repo_id,
             repo_name,
@@ -482,7 +482,7 @@ def pull_request_average_time_to_close(self, repo_group_id, repo_id=None, group_
             pr_merged_at
         FROM pull_request_message_ref, message, repo_groups,
         pull_requests JOIN repo ON pull_requests.repo_id = repo.repo_id
-        WHERE pull_requests.repo_id IN 
+        WHERE pull_requests.repo_id IN
              (SELECT repo_id FROM repo WHERE repo_group_id = :repo_group_id)
         AND repo.repo_id = pull_requests.repo_id
         AND pull_requests.pull_request_id = pull_request_message_ref.pull_request_id
@@ -498,7 +498,7 @@ def pull_request_average_time_to_close(self, repo_group_id, repo_id=None, group_
 
     else:
         pr_all_SQL = s.sql.text("""
-        SELECT 
+        SELECT
             date_part( 'year', pr_closed_at :: DATE ) AS closed_year,
             date_part( 'month', pr_closed_at :: DATE ) AS closed_month,
             date_part('week', pr_closed_at :: DATE) AS closed_week,
@@ -569,7 +569,7 @@ def pull_request_merged_status_counts(self, repo_group_id, repo_id=None, begin_d
 
     if not repo_id:
         pr_all_SQL = s.sql.text("""
-            SELECT      
+            SELECT
                 repo_id,
                 repo_name,
                 repo_group_id,
@@ -583,7 +583,7 @@ def pull_request_merged_status_counts(self, repo_group_id, repo_id=None, begin_d
             CASE WHEN pr_merged_at IS NULL THEN 'Rejected' ELSE 'Merged' END AS merged_status,
                 count(*) AS num_pull_requests
             FROM (
-            SELECT 
+            SELECT
                 repo_name,
                 repo_groups.repo_group_id,
                 rg_name,
@@ -595,7 +595,7 @@ def pull_request_merged_status_counts(self, repo_group_id, repo_id=None, begin_d
                 (MAX(message.msg_timestamp) - MIN(message.msg_timestamp)) / COUNT(DISTINCT message.msg_timestamp) AS average_time_between_responses
             FROM pull_request_message_ref, message, repo_groups,
             pull_requests JOIN repo ON pull_requests.repo_id = repo.repo_id
-            WHERE pull_requests.repo_id IN 
+            WHERE pull_requests.repo_id IN
                 (SELECT repo_id FROM repo WHERE repo_group_id = :repo_group_id)
             AND repo.repo_id = pull_requests.repo_id
             AND pull_requests.pull_request_id = pull_request_message_ref.pull_request_id
@@ -610,7 +610,7 @@ def pull_request_merged_status_counts(self, repo_group_id, repo_id=None, begin_d
 
     else:
         pr_all_SQL = s.sql.text("""
-        SELECT 
+        SELECT
             date_part( 'year', pr_closed_at :: DATE ) AS closed_year,
             date_part( 'month', pr_closed_at :: DATE ) AS closed_month,
             date_part( 'week', pr_closed_at :: DATE ) AS closed_week,
@@ -675,7 +675,7 @@ def pull_request_average_commit_counts(self, repo_group_id, repo_id=None, group_
 
     if not repo_id:
         pr_all_SQL = s.sql.text("""
-        SELECT 
+        SELECT
             repo_id,
             repo_name,
             repo_group_id,
@@ -688,19 +688,19 @@ def pull_request_average_commit_counts(self, repo_group_id, repo_id=None, group_
             commit_count AS average_commits_per_pull_request,
             count(*) AS pr_count
             FROM (
-            SELECT 
+            SELECT
                 pull_requests.repo_id,
                 repo.repo_name,
                 repo_groups.repo_group_id,
                 rg_name AS repo_group_name,
-                pull_request_commits.pull_request_id, 
+                pull_request_commits.pull_request_id,
                 count(DISTINCT pr_cmt_sha) AS commit_count,
                 pr_merged_at,
                 pr_closed_at,
                 pr_created_at
-            FROM augur_data.pull_request_commits, augur_data.pull_request_meta,augur_data.repo_groups, 
+            FROM augur_data.pull_request_commits, augur_data.pull_request_meta,augur_data.repo_groups,
             augur_data.pull_requests JOIN repo ON pull_requests.repo_id = repo.repo_id
-            WHERE pull_requests.repo_id IN 
+            WHERE pull_requests.repo_id IN
                 (SELECT repo_id FROM repo WHERE repo_group_id = :repo_group_id)
                 AND pull_requests.pull_request_id = pull_request_commits.pull_request_id
                 AND pull_requests.pull_request_id = pull_request_meta.pull_request_id
@@ -717,7 +717,7 @@ def pull_request_average_commit_counts(self, repo_group_id, repo_id=None, group_
 
     else:
         pr_all_SQL = s.sql.text("""
-        SELECT 
+        SELECT
         CASE WHEN pr_merged_at IS NULL THEN 'Rejected' ELSE 'Merged' END AS merged_status,
         date_part( 'year', pr_closed_at :: DATE ) AS closed_year,
         date_part( 'month', pr_closed_at :: DATE ) AS closed_month,
@@ -726,8 +726,8 @@ def pull_request_average_commit_counts(self, repo_group_id, repo_id=None, group_
         commit_count AS average_commits_per_pull_request,
         count(*) AS pr_count
         FROM (
-        SELECT 
-            pull_request_commits.pull_request_id, 
+        SELECT
+            pull_request_commits.pull_request_id,
             count(DISTINCT pr_cmt_sha) AS commit_count,
             pr_merged_at,
             pr_closed_at,
@@ -751,7 +751,7 @@ def pull_request_average_commit_counts(self, repo_group_id, repo_id=None, group_
                 'begin_date': begin_date, 'end_date': end_date})
     if not repo_id:
         pr_avg_commit_counts = pr_all.groupby(['merged_status', 'repo_id', 'repo_name', 'repo_group_id', 'repo_group_name'] + time_group_bys).mean().reset_index()[['merged_status', 'repo_id', 'repo_name', 'repo_group_id', 'repo_group_name'] + time_group_bys + ['average_commits_per_pull_request']]
-    else:        
+    else:
         pr_avg_commit_counts = pr_all.groupby(['merged_status'] + time_group_bys).mean().reset_index()[time_group_bys + ['merged_status', 'average_commits_per_pull_request']]
 
     return pr_avg_commit_counts
@@ -784,7 +784,7 @@ def pull_request_average_event_counts(self, repo_group_id, repo_id=None, group_b
 
     if not repo_id:
         pr_all_SQL = s.sql.text("""
-        SELECT 
+        SELECT
             repo_id,
             repo_name,
             repo_group_id,
@@ -792,7 +792,7 @@ def pull_request_average_event_counts(self, repo_group_id, repo_id=None, group_b
             date_part( 'year', pr_closed_at :: DATE ) AS closed_year,
             date_part( 'month', pr_closed_at :: DATE ) AS closed_month,
             date_part( 'week', pr_closed_at :: DATE ) AS closed_week,
-            date_part( 'day', pr_closed_at :: DATE ) AS closed_day, 
+            date_part( 'day', pr_closed_at :: DATE ) AS closed_day,
             CASE WHEN pr_merged_at IS NULL THEN 'Rejected' ELSE 'Merged' END AS merged_status,
             assigned_count AS average_assigned_count,
             review_requested_count AS average_review_requested_count,
@@ -809,7 +809,7 @@ def pull_request_average_event_counts(self, repo_group_id, repo_id=None, group_b
             comment_count AS average_comment_count,
             count(*) AS num_pull_requests
         FROM (
-            SELECT 
+            SELECT
             pull_requests.repo_id,
             repo_name,
             repo_groups.repo_group_id,
@@ -833,7 +833,7 @@ def pull_request_average_event_counts(self, repo_group_id, repo_id=None, group_b
             COUNT(DISTINCT message.msg_timestamp) AS comment_count
             FROM pull_request_events, pull_request_message_ref, message, repo_groups,
             pull_requests JOIN repo ON pull_requests.repo_id = repo.repo_id
-            WHERE pull_requests.repo_id IN 
+            WHERE pull_requests.repo_id IN
                 (SELECT repo_id FROM repo WHERE repo_group_id = :repo_group_id)
                 AND repo.repo_id = pull_requests.repo_id
                 AND repo_groups.repo_group_id = repo.repo_group_id
@@ -844,18 +844,18 @@ def pull_request_average_event_counts(self, repo_group_id, repo_id=None, group_b
                 AND pr_closed_at::DATE <=  :end_date ::DATE
                 GROUP BY pull_requests.pull_request_id, repo.repo_name, repo_groups.repo_group_id, repo_groups.rg_name
                 ) data
-           GROUP BY closed_year, closed_month, closed_week, closed_day, merged_status, data.assigned_count, data.review_requested_count, data.labeled_count, data.unlabeled_count, data.subscribed_count, data.mentioned_count, data.referenced_count, data.closed_count, 
+           GROUP BY closed_year, closed_month, closed_week, closed_day, merged_status, data.assigned_count, data.review_requested_count, data.labeled_count, data.unlabeled_count, data.subscribed_count, data.mentioned_count, data.referenced_count, data.closed_count,
         data.head_ref_force_pushed_count, data.head_ref_deleted_count, data.milestoned_count, data.merged_count, data.comment_count, data.repo_id, data.repo_name, data.repo_group_id, data.repo_group_name
         ORDER BY merged_status, closed_year, closed_week, closed_day
         """)
 
     else:
         pr_all_SQL = s.sql.text("""
-        SELECT 
+        SELECT
             date_part( 'year', pr_closed_at :: DATE ) AS closed_year,
             date_part( 'month', pr_closed_at :: DATE ) AS closed_month,
             date_part( 'week', pr_closed_at :: DATE ) AS closed_week,
-            date_part( 'day', pr_closed_at :: DATE ) AS closed_day, 
+            date_part( 'day', pr_closed_at :: DATE ) AS closed_day,
             CASE WHEN pr_merged_at IS NULL THEN 'Rejected' ELSE 'Merged' END AS merged_status,
             assigned_count AS average_assigned_count,
             review_requested_count AS average_review_requested_count,
@@ -899,7 +899,7 @@ def pull_request_average_event_counts(self, repo_group_id, repo_id=None, group_b
                 AND pr_closed_at::DATE <= :end_date ::DATE
             GROUP BY pull_requests.pull_request_id
             ) data
-        GROUP BY closed_year, closed_month, closed_week, closed_day, merged_status, data.assigned_count, data.review_requested_count, data.labeled_count, data.unlabeled_count, data.subscribed_count, data.mentioned_count, data.referenced_count, data.closed_count, 
+        GROUP BY closed_year, closed_month, closed_week, closed_day, merged_status, data.assigned_count, data.review_requested_count, data.labeled_count, data.unlabeled_count, data.subscribed_count, data.mentioned_count, data.referenced_count, data.closed_count,
         data.head_ref_force_pushed_count, data.head_ref_deleted_count, data.milestoned_count, data.merged_count, data.comment_count
         ORDER BY merged_status, closed_year, closed_week, closed_day
         """)
@@ -910,7 +910,7 @@ def pull_request_average_event_counts(self, repo_group_id, repo_id=None, group_b
 
     count_names = ['assigned_count', 'review_requested_count', 'labeled_count', 'unlabeled_count', 'subscribed_count', 'mentioned_count', 'referenced_count', 'closed_count', 'head_ref_force_pushed_count', 'head_ref_deleted_count', 'milestoned_count', 'merged_count', 'comment_count']
     average_count_names = []
-    for name in count_names.copy(): 
+    for name in count_names.copy():
         average_count_names.append('average_' + name)
 
     if not repo_id:
@@ -949,7 +949,7 @@ def pull_request_average_time_to_responses_and_close(self, repo_group_id, repo_i
 
     if not repo_id:
         pr_all_SQL = s.sql.text("""
-        SELECT 
+        SELECT
             repo_id,
             repo_name,
             repo_group_id,
@@ -968,7 +968,7 @@ def pull_request_average_time_to_responses_and_close(self, repo_group_id, repo_i
             count(*) AS num_pull_requests
         FROM (
         SELECT
-            pull_requests.repo_id, 
+            pull_requests.repo_id,
             repo.repo_name,
             repo_groups.repo_group_id,
             rg_name AS repo_group_name,
@@ -980,7 +980,7 @@ def pull_request_average_time_to_responses_and_close(self, repo_group_id, repo_i
             pull_requests.pr_merged_at
         FROM pull_request_message_ref, message, repo_groups,
         pull_requests JOIN repo ON pull_requests.repo_id = repo.repo_id
-        WHERE pull_requests.repo_id IN 
+        WHERE pull_requests.repo_id IN
             (SELECT repo_id FROM repo WHERE repo_group_id = :repo_group_id)
             AND repo.repo_id = pull_requests.repo_id
             AND pull_requests.pull_request_id = pull_request_message_ref.pull_request_id
@@ -995,7 +995,7 @@ def pull_request_average_time_to_responses_and_close(self, repo_group_id, repo_i
 
     else:
         pr_all_SQL = s.sql.text("""
-        SELECT 
+        SELECT
             EXTRACT(epoch FROM(first_response_time - pr_created_at)/86400) AS average_days_to_first_response,
             EXTRACT(epoch FROM(first_response_time - pr_created_at)/3600) AS average_hours_to_first_response,
             EXTRACT(epoch FROM(last_response_time - pr_created_at)/86400) AS average_days_to_last_response,
@@ -1041,7 +1041,7 @@ def pull_request_average_time_to_responses_and_close(self, repo_group_id, repo_i
 @register_metric()
 def pull_request_merged_status_counts(self, repo_group_id, repo_id=None, begin_date='1970-1-1 00:00:01', end_date=None, group_by='month'):
     """ Merged status counts with time frames
-    
+
     :param repo_group_id: The repository's repo_group_id
     :param repo_id: The repository's repo_id, defaults to None
     :param group_by: The time frame the data is grouped by, options are: 'day', 'week', 'month' or 'year', defaults to 'month'
@@ -1063,7 +1063,7 @@ def pull_request_merged_status_counts(self, repo_group_id, repo_id=None, begin_d
 
     if not repo_id:
         pr_all_sql = s.sql.text("""
-        SELECT 
+        SELECT
             repo_id,
             repo_name,
             repo_group_id,
@@ -1091,12 +1091,12 @@ def pull_request_merged_status_counts(self, repo_group_id, repo_id=None, begin_d
             AND pr_created_at::DATE >= :begin_date ::DATE
             AND pr_closed_at::DATE <= :end_date ::DATE
         GROUP BY pull_requests.pull_request_id, pull_requests.repo_id, repo.repo_name, repo_groups.repo_group_id, repo_groups.rg_name
-        ) data 
-        GROUP BY repo_id, repo_name, repo_group_id, repo_group_name, pull_request_id, pr_merged_at, pr_closed_at  
+        ) data
+        GROUP BY repo_id, repo_name, repo_group_id, repo_group_name, pull_request_id, pr_merged_at, pr_closed_at
     """)
     else:
         pr_all_sql = s.sql.text("""
-        SELECT 
+        SELECT
             pull_request_id as pull_request_count,
             CASE WHEN pr_merged_at IS NULL THEN 'Rejected' ELSE 'Merged' end as merged_status,
             date_part( 'year', pr_closed_at :: DATE ) AS closed_year,
@@ -1109,14 +1109,14 @@ def pull_request_merged_status_counts(self, repo_group_id, repo_id=None, begin_d
             AND pr_closed_at::date <= :end_date ::date
         """)
 
-    pr_all = pd.read_sql(pr_all_sql, self.database, params={'repo_group_id': repo_group_id, 
+    pr_all = pd.read_sql(pr_all_sql, self.database, params={'repo_group_id': repo_group_id,
         'repo_id': repo_id, 'begin_date': begin_date, 'end_date': end_date})
 
     if not repo_id:
          pr_merged_counts = pr_all.groupby(['merged_status', 'repo_id', 'repo_name', 'repo_group_id', 'repo_group_name'] + time_group_bys).count().reset_index()[['merged_status', 'repo_id', 'repo_name', 'repo_group_id', 'repo_group_name'] + time_group_bys + ['pull_request_count']]
     else:
         pr_merged_counts = pr_all.groupby(['merged_status'] + time_group_bys).count().reset_index()[time_group_bys + ['merged_status', 'pull_request_count']]
-    
+
     return pr_merged_counts
 
 

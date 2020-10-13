@@ -110,7 +110,6 @@ def annual_commit_count_ranked_by_new_repo_in_repo_group(self, repo_group_id, re
     :param end_date: Specifies the end date, defaults to datetime.now()
     :return: DataFrame of data
     """
-    print('#####################')
     if not begin_date:
         begin_date = '1970-1-1 00:00:01'
     if not end_date:
