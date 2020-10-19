@@ -49,7 +49,8 @@ setup(
         "gunicorn",
         "six>=1.14.0",
         "tensorflow",
-        "keras"
+        "keras",
+	"bokeh==2.1.1"
     ],
     extras_require={
         "dev": [
