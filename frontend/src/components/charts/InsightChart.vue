@@ -1,3 +1,4 @@
+<!-- #SPDX-License-Identifier: MIT -->
 <template>
   <div ref='holder' class='insightChartSpinnerHolder'>
     <spinner v-if='loading' class='insightChartSpinner'></spinner>
