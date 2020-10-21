@@ -29,3 +29,19 @@ def top_insights(self, repo_group_id, num_repos=6):
     """)
     results = pd.read_sql(topInsightsSQL, self.database, params={'repo_group_id': repo_group_id, 'num_repos': num_repos})
     return results
+
+@register_metric(type='no_repo_or_repo_group')
+def frontend_insights_page(self):
+
+    insights_sql = s.sql.text(
+        """
+            SELECT DISTINCT(repo_insights_records.repo_id), repo_group_id, repo_git, ri_metric, ri_field,
+                ri_value, ri_date, ri_score, ri_detection_method
+            FROM repo_insights_records INNER JOIN repo
+                ON repo_insights_records.repo_id = repo.repo_id
+            ORDER BY ri_score DESC
+            LIMIT 12
+        """
+    )
+
+    return pd.read_sql(insights_sql, self.database)

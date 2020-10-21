@@ -17,6 +17,7 @@ const AugurAPI = new AugurAPIModule('http://' + host + port);
 import Errors from './views/Errors.vue';
 import Tables from './views/Tables.vue';
 import Dashboard from './views/Dashboard.vue';
+import InsightsPage from './views/InsightsPage.vue';
 import EditConfig from './views/EditConfig.vue';
 import Default from './layouts/Default.vue';
 import MainSidebar from './components/layout/MainSidebar/MainSidebar.vue';
@@ -44,7 +45,7 @@ const routes = [
         components: {
           sidebar: MainSidebar,
           navbar: MainNavbar,
-          content: Dashboard,
+          content: InsightsPage,
         },
       },
     ],

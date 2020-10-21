@@ -1,5 +1,8 @@
 // #SPDX-License-Identifier: MIT
 export default {
+  baseURL: (state: any) => {
+    return state.cache.baseURL
+  },
   repoRelations: (state: any) => {
     let repoRelations:any = {}, repos = state.cache.getRepos || [], repoGroups = state.cache.getRepoGroups || []
     repoGroups.forEach((group: any) => {
