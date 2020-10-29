@@ -1,3 +1,4 @@
+#SPDX-License-Identifier: MIT
 """ Helper methods constant across all workers """
 import requests, datetime, time, traceback, json, os, sys, math, logging
 from logging import FileHandler, Formatter, StreamHandler
@@ -27,7 +28,8 @@ class Worker():
         self.platform = platform
 
         # count of tuples inserted in the database (to store stats for each task in op tables)
-        self.results_counter = 0
+
+        self._results_counter = 0
 
         # if we are finishing a previous task, certain operations work differently
         self.finishing_task = False
@@ -224,6 +226,23 @@ class Worker():
             self.init_oauths(self.platform)
         else:
             self.oauths = [{'oauth_id': 0}]
+
+    @property
+    def results_counter(self):
+        """ Property that is returned when the worker's current results_counter is referenced
+        """
+        if self.worker_type == 'facade_worker':
+            return self.cfg.repos_processed #TODO: figure out why this doesn't work...
+        else:
+            return self._results_counter
+
+    @results_counter.setter
+    def results_counter(self, value):
+        """ entry point for the broker to add a task to the queue
+        Adds this task to the queue, and calls method to process queue
+        """
+        self._results_counter = value
+
 
     @property
     def task(self):
@@ -479,6 +498,7 @@ class Worker():
         self.logger.info(idSQL)
 
         rs = pd.read_sql(idSQL, self.db, params={'login': login, 'platform': platform + ' api'})
+
         data_list = [list(row) for row in rs.itertuples(index=False)]
         try:
             return data_list[0][0]
@@ -1357,3 +1377,4 @@ class Worker():
         elif platform == 'github':
             return self.update_gh_rate_limit(response, bad_credentials=bad_credentials,
                                         temporarily_disable=temporarily_disable)
+
