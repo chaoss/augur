@@ -1,4 +1,3 @@
-
 from workers.worker_persistance import *
 #I figure I can seperate this class into at least three parts.
 #I should also look into the subclass and see what uses what.
@@ -9,26 +8,25 @@ from workers.worker_persistance import *
 #3. Github/lab 
 # Might be good to seperate the machine learning functionality into its own class too.
 
-
 class Worker(Persistant):
 
     ## Set Thread Safety for OSX
     # os.system("./osx-thread.sh")
 
     #Might cut down on these args to create subclasses
-    def __init__(self, worker_type, config={}, given=[], models=[], data_tables=[], operations_tables=[]):
+    def __init__(self, worker_type, data_tables=[], operations_tables=[]):
 
         #Construct the persistant functionality for the worker
         super().__init__(worker_type,data_tables,operations_tables)
         self.collection_start_time = None
+
         self._task = None # task currently being worked on (dict)
+        self.worker_type = worker_type
         self._child = None # process of currently running task (multiprocessing process)
         self._queue = Queue() # tasks stored here 1 at a time (in a mp queue so it can translate across multiple processes)
 
         # if we are finishing a previous task, certain operations work differently
         self.finishing_task = False
-        # Update config with options that are general and not specific to any worker
-        self.augur_config = AugurConfig(self._root_augur_dir)
 
         #TODO: consider taking parts of this out for the base class and then overriding it in WorkerGitInterfaceable
         self.config.update({'offline_mode': False})
@@ -78,7 +76,6 @@ class Worker(Persistant):
             with open(f'{name}.json', 'w') as f:
                  json.dump(data, f)
 
-    
     @property
     def results_counter(self):
         """ Property that is returned when the worker's current results_counter is referenced
@@ -203,6 +200,7 @@ class Worker(Persistant):
                 self.logger.debug("Connecting to broker, attempt {}\n".format(i))
                 if i > 0:
                     time.sleep(10)
+                self.logger.info("broker & port: "+self.config['host_broker']+"  "+self.config['port_broker'])
                 requests.post('http://{}:{}/api/unstable/workers'.format(
                     self.config['host_broker'],self.config['port_broker']), json=self.specs)
                 self.logger.info("Connection to the broker was successful\n")
@@ -223,23 +221,6 @@ class Worker(Persistant):
             result.append(i)
         # time.sleep(.1)
         return result
-
-    #doesn't even query the api just gets it based on the url string, can stay in base
-    def get_owner_repo(self, git_url):
-        """ Gets the owner and repository names of a repository from a git url
-
-        :param git_url: String, the git url of a repository
-        :return: Tuple, includes the owner and repository names in that order
-        """
-        split = git_url.split('/')
-
-        owner = split[-2]
-        repo = split[-1]
-
-        if '.git' == repo[-4:]:
-            repo = repo[:-4]
-
-        return owner, repo
 
     def record_model_process(self, repo_id, model):
 

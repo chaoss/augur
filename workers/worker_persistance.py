@@ -29,13 +29,13 @@ from augur.logging import AugurLogging
 from sqlalchemy.sql.expression import bindparam
 from concurrent import futures
 import dask.dataframe as dd
+from augur.platform_connector import PlatformConnector
 
-class Persistant():
+class Persistant(PlatformConnector):
 
-    ROOT_AUGUR_DIR = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-
-    def __init__(self, worker_type, data_tables=[],operations_tables=[]):
+    def __init__(self, worker_type, config={}, given=[], data_tables=[],operations_tables=[], db=None, helper_db=None, platform="github"):
         
+        super(Persistant, self).__init__(config, given, data_tables, operations_tables, db, helper_db, platform)
         self.worker_type = worker_type
         #For database functionality
         self.data_tables = data_tables
@@ -115,7 +115,8 @@ class Persistant():
         if self.config['debug']:
             self.config['log_level'] = 'DEBUG'
 
-        if self.config['verbose']:
+        super(Worker, self).initialize_logging()
+        if "verbose" in self.config and self.config["verbose"]:
             format_string = AugurLogging.verbose_format_string
         else:
             format_string = AugurLogging.simple_format_string
@@ -156,14 +157,14 @@ class Persistant():
         logger.setLevel(self.config['log_level'])
         logger.propagate = False
 
-        if self.config['debug']:
+        if 'debug' in self.config and self.config['debug']:
             self.config['log_level'] = 'DEBUG'
             console_handler = StreamHandler()
             console_handler.setFormatter(formatter)
             console_handler.setLevel(self.config['log_level'])
             logger.addHandler(console_handler)
 
-        if self.config['quiet']:
+        if 'quiet' in self.config and self.config['quiet']:
             logger.disabled = True
 
         self.logger = logger
