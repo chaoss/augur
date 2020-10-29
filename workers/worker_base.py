@@ -7,26 +7,25 @@ import sqlalchemy as s
 import pandas as pd
 from pathlib import Path
 from urllib.parse import urlparse, quote
-from sqlalchemy.ext.automap import automap_base
 from augur.config import AugurConfig
 from augur.logging import AugurLogging
 from sqlalchemy.sql.expression import bindparam
+from augur.platform_connector import PlatformConnector
 
-class Worker():
-
-    ROOT_AUGUR_DIR = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+class Worker(PlatformConnector):
 
     def __init__(self, worker_type, config={}, given=[], models=[], data_tables=[], operations_tables=[], platform="github"):
 
+        # PlatformConnector.__init__(config, given, data_tables, operations_tables, platform)
+        super(Worker, self).__init__(config, given, data_tables, operations_tables, platform)
+
         self.worker_type = worker_type
         self.collection_start_time = None
+
         self._task = None # task currently being worked on (dict)
+        self.worker_type = worker_type
         self._child = None # process of currently running task (multiprocessing process)
         self._queue = Queue() # tasks stored here 1 at a time (in a mp queue so it can translate across multiple processes)
-        self.data_tables = data_tables
-        self.operations_tables = operations_tables
-        self._root_augur_dir = Worker.ROOT_AUGUR_DIR
-        self.platform = platform
 
         # count of tuples inserted in the database (to store stats for each task in op tables)
         self.update_counter = 0
@@ -35,17 +34,12 @@ class Worker():
 
         # if we are finishing a previous task, certain operations work differently
         self.finishing_task = False
-        # Update config with options that are general and not specific to any worker
-        self.augur_config = AugurConfig(self._root_augur_dir)
 
         self.config = {
                 'worker_type': self.worker_type,
-                'host': self.augur_config.get_value('Server', 'host'),
-                'gh_api_key': self.augur_config.get_value('Database', 'key'),
-                'gitlab_api_key': self.augur_config.get_value('Database', 'gitlab_api_key'),
+                'host': self.augur_config.get_value("Server", "host"),
                 'offline_mode': False
             }
-        self.config.update(self.augur_config.get_section("Logging"))
 
         try:
             worker_defaults = self.augur_config.get_default_config()['Workers'][self.config['worker_type']]
@@ -74,11 +68,6 @@ class Worker():
             'location': 'http://{}:{}'.format(self.config['host'], worker_port),
             'port_broker': self.augur_config.get_value('Server', 'port'),
             'host_broker': self.augur_config.get_value('Server', 'host'),
-            'host_database': self.augur_config.get_value('Database', 'host'),
-            'port_database': self.augur_config.get_value('Database', 'port'),
-            'user_database': self.augur_config.get_value('Database', 'user'),
-            'name_database': self.augur_config.get_value('Database', 'name'),
-            'password_database': self.augur_config.get_value('Database', 'password')
         })
         self.config.update(config)
 
@@ -93,7 +82,6 @@ class Worker():
         self.logger = logging.getLogger(self.config["id"])
         self.logger.info('Worker (PID: {}) initializing...'.format(str(os.getpid())))
 
-        self.given = given
         self.models = models
         self.specs = {
             'id': self.config['id'], # what the broker knows this worker as
@@ -124,15 +112,22 @@ class Worker():
         return f"{self.config['id']}"
 
     def initialize_logging(self):
+<<<<<<< HEAD
         self.config['log_level'] = self.config['log_level'].upper()
         if self.config['debug']:
             self.config['log_level'] = 'DEBUG'
 
         if self.config['verbose']:
+=======
+
+        super(Worker, self).initialize_logging()
+
+        if "verbose" in self.config and self.config["verbose"]:
+>>>>>>> d01c121e... Automatically add repos to org
             format_string = AugurLogging.verbose_format_string
         else:
             format_string = AugurLogging.simple_format_string
-
+    
         formatter = Formatter(fmt=format_string)
         error_formatter = Formatter(fmt=AugurLogging.error_format_string)
 
@@ -166,71 +161,26 @@ class Worker():
         logger.setLevel(self.config['log_level'])
         logger.propagate = False
 
+<<<<<<< HEAD
         if self.config['debug']:
             self.config['log_level'] = 'DEBUG'
+=======
+        if "debug" in self.config and self.config["debug"]:
+            self.config["log_level"] = "DEBUG"
+>>>>>>> d01c121e... Automatically add repos to org
             console_handler = StreamHandler()
             console_handler.setFormatter(formatter)
             console_handler.setLevel(self.config['log_level'])
             logger.addHandler(console_handler)
 
+<<<<<<< HEAD
         if self.config['quiet']:
+=======
+        if "quiet" in self.config and self.config["quiet"]:
+>>>>>>> d01c121e... Automatically add repos to org
             logger.disabled = True
 
         self.logger = logger
-
-    def initialize_database_connections(self):
-        DB_STR = 'postgresql://{}:{}@{}:{}/{}'.format(
-            self.config['user_database'], self.config['password_database'], self.config['host_database'], self.config['port_database'], self.config['name_database']
-        )
-
-        # Create an sqlalchemy engine for both database schemas
-        self.logger.info("Making database connections")
-
-        db_schema = 'augur_data'
-        self.db = s.create_engine(DB_STR,  poolclass=s.pool.NullPool,
-            connect_args={'options': '-csearch_path={}'.format(db_schema)})
-
-        helper_schema = 'augur_operations'
-        self.helper_db = s.create_engine(DB_STR, poolclass=s.pool.NullPool,
-            connect_args={'options': '-csearch_path={}'.format(helper_schema)})
-
-        metadata = s.MetaData()
-        helper_metadata = s.MetaData()
-
-        # Reflect only the tables we will use for each schema's metadata object
-        metadata.reflect(self.db, only=self.data_tables)
-        helper_metadata.reflect(self.helper_db, only=self.operations_tables)
-
-        Base = automap_base(metadata=metadata)
-        HelperBase = automap_base(metadata=helper_metadata)
-
-        Base.prepare()
-        HelperBase.prepare()
-
-        # So we can access all our tables when inserting, updating, etc
-        for table in self.data_tables:
-            setattr(self, '{}_table'.format(table), Base.classes[table].__table__)
-
-        try:
-            self.logger.info(HelperBase.classes.keys())
-        except:
-            pass
-
-        for table in self.operations_tables:
-            try:
-                setattr(self, '{}_table'.format(table), HelperBase.classes[table].__table__)
-            except Exception as e:
-                self.logger.error("Error setting attribute for table: {} : {}".format(table, e))
-
-        # Increment so we are ready to insert the 'next one' of each of these most recent ids
-        self.history_id = self.get_max_id('worker_history', 'history_id', operations_table=True) + 1
-
-        # Organize different api keys/oauths available
-        self.logger.info("Initializing API key.")
-        if 'gh_api_key' in self.config or 'gitlab_api_key' in self.config:
-            self.init_oauths(self.platform)
-        else:
-            self.oauths = [{'oauth_id': 0}]
 
     @property
     def results_counter(self):
@@ -247,7 +197,6 @@ class Worker():
         Adds this task to the queue, and calls method to process queue
         """
         self._results_counter = value
-
 
     @property
     def task(self):
@@ -501,28 +450,6 @@ class Worker():
             "was reduced to {} tuples, and {} tuple updates are needed.\n".format(need_insertion_count, need_update_count))
         return new_data
 
-    def check_duplicates(self, new_data, table_values, key):
-        """ Filters what items of the new_data json (list of dictionaries) that are not
-        present in the table_values df
-
-        :param new_data: List of dictionaries, new data to filter duplicates out of
-        :param table_values: Pandas DataFrame, existing data to check what data is already
-            present in the database
-        :param key: String, key of each dict in new_data whose value we are checking
-            duplicates with
-        :return: List of dictionaries, contains elements of new_data that are not already
-            present in the database
-        """
-        need_insertion = []
-        for obj in new_data:
-            if type(obj) != dict:
-                continue
-            if not table_values.isin([obj[key]]).any().any():
-                need_insertion.append(obj)
-        self.logger.info("Page recieved has {} tuples, while filtering duplicates this ".format(str(len(new_data))) +
-            "was reduced to {} tuples.\n".format(str(len(need_insertion))))
-        return need_insertion
-
     def connect_to_broker(self):
         connected = False
         for i in range(5):
@@ -530,6 +457,7 @@ class Worker():
                 self.logger.debug("Connecting to broker, attempt {}\n".format(i))
                 if i > 0:
                     time.sleep(10)
+                self.logger.info("broker & port: "+self.config['host_broker']+"  "+self.config['port_broker'])
                 requests.post('http://{}:{}/api/unstable/workers'.format(
                     self.config['host_broker'],self.config['port_broker']), json=self.specs)
                 self.logger.info("Connection to the broker was successful\n")
@@ -551,244 +479,6 @@ class Worker():
             result.append(i)
         # time.sleep(.1)
         return result
-
-    def find_id_from_login(self, login, platform='github'):
-        """
-        Retrieves our contributor table primary key value for the contributor with
-            the given GitHub login credentials, if this contributor is not there, then
-            they get inserted.
-
-        :param login: String, the GitHub login username to find the primary key id for
-        :return: Integer, the id of the row in our database with the matching GitHub login
-        """
-        idSQL = s.sql.text("""
-            SELECT cntrb_id FROM contributors WHERE cntrb_login = '{}' \
-            AND LOWER(data_source) = '{} api'
-            """.format(login, platform))
-                
-        rs = pd.read_sql(idSQL, self.db, params={})
-        data_list = [list(row) for row in rs.itertuples(index=False)]
-        try:
-            return data_list[0][0]
-        except:
-            self.logger.info('contributor needs to be added...')
-
-        if platform == 'github':
-            cntrb_url = ("https://api.github.com/users/" + login)
-        elif platform == 'gitlab':
-            cntrb_url = ("https://gitlab.com/api/v4/users?username=" + login )
-        self.logger.info("Hitting endpoint: {} ...\n".format(cntrb_url))
-        r = requests.get(url=cntrb_url, headers=self.headers)
-        self.update_rate_limit(r)
-        contributor = r.json()
-
-
-        company = None
-        location = None
-        email = None
-        if 'company' in contributor:
-            company = contributor['company']
-        if 'location' in contributor:
-            location = contributor['location']
-        if 'email' in contributor:
-            email = contributor['email']
-
-
-        if platform == 'github':
-            cntrb = {
-                'cntrb_login': contributor['login'] if 'login' in contributor else None,
-                'cntrb_email': contributor['email'] if 'email' in contributor else None,
-                'cntrb_company': contributor['company'] if 'company' in contributor else None,
-                'cntrb_location': contributor['location'] if 'location' in contributor else None,
-                'cntrb_created_at': contributor['created_at'] if 'created_at' in contributor else None,                
-                'cntrb_canonical': None,
-                'gh_user_id': contributor['id'] if 'id' in contributor else None,
-                'gh_login': contributor['login'] if 'login' in contributor else None,
-                'gh_url': contributor['url'] if 'url' in contributor else None,
-                'gh_html_url': contributor['html_url'] if 'html_url' in contributor else None,
-                'gh_node_id': contributor['node_id'] if 'node_id' in contributor else None,
-                'gh_avatar_url': contributor['avatar_url'] if 'avatar_url' in contributor else None,
-                'gh_gravatar_id': contributor['gravatar_id'] if 'gravatar_id' in contributor else None,
-                'gh_followers_url': contributor['followers_url'] if 'followers_url' in contributor else None,
-                'gh_following_url': contributor['following_url'] if 'following_url' in contributor else None,
-                'gh_gists_url': contributor['gists_url'] if 'gists_url' in contributor else None,
-                'gh_starred_url': contributor['starred_url'] if 'starred_url' in contributor else None,
-                'gh_subscriptions_url': contributor['subscriptions_url'] if 'subscriptions_url' in contributor else None,
-                'gh_organizations_url': contributor['organizations_url'] if 'organizations_url' in contributor else None,
-                'gh_repos_url': contributor['repos_url'] if 'repos_url' in contributor else None,
-                'gh_events_url': contributor['events_url'] if 'events_url' in contributor else None,
-                'gh_received_events_url': contributor['received_events_url'] if 'received_events_url' in contributor else None,
-                'gh_type': contributor['type'] if 'type' in contributor else None,
-                'gh_site_admin': contributor['site_admin'] if 'site_admin' in contributor else None,
-                'tool_source': self.tool_source,
-                'tool_version': self.tool_version,
-                'data_source': self.data_source
-            }
-
-        elif platform == 'gitlab':
-            cntrb =  {
-                'cntrb_login': contributor[0]['username'] if 'username' in contributor[0] else None,
-                'cntrb_email': email,
-                'cntrb_company': company,
-                'cntrb_location': location,
-                'cntrb_created_at': contributor[0]['created_at'] if 'created_at' in contributor[0] else None,                
-                'cntrb_canonical': None,
-                'gh_user_id': contributor[0]['id'],
-                'gh_login': contributor[0]['username'],
-                'gh_url': contributor[0]['web_url'],
-                'gh_html_url': None,
-                'gh_node_id': None,
-                'gh_avatar_url': contributor[0]['avatar_url'],
-                'gh_gravatar_id': None,
-                'gh_followers_url': None,
-                'gh_following_url': None,
-                'gh_gists_url': None,
-                'gh_starred_url': None,
-                'gh_subscriptions_url': None,
-                'gh_organizations_url': None,
-                'gh_repos_url': None,
-                'gh_events_url': None,
-                'gh_received_events_url': None,
-                'gh_type': None,
-                'gh_site_admin': None,
-                'tool_source': self.tool_source,
-                'tool_version': self.tool_version,
-                'data_source': self.data_source
-            }
-        result = self.db.execute(self.contributors_table.insert().values(cntrb))
-        self.logger.info("Primary key inserted into the contributors table: " + str(result.inserted_primary_key))
-        self.results_counter += 1
-        self.cntrb_id_inc = int(result.inserted_primary_key[0])
-
-        self.logger.info("Inserted contributor: " + cntrb['cntrb_login'] + "\n")
-
-        return self.find_id_from_login(login, platform)
-
-    def get_owner_repo(self, git_url):
-        """ Gets the owner and repository names of a repository from a git url
-
-        :param git_url: String, the git url of a repository
-        :return: Tuple, includes the owner and repository names in that order
-        """
-        split = git_url.split('/')
-
-        owner = split[-2]
-        repo = split[-1]
-
-        if '.git' == repo[-4:]:
-            repo = repo[:-4]
-
-        return owner, repo
-
-    def get_max_id(self, table, column, default=25150, operations_table=False):
-        """ Gets the max value (usually used for id/pk's) of any Integer column
-            of any table
-
-        :param table: String, the table that consists of the column you want to
-            query a max value for
-        :param column: String, the column that you want to query the max value for
-        :param default: Integer, if there are no values in the
-            specified column, the value of this parameter will be returned
-        :param operations_table: Boolean, if True, this signifies that the table/column
-            that is wanted to be queried is in the augur_operations schema rather than
-            the augur_data schema. Default False
-        :return: Integer, the max value of the specified column/table
-        """
-        maxIdSQL = s.sql.text("""
-            SELECT max({0}.{1}) AS {1}
-            FROM {0}
-        """.format(table, column))
-        db = self.db if not operations_table else self.helper_db
-        rs = pd.read_sql(maxIdSQL, db, params={})
-        if rs.iloc[0][column] is not None:
-            max_id = int(rs.iloc[0][column]) + 1
-            self.logger.info("Found max id for {} column in the {} table: {}\n".format(column, table, max_id))
-        else:
-            max_id = default
-            self.logger.warning("Could not find max id for {} column in the {} table... " +
-                "using default set to: {}\n".format(column, table, max_id))
-        return max_id
-
-    def get_table_values(self, cols, tables, where_clause=""):
-        """ Can query all values of any column(s) from any table(s)
-            with an optional where clause
-
-        :param cols: List of Strings, column(s) that user wants to query
-        :param tables: List of Strings, table(s) that user wants to query
-        :param where_clause: String, optional where clause to filter the values
-            queried
-        :return: Pandas DataFrame, contains all values queried in the columns, tables, and
-            optional where clause provided
-        """
-        table_str = tables[0]
-        del tables[0]
-
-        col_str = cols[0]
-        del cols[0]
-
-        for table in tables:
-            table_str += ", " + table
-        for col in cols:
-            col_str += ", " + col
-
-        table_values_sql = s.sql.text("""
-            SELECT {} FROM {} {}
-        """.format(col_str, table_str, where_clause))
-        self.logger.info("Getting table values with the following PSQL query: \n{}\n".format(
-            table_values_sql))
-        values = pd.read_sql(table_values_sql, self.db, params={})
-        return values
-
-    def init_oauths(self, platform='github'):
-        self.oauths = []
-        self.headers = None
-        self.logger.info("Trying initialization.")
-        # Make a list of api key in the config combined w keys stored in the database
-        # Select endpoint to hit solely to retrieve rate limit information from headers of the response
-        # Adjust header keys needed to fetch rate limit information from the API responses
-        if platform == 'github':
-            url = "https://api.github.com/users/gabe-heim"
-            oauthSQL = s.sql.text("""
-                SELECT * FROM worker_oauth WHERE access_token <> '{}' and platform = 'github'
-                """.format(self.config['gh_api_key']))
-            key_name = 'gh_api_key'
-            rate_limit_header_key = "X-RateLimit-Remaining"
-            rate_limit_reset_header_key = "X-RateLimit-Reset"
-        elif platform == 'gitlab':
-            url = "https://gitlab.com/api/v4/version"
-            oauthSQL = s.sql.text("""
-                SELECT * FROM worker_oauth WHERE access_token <> '{}' and platform = 'gitlab'
-                """.format(self.config['gitlab_api_key']))
-            key_name = 'gitlab_api_key'
-            rate_limit_header_key = 'ratelimit-remaining'
-            rate_limit_reset_header_key = 'ratelimit-reset'
-
-        for oauth in [{'oauth_id': 0, 'access_token': self.config[key_name]}] + json.loads(pd.read_sql(oauthSQL, self.helper_db, params={}).to_json(orient="records")):
-            if platform == 'github':
-                self.headers = {'Authorization': 'token %s' % oauth['access_token']}
-            elif platform == 'gitlab':
-                self.headers = {'Authorization': 'Bearer %s' % oauth['access_token']}
-            self.logger.debug("Getting rate limit info for oauth: {}\n".format(oauth))
-            response = requests.get(url=url, headers=self.headers)
-            self.oauths.append({
-                    'oauth_id': oauth['oauth_id'],
-                    'access_token': oauth['access_token'],
-                    'rate_limit': int(response.headers[rate_limit_header_key]),
-                    'seconds_to_reset': (datetime.datetime.fromtimestamp(int(response.headers[rate_limit_reset_header_key])) - datetime.datetime.now()).total_seconds()
-                })
-            self.logger.debug("Found OAuth available for use: {}\n\n".format(self.oauths[-1]))
-
-        if len(self.oauths) == 0:
-            self.logger.info("No API keys detected, please include one in your config or in the worker_oauths table in the augur_operations schema of your database\n")
-
-        # First key to be used will be the one specified in the config (first element in
-        #   self.oauths array will always be the key in use)
-        if platform == 'github':
-            self.headers = {'Authorization': 'token %s' % self.oauths[0]['access_token']}
-        elif platform == 'gitlab':
-            self.headers = {'Authorization': 'Bearer %s' % self.oauths[0]['access_token']}
-
-        self.logger.info("OAuth initialized")
 
     def bulk_insert(self, table, insert=[], update=[], unique_columns=[], update_columns=[]):
         
@@ -1596,144 +1286,3 @@ class Worker():
             """.format(table_str, where_str))
         values = json.loads(pd.read_sql(retrieveTupleSQL, self.db, params={}).to_json(orient="records"))
         return values
-
-    def update_gitlab_rate_limit(self, response, bad_credentials=False, temporarily_disable=False):
-        # Try to get rate limit from request headers, sometimes it does not work (GH's issue)
-        #   In that case we just decrement from last recieved header count
-        if bad_credentials and len(self.oauths) > 1:
-            self.logger.info("Removing oauth with bad credentials from consideration: {}".format(self.oauths[0]))
-            del self.oauths[0]
-
-        if temporarily_disable:
-            self.logger.info("Gitlab rate limit reached. Temp. disabling...\n")
-            self.oauths[0]['rate_limit'] = 0
-        else:
-            try:
-                self.oauths[0]['rate_limit'] = int(response.headers['RateLimit-Remaining'])
-            except:
-                self.oauths[0]['rate_limit'] -= 1
-        self.logger.info("Updated rate limit, you have: " + 
-            str(self.oauths[0]['rate_limit']) + " requests remaining.\n")
-        if self.oauths[0]['rate_limit'] <= 0:
-            try:
-                reset_time = response.headers['RateLimit-Reset']
-            except Exception as e:
-                self.logger.info("Could not get reset time from headers because of error: {}".format(e))
-                reset_time = 3600
-            time_diff = datetime.datetime.fromtimestamp(int(reset_time)) - datetime.datetime.now()
-            self.logger.info("Rate limit exceeded, checking for other available keys to use.\n")
-
-            # We will be finding oauth with the highest rate limit left out of our list of oauths
-            new_oauth = self.oauths[0]
-            # Endpoint to hit solely to retrieve rate limit information from headers of the response
-            url = "https://gitlab.com/api/v4/version"
-
-            other_oauths = self.oauths[0:] if len(self.oauths) > 1 else []
-            for oauth in other_oauths:
-                self.logger.info("Inspecting rate limit info for oauth: {}\n".format(oauth))
-                self.headers = {"PRIVATE-TOKEN" : oauth['access_token']}
-                response = requests.get(url=url, headers=self.headers)
-                oauth['rate_limit'] = int(response.headers['RateLimit-Remaining'])
-                oauth['seconds_to_reset'] = (datetime.datetime.fromtimestamp(int(response.headers['RateLimit-Reset'])) - datetime.datetime.now()).total_seconds()
-
-                # Update oauth to switch to if a higher limit is found
-                if oauth['rate_limit'] > new_oauth['rate_limit']:
-                    self.logger.info("Higher rate limit found in oauth: {}\n".format(oauth))
-                    new_oauth = oauth
-                elif oauth['rate_limit'] == new_oauth['rate_limit'] and oauth['seconds_to_reset'] < new_oauth['seconds_to_reset']:
-                    self.logger.info("Lower wait time found in oauth with same rate limit: {}\n".format(oauth))
-                    new_oauth = oauth
-
-            if new_oauth['rate_limit'] <= 0 and new_oauth['seconds_to_reset'] > 0:
-                self.logger.info("No oauths with >0 rate limit were found, waiting for oauth with smallest wait time: {}\n".format(new_oauth))
-                time.sleep(new_oauth['seconds_to_reset'])
-
-            # Make new oauth the 0th element in self.oauths so we know which one is in use
-            index = self.oauths.index(new_oauth)
-            self.oauths[0], self.oauths[index] = self.oauths[index], self.oauths[0]
-            self.logger.info("Using oauth: {}\n".format(self.oauths[0]))
-
-            # Change headers to be using the new oauth's key
-            self.headers = {"PRIVATE-TOKEN" : self.oauths[0]['access_token']}
-
-
-    def update_gh_rate_limit(self, response, bad_credentials=False, temporarily_disable=False):
-        # Try to get rate limit from request headers, sometimes it does not work (GH's issue)
-        #   In that case we just decrement from last recieved header count
-        if bad_credentials and len(self.oauths) > 1:
-            self.logger.warning("Removing oauth with bad credentials from consideration: {}".format(self.oauths[0]))
-            del self.oauths[0]
-
-        if temporarily_disable:
-            self.logger.debug("Github thinks we are abusing their api. Preventing use of this key until it resets...\n")
-            self.oauths[0]['rate_limit'] = 0
-        else:
-            try:
-                self.oauths[0]['rate_limit'] = int(response.headers['X-RateLimit-Remaining'])
-                self.logger.info("Recieved rate limit from headers\n")
-            except:
-                self.oauths[0]['rate_limit'] -= 1
-                self.logger.info("Headers did not work, had to decrement\n")
-        self.logger.info("Updated rate limit, you have: " +
-            str(self.oauths[0]['rate_limit']) + " requests remaining.\n")
-        if self.oauths[0]['rate_limit'] <= 0:
-            try:
-                reset_time = response.headers['X-RateLimit-Reset']
-            except Exception as e:
-                self.logger.error("Could not get reset time from headers because of error: {}".format(e))
-                reset_time = 3600
-            time_diff = datetime.datetime.fromtimestamp(int(reset_time)) - datetime.datetime.now()
-            self.logger.info("Rate limit exceeded, checking for other available keys to use.\n")
-
-            # We will be finding oauth with the highest rate limit left out of our list of oauths
-            new_oauth = self.oauths[0]
-            # Endpoint to hit solely to retrieve rate limit information from headers of the response
-            url = "https://api.github.com/users/gabe-heim"
-
-            other_oauths = self.oauths[0:] if len(self.oauths) > 1 else []
-            for oauth in other_oauths:
-                self.logger.info("Inspecting rate limit info for oauth: {}\n".format(oauth))
-                self.headers = {'Authorization': 'token %s' % oauth['access_token']}
-
-                attempts = 3
-                success = False
-                while attempts > 0 and not success:
-                    response = requests.get(url=url, headers=self.headers)
-                    try:
-                        oauth['rate_limit'] = int(response.headers['X-RateLimit-Remaining'])
-                        oauth['seconds_to_reset'] = (datetime.datetime.fromtimestamp(int(response.headers['X-RateLimit-Reset'])) - datetime.datetime.now()).total_seconds()
-                        success = True
-                    except Exception as e:
-                        self.logger.info(f'oath method ran into error getting info from headers: {e}\n')
-                        self.logger.info(f'{self.headers}\n{url}\n')
-                    attempts -= 1
-                if not success:
-                    continue
-
-                # Update oauth to switch to if a higher limit is found
-                if oauth['rate_limit'] > new_oauth['rate_limit']:
-                    self.logger.info("Higher rate limit found in oauth: {}\n".format(oauth))
-                    new_oauth = oauth
-                elif oauth['rate_limit'] == new_oauth['rate_limit'] and oauth['seconds_to_reset'] < new_oauth['seconds_to_reset']:
-                    self.logger.info("Lower wait time found in oauth with same rate limit: {}\n".format(oauth))
-                    new_oauth = oauth
-
-            if new_oauth['rate_limit'] <= 0 and new_oauth['seconds_to_reset'] > 0:
-                self.logger.info("No oauths with >0 rate limit were found, waiting for oauth with smallest wait time: {}\n".format(new_oauth))
-                time.sleep(new_oauth['seconds_to_reset'])
-
-            # Make new oauth the 0th element in self.oauths so we know which one is in use
-            index = self.oauths.index(new_oauth)
-            self.oauths[0], self.oauths[index] = self.oauths[index], self.oauths[0]
-            self.logger.info("Using oauth: {}\n".format(self.oauths[0]))
-
-            # Change headers to be using the new oauth's key
-            self.headers = {'Authorization': 'token %s' % self.oauths[0]['access_token']}
-
-    def update_rate_limit(self, response, bad_credentials=False, temporarily_disable=False, platform="gitlab"):
-        if platform == 'gitlab':
-            return self.update_gitlab_rate_limit(response, bad_credentials=bad_credentials,
-                                        temporarily_disable=temporarily_disable)
-        elif platform == 'github':
-            return self.update_gh_rate_limit(response, bad_credentials=bad_credentials,
-                                        temporarily_disable=temporarily_disable)
