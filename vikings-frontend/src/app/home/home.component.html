@@ -1,0 +1,21 @@
+<div class='header'>
+    Header and nav bar up here.....
+</div>
+
+
+
+<div class='main_container'>
+    <span class='title'>Repo Groups</span>
+    <table>
+        <tr>
+          <th>Repo Group Name</th>
+          <th>Description</th>
+          <th>Website</th>
+        </tr>
+        <tr *ngFor="let group of repogroups">
+          <td>{{group.rg_name}}</td>
+          <td>{{group.rg_description}}</td>
+          <td>{{group.rg_website}}</td>
+        </tr>
+    </table>
+</div>
