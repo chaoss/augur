@@ -123,6 +123,10 @@
           }
         }
       }
-    }},
-  "defaultProject": "PackersNewFrontend"
+    }
+  },
+  "defaultProject": "PackersNewFrontend",
+  "cli": {
+    "analytics": "fe1d831c-4b26-4299-a99e-88c7039e1127"
+  }
 }
