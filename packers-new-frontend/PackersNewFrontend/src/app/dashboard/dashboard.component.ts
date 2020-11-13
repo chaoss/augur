@@ -1,5 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 
+import { RepoInfoService } from 'src/app/repo-info.service'
+import { RepoInfo } from 'src/app/reposInfo';
 
 @Component({
   selector: 'app-dashboard',
@@ -8,9 +10,16 @@ import { Component, OnInit } from '@angular/core';
 })
 export class DashboardComponent implements OnInit {
 
-  constructor() { }
+  repos: RepoInfo[];
+
+  constructor(private repoInfoService: RepoInfoService) { }
 
   ngOnInit(): void {
+    this.getRepoNames();
+  }
+
+  getRepoNames(): void {
+    this.repoInfoService.getRepos().subscribe(data => this.repos = data);
   }
 
 }
