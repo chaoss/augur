@@ -1,31 +1,46 @@
-#SPDX-License-Identifier: MIT
-# Numerous always-ignore extensions
-*.diff
-*.err
-*.orig
-*.log
-*.rej
-*.swo
-*.swp
-*.vi
-*~
-*.sass-cache
-dist/*
+# See http://help.github.com/ignore-files/ for more about ignoring files.
 
-# OS or Editor folders
-.DS_Store
-.cache
+# compiled output
+/dist
+/tmp
+/out-tsc
+# Only exists if Bazel was run
+/bazel-out
+
+# dependencies
+/node_modules
+
+# profiling files
+chrome-profiler-events*.json
+speed-measure-plugin*.json
+
+# IDEs and editors
+/.idea
 .project
-.settings
-.tmproj
-nbproject
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+
+# IDE - VSCode
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.history/*
+
+# misc
+/.sass-cache
+/connect.lock
+/coverage
+/libpeerconnection.log
+npm-debug.log
+yarn-error.log
+testem.log
+/typings
+
+# System Files
+.DS_Store
 Thumbs.db
-
-# NPM packages folder.
-node_modules/
-
-docs/python/build/doctrees/AugurContext.doctree
-
-# Removing package-lock.json
-# frontend/package0-lock.json
-#
