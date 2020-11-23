@@ -215,6 +215,7 @@ class Worker():
             self.logger.info(HelperBase.classes.keys())
         except:
             pass
+
         for table in self.operations_tables:
             try:
                 setattr(self, '{}_table'.format(table), HelperBase.classes[table].__table__)
