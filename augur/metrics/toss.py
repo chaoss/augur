@@ -87,4 +87,5 @@ def toss_review_duration(self, repo_id, begin_date=None, end_date=None):
     """)
     results = pd.read_sql(pr_acceptance_rate_sql, self.database, params={'repo_id': repo_id,
                                                     'begin_date': begin_date, 'end_date': end_date})
+    results.iloc[0]['duration'] = results.iloc[0]['duration'] / 60 / 60 / 24
     return results
