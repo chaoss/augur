@@ -1,6 +1,6 @@
 #SPDX-License-Identifier: MIT
 """ Helper methods constant across all workers """
-import requests, datetime, time, traceback, json, os, sys, math, logging, inspect, numpy
+import requests, datetime, time, traceback, json, os, sys, math, logging, inspect, numpy, copy
 from logging import FileHandler, Formatter, StreamHandler
 from multiprocessing import Process, Queue
 import sqlalchemy as s
@@ -9,6 +9,7 @@ from pathlib import Path
 from urllib.parse import urlparse, quote
 from sqlalchemy import MetaData
 from sqlalchemy.ext.automap import automap_base
+from sqlalchemy.sql import bindparam
 from augur.config import AugurConfig
 from augur.logging import AugurLogging
 
