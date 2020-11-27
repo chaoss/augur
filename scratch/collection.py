@@ -12,7 +12,7 @@ server_location = "http://localhost:5000/api/unstable/repos"
 data = []
 metrics = ["toss-pull-request-acceptance-rate", "toss-review-duration", "average-issue-resolution-time", "issues-maintainer-response-duration"]
 
-for repo_id in repo_ids[:10]:
+for repo_id in repo_ids:
     record = {
         "id": repo_id,
         "toss-pull-request-acceptance-rate": "",

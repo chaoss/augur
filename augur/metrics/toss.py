@@ -92,3 +92,28 @@ def toss_review_duration(self, repo_id, begin_date=None, end_date=None):
     else:
         results.iloc[0]['duration'] = results.iloc[0]['duration'] / 60 / 60 / 24
     return results
+
+@register_metric(type="toss")
+def toss_repo_info(self, repo_id):
+    license_file_sql = s.sql.text("""
+    SELECT
+        repo_info.repo_id,
+        repo_info.fork_count as forks,
+        repo_info.stars_count as stars,
+        repo_info.watchers_count as watchers,
+        repo_info.code_of_conduct_file,
+        repo_info.license_file,
+        repo_info.last_updated,
+        repo_info.default_branch,
+        repo.repo_git
+    FROM
+        augur_data.repo_info
+        JOIN repo ON repo.repo_id = repo_info.repo_id
+    WHERE
+        repo_info.repo_id = :repo_id
+    ORDER BY
+        repo_info.data_collection_date DESC
+    LIMIT 1;
+    """)
+    results = pd.read_sql(license_file_sql, self.database, params={'repo_id': repo_id})
+    return results
