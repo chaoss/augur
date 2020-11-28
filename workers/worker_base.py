@@ -362,7 +362,7 @@ class Worker():
             type_dict[subject_columns[index]] = type(source[source_columns[index]].values[0])
 
         subject.astype(type_dict)
-        
+
         return subject, source
 
     def organize_needed_data(self, new_data, table_values, table_pkey, action_map={}):
@@ -379,7 +379,7 @@ class Worker():
         table_values_df = pd.DataFrame(table_values, columns=table_values[0].keys())
         new_data_df = pd.DataFrame(new_data).dropna(subset=action_map['insert']['source'])
 
-        new_data_df, table_values_df = self.sync_df_types(new_data_df, table_values_df, 
+        new_data_df, table_values_df = self.sync_df_types(new_data_df, table_values_df,
                 action_map['insert']['source'], action_map['insert']['augur'])
 
         need_insertion = new_data_df.merge(table_values_df, suffixes=('','_table'),
@@ -387,17 +387,17 @@ class Worker():
                 right_on=action_map['insert']['augur']).loc[lambda x : x['_merge']=='left_only'][list(new_data[0].keys())]
 
         if 'update' in action_map:
-            new_data_df, table_values_df = self.sync_df_types(new_data_df, table_values_df, 
+            new_data_df, table_values_df = self.sync_df_types(new_data_df, table_values_df,
                 action_map['update']['source'], action_map['update']['augur'])
-            
+
             need_updates = new_data_df.merge(table_values_df, left_on=action_map['insert']['source'],
-                right_on=action_map['insert']['augur'], suffixes=('','_table'), 
+                right_on=action_map['insert']['augur'], suffixes=('','_table'),
                 how='inner',indicator=False).merge(table_values_df, left_on=action_map['update']['source'],
                 right_on=action_map['update']['augur'], suffixes=('','_table'), how='outer', indicator=True
                                 ).loc[lambda x : x['_merge']=='left_only']
 
             need_updates = need_updates.drop([column for column in list(need_updates.columns) if \
-                column not in action_map['update']['augur'] and column not in action_map['insert']['augur']], 
+                column not in action_map['update']['augur'] and column not in action_map['insert']['augur']],
                 axis='columns')
 
             for column in action_map['insert']['augur']:
@@ -577,7 +577,7 @@ class Worker():
             SELECT cntrb_id FROM contributors WHERE cntrb_login = '{}' \
             AND LOWER(data_source) = '{} api'
             """.format(login, platform))
-                
+
         rs = pd.read_sql(idSQL, self.db, params={})
         data_list = [list(row) for row in rs.itertuples(index=False)]
         try:
@@ -612,7 +612,7 @@ class Worker():
                 'cntrb_email': contributor['email'] if 'email' in contributor else None,
                 'cntrb_company': contributor['company'] if 'company' in contributor else None,
                 'cntrb_location': contributor['location'] if 'location' in contributor else None,
-                'cntrb_created_at': contributor['created_at'] if 'created_at' in contributor else None,                
+                'cntrb_created_at': contributor['created_at'] if 'created_at' in contributor else None,
                 'cntrb_canonical': None,
                 'gh_user_id': contributor['id'] if 'id' in contributor else None,
                 'gh_login': contributor['login'] if 'login' in contributor else None,
@@ -643,7 +643,7 @@ class Worker():
                 'cntrb_email': email,
                 'cntrb_company': company,
                 'cntrb_location': location,
-                'cntrb_created_at': contributor[0]['created_at'] if 'created_at' in contributor[0] else None,                
+                'cntrb_created_at': contributor[0]['created_at'] if 'created_at' in contributor[0] else None,
                 'cntrb_canonical': None,
                 'gh_user_id': contributor[0]['id'],
                 'gh_login': contributor[0]['username'],
@@ -803,7 +803,7 @@ class Worker():
         self.logger.info("OAuth initialized")
 
     def bulk_insert(self, table, insert=[], update=[], unique_columns=[], update_columns=[]):
-        
+
         self.logger.info(f"{len(insert)} insertions are needed and {len(update)} "
             f"updates are needed for {table}\n")
 
@@ -887,13 +887,13 @@ class Worker():
                 ))).fetchall()
 
         if len(primary_keys) > 0:
-            primary_keys_df = pd.DataFrame(primary_keys, 
+            primary_keys_df = pd.DataFrame(primary_keys,
                 columns=augur_merge_fields + [list(table.primary_key)[0].name])
         else:
             self.logger.info("There are no inserted primary keys to enrich the source data with.\n")
             return source_data
 
-        source_df, primary_keys_df = self.sync_df_types(source_df, primary_keys_df, 
+        source_df, primary_keys_df = self.sync_df_types(source_df, primary_keys_df,
                 gh_merge_fields, augur_merge_fields)
 
         return json.loads(source_df.merge(primary_keys_df, suffixes=('','_table'),
@@ -973,7 +973,7 @@ class Worker():
             if not forward_pagination:
 
                 # Checking contents of requests with what we already have in the db
-                page_insertions, page_updates = self.organize_needed_data(page_data, table_values, list(table.primary_key)[0].name, 
+                page_insertions, page_updates = self.organize_needed_data(page_data, table_values, list(table.primary_key)[0].name,
                     action_map)
 
                 # Reached a page where we already have all tuples
@@ -996,7 +996,7 @@ class Worker():
                     page_number = last_page_number
                     backwards_activation = True
 
-            self.logger.info("Analyzation of page {} of {} complete\n".format(page_number, 
+            self.logger.info("Analyzation of page {} of {} complete\n".format(page_number,
                 int(last_page_number) if last_page_number != -1 else "*last page not known*"))
 
             if (page_number <= 1 and not forward_pagination) or \
@@ -1007,11 +1007,11 @@ class Worker():
             page_number = page_number + 1 if forward_pagination else page_number - 1
 
         if forward_pagination:
-            need_insertion, need_update = self.organize_needed_data(all_data, table_values, 
+            need_insertion, need_update = self.organize_needed_data(all_data, table_values,
                 list(table.primary_key)[0].name, action_map)
 
         return {
-            'insert': need_insertion, 
+            'insert': need_insertion,
             'update': need_update,
             'all': all_data
         }
@@ -1181,7 +1181,7 @@ class Worker():
         owner, name = self.get_owner_repo(github_url)
 
         # Set the base of the url and place to hold contributors to insert
-        contributors_url = (f"https://api.github.com/repos/{owner}/{name}/" + 
+        contributors_url = (f"https://api.github.com/repos/{owner}/{name}/" +
             "contributors?per_page=100&page={}")
 
         # Get contributors that we already have stored
@@ -1283,7 +1283,7 @@ class Worker():
 
         owner, name = self.get_owner_repo(github_url)
 
-        contributors_url = (f"https://api.github.com/repos/{owner}/{name}/" + 
+        contributors_url = (f"https://api.github.com/repos/{owner}/{name}/" +
             "contributors?per_page=100&page={}")
 
         action_map = {
@@ -1297,11 +1297,11 @@ class Worker():
             }
         }
 
-        source_contributors = self.paginate_endpoint(contributors_url, action_map=action_map, 
+        source_contributors = self.paginate_endpoint(contributors_url, action_map=action_map,
             table=self.contributors_table)
 
         contributors_insert_result = []
-                
+
         for repo_contributor in source_contributors['insert']:
             # Need to hit this single contributor endpoint to get extra data
             cntrb_url = (f"https://api.github.com/users/{repo_contributor['login']}")
@@ -1340,8 +1340,8 @@ class Worker():
                 'data_source': self.data_source
             })
 
-        contributors_insert_result, contributors_update_result = self.bulk_insert(self.contributors_table, 
-            update=source_contributors['update'], unique_columns=action_map['insert']['augur'], 
+        contributors_insert_result, contributors_update_result = self.bulk_insert(self.contributors_table,
+            update=source_contributors['update'], unique_columns=action_map['insert']['augur'],
             insert=contributors_insert, update_columns=action_map['update']['augur'])
 
     def query_gitlab_contribtutors(self, entry_info, repo_id):
@@ -1510,9 +1510,9 @@ class Worker():
         self.logger.info(f"Updated job process for model: {model}\n")
 
         if self.config['offline_mode'] is False:
-            
+
             # Notify broker of completion
-            self.logger.info(f"Telling broker we completed task: {task_completed}\n") 
+            self.logger.info(f"Telling broker we completed task: {task_completed}\n")
             self.logger.info(f"This task inserted: {self.results_counter + self.insert_counter} tuples " +
                 f"and updated {self.update_counter} tuples.\n")
 
@@ -1628,7 +1628,7 @@ class Worker():
                 self.oauths[0]['rate_limit'] = int(response.headers['RateLimit-Remaining'])
             except:
                 self.oauths[0]['rate_limit'] -= 1
-        self.logger.info("Updated rate limit, you have: " + 
+        self.logger.info("Updated rate limit, you have: " +
             str(self.oauths[0]['rate_limit']) + " requests remaining.\n")
         if self.oauths[0]['rate_limit'] <= 0:
             try:

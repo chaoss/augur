@@ -15,12 +15,16 @@
  Date: 27/11/2020 18:27:23
 */
 
+ALTER TABLE augur_data.repo_info
+ALTER COLUMN keywords DROP DEFAULT,
+ALTER COLUMN keywords TYPE VARCHAR [] USING keywords :: CHARACTER VARYING [],
+ALTER COLUMN keywords SET DEFAULT '{}';
 
 -- ----------------------------
 -- Sequence structure for contributor_language_experience_contributor_language_id_seq
 -- ----------------------------
 DROP SEQUENCE IF EXISTS "toss_specific"."contributor_language_experience_contributor_language_id_seq";
-CREATE SEQUENCE "toss_specific"."contributor_language_experience_contributor_language_id_seq" 
+CREATE SEQUENCE "toss_specific"."contributor_language_experience_contributor_language_id_seq"
 INCREMENT 1
 MINVALUE  1
 MAXVALUE 9223372036854775807
@@ -32,7 +36,7 @@ ALTER SEQUENCE "toss_specific"."contributor_language_experience_contributor_lang
 -- Sequence structure for contributor_library_experience_contributor_library_id_seq
 -- ----------------------------
 DROP SEQUENCE IF EXISTS "toss_specific"."contributor_library_experience_contributor_library_id_seq";
-CREATE SEQUENCE "toss_specific"."contributor_library_experience_contributor_library_id_seq" 
+CREATE SEQUENCE "toss_specific"."contributor_library_experience_contributor_library_id_seq"
 INCREMENT 1
 MINVALUE  1
 MAXVALUE 9223372036854775807
@@ -44,7 +48,7 @@ ALTER SEQUENCE "toss_specific"."contributor_library_experience_contributor_libra
 -- Sequence structure for file_extension_language_map_file_extension_language_id_seq
 -- ----------------------------
 DROP SEQUENCE IF EXISTS "toss_specific"."file_extension_language_map_file_extension_language_id_seq";
-CREATE SEQUENCE "toss_specific"."file_extension_language_map_file_extension_language_id_seq" 
+CREATE SEQUENCE "toss_specific"."file_extension_language_map_file_extension_language_id_seq"
 INCREMENT 1
 MINVALUE  1
 MAXVALUE 9223372036854775807
@@ -56,7 +60,7 @@ ALTER SEQUENCE "toss_specific"."file_extension_language_map_file_extension_langu
 -- Sequence structure for repo_language_info_repo_language_info_id_seq
 -- ----------------------------
 DROP SEQUENCE IF EXISTS "toss_specific"."repo_language_info_repo_language_info_id_seq";
-CREATE SEQUENCE "toss_specific"."repo_language_info_repo_language_info_id_seq" 
+CREATE SEQUENCE "toss_specific"."repo_language_info_repo_language_info_id_seq"
 INCREMENT 1
 MINVALUE  1
 MAXVALUE 9223372036854775807
@@ -68,7 +72,7 @@ ALTER SEQUENCE "toss_specific"."repo_language_info_repo_language_info_id_seq" OW
 -- Sequence structure for repo_library_info_repo_library_info_id_seq
 -- ----------------------------
 DROP SEQUENCE IF EXISTS "toss_specific"."repo_library_info_repo_library_info_id_seq";
-CREATE SEQUENCE "toss_specific"."repo_library_info_repo_library_info_id_seq" 
+CREATE SEQUENCE "toss_specific"."repo_library_info_repo_library_info_id_seq"
 INCREMENT 1
 MINVALUE  1
 MAXVALUE 9223372036854775807
@@ -80,7 +84,7 @@ ALTER SEQUENCE "toss_specific"."repo_library_info_repo_library_info_id_seq" OWNE
 -- Sequence structure for users_user_id_seq
 -- ----------------------------
 DROP SEQUENCE IF EXISTS "toss_specific"."users_user_id_seq";
-CREATE SEQUENCE "toss_specific"."users_user_id_seq" 
+CREATE SEQUENCE "toss_specific"."users_user_id_seq"
 INCREMENT 1
 MINVALUE  1
 MAXVALUE 9223372036854775807
