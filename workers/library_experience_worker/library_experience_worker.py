@@ -54,9 +54,6 @@ class LibraryExperienceWorker(Worker):
         self.tool_version = '0.1.0'
         self.data_source = 'GitHub'
 
-        task = {'job_type': 'MAINTAIN', 'models': ['repo_library_experience'], 'display_name': 'repo_library_experience model for url: https://github.com/chaoss/augur.git', 'given': {'github_url': 'https://github.com/wsvincent/djangox.git'}}
-        self.repo_library_experience_model(task, 1)
-
     def initialize_database_connections(self):
         """ Custom initialize_database_connections method as to handle
             having to insert on the toss_specific schema
@@ -68,7 +65,7 @@ class LibraryExperienceWorker(Worker):
         # Create an sqlalchemy engine for both database schemas
         self.logger.info("Making database connections")
 
-        db_schema = 'augur_data'
+        db_schema = 'augur_data,toss_specific'
         self.db = s.create_engine(DB_STR,  poolclass=s.pool.NullPool,
             connect_args={'options': '-csearch_path={}'.format(db_schema)})
 
@@ -104,25 +101,27 @@ class LibraryExperienceWorker(Worker):
         for table in self.operations_tables:
             setattr(self, '{}_table'.format(table), HelperBase.classes[table].__table__)
 
-        for table in self.data_tables:
-            setattr(self, '{}_table'.format(table), Base.classes[table].__table__)
+        for table in self.toss_tables:
+            setattr(self, '{}_table'.format(table), TossBase.classes[table].__table__)
 
         # Increment so we are ready to insert the 'next one' of each of these most recent ids
         self.history_id = self.get_max_id('worker_history', 'history_id', operations_table=True) + 1
 
         # Organize different api keys/oauths available
-        if 'gh_api_key' in self.config or 'gitlab_api_key' in self.config:
-            self.init_oauths(self.platform)
-        else:
-            self.oauths = [{'oauth_id': 0}]
+        # if 'gh_api_key' in self.config or 'gitlab_api_key' in self.config:
+        #     self.init_oauths(self.platform)
+        # else:
+        self.oauths = [{'oauth_id': 0}]
 
     def find_python_dependencies(self, owner, repo):
         requirements_url = f"https://raw.githubusercontent.com/{owner}/{repo}/{self.repo_info['default_branch']}/requirements.txt"
         response = requests.get(requirements_url)
         if response.ok is False:
-            return None
+            self.logger.info(f"A valid requirements.txt file could not be found on the default {self.repo_info['default_branch']} branch\n")
+            return []
         else:
             libraries = [re.sub(r"(?:\W\=)(?:.*)", "", library) for library in response.text.split("\n") if library != ""]
+            self.logger.info(f"Found {len(libraries)} Pyton dependencies in requirements.txt\n")
             return libraries
 
     def get_repo_info(self, owner, repo):
@@ -130,19 +129,34 @@ class LibraryExperienceWorker(Worker):
         self.repo_info = requests.get(repo_info_url).json()
 
     def repo_library_experience_model(self, task, repo_id):
-
         github_url = task['given']['github_url']
 
         self.logger.info("Beginning filling the repo_info model for repo: " + github_url + "\n")
 
         owner, repo = self.get_owner_repo(github_url)
-        default_branch = self.get_repo_info(owner, repo)
+        self.get_repo_info(owner, repo)
 
         languages_url = f"https://api.github.com/repos/{owner}/{repo}/languages"
         top_3_languages = [language for language in requests.get(languages_url).json()][:3]
+
         if "Python" in top_3_languages:
-            self.find_python_dependencies(owner, repo)
+            self.logger.info("Searching for Python dependencies...\n")
 
-        print(top_3_languages)
+            pytnon_libraries = []
+            python_libraries = self.find_python_dependencies(owner, repo)
 
+            python_libraries_insert = [
+                {
+                    'repo_id': repo_id,
+                    'library': library_name,
+                    'percentage': None,
+                    'commit_count': None,
+                    'file_count': None,
+                    'earliest_commit_time': None,
+                    'latest_commit_time': None
+                } for library_name in python_libraries
+            ]
+            if len(python_libraries_insert) > 0:
+                python_libraries_insert_result = self.bulk_insert(self.repo_library_info_table, insert=python_libraries_insert)
 
+        self.register_task_completion(task, repo_id, 'repo_library_experience')
