@@ -142,7 +142,7 @@ class LibraryExperienceWorker(Worker):
         if "Python" in top_3_languages:
             self.logger.info("Searching for Python dependencies...\n")
 
-            pytnon_libraries = []
+            python_libraries = []
             python_libraries = self.find_python_dependencies(owner, repo)
 
             python_libraries_insert = [
