@@ -1,3 +1,4 @@
+#SPDX-License-Identifier: MIT
 import ast, json, logging, os, sys, time, traceback, requests
 from datetime import datetime
 from multiprocessing import Process, Queue
@@ -107,6 +108,9 @@ class GitHubPullRequestWorker(Worker):
 
                     if 'errors' in data:
                         self.logger.info("Error!: {}".format(data['errors']))
+                        if j['errors'][0]['type'] == 'NOT_FOUND':
+                            self.logger.warning("Github repo was not found or does not exist for endpoint: {}\n".format(url))
+                            break
                         if data['errors'][0]['type'] == 'RATE_LIMITED':
                             self.update_gh_rate_limit(response)
                             num_attempts -= 1
@@ -132,7 +136,7 @@ class GitHubPullRequestWorker(Worker):
 
                 if not success:
                     self.logger.info('GraphQL query failed: {}'.format(query))
-                    continue
+                    break
 
                 before_parameters.update({
                     data_subject: ', before: \"{}\"'.format(page_info['startCursor'])
@@ -196,7 +200,7 @@ class GitHubPullRequestWorker(Worker):
 
             pr_file_rows += [{
                 'pull_request_id': pull_request.pull_request_id,
-                'pr_file_additions': pr_file['node']['additions'] + 5,
+                'pr_file_additions': pr_file['node']['additions'],
                 'pr_file_deletions': pr_file['node']['deletions'],
                 'pr_file_path': pr_file['node']['path'],
                 'tool_source': self.tool_source,
