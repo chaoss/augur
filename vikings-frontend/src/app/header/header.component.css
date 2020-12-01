@@ -1,0 +1,38 @@
+.header{
+    text-align:center;
+    height:50px;
+    padding-bottom:50px;
+    widows: 100%;
+    display: block;
+}
+
+.header td {
+    width: 25%;
+}
+
+.header img {
+    max-height: 70px;
+    margin: auto;
+    display: block;
+}
+
+.header td {background-color: #DAE8FC;}
+
+.header tr {
+    background-color: #647687;
+    display: flex;
+    justify-content: center;
+}
+
+
+.header table {
+    font-family: Arial, Helvetica, sans-serif;
+    border-collapse: collapse;
+    width: 100%;
+  }
+
+  
+ td {
+    border: 1px solid #6C8EBF;
+    padding: 5px;
+  }
