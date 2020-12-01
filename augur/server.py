@@ -1,4 +1,4 @@
-#SPDX-License-Identifier: MIT
+# SPDX-License-Identifier: MIT
 """
 Creates a WSGI server that serves the Augur REST API
 """
@@ -23,10 +23,12 @@ AUGUR_API_VERSION = 'api/unstable'
 
 logger = logging.getLogger(__name__)
 
+
 class Server(object):
     """
     Defines Augur's server's behavior
     """
+
     def __init__(self, augur_app=None):
         """
         Initializes the server, creating both the Flask application and Augur application
@@ -84,8 +86,12 @@ class Server(object):
                             status=200,
                             mimetype="application/json")
 
+        @app.route('/zapier', methods=['GET'])
+        def getInsightsForZapier():
+            return json.dumps(['hello world'])
+
     def transform(self, func, args=None, kwargs=None, repo_url_base=None, orient='records',
-        group_by=None, on=None, aggregate='sum', resample=None, date_col='date'):
+                  group_by=None, on=None, aggregate='sum', resample=None, date_col='date'):
         """
         Serializes a dataframe in a JSON object and applies specified transformations
         """
@@ -98,7 +104,8 @@ class Server(object):
         if not self.show_metadata:
 
             if repo_url_base:
-                kwargs['repo_url'] = str(base64.b64decode(repo_url_base).decode())
+                kwargs['repo_url'] = str(
+                    base64.b64decode(repo_url_base).decode())
 
             if not args and not kwargs:
                 data = func()
@@ -115,7 +122,8 @@ class Server(object):
                     data = data.set_index('idx')
                     data = data.resample(resample).aggregate(aggregate)
                     data['date'] = data.index
-                result = data.to_json(orient=orient, date_format='iso', date_unit='ms')
+                result = data.to_json(
+                    orient=orient, date_format='iso', date_unit='ms')
             else:
                 try:
                     result = json.dumps(data)
@@ -135,7 +143,8 @@ class Server(object):
             def generated_function(*args, **kwargs):
                 def heavy_lifting():
                     return self.transform(function, args, kwargs, **request.args.to_dict())
-                body = self.cache.get(key=str(request.url), createfunc=heavy_lifting)
+                body = self.cache.get(
+                    key=str(request.url), createfunc=heavy_lifting)
                 return Response(response=body,
                                 status=200,
                                 mimetype="application/json")
@@ -178,5 +187,7 @@ class Server(object):
         repo_group_endpoint = f'/{self.api_version}/repo-groups/<repo_group_id>/{endpoint}'
         deprecated_repo_endpoint = f'/{self.api_version}/repo-groups/<repo_group_id>/repos/<repo_id>/{endpoint}'
         self.app.route(repo_endpoint)(self.routify(function, 'repo'))
-        self.app.route(repo_group_endpoint)(self.routify(function, 'repo_group'))
-        self.app.route(deprecated_repo_endpoint )(self.routify(function, 'deprecated_repo'))
+        self.app.route(repo_group_endpoint)(
+            self.routify(function, 'repo_group'))
+        self.app.route(deprecated_repo_endpoint)(
+            self.routify(function, 'deprecated_repo'))
