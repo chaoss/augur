@@ -1,4 +1,7 @@
 import { Component, OnInit } from '@angular/core';
+import { HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
+
 
 @Component({
   selector: 'app-repos',
@@ -7,9 +10,24 @@ import { Component, OnInit } from '@angular/core';
 })
 export class ReposComponent implements OnInit {
 
-  constructor() { }
+
+
+  public selected_group:any;
+
+
+  constructor(public http: HttpClient) { }
 
   ngOnInit(): void {
+
+
+
+  }
+
+
+
+
+  getRepos(group){
+    this.selected_group=group;
   }
 
 }

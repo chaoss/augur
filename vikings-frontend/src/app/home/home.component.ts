@@ -12,6 +12,7 @@ export class HomeComponent implements OnInit {
 
   public repogroups:any;
 
+
   constructor(public http: HttpClient) { }
 
   ngOnInit(): void {
@@ -38,7 +39,8 @@ export class HomeComponent implements OnInit {
       }
     )
     
-	}
+  }
+  
 
 
 

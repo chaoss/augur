@@ -13,13 +13,13 @@
           <th>Total Contributors</th>
         </tr>
         <tr *ngFor="let group of repogroups">
-          <td>{{group.rg_name}}</td>
-          <td>{{group.rg_description}}</td>
-          <td>{{group.rg_website}}</td>
-          <td>Data</td>
-          <td>Data</td>
-          <td>Data</td>
-          <td>Data</td>
+          <td a routerLink="/repos" routerLinkActive="active"  class="aligncenter" >{{group.rg_name}}</td>
+          <td  a routerLink="/repos" routerLinkActive="active" >{{group.rg_description}}</td>
+          <td  a routerLink="/repos" routerLinkActive="active"  >{{group.rg_website}}</td>
+          <td  a routerLink="/repos" routerLinkActive="active"  >Data</td>
+          <td  a routerLink="/repos" routerLinkActive="active"  >Data</td>
+          <td  a routerLink="/repos" routerLinkActive="active"  >Data</td>
+          <td  a routerLink="/repos" routerLinkActive="active"  >Data</td>
         </tr>
     </table>
 </div>

@@ -51,3 +51,6 @@ table {
     padding: 8px;
   }
   
+  .highlight_selected{
+    color:#6C8EBF;
+  }
