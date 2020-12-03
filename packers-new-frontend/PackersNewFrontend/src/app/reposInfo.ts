@@ -9,3 +9,17 @@ export interface RepoInfo {
     rg_name: string;
     url: string;
 }
+
+export interface RepoCodeChanges {
+    commit_count: number;
+    date: string;
+    repo_name: string;
+    week: number;
+    year: number;
+}
+
+export interface RepoPullRequests {
+    date: string;
+    pull_requests: number;
+    repo_name: string;
+}
