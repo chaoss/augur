@@ -1,15 +1,25 @@
+
+
 <div class='main_container'>
-    <span class='title'>Repo Groups</span>
+  <div class='title'>Select a Repo Group</div>
     <table>
         <tr>
-          <th>Repo Group Name</th>
-          <th>Description</th>
-          <th>Website</th>
+          <th>Repo Group</th>
+          <th>URL</th>
+          <th>Date Created</th>
+          <th>Last Modified</th>
+          <th>Type</th>
+          <th># Repos</th>
+          <th>Total Contributors</th>
         </tr>
         <tr *ngFor="let group of repogroups">
           <td>{{group.rg_name}}</td>
           <td>{{group.rg_description}}</td>
           <td>{{group.rg_website}}</td>
+          <td>Data</td>
+          <td>Data</td>
+          <td>Data</td>
+          <td>Data</td>
         </tr>
     </table>
 </div>

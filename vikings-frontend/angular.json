@@ -24,6 +24,7 @@
               "src/assets"
             ],
             "styles": [
+              "./node_modules/bulma/bulma.sass",
               "src/styles.css"
             ],
             "scripts": []
