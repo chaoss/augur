@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { HttpHeaders } from '@angular/common/http';
 import { HttpClient } from '@angular/common/http';
+//import * as Plotly from './../../assets/plotly-latest.min.js';
 
 
 @Component({
@@ -18,11 +19,11 @@ export class HomeComponent implements OnInit {
   ngOnInit(): void {
 
     this.getRepoGroups();
-    var TESTER = document.getElementById('tester');
-    Plotly.newPlot( TESTER, [{
-    x: [1, 2, 3, 4, 5],
-    y: [1, 2, 4, 8, 16] }], {
-    margin: { t: 0 } } );
+    //var TESTER = document.getElementById('tester');
+    //Plotly.newPlot( TESTER, [{
+    //x: [1, 2, 3, 4, 5],
+    //y: [1, 2, 4, 8, 16] }], {
+    //margin: { t: 0 } } );
   }
 
 
