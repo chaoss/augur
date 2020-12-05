@@ -12,18 +12,15 @@
           <th># Repos</th>
           <th>Total Contributors</th>
         </tr>
-        <tr a routerLink="/repos" routerLinkActive="active" *ngFor="let group of repogroups">
+        <tr class='hovercol' a routerLink="/repos" routerLinkActive="active" *ngFor="let group of repogroups">
           <td class="aligncenter" >{{group.rg_name}}</td>
           <td>{{group.rg_description}}</td>
           <td>{{group.rg_website}}</td>
           <td>Data</td>
-          <td >Data</td>
+          <td>Data</td>
           <td>Data</td>
           <td >Data</td>
         </tr>
     </table>
 </div>
 <div id="tester" style="width:600px;height:250px;"></div>
-<script>
-  document.getElementById("tester").innerHTML = "Hello JavaScript!";
-</script> 

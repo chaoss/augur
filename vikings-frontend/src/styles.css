@@ -7,3 +7,7 @@ body {
     width:100%;
     margin:0px;
 }
+
+.hovercol:hover td {
+    background-color: paleturquoise;
+}
