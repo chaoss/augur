@@ -29,7 +29,12 @@ def create_app(test_config=None):
         # Create a cursor object
 
         cur = conn.cursor()
-        cur.execute('''SELECT rg.repo_group_id, rg_name, rg_description, rg_website,CAST(rg_last_modified AS DATE), rp.num_repos
+        cur.execute('''SELECT 
+                            rg.repo_group_id, 
+                            rg_name, 
+                            rg_description, 
+                            rg_website,
+                            CAST(rg_last_modified AS DATE), rp.num_repos
                         FROM augur_data.repo_groups rg
                         LEFT JOIN (SELECT repo_group_id, count(*) AS num_repos
                         FROM augur_data.repo
@@ -45,6 +50,54 @@ def create_app(test_config=None):
                 "rg_website":str(i[3]),
                 "rg_last_modified":str(i[4]),
                 "num_repos":str(i[5])
+            })
+            
+
+        cur.close()
+        conn.close()
+
+        return jsonify(data)
+
+
+
+
+
+    @app.route('/getrepos', methods=['GET'])
+    def getRepos():
+        #repo_group_id=json.loads(request.data)
+        repo_group_id=22002
+        conn=db.connectToDb()    # Create a cursor object
+        cur = conn.cursor()
+
+        
+        cur.execute('''SELECT 
+                        r.repo_id,
+                        r.repo_name,
+                        r.repo_git,
+                        ri.issues_count,
+                        ri.committers_count,
+                        ri.commit_count,
+                        rg.rg_name
+                    FROM augur_data.repo r
+                    LEFT JOIN augur_data.repo_info ri ON ri.repo_id=r.repo_id
+                    LEFT JOIN augur_data.repo_groups rg ON rg.repo_group_id=r.repo_group_id
+                    WHERE r.repo_group_id='''+str(repo_group_id))
+
+        repos=cur.fetchall()
+
+        cur.close()
+        conn.close()
+
+        data=[]
+        for i in repos:
+            data.append({
+                "repo_id":str(i[0]),
+                "repo_name":str(i[1]),
+                "repo_git":str(i[2]),
+                "issues_count":str(i[3]),
+                "committers_count":str(i[4]),
+                "commit_count":str(i[5]),
+                "rg_name":str(i[6])
             })
             
 

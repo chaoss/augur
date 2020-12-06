@@ -5,17 +5,17 @@
       <table>
           <tr>
             <th>Repos</th>
-            <th>URL</th>
-            <th>Total Commit Count</th>
-            <th>Total Issue Count</th>
-            <th>Total Contributors</th>
+            <th>Git URL</th>
+            <th># Commits</th>
+            <th># Issues</th>
+            <th># Committers</th>
           </tr> 
-          <tr class='hovercol' a routerLink="/analytics" routerLinkActive="active" >
-            <td  class="aligncenter" >Data</td>
-            <td>Data</td>
-            <td>Data</td>
-            <td>Data</td>
-            <td>Data</td>
+          <tr class='hovercol' a routerLink="/analytics" routerLinkActive="active" *ngFor="let repo of repos" >
+            <td  class="aligncenter" >{{repo.repo_name}}</td>
+            <td>{{repo.repo_git}}</td>
+            <td>{{repo.commit_count}}</td>
+            <td>{{repo.issues_count}}</td>
+            <td>{{repo.committers_count}}</td>
           </tr>
       </table>
   </div>

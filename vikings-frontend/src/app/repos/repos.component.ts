@@ -1,6 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit,Input } from '@angular/core';
 import { HttpHeaders } from '@angular/common/http';
 import { HttpClient } from '@angular/common/http';
+
 
 
 @Component({
@@ -12,22 +13,46 @@ export class ReposComponent implements OnInit {
 
 
 
-  public selected_group:any;
+  @Input() repo_group_id:any;
+
+
+  //repos contains all repo data in json format
+  //fields: rg_name, repo_name, repo_id, repo_git, issues_count, committers_count, commit_count 
+  public repos:any;
 
 
   constructor(public http: HttpClient) { }
 
   ngOnInit(): void {
 
-
+  this.getRepo(this.repo_group_id);
 
   }
 
 
 
+  //Pass rep_group_id and get repos that belong to repo group
+  getRepo(repo_group_id){
+    const customheaders= new HttpHeaders()
+          .set('Content-Type', 'application/json');
 
-  getRepos(group){
-    this.selected_group=group;
+   // this.http.post("http://localhost:5000/repogroups",JSON.stringify(repo_group_id), {headers: customheaders}).subscribe(
+      this.http.get("http://localhost:5000/getrepos", {headers: customheaders}).subscribe(
+      response=> {
+        console.log(response)
+        this.repos=response;
+        console.log(this.repos)
+
+
+
+
+      },
+      error => {
+        console.log(error)
+      }
+    )
+    
   }
+  
 
 }

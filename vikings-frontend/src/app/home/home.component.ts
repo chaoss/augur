@@ -12,6 +12,9 @@ declare var Plotly: any
 })
 export class HomeComponent implements OnInit {
 
+ //repos contains all repo data in json format
+ //fields: rg_name, rg_group_id, rg_description, rg_last_modified, rg_name, rg_website, num_repos
+// rg_group_id (repo group id) is used in getRepo() in repos component
   public repogroups:any;
 
 
@@ -62,6 +65,7 @@ export class HomeComponent implements OnInit {
   }
 
 
+  //Pulls in all repo groups 
   getRepoGroups(){
     const customheaders= new HttpHeaders()
           .set('Content-Type', 'application/json');
