@@ -29,11 +29,29 @@ def create_app(test_config=None):
         # Create a cursor object
 
         cur = conn.cursor()
-        cur.execute('''SELECT repo_group_id, rg_name, rg_description, rg_website, rg_recache, rg_last_modified, rg_type, tool_source, tool_version, data_source, data_collection_date
-	    FROM augur_data.repo_groups ''')
-        test=cur.fetchall()
+        cur.execute('''SELECT rg.repo_group_id, rg_name, rg_description, rg_website,CAST(rg_last_modified AS DATE), rp.num_repos
+                        FROM augur_data.repo_groups rg
+                        LEFT JOIN (SELECT repo_group_id, count(*) AS num_repos
+                        FROM augur_data.repo
+                        GROUP BY repo_group_id) rp ON rp.repo_group_id = rg.repo_group_id ''')
+        results=cur.fetchall()
 
-        return jsonify(test)
+        data=[]
+        for i in results:
+            data.append({
+                "repo_group_id":str(i[0]),
+                "rg_name":str(i[1]),
+                "rg_description":str(i[2]),
+                "rg_website":str(i[3]),
+                "rg_last_modified":str(i[4]),
+                "num_repos":str(i[5])
+            })
+            
+
+        cur.close()
+        conn.close()
+
+        return jsonify(data)
 
 
 

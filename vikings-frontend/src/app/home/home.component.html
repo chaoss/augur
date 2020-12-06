@@ -6,20 +6,16 @@
         <tr>
           <th>Repo Group</th>
           <th>URL</th>
-          <th>Date Created</th>
+          <th>Website</th>
           <th>Last Modified</th>
-          <th>Type</th>
           <th># Repos</th>
-          <th>Total Contributors</th>
         </tr>
         <tr class='hovercol' a routerLink="/repos" routerLinkActive="active" *ngFor="let group of repogroups">
           <td class="aligncenter" >{{group.rg_name}}</td>
           <td>{{group.rg_description}}</td>
           <td>{{group.rg_website}}</td>
           <td>{{group.rg_last_modified}}</td>
-          <td>{{group.rg_type}}</td>
-          <td>Data</td>
-          <td >Data</td>
+          <td>{{group.num_repos}}</td>
         </tr>
     </table>
 </div>

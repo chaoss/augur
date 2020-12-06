@@ -66,10 +66,11 @@ export class HomeComponent implements OnInit {
     const customheaders= new HttpHeaders()
           .set('Content-Type', 'application/json');
 
-    this.http.get("http://vikings.sociallycompute.io:5120/api/unstable/repo-groups", {headers: customheaders}).subscribe(
+    this.http.get("http://localhost:5000/repogroups", {headers: customheaders}).subscribe(
       response=> {
         console.log(response)
         this.repogroups=response;
+        console.log(this.repogroups)
 
 
 
