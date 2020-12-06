@@ -45,6 +45,9 @@ function App() {
         {/* A <Switch> looks through its children <Route>s and
             renders the first one that matches the current URL. */}
         <Switch>
+        <Route path="/groups/*">
+            <Home2 />
+            </Route>
           <Route path="/groups">
             <GopherRepoGroup />
           </Route>
@@ -80,4 +83,8 @@ export default App;
 
 function Home() {
   return <h2>Home</h2>;
+}
+
+function Home2() {
+  return <h2>Home2</h2>;
 }

@@ -41,7 +41,7 @@ class GopherRepoGroup extends Component{
                         <tbody>
                     {items.map(item=>(
                         <tr key={item.rg_name}>
-                            <td>{item.rg_name}</td>
+                            <td><a href={'/groups/' + item.rg_name} >{item.rg_name}</a></td>
                             <td>{item.rg_description}</td>
                             <td>{item.rg_website}</td>
                             <td>{item.rg_last_modified}</td>
