@@ -10,21 +10,29 @@ import GopherRepoGroup from './GopherRepoGroup'
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { Row } from 'react-bootstrap';
+import {
+  BrowserRouter as Router,
+  Switch,
+  Route,
+  Link
+} from "react-router-dom";
 function App() {
   return (
     <div className="App">
       {/* <Container> */}
         <Row>
+        <Router>
         <Col xs={3}>
           
         <Nav defaultActiveKey="/home" className="flex-column">
           <Nav.Link href="/home">Active</Nav.Link>
-          <Nav.Link eventKey="link-1">Link</Nav.Link>
+          <Link to='/groups'>Groups</Link>
           <Nav.Link eventKey="link-2">Link</Nav.Link>
           <Nav.Link eventKey="disabled" disabled>
             Disabled
           </Nav.Link>
         </Nav>
+        
         </Col>
         <Col>
         <InputGroup size="lg">
@@ -33,7 +41,20 @@ function App() {
     </InputGroup.Prepend>
     <FormControl aria-label="Large" aria-describedby="inputGroup-sizing-sm" />
   </InputGroup>
-      <GopherRepoGroup></GopherRepoGroup>
+
+        {/* A <Switch> looks through its children <Route>s and
+            renders the first one that matches the current URL. */}
+        <Switch>
+          <Route path="/groups">
+            <GopherRepoGroup />
+          </Route>
+          
+          <Route path="/">
+            <Home />
+          </Route>
+        </Switch>
+    
+      {/* <GopherRepoGroup></GopherRepoGroup> */}
         {/* <CardDeck>
         <Card style={{ width: '18rem' }}>
           <Card.Body>
@@ -47,6 +68,7 @@ function App() {
       </Card>
       </CardDeck> */}
       </Col>
+      </Router>
       </Row>
     {/* </Container> */}
     </div>
@@ -54,3 +76,8 @@ function App() {
 }
 
 export default App;
+
+
+function Home() {
+  return <h2>Home</h2>;
+}
