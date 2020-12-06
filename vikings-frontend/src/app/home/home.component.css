@@ -8,7 +8,7 @@
 
 
 .title{
-    font-size:30px;
+    font-size:20px;
     font-family: Arial, Helvetica, sans-serif;
     font-weight:bolder;
     text-align:left;
@@ -21,12 +21,27 @@
 
 }
 
+.search{
+  width:70%;
+  margin-left:30px;
+  margin-bottom:10px;
+}
+
+.table_cont{
+  overflow-y:auto;
+  height:70vh;
+  width:80%;
+  margin-left:auto;
+  margin-right:auto;
+  border-top: 1px solid #505d69;
+}
+
 table {
     font-family: Arial, Helvetica, sans-serif;
     border-collapse: collapse;
-    width: 80%;
-    margin-left:auto;
-    margin-right:auto;
+    width:100%
+
+
     
   }
   
@@ -42,16 +57,25 @@ table {
   }
   
   
+ thead{
+   border: 0px solid #505d69;
+   position:sticky;
+   top:0;
+ }
  th {
     padding-top: 12px;
     padding-bottom: 12px;
     text-align: center;
     background-color: #d9e3ed;
     color: black;
-    border: 1px solid #505d69;
+    border-left: 1px solid #505d69;
+    border-right: 1px solid #505d69;
     padding: 8px;
-    font-size: 14px;
+    font-size:14px;
+    position:sticky;
+    top:0;
   }
+  
   
   .highlight_selected{
     color:#6C8EBF;

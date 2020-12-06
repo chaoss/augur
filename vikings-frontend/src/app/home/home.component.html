@@ -1,8 +1,10 @@
 
 
 <div class='main_container'>
-  <div class='title'>Select a Repo Group</div>
+  <div class='title'>Select a Repo Group <input type="text" placeholder="Search.." class='search'></div>
+  <div class="table_cont">
     <table>
+      <thead>
         <tr>
           <th>Repo Group</th>
           <th>Description</th>
@@ -10,13 +12,17 @@
           <th>Last Modified</th>
           <th># Repos</th>
         </tr>
-        <tr class='hovercol' a routerLink="/repos" routerLinkActive="active" *ngFor="let group of repogroups">
-          <td style="width:25%" class="aligncenter" >{{group.rg_name}}</td>
-          <td style="width:25%">{{group.rg_description}}</td>
-          <td style="width:20%">{{group.rg_website}}</td>
-          <td style="width:15%">{{group.rg_last_modified}}</td>
-          <td style="width:15%">{{group.num_repos}}</td>
-        </tr>
-    </table>
+      </thead>
+      
+      <tr class='hovercol' a routerLink="/repos" routerLinkActive="active" *ngFor="let group of repogroups" [state]="">
+        <td style="width:25%" class="aligncenter" >{{group.rg_name}}</td>
+        <td style="width:25%">{{group.rg_description}}</td>
+        <td style="width:20%">{{group.rg_website}}</td>
+        <td style="width:15%">{{group.rg_last_modified}}</td>
+        <td style="width:15%">{{group.num_repos}}</td>
+      </tr>
+  </table>
+  </div>
+
 </div>
 <div id="tester" style="width:600px;height:250px;"></div>

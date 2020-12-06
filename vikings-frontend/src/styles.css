@@ -11,3 +11,8 @@ body {
 .hovercol:hover td {
     background-color: paleturquoise;
 }
+
+
+.aligncenter{
+    text-align:center;
+}
