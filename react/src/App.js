@@ -7,6 +7,7 @@ import Col from 'react-bootstrap/Col';
 import InputGroup from 'react-bootstrap/InputGroup';
 import FormControl from 'react-bootstrap/FormControl';
 import GopherRepoGroup from './GopherRepoGroup'
+import GopherRepoSubgroup from './GopherRepoSubgroup'
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { Row } from 'react-bootstrap';
@@ -22,7 +23,7 @@ function App() {
       {/* <Container> */}
         <Row>
         <Router>
-        <Col xs={3}>
+        <Col xs={2}>
           
         <Nav defaultActiveKey="/home" className="flex-column">
           <Nav.Link href="/home">Active</Nav.Link>
@@ -46,7 +47,7 @@ function App() {
             renders the first one that matches the current URL. */}
         <Switch>
         <Route path="/groups/*">
-            <Home2 />
+        <GopherRepoSubgroup />
             </Route>
           <Route path="/groups">
             <GopherRepoGroup />
@@ -83,8 +84,4 @@ export default App;
 
 function Home() {
   return <h2>Home</h2>;
-}
-
-function Home2() {
-  return <h2>Home2</h2>;
 }

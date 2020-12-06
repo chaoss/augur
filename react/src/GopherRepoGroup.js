@@ -11,7 +11,7 @@ class GopherRepoGroup extends Component{
     componentDidMount(){
         fetch('http://goldengophers.sociallycompute.io:5110/api/unstable/repo-groups')
         .then(res =>res.json())
-        .then(json=>{
+        .then(json=>{   
             this.setState({
                 isLoaded: true,
                 items: json,
@@ -41,7 +41,7 @@ class GopherRepoGroup extends Component{
                         <tbody>
                     {items.map(item=>(
                         <tr key={item.rg_name}>
-                            <td><a href={'/groups/' + item.rg_name} >{item.rg_name}</a></td>
+                            <td><a href={'/groups/' + item.repo_group_id} >{item.rg_name}</a></td>
                             <td>{item.rg_description}</td>
                             <td>{item.rg_website}</td>
                             <td>{item.rg_last_modified}</td>
