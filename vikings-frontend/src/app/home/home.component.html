@@ -5,17 +5,17 @@
     <table>
         <tr>
           <th>Repo Group</th>
-          <th>URL</th>
+          <th>Description</th>
           <th>Website</th>
           <th>Last Modified</th>
           <th># Repos</th>
         </tr>
         <tr class='hovercol' a routerLink="/repos" routerLinkActive="active" *ngFor="let group of repogroups">
-          <td class="aligncenter" >{{group.rg_name}}</td>
-          <td>{{group.rg_description}}</td>
-          <td>{{group.rg_website}}</td>
-          <td>{{group.rg_last_modified}}</td>
-          <td>{{group.num_repos}}</td>
+          <td style="width:25%" class="aligncenter" >{{group.rg_name}}</td>
+          <td style="width:25%">{{group.rg_description}}</td>
+          <td style="width:20%">{{group.rg_website}}</td>
+          <td style="width:15%">{{group.rg_last_modified}}</td>
+          <td style="width:15%">{{group.num_repos}}</td>
         </tr>
     </table>
 </div>
