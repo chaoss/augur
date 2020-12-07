@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Input } from '@angular/core';
 
 import { RepoInfoService } from 'src/app/repo-info.service'
 import { LineGraphService } from 'src/app/line-graph.service';
@@ -13,6 +13,8 @@ import * as shape from 'd3';
   styleUrls: ['./line-graph.component.scss']
 })
 export class LineGraphComponent implements OnInit {
+
+  @Input() repoId: number;
   repoCodeChanges: RepoCodeChanges[];
   repoPullRequests: RepoPullRequests[];
   lineGraphData: LineGraphData[];
@@ -53,10 +55,9 @@ export class LineGraphComponent implements OnInit {
     Currently using a hardcoded id in zephyr database
 
   *******************************************************/
-  getRepoCodeChanges(): void {
-    var temp_id: number = 25174; //west
+  getRepoCodeChanges(): void { //west
     
-    this.repoInfoService.getRepoCodeChanges(temp_id).subscribe(data => {
+    this.repoInfoService.getRepoCodeChanges(this.repoId).subscribe(data => {
       this.repoCodeChanges = data;
 
       console.log(data);
@@ -96,9 +97,8 @@ export class LineGraphComponent implements OnInit {
 
   *******************************************************/
   getRepoPullRequests(): void {
-    var temp_id: number = 25174;
     
-    this.repoInfoService.getRepoPullRequests(temp_id).subscribe(data => {
+    this.repoInfoService.getRepoPullRequests(this.repoId).subscribe(data => {
       this.repoPullRequests = data;
 
       console.log(data);

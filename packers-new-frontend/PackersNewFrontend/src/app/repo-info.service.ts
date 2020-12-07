@@ -25,7 +25,7 @@ export class RepoInfoService {
   }
 
   getReposInGroup(repo_group_id: number): Observable<RepoGroupInfo[]> {
-    return this.http.get<RepoGroupInfo[]>(this.url + `/${repo_group_id}/repos`);
+    return this.http.get<RepoGroupInfo[]>(this.url + `/repo-groups/${repo_group_id}/repos`);
   }
 
   getRepoCodeChanges(repo_id: number): Observable<RepoCodeChanges[]> {

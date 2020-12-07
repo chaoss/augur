@@ -9,13 +9,15 @@ import { AppComponent } from './app.component';
 import { DashboardComponent } from './dashboard/dashboard.component';
 import { LineGraphComponent } from './line-graph/line-graph.component';
 import { GroupComponent } from './group/group.component';
+import { RepoComponent } from './repo/repo.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     DashboardComponent,
     LineGraphComponent,
-    GroupComponent
+    GroupComponent,
+    RepoComponent
   ],
   imports: [
     BrowserModule,

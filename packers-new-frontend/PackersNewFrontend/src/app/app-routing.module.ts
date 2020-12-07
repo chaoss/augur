@@ -4,6 +4,7 @@ import { Routes, RouterModule } from '@angular/router';
 import { DashboardComponent } from 'src/app/dashboard/dashboard.component';
 import { LineGraphComponent } from './line-graph/line-graph.component';
 import { GroupComponent } from 'src/app/group/group.component';
+import { RepoComponent } from 'src/app/repo/repo.component';
 
 const routes: Routes = [
   {
@@ -17,6 +18,10 @@ const routes: Routes = [
   {
     path: "group/:rgId",
     component: GroupComponent,
+  },
+  {
+    path: "repoInfo/:repoId",
+    component: RepoComponent,
   }
 ];
 

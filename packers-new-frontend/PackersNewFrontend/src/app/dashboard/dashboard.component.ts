@@ -15,10 +15,10 @@ export class DashboardComponent implements OnInit {
   constructor(private repoInfoService: RepoInfoService) { }
 
   ngOnInit(): void {
-    this.getRepoNames();
+    this.getRepoGroups();
   }
 
-  getRepoNames(): void {
+  getRepoGroups(): void {
     this.repoInfoService.getGroups().subscribe(data => this.repoGroups = data);
   }
 
