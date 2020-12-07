@@ -18,7 +18,7 @@ def create_routes(server):
         data_str = results.to_json(orient="records", date_format='iso', date_unit='ms')
         data = json.loads(data_str)
         list_data = [item['repo_id'] for item in data]
-	list_data_str = json.dumps(list_data)
+        list_data_str = json.dumps(list_data)
         return Response(response=list_data_str,
                         status=200,
                         mimetype="application/json")
