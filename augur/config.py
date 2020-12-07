@@ -182,7 +182,12 @@ default_config = {
                 "port": 51200,
                 "switch": 1,
                 "workers": 1
-            }
+            },
+             "profanity_worker": {
+                "port": 51900,
+                "switch": 1,
+                "workers": 1
+            }                      
         },
         "Facade": {
             "check_updates": 1,
