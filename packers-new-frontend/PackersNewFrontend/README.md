@@ -18,6 +18,8 @@ Run `ng generate component component-name` to generate a new component. You can 
 
 Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory. Use the `--prod` flag for a production build.
 
-## Sprint 3 changes
+## Sprint 3 Additions
 
-Added graph functionality to help users visually represent commits for a repository. Navigate to `http://localhost:4200/graph` to see the graph.
+Added graph functionality to help users visually represent commits for a repository.
+
+We also added routes for repo groups and specific repos. Default landing page `http://localhost:4200/` is a list of repo groups. Click on a group's link to go to a list of the repos in that group. Click on a specific repo's link to go to the page for that repo, where the graph will be seen.

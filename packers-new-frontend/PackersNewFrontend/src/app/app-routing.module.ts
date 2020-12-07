@@ -12,10 +12,6 @@ const routes: Routes = [
     component: DashboardComponent,
   },
   {
-    path: "graph",
-    component: LineGraphComponent,
-  },
-  {
     path: "group/:rgId",
     component: GroupComponent,
   },
