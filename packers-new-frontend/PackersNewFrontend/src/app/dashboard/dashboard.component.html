@@ -1,6 +1,6 @@
 <ul>
-    <li *ngFor="let repo of repos">
+    <li *ngFor="let repoGroup of repoGroups;">
         
-        <span>{{repo.repo_name}}</span>
+        <a [routerLink]="['/group',repoGroup.repo_group_id]">{{repoGroup.rg_name}}</a>
     </li>
 </ul>

@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 
 import { RepoInfoService } from 'src/app/repo-info.service'
-import { RepoInfo } from 'src/app/reposInfo';
+import { RepoGroupInfo, RepoInfo } from 'src/app/reposInfo';
 
 @Component({
   selector: 'app-dashboard',
@@ -10,7 +10,7 @@ import { RepoInfo } from 'src/app/reposInfo';
 })
 export class DashboardComponent implements OnInit {
 
-  repos: RepoInfo[];
+  repoGroups: RepoGroupInfo[];
 
   constructor(private repoInfoService: RepoInfoService) { }
 
@@ -19,7 +19,7 @@ export class DashboardComponent implements OnInit {
   }
 
   getRepoNames(): void {
-    this.repoInfoService.getRepos().subscribe(data => this.repos = data);
+    this.repoInfoService.getGroups().subscribe(data => this.repoGroups = data);
   }
 
 }

@@ -8,12 +8,14 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { DashboardComponent } from './dashboard/dashboard.component';
 import { LineGraphComponent } from './line-graph/line-graph.component';
+import { GroupComponent } from './group/group.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     DashboardComponent,
-    LineGraphComponent
+    LineGraphComponent,
+    GroupComponent
   ],
   imports: [
     BrowserModule,
