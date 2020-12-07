@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
-import { RepoInfo, RepoCodeChanges, RepoPullRequests } from './reposInfo';
+import { RepoInfo, RepoCodeChanges, RepoPullRequests, RepoGroupInfo } from './reposInfo';
 
 @Injectable({
   providedIn: 'root'
@@ -18,6 +18,10 @@ export class RepoInfoService {
   /* TODO: add error checking */
   getRepos(): Observable<RepoInfo[]> {
     return this.http.get<RepoInfo[]>(this.url + "/repos");
+  }
+
+  getGroups(): Observable<RepoGroupInfo[]> {
+    return this.http.get<RepoGroupInfo[]>(this.url + '/repo-groups');
   }
 
   getRepoCodeChanges(repo_id: number): Observable<RepoCodeChanges[]> {

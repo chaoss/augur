@@ -10,6 +10,20 @@ export interface RepoInfo {
     url: string;
 }
 
+export interface RepoGroupInfo {
+    data_collection_date: string,
+    data_source: string,
+    repo_group_id: number,
+    rg_description: string,
+    rg_last_modified: string,
+    rg_name: string,
+    rg_recache: number,
+    rg_type: string,
+    rg_website: string,
+    tool_source: string,
+    tool_version: string 
+}
+
 export interface RepoCodeChanges {
     commit_count: number;
     date: string;
