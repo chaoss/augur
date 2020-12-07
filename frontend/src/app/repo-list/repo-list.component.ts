@@ -1,23 +1,27 @@
 import { Component, OnInit } from '@angular/core';
 
+interface Repo {
+  value: string;
+}
+
 export interface PeriodicElement {
   name: string;
-  position: number;
-  weight: number;
-  symbol: number;
+  url: number;
+  totalCommit: number;
+  totalIssue: number;
 }
 
 const ELEMENT_DATA: PeriodicElement[] = [
-  {position: 1, name: 'Competitors', weight: 1.0079, symbol: 609},
-  {position: 2, name: 'Competitors', weight: 4.0026, symbol: 500},
-  {position: 3, name: 'Competitors', weight: 6.941, symbol: 456},
-  {position: 4, name: 'Competitors', weight: 9.0122, symbol: 264},
-  {position: 5, name: 'Competitors', weight: 10.811, symbol: 123},
-  {position: 6, name: 'Competitors', weight: 12.0107, symbol: 647},
-  {position: 7, name: 'Competitors', weight: 14.0067, symbol: 342},
-  {position: 8, name: 'Competitors', weight: 15.9994, symbol: 856},
-  {position: 9, name: 'Competitors', weight: 18.9984, symbol: 354},
-  {position: 10, name: 'Competitors', weight: 20.1797, symbol: 264},
+  {url: 1, name: 'Competitors', totalCommit: 1.0079, totalIssue: 609},
+  {url: 2, name: 'Competitors', totalCommit: 4.0026, totalIssue: 500},
+  {url: 3, name: 'Competitors', totalCommit: 6.941, totalIssue: 456},
+  {url: 4, name: 'Competitors', totalCommit: 9.0122, totalIssue: 264},
+  {url: 5, name: 'Competitors', totalCommit: 10.811, totalIssue: 123},
+  {url: 6, name: 'Competitors', totalCommit: 12.0107, totalIssue: 647},
+  {url: 7, name: 'Competitors', totalCommit: 14.0067, totalIssue: 342},
+  {url: 8, name: 'Competitors', totalCommit: 15.9994, totalIssue: 856},
+  {url: 9, name: 'Competitors', totalCommit: 18.9984, totalIssue: 354},
+  {url: 10, name: 'Competitors', totalCommit: 20.1797, totalIssue: 264},
 ];
 
 @Component({
@@ -27,7 +31,12 @@ const ELEMENT_DATA: PeriodicElement[] = [
 })
 export class RepoListComponent implements OnInit {
 
-  displayedColumns: string[] = ['position', 'name', 'weight', 'symbol'];
+  repos: Repo[] = [
+    {value: 'Competitors'},
+    {value: 'Zephyr-RTOS'}
+  ];
+
+  displayedColumns: string[] = ['url', 'name', 'totalCommit', 'totalIssue'];
   dataSource = ELEMENT_DATA;
 
   constructor() { }
