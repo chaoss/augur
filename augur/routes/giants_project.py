@@ -11,7 +11,7 @@ def create_routes(server):
     def get_all_repo_ids(): #TODO: make this name automatic - wrapper?
         repoGroupsSQL = s.sql.text("""
             SELECT repo.repo_id
-            FROM repos
+            FROM repo
             ORDER BY repo.repo_name
         """)
         results = pd.read_sql(repoGroupsSQL, server.augur_app.database)
