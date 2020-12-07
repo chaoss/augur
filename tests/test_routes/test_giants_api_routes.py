@@ -6,16 +6,16 @@ def test_giants_api_repos(metrics):
     response = requests.get('http://localhost:5113/api/unstable/giants-project/repos')
     assert response.status_code == 200
     data = response.json()
-    assert len(data) >= 1
-    assert data[0]['commit_count'] > 0
+    for item in data:
+        item['repo_id']
 
 def test_giants_api_status(metrics):
     response = requests.get('http://localhost:5113/api/unstable/giants-project/repos')
     assert response.status_code == 200
     data = response.json()
-    assert len(data) >= 1
-    assert data[0]
-    repo_id = data[0]
+    for item in data:
+        item['repo_id']
+    repo_id = data[0]['repo_id']
     response = requests.get('http://localhost:5113/api/unstable/giants-project/status/' + repo_id)
     assert response.status_code == 200
     data = response.json()
