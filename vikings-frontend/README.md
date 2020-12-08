@@ -19,5 +19,14 @@ Directions:
 
 
 
+# API
 
+Direcitons:
+1) In a new terminal go to API folder located in vikings-frontend
+2) create virtual environment (python3 -m venv venv)
+3) activate environment (source venv/bin/activate)
+4) install required packages (pip install -r requirements.txt)
+5) run command: FLASK_APP=vikings_api.py FLASK_ENV=development flask run
+
+Note: both front-end code and API code must be ran at the same time in different terminals/command line
 
