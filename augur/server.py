@@ -33,8 +33,10 @@ class Server(object):
         """
         Initializes the server, creating both the Flask application and Augur application
         """
-        # Create Flask application
 
+        self.jsonData = []
+
+        # Create Flask application
         self.app = Flask(__name__)
         logger.debug("Created Flask app")
         self.api_version = AUGUR_API_VERSION
@@ -88,7 +90,19 @@ class Server(object):
 
         @app.route('/zapier', methods=['GET'])
         def getInsightsForZapier():
-            return json.dumps(['hello world'])
+            return json.dumps(self.jsonData)
+        
+        self.count = 0;
+        @app.route('/storeZapier', methods=['POST'])
+        def storeZapier():
+            print("HERE!")
+            res = request.json
+            res.update({"id":self.count})
+            print(res)
+            self.jsonData.append(res)
+            self.count = self.count + 1
+            return 
+
 
     def transform(self, func, args=None, kwargs=None, repo_url_base=None, orient='records',
                   group_by=None, on=None, aggregate='sum', resample=None, date_col='date'):

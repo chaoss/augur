@@ -512,6 +512,7 @@ class InsightWorker(Worker):
                     'detection_method': insight['ri_detection_method']
                 }
                 requests.post('https://ejmoq97307.execute-api.us-east-1.amazonaws.com/dev/insight-event', json=to_send)
+                requests.post('http://bears.sociallycompute.io:5105/storeZapier', json=to_send)
         except Exception as e:
             logging.info("sending insight to jonah failed: {}".format(e))
 
