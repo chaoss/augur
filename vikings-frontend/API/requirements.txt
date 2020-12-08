@@ -1,10 +1,8 @@
-Flask==1.1.1
-Flask-Cors==3.0.8
-matplotlib==3.2.1
-numpy==1.18.3
-psycopg2-binary==2.8.4
-pyparsing==2.4.7
-python-dateutil==2.8.1
-requests==2.23.0
-waitress==1.4.3
+Flask
+Flask-Cors
+matplotlib
+numpy
+psycopg2-binary
+requests
+waitress
 
