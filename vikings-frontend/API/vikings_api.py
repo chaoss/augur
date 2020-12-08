@@ -5,8 +5,6 @@ import psycopg2
 from flask_cors import CORS
 from datetime import datetime
 import db
-import plotly.graph_objects as go
-import plotly.io as pio
 import matplotlib.pyplot as plt
 import numpy as np
 
