@@ -62,10 +62,10 @@ def create_app(test_config=None):
 
 
 
-    @app.route('/getrepos', methods=['GET'])
+    @app.route('/getrepos', methods=['POST'])
     def getRepos():
-        #repo_group_id=json.loads(request.data)
-        repo_group_id=22002
+        repo_group_id=json.loads(request.data)
+        #repo_group_id=22002
         conn=db.connectToDb()    # Create a cursor object
         cur = conn.cursor()
 

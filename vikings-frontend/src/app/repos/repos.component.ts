@@ -1,6 +1,7 @@
 import { Component, OnInit,Input } from '@angular/core';
 import { HttpHeaders } from '@angular/common/http';
 import { HttpClient } from '@angular/common/http';
+import { ActivatedRoute } from '@angular/router';
 
 
 
@@ -13,7 +14,7 @@ export class ReposComponent implements OnInit {
 
 
 
-  @Input() repo_group_id:any;
+  public repo_group_id:any;
 
 
   //repos contains all repo data in json format
@@ -21,7 +22,11 @@ export class ReposComponent implements OnInit {
   public repos:any;
 
 
-  constructor(public http: HttpClient) { }
+  constructor(public http: HttpClient, private route: ActivatedRoute) { 
+
+
+    this.repo_group_id=this.route.snapshot.paramMap.get('repo_group_id');
+  }
 
   ngOnInit(): void {
 
@@ -36,8 +41,8 @@ export class ReposComponent implements OnInit {
     const customheaders= new HttpHeaders()
           .set('Content-Type', 'application/json');
 
-   // this.http.post("http://localhost:5000/repogroups",JSON.stringify(repo_group_id), {headers: customheaders}).subscribe(
-      this.http.get("http://localhost:5000/getrepos", {headers: customheaders}).subscribe(
+      this.http.post("http://localhost:5000/getrepos",JSON.stringify(repo_group_id), {headers: customheaders}).subscribe(
+      //this.http.get("http://localhost:5000/getrepos", {headers: customheaders}).subscribe(
       response=> {
         console.log(response)
         this.repos=response;

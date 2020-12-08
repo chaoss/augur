@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { HttpHeaders } from '@angular/common/http';
 import { HttpClient } from '@angular/common/http';
+import { Router } from '@angular/router';
 
 //this works instead of an import statement, I don't know why
 declare var Plotly: any
@@ -18,7 +19,7 @@ export class HomeComponent implements OnInit {
   public repogroups:any;
 
 
-  constructor(public http: HttpClient) { }
+  constructor(public http: HttpClient,private router: Router) { }
 
   ngOnInit(): void {
 
@@ -88,6 +89,13 @@ export class HomeComponent implements OnInit {
   }
   
 
+  select_rgID(index){
+
+
+    console.log(this.repogroups[index].repo_group_id)
+    this.router.navigate(['/repos', {repo_group_id: this.repogroups[index].repo_group_id } ]);
+
+  }
 
 
 

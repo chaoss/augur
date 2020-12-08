@@ -14,7 +14,7 @@
         </tr>
       </thead>
       
-      <tr class='hovercol' a routerLink="/repos" routerLinkActive="active" *ngFor="let group of repogroups" [state]="">
+      <tr class='hovercol' *ngFor="let group of repogroups; let i = index" (click)="select_rgID(i)">
         <td style="width:25%" class="aligncenter" >{{group.rg_name}}</td>
         <td style="width:25%">{{group.rg_description}}</td>
         <td style="width:20%">{{group.rg_website}}</td>
