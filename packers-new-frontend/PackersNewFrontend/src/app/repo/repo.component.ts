@@ -1,10 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 
 import { ActivatedRoute } from '@angular/router';
-import { Router } from '@angular/router';
 
 import { RepoInfoService } from 'src/app/repo-info.service'
-import { RepoGroupInfo, RepoInfo } from 'src/app/reposInfo';
+import { Metric } from 'src/app/reposInfo';
 
 
 @Component({
@@ -14,14 +13,19 @@ import { RepoGroupInfo, RepoInfo } from 'src/app/reposInfo';
 })
 export class RepoComponent implements OnInit {
 
-  repoId;
+  repoId: number;
+
+  commitMetric: Metric = Metric.commits;
+  pullRequestMetric: Metric = Metric.pullRequests;
+  committersMetric: Metric = Metric.committers;
+  linesAddedMetric: Metric = Metric.linesAdded;
+
 
   constructor(private activatedRoute: ActivatedRoute, private repoInfoService: RepoInfoService) {
-    this.repoId = this.activatedRoute.snapshot.params['repoId'];
    }
 
    ngOnInit(): void {
-    
+    this.repoId = this.activatedRoute.snapshot.params['repoId'];
   }
 
 }

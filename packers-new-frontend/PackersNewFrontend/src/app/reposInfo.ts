@@ -1,3 +1,10 @@
+export enum Metric {
+    pullRequests,
+    commits,
+    committers,
+    linesAdded
+}
+
 export interface RepoInfo {
     base64_url: string;
     commits_all_time: string;
@@ -35,5 +42,19 @@ export interface RepoCodeChanges {
 export interface RepoPullRequests {
     date: string;
     pull_requests: number;
+    repo_name: string;
+}
+
+export interface RepoCommitters {
+    count: number;
+    date: string;
+    repo_name: string;
+    rg_name: string;
+}
+
+export interface RepolinesAdded {
+    added: number;
+    date: string;
+    removed: number;
     repo_name: string;
 }

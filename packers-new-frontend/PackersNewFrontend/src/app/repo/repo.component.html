@@ -1,2 +1,6 @@
-<p>repo works!</p>
-<app-line-graph [repoId]="repoId"></app-line-graph>
+<div class="flex-container">
+    <div class="flex-child"><app-line-graph [repoId]="repoId" [metric]="commitMetric"></app-line-graph></div>
+    <div class="flex-child"><app-line-graph [repoId]="repoId" [metric]="pullRequestMetric"></app-line-graph></div>
+    <div class="flex-child"><app-line-graph [repoId]="repoId" [metric]="committersMetric"></app-line-graph></div>
+    <div class="flex-child"><app-line-graph [repoId]="repoId" [metric]="linesAddedMetric"></app-line-graph></div>
+</div>

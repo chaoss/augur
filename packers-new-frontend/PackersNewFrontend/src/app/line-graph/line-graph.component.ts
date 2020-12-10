@@ -2,7 +2,7 @@ import { Component, OnInit, Input } from '@angular/core';
 
 import { RepoInfoService } from 'src/app/repo-info.service'
 import { LineGraphService } from 'src/app/line-graph.service';
-import { RepoCodeChanges, RepoPullRequests } from 'src/app/reposInfo';
+import { Metric } from 'src/app/reposInfo';
 import { LineGraphData } from 'src/app/lineGraphInterface';
 
 import * as shape from 'd3';
@@ -15,8 +15,8 @@ import * as shape from 'd3';
 export class LineGraphComponent implements OnInit {
 
   @Input() repoId: number;
-  repoCodeChanges: RepoCodeChanges[];
-  repoPullRequests: RepoPullRequests[];
+  @Input() metric: Metric
+
   lineGraphData: LineGraphData[];
   view: any[] = [600, 400];
 
@@ -41,7 +41,25 @@ export class LineGraphComponent implements OnInit {
   constructor(private repoInfoService: RepoInfoService, private lineGraphService: LineGraphService) { }
 
   ngOnInit(): void {
-    this.getRepoPullRequests();
+    switch(this.metric) {
+
+      case Metric.pullRequests:
+        this.getRepoPullRequests();
+        break;
+
+      case Metric.commits:
+        this.getRepoCodeChanges();
+        break;
+
+      case Metric.committers:
+        this.getRepoCommitters();
+        break;
+
+      case Metric.linesAdded:
+        this.getlinesAdded();
+        break;
+        
+    }
   }
 
   /*******************************************************
@@ -56,23 +74,13 @@ export class LineGraphComponent implements OnInit {
 
   *******************************************************/
   getRepoCodeChanges(): void { //west
-    
     this.repoInfoService.getRepoCodeChanges(this.repoId).subscribe(data => {
-      this.repoCodeChanges = data;
-
       console.log(data);
 
-      var dates = this.repoCodeChanges.map(r => r.date);
-      var counts = this.repoCodeChanges.map(r => r.commit_count);
+      var dates = data.map(r => r.date);
+      var counts = data.map(r => r.commit_count);
 
       this.lineGraphData = new Array();
-
-
-      /* inserts the series of points given by the api into the graph */
-      // this.lineGraphData.push({
-      //   name: "Commits",
-      //   series: this.lineGraphService.formatLineGraphCounts(dates, counts)
-      // });
 
       /* inserts a trailing average of the series of points by the given api into the graph */
       this.lineGraphData.push({
@@ -99,20 +107,12 @@ export class LineGraphComponent implements OnInit {
   getRepoPullRequests(): void {
     
     this.repoInfoService.getRepoPullRequests(this.repoId).subscribe(data => {
-      this.repoPullRequests = data;
-
       console.log(data);
 
-      var dates = this.repoPullRequests.map(r => r.date);
-      var counts = this.repoPullRequests.map(r => r.pull_requests);
+      var dates = data.map(r => r.date);
+      var counts = data.map(r => r.pull_requests);
 
       this.lineGraphData = new Array();
-
-      /* inserts the series of points given by the api into the graph */
-      // this.lineGraphData.push({
-      //   name: "Commits",
-      //   series: this.lineGraphService.formatLineGraphCounts(dates, counts)
-      // });
 
       /* inserts a trailing average of the series of points by the given api into the graph */
       this.lineGraphData.push({
@@ -125,4 +125,48 @@ export class LineGraphComponent implements OnInit {
       console.log(this.lineGraphData);
       });
   }
+
+  getRepoCommitters(): void {
+    this.repoInfoService.getRepoCommitters(this.repoId).subscribe(data => {
+      console.log(data);
+
+      var dates = data.map(r => r.date);
+      var counts = data.map(r => r.count);
+
+      this.lineGraphData = new Array();
+
+
+      /* inserts a trailing average of the series of points by the given api into the graph */
+      this.lineGraphData.push({
+        name: "Committers",
+        series: this.lineGraphService.formatLineGraphCountsAvg(dates, counts)
+      });
+
+      this.yAxisLabel = "Committers";
+
+      console.log(this.lineGraphData);
+      });
+  }
+
+  getlinesAdded(): void {
+    this.repoInfoService.getlinesAdded(this.repoId).subscribe(data => {
+      console.log(data);
+
+      var dates = data.map(r => r.date);
+      var counts = data.map(r => r.added);
+
+      this.lineGraphData = new Array();
+
+      /* inserts a trailing average of the series of points by the given api into the graph */
+      this.lineGraphData.push({
+        name: "Lines Added",
+        series: this.lineGraphService.formatLineGraphCountsAvg(dates, counts)
+      });
+
+      this.yAxisLabel = "Lines Added";
+
+      console.log(this.lineGraphData);
+      });
+  }
+
 }
