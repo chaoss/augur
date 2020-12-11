@@ -19,14 +19,16 @@ from augur.gunicorn import AugurGunicornApp
 
 logger = logging.getLogger("augur")
 
-@click.group('server', short_help='Server commands')
+@click.group('server', short_help='Commands for controlling the backend API server & data collection workers')
 def cli():
     pass
 
 @cli.command("start")
 @click.option("--disable-housekeeper", is_flag=True, default=False, help="Turns off the housekeeper")
 @click.option("--skip-cleanup", is_flag=True, default=False, help="Disables the old process cleanup that runs before Augur starts")
-def start(disable_housekeeper, skip_cleanup):
+@click.option("--logstash", is_flag=True, default=False, help="Runs logstash to collect errors from logs")
+@click.option("--logstash-with-cleanup", is_flag=True, default=False, help="Runs logstash to collect errors from logs and cleans all previously collected errors")
+def start(disable_housekeeper, skip_cleanup, logstash, logstash_with_cleanup):
     """
     Start Augur's backend server
     """
@@ -47,6 +49,21 @@ def start(disable_housekeeper, skip_cleanup):
     else:
         logger.debug("Skipping process cleanup")
 
+    if logstash or logstash_with_cleanup:
+        augur_home = os.getenv('ROOT_AUGUR_DIRECTORY', "")
+        if logstash_with_cleanup:
+            print("Cleaning old workers errors...")
+            with open(augur_home + "/log_analysis/http/empty_index.html") as f:
+                lines = f.readlines()
+            with open(augur_home + "/log_analysis/http/index.html", "w") as f1:
+                f1.writelines(lines)
+            print("All previous workers errors got deleted.")
+
+        elasticsearch_path = os.getenv('ELASTIC_SEARCH_PATH', "/usr/local/bin/elasticsearch")
+        subprocess.Popen(elasticsearch_path)
+        logstash_path = os.getenv('LOGSTASH_PATH', "/usr/local/bin/logstash")
+        subprocess.Popen([logstash_path, "-f", augur_home + "/log_analysis/logstash-filter.conf"])
+
     master = initialize_components(augur_app, disable_housekeeper)
 
     logger.debug('Starting Gunicorn webserver...')
@@ -57,26 +74,26 @@ def start(disable_housekeeper, skip_cleanup):
 
 @cli.command('stop')
 @initialize_logging
-def stop_server():
+def stop():
     """
     Sends SIGTERM to all Augur server & worker processes
     """
-    _broadcast_signal_to_processes(attach_logger=True)
-
+    _broadcast_signal_to_processes(given_logger=logging.getLogger("augur.cli"))
+#
 @cli.command('kill')
 @initialize_logging
-def kill_server():
+def kill():
     """
     Sends SIGKILL to all Augur server & worker processes
     """
-    _broadcast_signal_to_processes(signal=signal.SIGKILL, attach_logger=True)
+    _broadcast_signal_to_processes(signal=signal.SIGKILL, given_logger=logging.getLogger("augur.cli"))
 
-@cli.command('processes',)
+@cli.command('processes')
 @initialize_logging
-def list_processes():
+def processes():
     """
-    Outputs the name and process ID (PID) of all currently running backend Augur processes, including any workers. Will only work in a virtual environment.
-    """
+    Outputs the name/PID of all Augur server & worker processes"""
+    logger = logging.getLogger("augur.cli")
     processes = get_augur_processes()
     for process in processes:
         logger.info(f"Found process {process.pid}")
@@ -93,11 +110,11 @@ def get_augur_processes():
                 pass
     return processes
 
-def _broadcast_signal_to_processes(signal=signal.SIGTERM, attach_logger=False):
-    if attach_logger is True:
-        _logger = logging.getLogger("augur")
-    else:
+def _broadcast_signal_to_processes(signal=signal.SIGTERM, given_logger=None):
+    if given_logger is None:
         _logger = logger
+    else:
+        _logger = given_logger
     processes = get_augur_processes()
     if processes != []:
         for process in processes:

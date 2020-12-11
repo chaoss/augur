@@ -1,3 +1,4 @@
+<!-- #SPDX-License-Identifier: MIT -->
 <template>
   <section>
     <h1>Risk</h1>
@@ -27,7 +28,9 @@
 </template>
 <script>
 window.onload = function() {
-document.getElementById("ciiBtn").addEventListener("click", function(){
+var ciiStuff = document.getElementById("ciiBtn")
+if(ciiStuff){
+ciiStuff.addEventListener("click", function(){
     document.getElementById("overcii").style.display = "block"
     document.getElementById("overcii").class = "row"
     document.getElementById("ciiBtn").style.visibility = "hidden";
@@ -64,6 +67,7 @@ document.getElementById("ciiBtn").addEventListener("click", function(){
     loader();
     request.send();
 });
+}
 }
 export default {
   data() {
