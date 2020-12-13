@@ -65,6 +65,14 @@ default_config = {
                     "repo_group_id": 0
                 },
                 {
+                    "delay": 90,
+                    "given": [
+                        "github_url"
+                    ],
+                    "model": "profanity",
+                    "repo_gourp_id": 0
+                },
+                {
                     "delay": 1000000,
                     "given": [
                         "git_url"
