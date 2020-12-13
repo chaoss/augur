@@ -1,6 +1,6 @@
 from flask import Flask, jsonify, request, Response
 import click, os, json, requests, logging
-from workers.template_worker.template_worker import TemplateWorker
+from workers.profanity_worker.profanity_worker import GithubProfanityWorker
 from workers.util import create_server, WorkerGunicornApplication
 
 def main():
@@ -8,7 +8,7 @@ def main():
     Creates the Flask app and data collection worker, then starts the Gunicorn server
     """
     app = Flask(__name__)
-    app.worker = TemplateWorker()
+    app.worker = GithubProfanityWorker()
 
     create_server(app)
     WorkerGunicornApplication(app).run()

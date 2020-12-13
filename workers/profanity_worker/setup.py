@@ -24,6 +24,7 @@ setup(
         'flask',
         'requests',
         'psycopg2-binary'
+        'click'
     ],
     entry_points={
         'console_scripts': [
