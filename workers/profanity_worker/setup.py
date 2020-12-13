@@ -23,7 +23,7 @@ setup(
     install_requires=[
         'flask',
         'requests',
-        'psycopg2-binary'
+        'psycopg2-binary',
         'click'
     ],
     entry_points={
