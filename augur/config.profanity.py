@@ -126,12 +126,12 @@ default_config = {
             "facade_worker": {
                 "port": 50100,
                 "repo_directory": "repos/",
-                "switch": 0,
+                "switch": 1,
                 "workers": 1
             },
             "github_worker": {
                 "port": 50200,
-                "switch": 0,
+                "switch": 1,
                 "workers": 1
             },
             "insight_worker": {
@@ -139,11 +139,11 @@ default_config = {
                 "metrics": {"issues-new": "issues", "code-changes": "commit_count", "code-changes-lines": "added",
                            "reviews": "pull_requests", "contributors-new": "new_contributors"},
                 "confidence_interval": 95,
-                "contamination": 0.05,
+                "contamination": 0.041,
                 "switch": 0,
-                "workers": 2,
+                "workers": 1,
                 "training_days": 365,
-                "anomaly_days": 14
+                "anomaly_days": 2
             },
             "linux_badge_worker": {
                 "port": 50400,
@@ -157,12 +157,12 @@ default_config = {
             },
             "pull_request_worker": {
                 "port": 50600,
-                "switch": 0,
+                "switch": 1,
                 "workers": 1
             },
             "repo_info_worker": {
                 "port": 50700,
-                "switch": 0,
+                "switch": 1,
                 "workers": 1
             },
             "value_worker": {
@@ -173,29 +173,29 @@ default_config = {
             },
             "contributor_worker": {
                 "port": 50900,
-                "switch": 0,
+                "switch": 1,
                 "workers": 1
             },
             "gitlab_issues_worker": {
                 "port": 51000,
-                "switch": 0,
+                "switch": 1,
                 "workers": 1
             },
             "release_worker": {
                 "port": 51100,
-                "switch": 0,
+                "switch": 1,
                 "workers": 1
             },
             "gitlab_merge_request_worker": {
                 "port": 51200,
-                "switch": 0,
+                "switch": 1,
                 "workers": 1
             },
              "profanity_worker": {
                 "port": 51900,
                 "switch": 1,
                 "workers": 1
-        }                      
+            }                      
         },
         "Facade": {
             "check_updates": 1,
@@ -218,7 +218,7 @@ default_config = {
             "host": "0.0.0.0",
             "port": "5000",
             "workers": 4,
-            "timeout": 6900
+            "timeout": 60
         },
         "Frontend": {
             "host": "0.0.0.0",
