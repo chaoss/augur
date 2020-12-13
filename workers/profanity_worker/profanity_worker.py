@@ -21,7 +21,7 @@ class ProfanityWorker(Worker):
         # The name the housekeeper/broker use to distinguish the data model this worker can fill
         #   You will also need to name the method that does the collection for this model
         #   in the format *model name*_model() such as fake_data_model() for example
-        models = ['profanity_worker']
+        models = ['profanity']
 
         # Define the tables needed to insert, update, or delete on
         #   The Worker class will set each table you define here as an attribute
