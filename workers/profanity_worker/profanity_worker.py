@@ -46,7 +46,7 @@ class ProfanityWorker(Worker):
         self.tool_version = '1.0.0'
         self.data_source = 'Github API'
 
-    def github_profanity(self, task, repo_id):
+    def profanity_model(self, task, repo_id):
         """ This is just an example of a data collection method. All data collection 
             methods for all workers currently accept this format of parameters. If you 
             want to change these parameters, you can re-define the collect() method to 
@@ -79,22 +79,23 @@ class ProfanityWorker(Worker):
         #   of any data collection model, this lets the broker know that this worker is ready
         #   for another task
         #self.register_task_completion(task, repo_id, 'fake_data')
-        
+
         messages = s.sql.text("""
-            SELECT pr_body
+            SELECT COUNT(*)
             FROM pull_requests
-            WHERE pull_requests.pr_body != None
         """)
 
-        logging.info(len(messages))
+        logging.info(messages)
+        print(messages)
+        print("Hello")
 
-        def checkText(textIn):
-	    f = open('badwords.txt', 'r')
-    	    profane = False
-            for line in f:
-		    if line.strip().lower() in textIn.lower():
-			    profane = True
-			    break
-	    return profane
+    def checkText(textIn):
+        f = open('badwords.txt', 'r')
+        profane = False
+        for line in f:
+            if line.strip().lower() in textIn.lower():
+                profane = True
+                break
+        return profane
 
         

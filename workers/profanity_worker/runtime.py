@@ -1,6 +1,6 @@
 from flask import Flask, jsonify, request, Response
 import click, os, json, requests, logging
-from workers.profanity_worker.profanity_worker import GithubProfanityWorker
+from workers.profanity_worker.profanity_worker import ProfanityWorker
 from workers.util import create_server, WorkerGunicornApplication
 
 def main():
