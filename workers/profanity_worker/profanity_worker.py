@@ -85,8 +85,10 @@ class ProfanityWorker(Worker):
             FROM pull_requests
         """)
 
-        logging.info(messages)
-        print(messages)
+        result = self.db.execute(messages)
+
+        logging.info(result)
+        print(result)
         print("Hello")
 
     def checkText(textIn):
