@@ -8,7 +8,7 @@ def main():
     Creates the Flask app and data collection worker, then starts the Gunicorn server
     """
     app = Flask(__name__)
-    app.worker = GithubProfanityWorker()
+    app.worker = ProfanityWorker()
 
     create_server(app)
     WorkerGunicornApplication(app).run()

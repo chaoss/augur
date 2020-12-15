@@ -26,7 +26,7 @@ class ProfanityWorker(Worker):
         # Define the tables needed to insert, update, or delete on
         #   The Worker class will set each table you define here as an attribute
         #   so you can reference all of them like self.message_table or self.repo_table
-        data_tables = ['message']
+        data_tables = ['pull_requests']
         # For most workers you will only need the worker_history and worker_job tables
         #   from the operations schema, these tables are to log worker task histories
         operations_tables = ['worker_history', 'worker_job']
@@ -78,9 +78,17 @@ class ProfanityWorker(Worker):
         #   This is a method of the worker class that is required to be called upon completion
         #   of any data collection model, this lets the broker know that this worker is ready
         #   for another task
-        self.register_task_completion(task, repo_id, 'fake_data')
+        #self.register_task_completion(task, repo_id, 'fake_data')
+        
+        messages = s.sql.text("""
+            SELECT pr_body
+            FROM pull_requests
+            WHERE pull_requests.pr_body != None
+        """)
 
-    def checkText(textIn):
+        logging.info(len(messages))
+
+        def checkText(textIn):
 	    f = open('badwords.txt', 'r')
     	    profane = False
             for line in f:
@@ -89,226 +97,4 @@ class ProfanityWorker(Worker):
 			    break
 	    return profane
 
-    def graphql_paginate(self, query, data_subjects, before_parameters=None):
-        """ Paginate a GitHub GraphQL query backwards
-        :param query: A string, holds the GraphQL query
-        :rtype: A Pandas DataFrame, contains all data contained in the pages
-        """
-
-        self.logger.info(f'Start paginate with params: \n{data_subjects} '
-            f'\n{before_parameters}')
-
-        def all_items(dictionary):
-            for key, value in dictionary.items():
-                if type(value) is dict:
-                    yield (key, value)
-                    yield from all_items(value)
-                else:
-                    yield (key, value)
-
-        if not before_parameters:
-            before_parameters = {}
-            for subject, _ in all_items(data_subjects):
-                before_parameters[subject] = ''
-
-        start_cursor = None
-        has_previous_page = True
-        base_url = 'https://api.github.com/graphql'
-        tuples = []
-
-        def find_root_of_subject(data, key_subject):
-            self.logger.info(f'Finding {key_subject} root of {data}')
-            key_nest = None
-            for subject, nest in data.items():
-                if key_subject in nest: 
-                    key_nest = nest[key_subject]
-                    break
-                elif type(nest) == dict:
-                    return find_root_of_subject(nest, key_subject)
-            else:
-                raise KeyError
-            return key_nest
-            
-        for data_subject, nest in data_subjects.items():
-
-            self.logger.info(f'Beginning paginate process for field {data_subject} '
-                f'for query: {query}')
-
-            page_count = 0
-            while has_previous_page:
-
-                page_count += 1
-
-                num_attempts = 3
-                success = False
-
-                for attempt in range(num_attempts):
-                    self.logger.info(f'Attempt #{attempt + 1} for hitting GraphQL endpoint '
-                        f'page number {page_count}\n')
-
-                    response = requests.post(base_url, json={'query': query.format(
-                        **before_parameters)}, headers=self.headers)
-
-                    self.update_gh_rate_limit(response)
-
-                    try:
-                        data = response.json()
-                    except:
-                        data = json.loads(json.dumps(response.text))
-
-                    if 'errors' in data:
-                        self.logger.info("Error!: {}".format(data['errors']))
-                        if j['errors'][0]['type'] == 'NOT_FOUND':
-                            self.logger.warning("Github repo was not found or does not exist for endpoint: {}\n".format(url))
-                            break
-                        if data['errors'][0]['type'] == 'RATE_LIMITED':
-                            self.update_gh_rate_limit(response)
-                            num_attempts -= 1
-                        continue
-                        
-
-                    if 'data' in data:
-                        success = True
-                        root = find_root_of_subject(data, data_subject)
-                        page_info = root['pageInfo']
-                        data = root['edges']
-                        break
-                    else:
-                        self.logger.info("Request returned a non-data dict: {}\n".format(data))
-                        if data['message'] == 'Not Found':
-                            self.logger.info("Github repo was not found or does not exist for endpoint: {}\n".format(base_url))
-                            break
-                        if data['message'] == 'You have triggered an abuse detection mechanism. Please wait a few minutes before you try again.':
-                            num_attempts -= 1
-                            self.update_gh_rate_limit(response, temporarily_disable=True)
-                        if data['message'] == 'Bad credentials':
-                            self.update_gh_rate_limit(response, bad_credentials=True)
-
-                if not success:
-                    self.logger.info('GraphQL query failed: {}'.format(query))
-                    break
-
-                before_parameters.update({
-                    data_subject: ', before: \"{}\"'.format(page_info['startCursor'])
-                })
-                has_previous_page = page_info['hasPreviousPage']
-
-                tuples += data
-
-            self.logger.info(f'Paged through {page_count} pages and '
-                f'collected {len(tuples)} data points\n')
-
-            if not nest:
-                return tuples
-
-            return tuples + self.graphql_paginate(query, data_subjects[subject], 
-                before_parameters=before_parameters)
-
-    def pull_request_commits_model(self, task_info, repo_id):
-        """ Queries the commits related to each pull request already inserted in the db """
-
-        self.logger.info("Querying starting ids info...\n")
-
-        # Increment so we are ready to insert the 'next one' of each of these most recent ids
-        self.history_id = self.get_max_id('worker_history', 'history_id', operations_table=True) + 1
-        self.pr_id_inc = self.get_max_id('pull_requests', 'pull_request_id')
-        self.pr_meta_id_inc = self.get_max_id('pull_request_meta', 'pr_repo_meta_id')
-
-
-        # query existing PRs and the respective url we will append the commits url to
-        pr_url_sql = s.sql.text("""
-            SELECT DISTINCT pr_url, pull_requests.pull_request_id
-            FROM pull_requests--, pull_request_meta
-            WHERE repo_id = {}
-        """.format(repo_id))
-        urls = pd.read_sql(pr_url_sql, self.db, params={})
-
-        for pull_request in urls.itertuples(): # for each url of PRs we have inserted
-            commits_url = pull_request.pr_url + '/commits?page={}'
-            table = 'pull_request_commits'
-            table_pkey = 'pr_cmt_id'
-            duplicate_col_map = {'pr_cmt_sha': 'sha'}
-            update_col_map = {}
-
-            # Use helper paginate function to iterate the commits url and check for dupes
-            pr_commits = self.paginate(commits_url, duplicate_col_map, update_col_map, table, table_pkey, 
-                where_clause="where pull_request_id = {}".format(pull_request.pull_request_id))
-
-            for pr_commit in pr_commits: # post-pagination, iterate results
-                if pr_commit['flag'] == 'need_insertion': # if non-dupe
-                    pr_commit_row = {
-                        'pull_request_id': pull_request.pull_request_id,
-                        'pr_cmt_sha': pr_commit['sha'],
-                        'pr_cmt_node_id': pr_commit['node_id'],
-                        'pr_cmt_message': pr_commit['commit']['message'],
-                        # 'pr_cmt_comments_url': pr_commit['comments_url'],
-                        'tool_source': self.tool_source,
-                        'tool_version': self.tool_version,
-                        'data_source': 'GitHub API',
-                    }
-                    result = self.db.execute(self.pull_request_commits_table.insert().values(pr_commit_row))
-                    self.logger.info(f"Inserted Pull Request Commit: {result.inserted_primary_key}\n")
-
-        self.register_task_completion(task_info, repo_id, 'pull_request_commits')
-
-    def query_pr_comments(self, owner, repo, gh_pr_no, pr_id):
-        self.logger.info('Querying PR Comments')
-
-        url = (f'https://api.github.com/repos/{owner}/{repo}/issues/{gh_pr_no}' +
-            '/comments?per_page=100&page={}')
-
-        # Get pull request comments that we already have stored
-        #   Set our duplicate and update column map keys (something other than PK) to
-        #   check dupicates/needed column updates with
-        table = 'pull_request_message_ref'
-        table_pkey = 'pr_msg_ref_id'
-        update_col_map = {}
-        duplicate_col_map = {'pr_message_ref_src_comment_id': 'id'}
-
-        #list to hold contributors needing insertion or update
-        pr_messages = self.paginate(url, duplicate_col_map, update_col_map, table, table_pkey)
-
-        self.logger.info("Count of pull request comments needing insertion: " + str(len(pr_messages)) + "\n")
-
-        for pr_msg_dict in pr_messages:
-
-            if pr_msg_dict['user'] and 'login' in pr_msg_dict['user']:
-                cntrb_id = self.find_id_from_login(pr_msg_dict['user']['login'])
-            else:
-                cntrb_id = 1
-
-            msg = {
-                'rgls_id': None,
-                'msg_text': pr_msg_dict['body'].replace("0x00", "____") if \
-                    'body' in pr_msg_dict else None,
-                'msg_timestamp': pr_msg_dict['created_at'],
-                'msg_sender_email': None,
-                'msg_header': None,
-                'pltfrm_id': '25150',
-                'cntrb_id': cntrb_id,
-                'tool_source': self.tool_source,
-                'tool_version': self.tool_version,
-                'data_source': self.data_source
-            }
-
-            result = self.db.execute(self.message_table.insert().values(msg))
-            self.logger.info(f'Added PR Comment {result.inserted_primary_key}')
-
-            pr_msg_ref = {
-                'pull_request_id': pr_id,
-                'msg_id': int(result.inserted_primary_key[0]),
-                'pr_message_ref_src_comment_id': pr_msg_dict['id'],
-                'pr_message_ref_src_node_id': pr_msg_dict['node_id'],
-                'tool_source': self.tool_source,
-                'tool_version': self.tool_version,
-                'data_source': self.data_source
-            }
-
-            result = self.db.execute(
-                self.pull_request_message_ref_table.insert().values(pr_msg_ref)
-            )
-            self.logger.info(f'Added PR Message Ref {result.inserted_primary_key}')
-
-            self.results_counter += 1
-
-        self.logger.info(f'Finished adding PR Message data for PR with id {pr_id}')
+        
