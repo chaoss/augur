@@ -80,24 +80,28 @@ class ProfanityWorker(Worker):
         #   for another task
         #self.register_task_completion(task, repo_id, 'fake_data')
 
+        def checkText(textIn):
+            f = open('badwords.txt', 'r')
+            profane = False
+            for line in f:
+                textIn=str(textIn)
+                if((" "+line.strip().lower()+" ") in textIn.lower()):
+                    profane = True
+                    break
+            return profane
+
         messages = s.sql.text("""
-            SELECT COUNT(*)
+            SELECT pr_body
             FROM pull_requests
         """)
 
         result = self.db.execute(messages)
-
         logging.info(result)
-        print(result)
-        print("Hello")
 
-    def checkText(textIn):
-        f = open('badwords.txt', 'r')
-        profane = False
-        for line in f:
-            if line.strip().lower() in textIn.lower():
-                profane = True
-                break
-        return profane
+        for row in result:
+            print("Done")
+            if checkText(row['pr_body']):
+                print(row['pr_body'])
+
 
         
