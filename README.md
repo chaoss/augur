@@ -4,4 +4,4 @@ Added dc-metrics.py into augur/metrics
 
 ## dc-metrics.py
 
-Takes timezone information from each commit and saves them as a new API endpoint
+Adds new API endpoints for timezone, email domain, contributor company, and contributor location
