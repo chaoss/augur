@@ -24,8 +24,9 @@ class GopherRepoSubgroup extends Component{
         if(!isLoaded){
             return (<div>
                         <Spinner animation="border" role="status" >
-                            <span >Loading...</span>
+                            
                         </Spinner>
+                        <span >Loading...</span>
                     </div>);
         }
         else {
@@ -45,7 +46,7 @@ class GopherRepoSubgroup extends Component{
                         <tbody>
                     {items.map(item=>(
                         <tr key={item.repo_name}>
-                            <td>{item.repo_name}</td>
+                            <td><a href={ window.location.pathname.split('/')[2]+'/graphs/' + item.repo_id}>{item.repo_name}</a></td>
                             <td>{item.commits_all_time==null ? '-' : item.commits_all_time}</td>
                             <td>{item.issues_all_time==null ? '-' : item.issues_all_time}</td>
                             <td>{item.url}</td>

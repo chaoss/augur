@@ -8,6 +8,7 @@ import InputGroup from 'react-bootstrap/InputGroup';
 import FormControl from 'react-bootstrap/FormControl';
 import GopherRepoGroup from './GopherRepoGroup'
 import GopherRepoSubgroup from './GopherRepoSubgroup'
+import GopherRepoGroupGraphs from './GopherRepoGroupGraphs'
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { Row } from 'react-bootstrap';
@@ -46,13 +47,15 @@ function App() {
         {/* A <Switch> looks through its children <Route>s and
             renders the first one that matches the current URL. */}
         <Switch>
+        <Route path="/groups/*/graphs/*">
+        <GopherRepoGroupGraphs />
+            </Route>
         <Route path="/groups/*">
         <GopherRepoSubgroup />
             </Route>
           <Route path="/groups">
             <GopherRepoGroup />
           </Route>
-          
           <Route path="/">
             <Home />
           </Route>
