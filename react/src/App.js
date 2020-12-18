@@ -10,8 +10,9 @@ import GopherRepoGroup from './GopherRepoGroup'
 import GopherRepoSubgroup from './GopherRepoSubgroup'
 import GopherRepoGroupGraphs from './GopherRepoGroupGraphs'
 import './App.css';
+import logo from './logo.png'
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { Row } from 'react-bootstrap';
+import { Image, Row } from 'react-bootstrap';
 import {
   BrowserRouter as Router,
   Switch,
@@ -25,9 +26,10 @@ function App() {
         <Row>
         <Router>
         <Col xs={2}>
-          
+        <img src={logo} width='100%'></img>
         <Nav defaultActiveKey="/home" className="flex-column">
-          <Nav.Link href="/home">Active</Nav.Link>
+
+          <Link to="/home">Home</Link>
           <Link to='/groups'>Groups</Link>
           <Nav.Link eventKey="link-2">Link</Nav.Link>
           <Nav.Link eventKey="disabled" disabled>
