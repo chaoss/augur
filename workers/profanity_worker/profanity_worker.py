@@ -112,7 +112,7 @@ class ProfanityWorker(Worker):
             endcheckTime = time.time()
             self.logger.info("Check time was " + str(endcheckTime-checkTime))
             # repo_id needs to be made into a string
-            #self.logger.info("We checked the profanity model for repo: " + repo_id + "\n")
+            self.logger.info("We checked the profanity model for repo: " + str(repo_id) + "\n")
         self.logger.info("whole check took " + str(time.time()-endTime)) 
 
         
