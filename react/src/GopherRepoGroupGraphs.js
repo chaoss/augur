@@ -50,14 +50,14 @@ class GopherRepoGroupGraphs extends Component{
                 <div className="GopherRepoGroupGraphs">
                     <h1>Graphs:</h1>
                     <Container>
-                    <ColumnChart library={{scales: {
+                    <LineChart library={{scales: {
             xAxes: [{
                 type: 'time',
                 time: {
                     unit: 'year'
                 }
             }]
-        }}} width="80%" stacked={true} data={this.getData()} download={true} />
+        }}} width="80%" data={this.getData()} max={500} download={true} />
                     {items.map(item=>(
                         <tr key={item.cmt_author_email}>
                             

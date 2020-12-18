@@ -1,5 +1,6 @@
 import React, {Component} from 'react';
 import { Container, Table } from 'react-bootstrap';
+import { Link} from "react-router-dom";
 class GopherRepoGroup extends Component{
     constructor(props){
         super(props);
@@ -41,7 +42,7 @@ class GopherRepoGroup extends Component{
                         <tbody>
                     {items.map(item=>(
                         <tr key={item.rg_name}>
-                            <td><a href={'/groups/' + item.repo_group_id} >{item.rg_name}</a></td>
+                            <td><Link to={'/groups/' + item.repo_group_id} >{item.rg_name}</Link></td>
                             <td>{item.rg_description}</td>
                             <td>{item.rg_website}</td>
                             <td>{item.rg_last_modified}</td>

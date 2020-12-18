@@ -1,5 +1,6 @@
 import React, {Component} from 'react';
 import { Container, Table, Spinner } from 'react-bootstrap';
+import { Link} from "react-router-dom";
 class GopherRepoSubgroup extends Component{
     constructor(props){
         super(props);
@@ -46,7 +47,7 @@ class GopherRepoSubgroup extends Component{
                         <tbody>
                     {items.map(item=>(
                         <tr key={item.repo_name}>
-                            <td><a href={ window.location.pathname.split('/')[2]+'/graphs/' + item.repo_id}>{item.repo_name}</a></td>
+                            <td><Link to={ window.location.pathname.split('/')[2]+'/graphs/' + item.repo_id}>{item.repo_name}</Link></td>
                             <td>{item.commits_all_time==null ? '-' : item.commits_all_time}</td>
                             <td>{item.issues_all_time==null ? '-' : item.issues_all_time}</td>
                             <td>{item.url}</td>
