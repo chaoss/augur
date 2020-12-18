@@ -94,14 +94,23 @@ class ProfanityWorker(Worker):
             SELECT pr_body
             FROM pull_requests
         """)
+        
+        startTime = time.time()
 
-        result = self.db.execute(messages)
-        logging.info(result)
+        result = self.db.execute(messages).fetchall()
+        
+        endTime = time.time()
 
+        print("Query took ", endTime-startTime, "Elements: ", len(result))
+
+        i=0
         for row in result:
-            print("Done")
-            if checkText(row['pr_body']):
+            i=i+1
+            checkTime = time.time()
+            if (checkText(row['pr_body'])):
                 print(row['pr_body'])
-
+            endcheckTime = time.time()
+            print("Check time was ", endcheckTime-checkTime)
+        print("whole check took ", time.time()-endTime) 
 
         
