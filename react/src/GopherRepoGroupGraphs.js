@@ -1,7 +1,9 @@
 import React, {Component} from 'react';
 import {Container} from 'react-bootstrap';
 import {ColumnChart, LineChart} from 'react-chartkick';
+import GopherRepoTopTen from './GopherRepoTopTen';
 import 'chart.js';
+import GopherRepoGroup from './GopherRepoGroup';
 class GopherRepoGroupGraphs extends Component{
     constructor(props){
         super(props);
@@ -13,11 +15,13 @@ class GopherRepoGroupGraphs extends Component{
     }
     getData(){
         var { items } = this.state;
-        var dick = {};
-        items.map(item=>
-          dick[item.cmt_author_date] = item.additions
-        )
-        return dick;
+        var d = {};
+        var total =0;
+        items.map((item, total)=>{
+            // total = total + item.additions - item.deletions;
+          d[item.cmt_author_date] = item.additions;
+        })
+        return d;
       }
       getWeek(){
         var d = new Date();
@@ -46,20 +50,21 @@ class GopherRepoGroupGraphs extends Component{
                 <div className="GopherRepoGroupGraphs">
                     <h1>Graphs:</h1>
                     <Container>
-                    <LineChart library={{scales: {
+                    <ColumnChart library={{scales: {
             xAxes: [{
                 type: 'time',
                 time: {
                     unit: 'year'
                 }
             }]
-        }}} width="80%" xmin={this.getWeek()}  data={this.getData()} download={true} />
+        }}} width="80%" stacked={true} data={this.getData()} download={true} />
                     {items.map(item=>(
                         <tr key={item.cmt_author_email}>
                             
                         </tr>
                     ))}
                     </Container>
+                <GopherRepoTopTen></GopherRepoTopTen>
                 </div>
                 
             );
