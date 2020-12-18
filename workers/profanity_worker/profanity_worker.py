@@ -110,8 +110,8 @@ class ProfanityWorker(Worker):
             if (checkText(row['pr_body'])):
                 print(row['pr_body'])
             endcheckTime = time.time()
-            print("Check time was ", endcheckTime-checkTime)
-            self.logger.info("We checked the profanity model for repo: " + github_url + "\n")
-        print("whole check took ", time.time()-endTime) 
+            self.logger.info("Check time was ", endcheckTime-checkTime)
+            self.logger.info("We checked the profanity model for repo: " + given + "\n")
+        self.logger.info("whole check took ", time.time()-endTime) 
 
         
