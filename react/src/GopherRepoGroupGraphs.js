@@ -4,6 +4,7 @@ import {ColumnChart, LineChart} from 'react-chartkick';
 import GopherRepoTopTen from './GopherRepoTopTen';
 import 'chart.js';
 import GopherRepoGroup from './GopherRepoGroup';
+import GopherRepoPullRequest     from './GopherRepoPullRequest';
 class GopherRepoGroupGraphs extends Component{
     constructor(props){
         super(props);
@@ -29,7 +30,7 @@ class GopherRepoGroupGraphs extends Component{
      return d;
       }
     componentDidMount(){
-        fetch('http://goldengophers.sociallycompute.io:5110/api/unstable/repo-groups/25156/repos/'+ window.location.pathname.split('/')[4]+'/lines-changed-by-author') //need more api calls
+        fetch('http://goldengophers.sociallycompute.io:5110/api/unstable/repo-groups/'+ window.location.pathname.split('/')[2] +'/repos/'+ window.location.pathname.split('/')[4]+'/lines-changed-by-author') //need more api calls
         .then(res =>res.json())                                                                                                                            //this is one of them
         .then(json=>{   
             this.setState({
@@ -65,6 +66,7 @@ class GopherRepoGroupGraphs extends Component{
                     ))}
                     </Container>
                 <GopherRepoTopTen></GopherRepoTopTen>
+                <GopherRepoPullRequest />
                 </div>
                 
             );
