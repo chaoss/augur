@@ -28,9 +28,9 @@ def create_routes(server):
         repoGroupsSQL = s.sql.text("""
             SELECT *
             FROM repo
-            WHERE repo.repo_id = {}
-        """.format(repo_id))
-        results = pd.read_sql(repoGroupsSQL, server.augur_app.database)
+            WHERE repo.repo_id = :repo_id
+        """)
+        results = pd.read_sql(repoGroupsSQL, server.augur_app.database, params={'repo_id': repo_id})
         data_str = results.to_json(orient="records", date_format='iso', date_unit='ms')
 		# TODO: also add basic metric information like listed on https://github.com/zachs18/augur/issues/6
         data = json.loads(data_str)
@@ -42,12 +42,25 @@ def create_routes(server):
     @server.app.route('/{}/giants-project/test1/<repo_id>'.format(server.api_version))
     def get_repo_test1(repo_id):
         try:
+            this_week_begin = datetime.datetime.now() - datetime.timedelta(days=7)
+            this_week_end = datetime.datetime.now()
+            
+            begin_date = this_week_begin.strftime('%Y-%m-%d %H:%M:%S')
+            end_date = this_week_begin.strftime('%Y-%m-%d %H:%M:%S')
+            
             repoGroupsSQL = s.sql.text("""
-                SELECT *
+                SELECT
+                    repo.repo_id,
+                    COUNT(issue_id) as issue_count
                 FROM repo JOIN issues ON repo.repo_id = issues.repo_id
-                WHERE repo.repo_id = {}
-            """.format(repo_id))
-            results = pd.read_sql(repoGroupsSQL, server.augur_app.database)
+                WHERE repo.repo_id = :repo_id
+                AND issues.created_at BETWEEN to_timestamp(:begin_date, 'YYYY-MM-DD HH24:MI:SS') AND to_timestamp(:end_date, 'YYYY-MM-DD HH24:MI:SS')
+            """)
+            results = pd.read_sql(repoGroupsSQL, server.augur_app.database, params={
+                'repo_id': repo_id,
+                'begin_date': begin_date,
+                'end_date': end_date
+            })
             data_str = results.to_json(orient="records", date_format='iso', date_unit='ms')
             # TODO: also add basic metric information like listed on https://github.com/zachs18/augur/issues/6
             data = json.loads(data_str)
@@ -55,8 +68,9 @@ def create_routes(server):
             return Response(response=data_str,
                             status=200,
                             mimetype="application/json")
-        except e:
-            print(e)
+        except Exception as e:
+            f = open('/tmp/giants.txt', 'w')
+            print(e, file=f)
 '''
     @server.app.route('/{}/repos'.format(server.api_version))
     def get_all_repos():
