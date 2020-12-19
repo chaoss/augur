@@ -28,7 +28,7 @@ def create_routes(server):
         repoGroupsSQL = s.sql.text("""
             SELECT *
             FROM repo
-            WHERE repo.repo_id = "{}"
+            WHERE repo.repo_id = {}
         """.format(repo_id))
         results = pd.read_sql(repoGroupsSQL, server.augur_app.database)
         data_str = results.to_json(orient="records", date_format='iso', date_unit='ms')
