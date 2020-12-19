@@ -41,19 +41,22 @@ def create_routes(server):
 
     @server.app.route('/{}/giants-project/test1/<repo_id>'.format(server.api_version))
     def get_repo_test1(repo_id):
-        repoGroupsSQL = s.sql.text("""
-            SELECT *
-            FROM repo JOIN issues ON repo.repo_id = issues.repo_id
-            WHERE repo.repo_id = {}
-        """.format(repo_id))
-        results = pd.read_sql(repoGroupsSQL, server.augur_app.database)
-        data_str = results.to_json(orient="records", date_format='iso', date_unit='ms')
-		# TODO: also add basic metric information like listed on https://github.com/zachs18/augur/issues/6
-        data = json.loads(data_str)
-        
-        return Response(response=data_str,
-                        status=200,
-                        mimetype="application/json")
+        try:
+            repoGroupsSQL = s.sql.text("""
+                SELECT *
+                FROM repo JOIN issues ON repo.repo_id = issues.repo_id
+                WHERE repo.repo_id = {}
+            """.format(repo_id))
+            results = pd.read_sql(repoGroupsSQL, server.augur_app.database)
+            data_str = results.to_json(orient="records", date_format='iso', date_unit='ms')
+            # TODO: also add basic metric information like listed on https://github.com/zachs18/augur/issues/6
+            data = json.loads(data_str)
+
+            return Response(response=data_str,
+                            status=200,
+                            mimetype="application/json")
+        except e:
+            print(e)
 '''
     @server.app.route('/{}/repos'.format(server.api_version))
     def get_all_repos():
