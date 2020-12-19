@@ -10,16 +10,16 @@ def create_routes(server):
     @server.app.route('/{}/giants-project/repos'.format(server.api_version))
     def get_all_repo_ids(): #TODO: make this name automatic - wrapper?
         repoGroupsSQL = s.sql.text("""
-            SELECT repo.repo_id
+            SELECT repo.repo_id, repo.repo_name
             FROM repo
             ORDER BY repo.repo_name
         """)
         results = pd.read_sql(repoGroupsSQL, server.augur_app.database)
         data_str = results.to_json(orient="records", date_format='iso', date_unit='ms')
-        data = json.loads(data_str)
-        list_data = [item['repo_id'] for item in data]
-        list_data_str = json.dumps(list_data)
-        return Response(response=list_data_str,
+        #data = json.loads(data_str)
+        #list_data = [item['repo_id'] for item in data]
+        #list_data_str = json.dumps(list_data)
+        return Response(response=data_str,
                         status=200,
                         mimetype="application/json")
 '''
