@@ -19,7 +19,7 @@
           </tr> 
         </thead>
           <tbody>
-            <tr class='hovercol' a routerLink="/analytics" routerLinkActive="active" *ngFor="let repo of repos" >
+            <tr class='hovercol' a routerLink="/analytics" routerLinkActive="active" *ngFor="let repo of repos; let i = index" >
               <td  class="aligncenter" >{{repo.repo_name}}</td>
               <td>{{repo.repo_git}}</td>
               <td>{{repo.commit_count}}</td>
