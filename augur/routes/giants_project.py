@@ -47,7 +47,7 @@ def create_routes(server):
             this_week_end = datetime.datetime.now()
             
             begin_date = this_week_begin.strftime('%Y-%m-%d %H:%M:%S')
-            end_date = this_week_begin.strftime('%Y-%m-%d %H:%M:%S')
+            end_date = this_week_end.strftime('%Y-%m-%d %H:%M:%S')
             
             repoGroupsSQL = s.sql.text("""
                 SELECT
