@@ -56,6 +56,7 @@ def create_routes(server):
                 FROM repo JOIN issues ON repo.repo_id = issues.repo_id
                 WHERE repo.repo_id = :repo_id
                 AND issues.created_at BETWEEN to_timestamp(:begin_date, 'YYYY-MM-DD HH24:MI:SS') AND to_timestamp(:end_date, 'YYYY-MM-DD HH24:MI:SS')
+                GROUP BY repo.repo_id
             """)
             results = pd.read_sql(repoGroupsSQL, server.augur_app.database, params={
                 'repo_id': repo_id,
@@ -70,8 +71,7 @@ def create_routes(server):
                             status=200,
                             mimetype="application/json")
         except Exception as e:
-            f = open('/tmp/giants.txt', 'w')
-            print(e, file=f)
+            print(e)
 '''
     @server.app.route('/{}/repos'.format(server.api_version))
     def get_all_repos():
