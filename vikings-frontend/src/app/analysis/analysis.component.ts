@@ -1,4 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit,Input } from '@angular/core';
+import { HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
+import { ActivatedRoute } from '@angular/router';
+
 
 @Component({
   selector: 'app-analysis',
@@ -7,9 +11,16 @@ import { Component, OnInit } from '@angular/core';
 })
 export class AnalysisComponent implements OnInit {
 
-  constructor() { }
+  public repo_id:any;
+
+
+  constructor(public http: HttpClient, private route: ActivatedRoute) { }
 
   ngOnInit(): void {
+
+    this.repo_id=this.route.snapshot.paramMap.get('repo_id');
+    console.log("MADE IT")
+    console.log(this.repo_id)
   }
 
 }

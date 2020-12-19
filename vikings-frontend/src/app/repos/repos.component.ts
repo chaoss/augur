@@ -1,7 +1,7 @@
 import { Component, OnInit,Input } from '@angular/core';
 import { HttpHeaders } from '@angular/common/http';
 import { HttpClient } from '@angular/common/http';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute,Router } from '@angular/router';
 
 
 
@@ -22,10 +22,11 @@ export class ReposComponent implements OnInit {
   public repos:any;
 
 
-  constructor(public http: HttpClient, private route: ActivatedRoute) { 
+  constructor(public http: HttpClient, private route: ActivatedRoute,private router: Router) { 
 
 
     this.repo_group_id=this.route.snapshot.paramMap.get('repo_group_id');
+
   }
 
   ngOnInit(): void {
@@ -59,5 +60,16 @@ export class ReposComponent implements OnInit {
     
   }
   
+
+
+  getrepoID(index){
+
+
+    console.log(this.repos[index].repo_id)
+    this.router.navigate(['/analytics', {repo_id: this.repos[index].repo_id } ]);
+
+  }
+
+
 
 }
