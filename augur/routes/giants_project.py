@@ -8,7 +8,7 @@ from flask import Response
 def create_routes(server):
 
     @server.app.route('/{}/giants-project/repos'.format(server.api_version))
-    def get_all_repo_ids(): #TODO: make this name automatic - wrapper?
+    def get_all_repo_ids_name_names():
         repoGroupsSQL = s.sql.text("""
             SELECT repo.repo_id, repo.repo_name
             FROM repo
@@ -19,6 +19,20 @@ def create_routes(server):
         #data = json.loads(data_str)
         #list_data = [item['repo_id'] for item in data]
         #list_data_str = json.dumps(list_data)
+        return Response(response=data_str,
+                        status=200,
+                        mimetype="application/json")
+
+    @server.app.route('/{}/giants-project/status/<repo_id>'.format(server.api_version))
+    def get_repo_status(repo_id):
+        repoGroupsSQL = s.sql.text("""
+            SELECT *
+            FROM repo
+            WHERE repo.repo_id = "{}"
+        """.format(repo_id))
+        results = pd.read_sql(repoGroupsSQL, server.augur_app.database)
+        data_str = results.to_json(orient="records", date_format='iso', date_unit='ms')
+		# TODO: also add basic metric information like listed on https://github.com/zachs18/augur/issues/6
         return Response(response=data_str,
                         status=200,
                         mimetype="application/json")
