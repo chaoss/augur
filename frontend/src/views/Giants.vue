@@ -43,6 +43,7 @@
               <tbody>
                 <tr v-for="repo in sortedGiantsRepos(sortColumn,ascending)" v-bind:item="repo" :key="repo.repo_id">
                   <td width="50%">
+                    <a href="/{{ repo.repo_id }}/status">{{ repo.repo_id }}</a> 
                     <a href="#" @click="onGitRepo(repo.repo_id)">{{ repo.repo_id }}</a>
                   </td>
                   <td width="50%">{{ repo.repo_name }}</td>
