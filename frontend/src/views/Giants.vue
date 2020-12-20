@@ -4,8 +4,8 @@
     <!-- Page Header -->
     <div class="page-header row no-gutters py-4">
       <div class="col-12 col-sm-4 text-center text-sm-left mb-0">
-        <span class="text-uppercase page-subtitle">Viewing all</span>
-        <h3 class="page-title">Giants-Project</h3>
+        <span class="text-uppercase page-subtitle text-center">Viewing all</span>
+        <h3 class="page-title text-center">Giants-Project</h3>
       </div>
     </div>
 
@@ -23,65 +23,29 @@
           </d-card-body>
 
           <div v-if="loadedRepos" class="card-body p-0 pb-3 text-center">
-            <table class="reposTable table mb-0">
+            <table class="table mb-0">
               <thead class="bg-light">
                 <tr>
-                  <th scope="col" class="border-0" v-on:click="sortTable('url')">
+                  <th width="50%" scope="col" class="border-0" v-on:click="sortTable('repo_id')">
                     <div class="row">
-                      <div class="col col-9">URL</div>
-                      <div class="arrow" v-bind:class="ascending ? 'arrow_up' : 'arrow_down'" v-if="'url' == sortColumn"></div>
+                      <div class="col col-9">Repo ID</div>
+                      <div class="arrow" v-bind:class="ascending ? 'arrow_up' : 'arrow_down'" v-if="'repo_id' == sortColumn"></div>
                     </div>
                   </th>
-                  <th scope="col" class="border-0" v-on:click="sortTable('rg_name')">
+                  <th width="50%" scope="col" class="border-0" v-on:click="sortTable('repo_name')">
                     <div class="row">
-                      <div class="col col-9">Repo Group Name</div>
-                      <div class="arrow" v-bind:class="ascending ? 'arrow_up' : 'arrow_down'" v-if="'rg_name' == sortColumn"></div>
+                      <div class="col col-9">Repo Name</div>
+                      <div class="arrow" v-bind:class="ascending ? 'arrow_up' : 'arrow_down'" v-if="'repo_name' == sortColumn"></div>
                     </div>
                   </th>
-                  <!-- <th width="30%" scope="col" class="border-0" v-on:click="sortTable('description')">
-                    <div class="row">
-                      <div class="col col-9">Repo Description</div>
-                      <div class="arrow" v-bind:class="ascending ? 'arrow_up' : 'arrow_down'" v-if="'description' == sortColumn"></div>
-                    </div>
-                  </th> -->
-                  <!-- <th scope="col" class="border-0" v-on:click="sortTable('repo_count')">
-                    <div class="row">
-                      <div class="col col-9">Group's Repo Count</div>
-                      <div class="arrow" v-bind:class="ascending ? 'arrow_up' : 'arrow_down'" v-if="'repo_count' == sortColumn"></div>
-                    </div>
-                  </th> -->
-                  <th scope="col" class="border-0" v-on:click="sortTable('commits_all_time')">
-                    <div class="row">
-                      <div class="col col-9">Total Commit Count</div>
-                      <div class="arrow" v-bind:class="ascending ? 'arrow_up' : 'arrow_down'" v-if="'commits_all_time' == sortColumn"></div>
-                    </div>
-                  </th>
-                  <th scope="col" class="border-0" v-on:click="sortTable('issues_all_time')">
-                    <div class="row">
-                      <div class="col col-0">Total Issue Count</div>
-                      <div class="arrow" v-bind:class="ascending ? 'arrow_up' : 'arrow_down'" v-if="'issues_all_time' == sortColumn"></div>
-                    </div>
-                  </th>
-                  <!-- <th scope="col" class="border-0" v-on:click="sortTable('repo_status')">
-                    <div class="row">
-                      <div class="col col-9">Status</div>
-                      <div class="col col-2 arrow" v-bind:class="ascending ? 'arrow_up' : 'arrow_down'" v-if="'repo_status' == sortColumn"></div>
-                    </div>
-                  </th> -->
-                  <!-- <th scope="col" class="border-0">Options</th> -->
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="repo in sortedRepos(sortColumn,ascending)" v-bind:item="repo" :key="repo.url">
-                  <td>
-                    <a href="#" @click="onGitRepo(repo.rg_name, repo.repo_name)">{{ repo.url }}</a>
+                <tr v-for="repo in sortedGiantsRepos(sortColumn,ascending)" v-bind:item="repo" :key="repo.repo_id">
+                  <td width="50%">
+                    <a href="#" @click="onGitRepo(repo.repo_id)">{{ repo.repo_id }}</a>
                   </td>
-                  <td>{{ repo.rg_name }}</td>
-                  <!-- <td>{{ repo.description }}</td> -->
-                  <!-- <td>{{ repo.repo_count }}</td> -->
-                  <td>{{ repo.commits_all_time }}</td>
-                  <td>{{ repo.issues_all_time }}</td>
-                  <!-- <td>{{ repo.repo_status }}</td> -->
+                  <td width="50%">{{ repo.repo_name }}</td>
                   <!-- <td>
                     <div class="row">
                       <button :id="'favorite'+index" class="nav-link col col-2" style="margin-left: 2rem; margin-right: 1rem; padding: 0;border: none; background: none;">
@@ -127,8 +91,7 @@ import Spinner from '../components/Spinner.vue'
       'endpoint', // map `this.endpoint({...})` to `this.$store.dispatch('endpoint', {...})`
                   // uses: this.endpoint({endpoints: [], repos (optional): [], repoGroups (optional): []})
       'getRepoRelations',
-      'loadRepos',
-      'addRepo'
+      'loadGiantsRepos'
     ]),
 
     ...mapActions('compare',[
@@ -138,7 +101,7 @@ import Spinner from '../components/Spinner.vue'
   },
   computed: {
     ...mapGetters('common', [
-      'sortedRepos'
+      'sortedGiantsRepos'
     ]),
   },
 })
@@ -157,19 +120,18 @@ export default class Giants extends Vue{
   loadedRepos: boolean = false;
 
   ascending:boolean = true;
-  sortColumn: string ='url';
+  sortColumn: string ='repo_id';
   getRepoRelations!: any
-  sortedRepos!:any
+  sortedGiantsRepos!:any
   loadRepos!:any;
 
-  addRepo!:any;
   setBaseRepo!:any;
   addComparedRepo!:any;
 
 
   created() {
 
-    this.loadRepos().then(() => {
+    this.loadGiantsRepos().then(() => {
       this.loadedRepos = true
     })
 
@@ -184,19 +146,18 @@ export default class Giants extends Vue{
       }
   }
 
-  onGitRepo (rg_name: String, repo_name: String) {
+  onGitRepo (repo_name: String) {
     // this.$router.push({
     //   name: 'repo_overview',
     //   params: {group:e.rg_name, repo:e.repo_name, repo_group_id: e.repo_group_id, repo_id: e.repo_id, url:e.url}
     // }, () => {
     //   console.dir(e);
     // });
-    if (rg_name == null || repo_name == null ) {
+    if (repo_name == null ) {
       window.alert('Error - repo name not found in store');
       console.log(this.sortedRepos(this.sortColumn,this.ascending));
     } else {
-      this.$router.push(`repo/${rg_name}/${repo_name}/overview`, () => {
-        console.log(`RG_NAME: ${rg_name}`);
+      this.$router.push(`giants/${repo_name}/overview`, () => {
         console.log(`REPO_NAME: ${repo_name}`);
       });
     }

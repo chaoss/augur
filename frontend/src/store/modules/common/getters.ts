@@ -54,6 +54,20 @@ export default {
     })
     return items
   },
+  sortedGiantsRepos: (state:any) => (col: string, ascending: boolean) => {
+    if (state.cache.getGiantsRepos == undefined) {
+        return []
+    }
+    const items = [...state.cache.getGiantsRepos].sort((a,b) => {
+      if (a[col] > b[col]) {
+        return ascending ? 1 : -1
+      } else if (a[col] < b[col]) {
+        return ascending ? -1 : 1
+      }
+      return 0;
+    })
+    return items
+  },
   sortedReposInGroup: (state:any) => (group:any, col: string, ascending: boolean) => {
     if (state.cache.getRepos == undefined) {
         return []
