@@ -37,11 +37,13 @@ def create_routes(server):
             'begin_str': begin_str,
             'end_str': end_str
         })
+        data_str = results.to_json(orient="records", date_format='iso', date_unit='ms')
+        data = json.loads(data_str)
         
-        if len(results) < 1:
+        if len(data) < 1:
             return 0
         else:
-            return results[0]['issue_count']
+            return data[0]['issue_count']
     
     @try_func
     def helper_get_open_issues_with_timestamp_field_between(repo_id, field: str, begin: datetime.datetime, end: datetime.datetime) -> int:
@@ -63,11 +65,13 @@ def create_routes(server):
             'begin_str': begin_str,
             'end_str': end_str
         })
+        data_str = results.to_json(orient="records", date_format='iso', date_unit='ms')
+        data = json.loads(data_str)
         
-        if len(results) < 1:
+        if len(data) < 1:
             return 0
         else:
-            return results[0]['issue_count']
+            return data[0]['issue_count']
         
 
     @server.app.route('/{}/giants-project/repos'.format(server.api_version))
