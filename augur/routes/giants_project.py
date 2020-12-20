@@ -138,7 +138,7 @@ def create_routes(server):
     @try_func
     def get_repo_status(repo_id):
         reposSQL = s.sql.text("""
-            SELECT repo.repo_id, repo.repo_name, repo.url
+            SELECT repo.repo_id, repo.repo_name, repo.repo_git AS url
             FROM repo
             WHERE repo.repo_id = :repo_id
         """)
