@@ -6,6 +6,7 @@ import json
 from flask import Response
 import datetime
 import traceback
+from typing import Optional, Tuple
 
 def create_routes(server):
     
@@ -46,7 +47,7 @@ def create_routes(server):
             return data[0]['issue_count']
     
     @try_func
-    def helper_get_open_issues_with_timestamp_field_between(repo_id, field: str, period: Optional[Tuple[datetime.datetime, datetime.datetime]]) -> int:
+    def helper_get_open_issues_with_timestamp_field_between(repo_id, field: str, begin: datetime.datetime, end: datetime.datetime) -> int:
         begin_str = begin.strftime('%Y-%m-%d %H:%M:%S')
         end_str = end.strftime('%Y-%m-%d %H:%M:%S')
         
