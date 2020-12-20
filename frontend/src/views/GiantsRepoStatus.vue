@@ -37,7 +37,7 @@
                   Repo ID: {{ status.repo_id }}
                 </tr>
                 <tr>
-                  Repo URL: TODO
+                  Repo URL: {{ status.repo_url }}
                 </tr>
                 <tr>
                   Issues opened in the past week: {{ status.issues_created_past_week }}
