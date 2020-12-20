@@ -147,7 +147,7 @@ export default class Giants extends Vue{
   }
 
   onGitRepo (repo_id: number) {
-    this.$router.push(`giants/${repo_name}/status`, () => {
+    this.$router.push(`giants/${repo_id}/status`, () => {
       console.log(`REPO_ID: ${repo_id}`);
     });
   }
