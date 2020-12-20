@@ -106,7 +106,7 @@ import Spinner from '../components/Spinner.vue'
   },
 })
 
-export default class Giants extends Vue{
+export default class GiantsRepoStatus extends Vue{
   colors: string[] = ["#343A40", "#24a2b7", "#159dfb", "#FF3647", "#4736FF","#3cb44b","#ffe119","#f58231","#911eb4","#42d4f4","#f032e6"];
   testEndpoints: string[] = ['issuesClosed', 'codeChangesLines', 'issueNew'];
   testTimeframes: string[] = ['past 1 month', 'past 3 months', 'past 2 weeks'];
