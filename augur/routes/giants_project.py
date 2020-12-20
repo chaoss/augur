@@ -46,7 +46,7 @@ def create_routes(server):
             return data[0]['issue_count']
     
     @try_func
-    def helper_get_open_issues_with_timestamp_field_between(repo_id, field: str, begin: datetime.datetime, end: datetime.datetime) -> int:
+    def helper_get_open_issues_with_timestamp_field_between(repo_id, field: str, period: Optional[Tuple[datetime.datetime, datetime.datetime]]) -> int:
         begin_str = begin.strftime('%Y-%m-%d %H:%M:%S')
         end_str = end.strftime('%Y-%m-%d %H:%M:%S')
         
@@ -73,6 +73,27 @@ def create_routes(server):
         else:
             return data[0]['issue_count']
         
+    @try_func
+    def helper_get_author_of_most_commits(repo_id) -> Optional[Tuple[str, int]]:
+        authorCommitCountSQL = s.sql.text("""
+            SELECT
+                cmt_author_email
+                COUNT(*) as cmt_count
+            FROM commits
+            WHERE commits.repo_id = :repo_id
+            GROUP BY cmt_author_email
+            ORDER BY cmt_count
+        """)
+        results = pd.read_sql(authorCommitCountSQL, server.augur_app.database, params={
+            'repo_id': repo_id
+        })
+        data_str = results.to_json(orient="records", date_format="iso", date_unit="ms")
+        data = json.loads(data_str)
+        
+        if len(data) < 1:
+            return None
+        else:
+            return (data[0]['cmt_author_email'], data[0]['cmt_count'])
 
     @server.app.route('/{}/giants-project/repos'.format(server.api_version))
     def get_all_repo_ids_name_names():
@@ -117,6 +138,12 @@ def create_routes(server):
         data[0]['issues_created_past_year'] = issues_created_past_year
         data[0]['issues_closed_past_week'] = issues_closed_past_week
         data[0]['issues_closed_past_year'] = issues_closed_past_year
+        
+        author_of_most_commits = helper_get_author_of_most_commits(repo_id)
+        
+        if author_of_most_commits is not None:
+            data[0]['author_of_most_commits'] = author_of_most_commits[0]
+            data[0]['author_of_most_commits_count'] = author_of_most_commits[1]
         
         return Response(response=json.dumps(data),
                         status=200,
