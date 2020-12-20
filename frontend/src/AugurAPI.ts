@@ -17,6 +17,7 @@ export default class AugurAPI {
   getDownloadedGitRepos: any
   getRepos: any
   getRepoGroups: any
+  getGiantsRepos: any
   topInsights: any
   openRequests: number
   getMetricsStatus: any
