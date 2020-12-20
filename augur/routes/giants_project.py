@@ -78,7 +78,7 @@ def create_routes(server):
     def helper_get_author_of_most_commits(repo_id) -> Optional[Tuple[str, int]]:
         authorCommitCountSQL = s.sql.text("""
             SELECT
-                cmt_author_email
+                cmt_author_email,
                 COUNT(*) as cmt_count
             FROM commits
             WHERE commits.repo_id = :repo_id
