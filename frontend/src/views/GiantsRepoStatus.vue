@@ -14,15 +14,20 @@
     <div class="row">
       <div class="col">
         <div class="card card-small mb-4">
-          <div class="card-header border-bottom">
+          <div v-if="!loadedInfo" class="card-header border-bottom">
             <h6 class="m-0">Information on {{ $route.params.repo_id }}</h6>
           </div>
 
-          <d-card-body v-if="!loadedRepos">
+          <d-card-body v-if="!loadedInfo">
             <spinner></spinner>
           </d-card-body>
 
-          <div v-if="loadedRepos" class="card-body p-0 pb-3 text-center">
+          
+          <div v-if="loadedInfo" class="card-header border-bottom">
+            <h6 class="m-0">Information on {{ status.repo_name }}</h6>
+          </div>
+          
+          <div v-if="loadedInfo" class="card-body p-0 pb-3 text-center">
             <table class="table mb-0">
               <tbody>
                 aaaaaaaaaaaaa
@@ -78,10 +83,12 @@ export default class GiantsRepoStatus extends Vue{
   loadedInfo: boolean = false;
 
   loadGiantsStatus!:any;
+  status:any = null;
 
   created() {
 
-    this.loadGiantsStatus(this.$route.params.repo_id).then(() => {
+    this.loadGiantsStatus(this.$route.params.repo_id).then((status) => {
+      this.status = status[0]
       this.loadedInfo = true
     })
 
