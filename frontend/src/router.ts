@@ -252,6 +252,15 @@ const routes = [
           content: Giants,
         },
       },
+      {
+        path: ':repo_id/status',
+        name: 'status',
+        components: {
+          sidebar: MainSidebar,
+          navbar: MainNavbar,
+          content: GiantsRepoStatus,
+        },
+      },
     ],
   },
   

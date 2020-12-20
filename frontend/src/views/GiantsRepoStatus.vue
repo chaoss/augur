@@ -15,7 +15,7 @@
       <div class="col">
         <div class="card card-small mb-4">
           <div class="card-header border-bottom">
-            <h6 class="m-0">Currently Stored Repos</h6>
+            <h6 class="m-0">Information on {{ $route.params.repo_id }}</h6>
           </div>
 
           <d-card-body v-if="!loadedRepos">
@@ -146,10 +146,21 @@ export default class Giants extends Vue{
       }
   }
 
-  onGitRepo (repo_id: number) {
-    this.$router.push(`giants/${repo_name}/status`, () => {
-      console.log(`REPO_ID: ${repo_id}`);
-    });
+  onGitRepo (repo_name: String) {
+    // this.$router.push({
+    //   name: 'repo_overview',
+    //   params: {group:e.rg_name, repo:e.repo_name, repo_group_id: e.repo_group_id, repo_id: e.repo_id, url:e.url}
+    // }, () => {
+    //   console.dir(e);
+    // });
+    if (repo_name == null ) {
+      window.alert('Error - repo name not found in store');
+      console.log(this.sortedGiantsRepos(this.sortColumn,this.ascending));
+    } else {
+      this.$router.push(`giants/${repo_name}/overview`, () => {
+        console.log(`REPO_NAME: ${repo_name}`);
+      });
+    }
   }
 }
 
