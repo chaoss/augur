@@ -146,7 +146,6 @@ def create_routes(server):
         data_str = results.to_json(orient="records", date_format='iso', date_unit='ms')
 		# TODO: also add basic metric information like listed on https://github.com/zachs18/augur/issues/6
         data = json.loads(data_str)
-        print(data)
         
         now = datetime.datetime.now()
         week = datetime.timedelta(days=7)
