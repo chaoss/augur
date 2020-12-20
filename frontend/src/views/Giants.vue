@@ -155,7 +155,7 @@ export default class Giants extends Vue{
     // });
     if (repo_name == null ) {
       window.alert('Error - repo name not found in store');
-      console.log(this.sortedRepos(this.sortColumn,this.ascending));
+      console.log(this.sortedGiantsRepos(this.sortColumn,this.ascending));
     } else {
       this.$router.push(`giants/${repo_name}/overview`, () => {
         console.log(`REPO_NAME: ${repo_name}`);
