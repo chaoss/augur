@@ -168,6 +168,14 @@
       //   htmlBefore: '<i class="material-icons">assignment</i>',
       //   htmlAfter: '',
       // },
+      {
+        title: 'Giants-Project',
+        to: {
+          name: 'giants',
+        },
+        htmlBefore: '<i class="material-icons">assignment</i>',
+        htmlAfter: '',
+      },
     ];
     // state declared computed
     comparisonType!: string;
