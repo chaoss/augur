@@ -7,15 +7,75 @@ from flask import Response
 import datetime
 
 def create_routes(server):
+    
+    def try_func(func):
+        def f(*args, **kwargs):
+            try:
+                return func(*args, **kwargs)
+            except Exception as e:
+                print(e)
+                raise e
+    
+    @try_func
+    def helper_get_issues_with_timestamp_field_between(repo_id, field: str, begin: datetime.datetime, end: datetime.datetime) -> int:
+        begin_str = begin.strftime('%Y-%m-%d %H:%M:%S')
+        end_str = end.strftime('%Y-%m-%d %H:%M:%S')
+        
+        issueCountSQL = s.sql.text(f"""
+            SELECT
+                repo.repo_id,
+                COUNT(issue_id) as issue_count
+            FROM repo JOIN issues ON repo.repo_id = issues.repo_id
+            WHERE repo.repo_id = :repo_id
+            AND issues.{field} BETWEEN to_timestamp(:begin_str, 'YYYY-MM-DD HH24:MI:SS') AND to_timestamp(:end_str, 'YYYY-MM-DD HH24:MI:SS')
+            GROUP BY repo.repo_id
+        """)
+        results = pd.read_sql(issueCountSQL, server.augur_app.database, params={
+            'repo_id': repo_id,
+            'begin_str': begin_str,
+            'end_str': end_str
+        })
+        
+        if len(results) < 1:
+            return 0
+        else:
+            return results[0]['issue_count']
+    
+    @try_func
+    def helper_get_open_issues_with_timestamp_field_between(repo_id, field: str, begin: datetime.datetime, end: datetime.datetime) -> int:
+        begin_str = begin.strftime('%Y-%m-%d %H:%M:%S')
+        end_str = end.strftime('%Y-%m-%d %H:%M:%S')
+        
+        issueCountSQL = s.sql.text(f"""
+            SELECT
+                repo.repo_id,
+                COUNT(issue_id) as issue_count
+            FROM repo JOIN issues ON repo.repo_id = issues.repo_id
+            WHERE repo.repo_id = :repo_id
+            WHERE issues.closed_at IS NULL
+            AND issues.{field} BETWEEN to_timestamp(:begin_str, 'YYYY-MM-DD HH24:MI:SS') AND to_timestamp(:end_str, 'YYYY-MM-DD HH24:MI:SS')
+            GROUP BY repo.repo_id
+        """)
+        results = pd.read_sql(issueCountSQL, server.augur_app.database, params={
+            'repo_id': repo_id,
+            'begin_str': begin_str,
+            'end_str': end_str
+        })
+        
+        if len(results) < 1:
+            return 0
+        else:
+            return results[0]['issue_count']
+        
 
     @server.app.route('/{}/giants-project/repos'.format(server.api_version))
     def get_all_repo_ids_name_names():
-        repoGroupsSQL = s.sql.text("""
+        reposSQL = s.sql.text("""
             SELECT repo.repo_id, repo.repo_name
             FROM repo
             ORDER BY repo.repo_name
         """)
-        results = pd.read_sql(repoGroupsSQL, server.augur_app.database)
+        results = pd.read_sql(reposSQL, server.augur_app.database)
         data_str = results.to_json(orient="records", date_format='iso', date_unit='ms')
         #data = json.loads(data_str)
         #list_data = [item['repo_id'] for item in data]
@@ -25,18 +85,34 @@ def create_routes(server):
                         mimetype="application/json")
 
     @server.app.route('/{}/giants-project/status/<repo_id>'.format(server.api_version))
+    @try_func
     def get_repo_status(repo_id):
-        repoGroupsSQL = s.sql.text("""
-            SELECT *
+        reposSQL = s.sql.text("""
+            SELECT repo.repo_id, repo.repo_name
             FROM repo
             WHERE repo.repo_id = :repo_id
         """)
-        results = pd.read_sql(repoGroupsSQL, server.augur_app.database, params={'repo_id': repo_id})
+        results = pd.read_sql(reposSQL, server.augur_app.database, params={'repo_id': repo_id})
         data_str = results.to_json(orient="records", date_format='iso', date_unit='ms')
 		# TODO: also add basic metric information like listed on https://github.com/zachs18/augur/issues/6
         data = json.loads(data_str)
         
-        return Response(response=data_str,
+        now = datetime.datetime.now()
+        week = datetime.timedelta(days=7)
+        year = datetime.timedelta(days=365)
+        
+        issues_created_past_week = helper_get_issues_with_timestamp_field_between(repo_id, "created_at", now - week, now)
+        issues_created_past_year = helper_get_issues_with_timestamp_field_between(repo_id, "created_at", now - year, now)
+        
+        issues_closed_past_week = helper_get_issues_with_timestamp_field_between(repo_id, "closed_at", now - week, now)
+        issues_closed_past_year = helper_get_issues_with_timestamp_field_between(repo_id, "closed_at", now - year, now)
+        
+        data[0]['issues_created_past_week'] = issues_created_past_week
+        data[0]['issues_created_past_year'] = issues_created_past_year
+        data[0]['issues_closed_past_week'] = issues_closed_past_week
+        data[0]['issues_closed_past_year'] = issues_closed_past_year
+        
+        return Response(response=json.dumps(date),
                         status=200,
                         mimetype="application/json")
 
@@ -49,7 +125,7 @@ def create_routes(server):
             begin_date = this_week_begin.strftime('%Y-%m-%d %H:%M:%S')
             end_date = this_week_end.strftime('%Y-%m-%d %H:%M:%S')
             
-            repoGroupsSQL = s.sql.text("""
+            issueCountSQL = s.sql.text("""
                 SELECT
                     repo.repo_id,
                     COUNT(issue_id) as issue_count
@@ -58,7 +134,7 @@ def create_routes(server):
                 AND issues.created_at BETWEEN to_timestamp(:begin_date, 'YYYY-MM-DD HH24:MI:SS') AND to_timestamp(:end_date, 'YYYY-MM-DD HH24:MI:SS')
                 GROUP BY repo.repo_id
             """)
-            results = pd.read_sql(repoGroupsSQL, server.augur_app.database, params={
+            results = pd.read_sql(issueCountSQL, server.augur_app.database, params={
                 'repo_id': repo_id,
                 'begin_date': begin_date,
                 'end_date': end_date
