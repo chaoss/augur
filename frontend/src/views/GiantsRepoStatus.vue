@@ -87,7 +87,7 @@ export default class GiantsRepoStatus extends Vue{
 
   created() {
 
-    this.loadGiantsStatus(this.$route.params.repo_id).then((status) => {
+    this.loadGiantsStatus(this.$route.params.repo_id).then((status: any) => {
       this.status = status[0]
       this.loadedInfo = true
     })
