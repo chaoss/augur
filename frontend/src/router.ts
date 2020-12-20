@@ -255,7 +255,7 @@ const routes = [
       },
       {
         path: ':repo_id/status',
-        name: 'status',
+        name: 'giants_status',
         components: {
           sidebar: MainSidebar,
           navbar: MainNavbar,
