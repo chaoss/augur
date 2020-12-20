@@ -3,7 +3,7 @@
   <div class="main-content-container container-fluid px-4">
     <!-- Page Header -->
     <div class="page-header row no-gutters py-4">
-      <div class="col-12 col-sm-4 text-center text-sm-left mb-0">
+      <div class="col-12 col-sm-12 text-center text-sm-center mb-0">
         <span class="text-uppercase page-subtitle text-center">Viewing all</span>
         <h3 class="page-title text-center">Giants-Project</h3>
       </div>
