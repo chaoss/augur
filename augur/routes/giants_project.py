@@ -83,7 +83,7 @@ def create_routes(server):
             FROM commits
             WHERE commits.repo_id = :repo_id
             GROUP BY cmt_author_email
-            ORDER BY cmt_count
+            ORDER BY DESC cmt_count
         """)
         results = pd.read_sql(authorCommitCountSQL, server.augur_app.database, params={
             'repo_id': repo_id
