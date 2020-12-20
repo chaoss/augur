@@ -18,6 +18,7 @@ export default class AugurAPI {
   getRepos: any
   getRepoGroups: any
   getGiantsRepos: any
+  getGiantsStatus: any
   topInsights: any
   openRequests: number
   getMetricsStatus: any
@@ -43,7 +44,7 @@ export default class AugurAPI {
     this.topInsights = this.__EndpointFactory('top-insights')
     
     this.getGiantsRepos = this.__EndpointFactory('giants-project/repos')
-    this.getGiantsStatus = function(repo_id: number) {
+    this.getGiantsStatus = (repo_id: number) => {
       return this.__EndpointFactory("giants-project/" + repo_id + "/status")()
     }
 
