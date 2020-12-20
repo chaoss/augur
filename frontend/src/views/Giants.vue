@@ -28,13 +28,13 @@
                 <tr>
                   <th width="50%" scope="col" class="border-0" v-on:click="sortTable('repo_id')">
                     <div class="row">
-                      <div class="col col-9">Repo ID</div>
+                      <div class="co"l>Repo ID</div>
                       <div class="arrow" v-bind:class="ascending ? 'arrow_up' : 'arrow_down'" v-if="'repo_id' == sortColumn"></div>
                     </div>
                   </th>
                   <th width="50%" scope="col" class="border-0" v-on:click="sortTable('repo_name')">
                     <div class="row">
-                      <div class="col col-9">Repo Name</div>
+                      <div class="col">Repo Name</div>
                       <div class="arrow" v-bind:class="ascending ? 'arrow_up' : 'arrow_down'" v-if="'repo_name' == sortColumn"></div>
                     </div>
                   </th>
