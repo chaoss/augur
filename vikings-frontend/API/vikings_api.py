@@ -105,6 +105,43 @@ def create_app(test_config=None):
         return jsonify(data)
 
 
+    @app.route('/getcommits', methods=['POST'])
+    def getCommits():
+        repo_id=json.loads(request.data)
+        #repo_group_id=22002
+        conn=db.connectToDb()    # Create a cursor object
+        cur = conn.cursor()
+
+        
+        cur.execute('''
+                        SELECT 
+                        CAST(cmt_committer_date AS DATE), 
+                        COUNT(*) AS num_commit
+                        FROM augur_data.commits
+                        WHERE repo_id='''+str(repo_id)+''' GROUP BY CAST(cmt_committer_date AS DATE)
+                        ORDER BY CAST(cmt_committer_date AS DATE) ASC''')
+
+        commits=cur.fetchall()
+
+        cur.close()
+        conn.close()
+
+        dates=[]
+        num_commits=[]
+
+        for i in commits:
+
+            dates.append(str(i[0]))
+            num_commits.append(str(i[1]))
+            
+
+        cur.close()
+        conn.close()
+
+        together=[dates,num_commits]
+
+        print(together)
+        return jsonify(together)
 
 
 
