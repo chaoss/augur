@@ -5,6 +5,7 @@ import pandas as pd
 import json
 from flask import Response
 import datetime
+import traceback
 
 def create_routes(server):
     
@@ -13,7 +14,7 @@ def create_routes(server):
             try:
                 return func(*args, **kwargs)
             except Exception as e:
-                print(e)
+                traceback.print_exc()
                 raise e
         return f
     
@@ -113,7 +114,7 @@ def create_routes(server):
         data[0]['issues_closed_past_week'] = issues_closed_past_week
         data[0]['issues_closed_past_year'] = issues_closed_past_year
         
-        return Response(response=json.dumps(date),
+        return Response(response=json.dumps(data),
                         status=200,
                         mimetype="application/json")
 
