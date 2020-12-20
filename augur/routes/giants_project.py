@@ -54,13 +54,12 @@ def create_routes(server):
         issueCountSQL = s.sql.text(f"""
             SELECT
                 repo.repo_id,
-                repo.repo_url,
                 COUNT(issue_id) as issue_count
             FROM repo JOIN issues ON repo.repo_id = issues.repo_id
             WHERE repo.repo_id = :repo_id
             WHERE issues.closed_at IS NULL
             AND issues.{field} BETWEEN to_timestamp(:begin_str, 'YYYY-MM-DD HH24:MI:SS') AND to_timestamp(:end_str, 'YYYY-MM-DD HH24:MI:SS')
-            GROUP BY repo.repo_id, repo.repo_url
+            GROUP BY repo.repo_id
         """)
         results = pd.read_sql(issueCountSQL, server.augur_app.database, params={
             'repo_id': repo_id,
@@ -139,7 +138,7 @@ def create_routes(server):
     @try_func
     def get_repo_status(repo_id):
         reposSQL = s.sql.text("""
-            SELECT repo.repo_id, repo.repo_name
+            SELECT repo.repo_id, repo.repo_name, repo.repo_url
             FROM repo
             WHERE repo.repo_id = :repo_id
         """)
