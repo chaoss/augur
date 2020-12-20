@@ -4,8 +4,6 @@ from multiprocessing import Process, Queue
 import pandas as pd
 import sqlalchemy as s
 from workers.worker_base import Worker
-import numpy as np
-from datetime import date
 
 class ProfanityWorker(Worker):
     def __init__(self, config={}):
@@ -83,52 +81,17 @@ class ProfanityWorker(Worker):
         #self.register_task_completion(task, repo_id, 'fake_data')
 
         def checkText(textIn):
-            f = open('test.txt', 'r')
+            f = open('badwords.txt', 'r')
             profane = False
             for line in f:
                 textIn=str(textIn)
-                if(textIn.find(str(" "+line.strip().lower()+" "))!=-1):
+                if((" "):
                     profane = True
                     break
             return profane
 
-        def writeLog(lines):
-            logLines = []
-            logLines.append("##Profanity Check Log")
-            timeS = time.time()
-            logLines.append("#### Completed on " + date.today().strftime("%B %d, %Y"))
-            logLines.append("\n\n")
-            for line in lines:
-                logLines.append("\n\n")
-                logLines.append("###Profanity Found")
-                logLines.append("\n**Text**\n")
-                logLines.append(boldProfane(line['pr_body']))
-                logLines.append("\n\n##Repo ID: " + str(line['repo_id']))
-                logLines.append(("\n\n##Contributer ID: " + str(line['pr_augur_contributor_id'])))
-                logLines.append(("\n\n##Pull Request ID: " + str(line['pull_request_id'])))
-            
-            print("Test WriteLog")
-            self.logger.info("IN WRITELOG")
-
-            fname = "ProfanityReport" + str(time.time()) + ".md"
-            log_file = open(fname, "a")
-            for line in logLines:
-                log_file.write(line)
-            log_file.close()
-            # pull_request_id, repo_id, pr_augur_contributor_id, pull_request_id
-
-        def boldProfane(textIn):
-        # Boldens any profane strings within the string.
-
-            f = open('test.txt', 'r')
-            profane = False
-            for line in f:
-                if (textIn.find(str(" "+line.strip().lower()+" "))!=-1):
-                    textIn = textIn.lower().replace(line.lower(),"**" + line + "**")
-            return textIn
-
         messages = s.sql.text("""
-            SELECT *
+            SELECT pr_body
             FROM pull_requests
         """)
         
@@ -139,19 +102,18 @@ class ProfanityWorker(Worker):
         endTime = time.time()
         print("Query took "+str(endTime-startTime)+"Elements: "+str(len(result)))
         self.logger.info("Query took "+str(endTime-startTime)+"Elements: "+str(len(result)))
-        a = []
+
         i=0
         for row in result:
             i=i+1
             checkTime = time.time()
             if (checkText(row['pr_body'])):
                 self.logger.info("\n\n*****************************************\n\n"+row['pr_body'])
-                a.append(row)
             endcheckTime = time.time()
             print("Check time was " + str(endcheckTime-checkTime))
             # self.logger.info("Check time was " + str(endcheckTime-checkTime))
             # repo_id needs to be made into a string
             # self.logger.info("We checked the profanity model for repo: " + str(repo_id) + "\n")
         self.logger.info("whole check took " + str(time.time()-endTime)) 
-        writeLog(a)
 
+        
