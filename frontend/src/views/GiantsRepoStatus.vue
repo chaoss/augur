@@ -30,7 +30,33 @@
           <div v-if="loadedInfo" class="card-body p-0 pb-3 text-center">
             <table class="table mb-0">
               <tbody>
-                aaaaaaaaaaaaa
+                <tr>
+                  Repo Name: {{ status.repo_name }}
+                </tr>
+                <tr>
+                  Repo ID: {{ status.repo_id }}
+                </tr>
+                <tr>
+                  Repo URL: TODO
+                </tr>
+                <tr>
+                  Issues opened in the past week: {{ status.issues_created_past_week }}
+                </tr>
+                <tr>
+                  Issues opened in the past year: {{ status.issues_created_past_year }}
+                </tr>
+                <tr>
+                  Issues closed in the past week: {{ status.issues_closed_past_week }}
+                </tr>
+                <tr>
+                  Issues closed in the past year: {{ status.issues_closed_past_year }}
+                </tr>
+                <tr>
+                  Author of the most commits: {{ status.author_of_most_commits }} (with {{ status.author_of_most_commits_count }} commits)
+                </tr>
+                <tr>
+                  Author of the most lines added: {{ status.author_of_most_lines_added }} (with {{ status.author_of_most_lines_added_count }} lines added)
+                </tr>
               </tbody>
             </table>
           </div>
