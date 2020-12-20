@@ -237,6 +237,23 @@ const routes = [
     name: 'errors',
     component: Errors,
   },
+  
+  {
+    path: '/giants',
+    component: Default,
+    children: [
+      {
+        path: '',
+        name: 'giants',
+        components: {
+          sidebar: MainSidebar,
+          navbar: MainNavbar,
+          content: Giants,
+        },
+      },
+    ],
+  },
+  
   {
     path: '*',
     redirect: '/errors',
