@@ -33,5 +33,8 @@ We utilized the following resources throughout the course of the
 >  - [React Chartkick](https://chartkick.com/react)
 >  - [Augur API Documentation](https://oss-augur.readthedocs.io/en/dev/rest-api/api.html)
 
+#### API Streamlining
+When developing the graphs, we looked at the old vue frontend, and looked at what API calls were being made. Many of them, it seemed, were queries that failed, so we ended up removing them. Those that we didn't remove we included [here](https://github.com/malkrc/augur/blob/gophers-frontend/react/Insomnia_2020-12-17.json) in this file using the app [Insomnia](https://insomnia.rest/) to visualize and streamline the process. You can simply open the Insomnia app and import our data to see all of the calls that we made, changing or adding environment variables to access different repos if you choose to.
+
 ## Where to Go From Here
 We wanted to focus specifically on changing frontend frameworks (from Vue to React) and clean up the API calls already in place. Because of this, we felt it was beyond the scope of our project to implement every single feature that is currently available to Augur users. This also leaves room for your team to explore React and create things like the insights page and comparison functionality between repos.
