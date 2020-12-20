@@ -15,6 +15,7 @@ def create_routes(server):
             except Exception as e:
                 print(e)
                 raise e
+        return f
     
     @try_func
     def helper_get_issues_with_timestamp_field_between(repo_id, field: str, begin: datetime.datetime, end: datetime.datetime) -> int:
