@@ -271,7 +271,6 @@ export default {
         try {
             console.log("Attempting to load giants repo status...")
             console.log(context.state)
-            TODO
             return context.state.AugurAPI.getGiantsStatus(payload.repo_id).then((rgs: object[]) => {
                 console.log("Loaded giants repo status: ", rgs)
                 return rgs
