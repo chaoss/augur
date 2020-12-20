@@ -4,7 +4,7 @@
     <!-- Page Header -->
     <div class="page-header row no-gutters py-4">
       <div class="col-12 col-sm-12 text-center text-sm-center mb-0">
-        <span class="text-uppercase page-subtitle text-center">Viewing all</span>
+        <span class="text-uppercase page-subtitle text-center">Viewing</span>
         <h3 class="page-title text-center">Giants-Project</h3>
       </div>
     </div>
@@ -24,50 +24,8 @@
 
           <div v-if="loadedRepos" class="card-body p-0 pb-3 text-center">
             <table class="table mb-0">
-              <thead class="bg-light">
-                <tr>
-                  <th width="50%" scope="col" class="border-0" v-on:click="sortTable('repo_id')">
-                    <div class="row">
-                      <div class="col">Repo ID</div>
-                      <div class="arrow" v-bind:class="ascending ? 'arrow_up' : 'arrow_down'" v-if="'repo_id' == sortColumn"></div>
-                    </div>
-                  </th>
-                  <th width="50%" scope="col" class="border-0" v-on:click="sortTable('repo_name')">
-                    <div class="row">
-                      <div class="col">Repo Name</div>
-                      <div class="arrow" v-bind:class="ascending ? 'arrow_up' : 'arrow_down'" v-if="'repo_name' == sortColumn"></div>
-                    </div>
-                  </th>
-                </tr>
-              </thead>
               <tbody>
-                <tr v-for="repo in sortedGiantsRepos(sortColumn,ascending)" v-bind:item="repo" :key="repo.repo_id">
-                  <td width="50%">
-                    <a href="#" @click="onGitRepo(repo.repo_id)">{{ repo.repo_id }}</a>
-                  </td>
-                  <td width="50%">{{ repo.repo_name }}</td>
-                  <!-- <td>
-                    <div class="row">
-                      <button :id="'favorite'+index" class="nav-link col col-2" style="margin-left: 2rem; margin-right: 1rem; padding: 0;border: none; background: none;">
-                        <i class="material-icons" style="color:#007bff;">star_rate</i>
-                        <div class="item-icon-wrapper"></div>
-                      </button>
-                      <d-tooltip :target="'#favorite'+index"
-                                 container=".shards-demo--example--tooltip-01">
-                        Consider this repo group as a "favorite" and our workers will regulaly update its metrics' data before others
-                      </d-tooltip>
-                      <button :id="'add_compare'+index" class="nav-link col col-2" style="padding: 0;border: none; background: none;" @click="addComparedRepo(repo)">
-                        <i class="material-icons" style="color:#007bff;">library_add</i>
-                        <div class="item-icon-wrapper"></div>
-                      </button>
-                      <d-tooltip :target="'#add_compare'+index"
-                                 :triggers="['hover']"
-                                 container=".shards-demo--example--tooltip-01">
-                        Add this repo group to your current compared repos
-                      </d-tooltip>
-                    </div>
-                  </td> -->
-                </tr>
+                aaaaaaaaaaaaa
               </tbody>
             </table>
           </div>
@@ -91,7 +49,7 @@ import Spinner from '../components/Spinner.vue'
       'endpoint', // map `this.endpoint({...})` to `this.$store.dispatch('endpoint', {...})`
                   // uses: this.endpoint({endpoints: [], repos (optional): [], repoGroups (optional): []})
       'getRepoRelations',
-      'loadGiantsRepos'
+      'loadGiantsStatus'
     ]),
 
     ...mapActions('compare',[
@@ -117,50 +75,16 @@ export default class GiantsRepoStatus extends Vue{
   loadedGroups: boolean = false;
   loadedSparks: boolean = false;
 
-  loadedRepos: boolean = false;
+  loadedInfo: boolean = false;
 
-  ascending:boolean = true;
-  sortColumn: string ='repo_id';
-  getRepoRelations!: any
-  sortedGiantsRepos!:any
-  loadGiantsRepos!:any;
-
-  setBaseRepo!:any;
-  addComparedRepo!:any;
-
+  loadGiantsStatus!:any;
 
   created() {
 
-    this.loadGiantsRepos().then(() => {
-      this.loadedRepos = true
+    this.loadGiantsStatus($route.params.repo_id).then(() => {
+      this.loadedInfo = true
     })
 
-  }
-
-  sortTable(col: string) {
-      if (this.sortColumn === col) {
-        this.ascending = !this.ascending;
-      } else {
-        this.ascending = true;
-        this.sortColumn = col;
-      }
-  }
-
-  onGitRepo (repo_name: String) {
-    // this.$router.push({
-    //   name: 'repo_overview',
-    //   params: {group:e.rg_name, repo:e.repo_name, repo_group_id: e.repo_group_id, repo_id: e.repo_id, url:e.url}
-    // }, () => {
-    //   console.dir(e);
-    // });
-    if (repo_name == null ) {
-      window.alert('Error - repo name not found in store');
-      console.log(this.sortedGiantsRepos(this.sortColumn,this.ascending));
-    } else {
-      this.$router.push(`giants/${repo_name}/overview`, () => {
-        console.log(`REPO_NAME: ${repo_name}`);
-      });
-    }
   }
 }
 
