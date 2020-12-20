@@ -267,6 +267,19 @@ export default {
             throw error;
         }
     },
+    async loadGiantsStatus(context:any, payload:any){
+        try {
+            console.log("Attempting to load giants repo status...")
+            console.log(context.state)
+            TODO
+            return context.state.AugurAPI.getGiantsStatus(payload.repo_id).then((rgs: object[]) => {
+                console.log("Loaded giants repo status: ", rgs)
+                return rgs
+            });
+        } catch(error) {
+            throw error;
+        }
+    },
     async addRepo(context: any, payload: any) {
         return new Promise((resolve, reject) => {
             setTimeout(()=> {

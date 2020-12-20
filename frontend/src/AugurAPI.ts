@@ -43,6 +43,9 @@ export default class AugurAPI {
     this.topInsights = this.__EndpointFactory('top-insights')
     
     this.getGiantsRepos = this.__EndpointFactory('giants-project/repos')
+    this.getGiantsStatus = function(repo_id: number) {
+      return this.__EndpointFactory("giants-project/" + repo_id + "/status")()
+    }
 
     this.openRequests = 0
     this.getMetricsStatus = this.__EndpointFactory('metrics/status/filter')
