@@ -123,7 +123,7 @@ export default class Giants extends Vue{
   sortColumn: string ='repo_id';
   getRepoRelations!: any
   sortedGiantsRepos!:any
-  loadRepos!:any;
+  loadGiantsRepos!:any;
 
   setBaseRepo!:any;
   addComparedRepo!:any;
