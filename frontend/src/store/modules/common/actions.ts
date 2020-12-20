@@ -267,11 +267,11 @@ export default {
             throw error;
         }
     },
-    async loadGiantsStatus(context:any, payload:any){
+    async loadGiantsStatus(repo_id: number, context:any, payload:any){
         try {
             console.log("Attempting to load giants repo status...")
             console.log(context.state)
-            return context.state.AugurAPI.getGiantsStatus(payload.repo_id).then((rgs: object[]) => {
+            return context.state.AugurAPI.getGiantsStatus(repo_id).then((rgs: object[]) => {
                 console.log("Loaded giants repo status: ", rgs)
                 return rgs
             });
