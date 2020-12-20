@@ -4,7 +4,8 @@
     <!-- Page Header -->
     <div class="page-header row no-gutters py-4">
       <div class="col-12 col-sm-12 text-center text-sm-center mb-0">
-        <span class="text-uppercase page-subtitle text-center">Viewing</span>
+        <span v-if="!loadedInfo" class="text-uppercase page-subtitle text-center">Viewing {{ $route.params.repo_id }}</span>
+        <span v-if="loadedInfo" class="text-uppercase page-subtitle text-center">Viewing {{ status.repo_name }}</span>
         <h3 class="page-title text-center">Giants-Project</h3>
       </div>
     </div>
