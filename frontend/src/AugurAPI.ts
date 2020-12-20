@@ -45,7 +45,7 @@ export default class AugurAPI {
     
     this.getGiantsRepos = this.__EndpointFactory('giants-project/repos')
     this.getGiantsStatus = (repo_id: number) => {
-      return this.__EndpointFactory("giants-project/" + repo_id + "/status")()
+      return this.__EndpointFactory("giants-project/" + repo_id + "/status")(null, null)
     }
 
     this.openRequests = 0
