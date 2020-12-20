@@ -138,7 +138,7 @@ def create_routes(server):
     @try_func
     def get_repo_status(repo_id):
         reposSQL = s.sql.text("""
-            SELECT repo.repo_id, repo.repo_name, repo.url as repo_url
+            SELECT repo.repo_id, repo.repo_name, repo.url AS repo_url
             FROM repo
             WHERE repo.repo_id = :repo_id
         """)
@@ -146,6 +146,7 @@ def create_routes(server):
         data_str = results.to_json(orient="records", date_format='iso', date_unit='ms')
 		# TODO: also add basic metric information like listed on https://github.com/zachs18/augur/issues/6
         data = json.loads(data_str)
+        print(data)
         
         now = datetime.datetime.now()
         week = datetime.timedelta(days=7)
