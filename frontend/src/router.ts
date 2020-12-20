@@ -32,6 +32,7 @@ import InspectInsight from './views/InspectInsight.vue';
 import RiskMetrics from "@/views/RiskMetrics.vue";
 import NProgress from "nprogress";
 import SlackConfig from './views/SlackConfig.vue';
+import Giants from './views/Giants.vue';
 
 const routes = [
   {
