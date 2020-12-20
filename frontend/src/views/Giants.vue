@@ -28,7 +28,7 @@
                 <tr>
                   <th width="50%" scope="col" class="border-0" v-on:click="sortTable('repo_id')">
                     <div class="row">
-                      <div class="co"l>Repo ID</div>
+                      <div class="col">Repo ID</div>
                       <div class="arrow" v-bind:class="ascending ? 'arrow_up' : 'arrow_down'" v-if="'repo_id' == sortColumn"></div>
                     </div>
                   </th>
