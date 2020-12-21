@@ -17,7 +17,7 @@ export class GroupComponent implements OnInit {
   repoGroupName;
   repoList;
 
-  constructor(private activatedRoute: ActivatedRoute, private repoInfoService: RepoInfoService) { 
+  constructor(private activatedRoute: ActivatedRoute, private repoInfoService: RepoInfoService, private router: Router) { 
     this.repoGroupId = this.activatedRoute.snapshot.params['rgId'];
   }
 
@@ -28,6 +28,10 @@ export class GroupComponent implements OnInit {
   getReposInGroup(): void {
     this.repoInfoService.getReposInGroup(this.repoGroupId).subscribe(data => {
       this.repoList = data;
+
+      if(data.length == 0){
+        this.router.navigate(["pagenotfound"]);
+      }
       this.repoInfoService.getGroups().subscribe(data => {
         for(let i=0;i<data.length;i++){
           if(data[i].repo_group_id == this.repoGroupId){

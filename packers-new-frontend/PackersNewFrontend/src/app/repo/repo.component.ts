@@ -4,7 +4,7 @@ import { ActivatedRoute } from '@angular/router';
 
 import { RepoInfoService } from 'src/app/repo-info.service'
 import { Metric } from 'src/app/reposInfo';
-
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-repo',
@@ -22,13 +22,18 @@ export class RepoComponent implements OnInit {
   linesAddedMetric: Metric = Metric.linesAdded;
 
 
-  constructor(private activatedRoute: ActivatedRoute, private repoInfoService: RepoInfoService) {
+  constructor(private activatedRoute: ActivatedRoute, private repoInfoService: RepoInfoService, private router: Router) {
    }
 
    ngOnInit(): void {
     this.repoId = this.activatedRoute.snapshot.params['repoId'];
     this.repoInfoService.getRepoCodeChanges(this.repoId)
-    .subscribe(res => this.repoName = res[0].repo_name);
+    .subscribe(res => {
+      if(res.length == 0){
+        this.router.navigate(["pagenotfound"]);
+      }
+      this.repoName = res[0].repo_name;
+    });
   }
 
 }

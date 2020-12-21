@@ -5,6 +5,7 @@ import { DashboardComponent } from 'src/app/dashboard/dashboard.component';
 import { LineGraphComponent } from './line-graph/line-graph.component';
 import { GroupComponent } from 'src/app/group/group.component';
 import { RepoComponent } from 'src/app/repo/repo.component';
+import { PagenotfoundComponent } from 'src/app/pagenotfound/pagenotfound.component';
 
 const routes: Routes = [
   {
@@ -18,6 +19,10 @@ const routes: Routes = [
   {
     path: "repoInfo/:repoId",
     component: RepoComponent,
+  },
+  {
+    path: "**",
+    component: PagenotfoundComponent,
   }
 ];
 

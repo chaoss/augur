@@ -10,6 +10,7 @@ import { DashboardComponent } from './dashboard/dashboard.component';
 import { LineGraphComponent } from './line-graph/line-graph.component';
 import { GroupComponent } from './group/group.component';
 import { RepoComponent } from './repo/repo.component';
+import { PagenotfoundComponent } from './pagenotfound/pagenotfound.component';
 
 @NgModule({
   declarations: [
@@ -17,7 +18,8 @@ import { RepoComponent } from './repo/repo.component';
     DashboardComponent,
     LineGraphComponent,
     GroupComponent,
-    RepoComponent
+    RepoComponent,
+    PagenotfoundComponent
   ],
   imports: [
     BrowserModule,
