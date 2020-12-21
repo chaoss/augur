@@ -42,7 +42,7 @@ export class ReposComponent implements OnInit {
     const customheaders= new HttpHeaders()
           .set('Content-Type', 'application/json');
 
-      this.http.post("http://vikings.sociallycompute.io:5000/getrepos",JSON.stringify(repo_group_id), {headers: customheaders}).subscribe(
+      this.http.post("http://localhost:5000/getrepos",JSON.stringify(repo_group_id), {headers: customheaders}).subscribe(
       //this.http.get("http://localhost:5000/getrepos", {headers: customheaders}).subscribe(
       response=> {
         console.log(response)
