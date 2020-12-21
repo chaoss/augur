@@ -83,7 +83,7 @@ class ProfanityWorker(Worker):
         #self.register_task_completion(task, repo_id, 'fake_data')
 
         def checkText(textIn):
-            f = open('test.txt', 'r')
+            f = open('badwords.txt', 'r')
             profane = False
             for line in f:
                 textIn=str(textIn)
@@ -93,6 +93,8 @@ class ProfanityWorker(Worker):
             return profane
 
         def writeLog(lines):
+            #-Should we change this function name to writeReports
+            self.logger.info("Writing Profanity Report")
             logLines = []
             logLines.append("##Profanity Check Log")
             timeS = time.time()
@@ -107,8 +109,8 @@ class ProfanityWorker(Worker):
                 logLines.append(("\n\n##Contributer ID: " + str(line['pr_augur_contributor_id'])))
                 logLines.append(("\n\n##Pull Request ID: " + str(line['pull_request_id'])))
             
-            print("Test WriteLog")
-            self.logger.info("IN WRITELOG")
+            #*print("Test WriteLog")
+            #*self.logger.info("IN WRITELOG")
 
             fname = "ProfanityReport" + str(time.time()) + ".md"
             log_file = open(fname, "a")
@@ -119,9 +121,10 @@ class ProfanityWorker(Worker):
 
         def boldProfane(textIn):
         # Boldens any profane strings within the string.
+        #-Do we need this function since it does not seem to be working?
 
-            f = open('test.txt', 'r')
-            profane = False
+            f = open('badwords.txt', 'r')
+            #*profane = False
             for line in f:
                 if (textIn.find(str(" "+line.strip().lower()+" "))!=-1):
                     textIn = textIn.lower().replace(line.lower(),"**" + line + "**")
@@ -131,27 +134,28 @@ class ProfanityWorker(Worker):
             SELECT *
             FROM pull_requests
         """)
-        
-        startTime = time.time()
+        self.logger.info("Querying database for pull requests")
+        #*startTime = time.time()
 
         result = self.db.execute(messages).fetchall()
         
-        endTime = time.time()
-        print("Query took "+str(endTime-startTime)+"Elements: "+str(len(result)))
-        self.logger.info("Query took "+str(endTime-startTime)+"Elements: "+str(len(result)))
+        #*endTime = time.time()
+        #*print("Query took "+str(endTime-startTime)+"Elements: "+str(len(result)))
+        #*self.logger.info("Query took "+str(endTime-startTime)+"Elements: "+str(len(result)))
+        self.logger.info("Searching for vulgarity in pull requests")
         a = []
-        i=0
+        #*i=0
         for row in result:
-            i=i+1
-            checkTime = time.time()
+            #*i=i+1
+            #*checkTime = time.time()
             if (checkText(row['pr_body'])):
-                self.logger.info("\n\n*****************************************\n\n"+row['pr_body'])
+                #*self.logger.info("\n\n*****************************************\n\n"+row['pr_body'])
                 a.append(row)
-            endcheckTime = time.time()
-            print("Check time was " + str(endcheckTime-checkTime))
-            # self.logger.info("Check time was " + str(endcheckTime-checkTime))
-            # repo_id needs to be made into a string
-            # self.logger.info("We checked the profanity model for repo: " + str(repo_id) + "\n")
-        self.logger.info("whole check took " + str(time.time()-endTime)) 
+            #*endcheckTime = time.time()
+            #*print("Check time was " + str(endcheckTime-checkTime))
+            #*self.logger.info("Check time was " + str(endcheckTime-checkTime))
+            #*repo_id needs to be made into a string
+            #*self.logger.info("We checked the profanity model for repo: " + str(repo_id) + "\n")
+        #*self.logger.info("whole check took " + str(time.time()-endTime))
         writeLog(a)
 
