@@ -1,6 +1,18 @@
-<ul>
-    <li *ngFor="let repoGroup of repoGroups;">
-        
-        <a [routerLink]="['/group',repoGroup.repo_group_id]">{{repoGroup.rg_name}}</a>
-    </li>
-</ul>
+<div class="m-2">
+<h1>Currently Stored Repo Groups</h1>
+<table class="table">
+    <th>Repo Group Name</th>
+    <th>Description</th>
+    <th data-mdb-sort="false">Last modified</th>
+    <tr *ngFor="let repoGroup of repoGroups;">
+        <td><a [routerLink]="['/group',repoGroup.repo_group_id]">{{repoGroup.rg_name}}</a></td>
+        <td>{{repoGroup.rg_description}}</td>
+        <td>{{repoGroup.rg_last_modified}}</td>
+    </tr>
+</table>
+<div class="container" *ngIf="!repoGroups">
+    <div class="spinner-border" role="status">
+        <span class="sr-only">Loading...</span>
+    </div>
+</div>
+</div>

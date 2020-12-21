@@ -14,3 +14,8 @@
     [curve]="curve"
     [xAxisTickFormatting]="xAxisTickFormatting">
 </ngx-charts-line-chart> 
+<div class="container" *ngIf="!lineGraphData">
+    <div class="spinner-border" role="status">
+        <span class="sr-only">Loading...</span>
+    </div>
+</div>
