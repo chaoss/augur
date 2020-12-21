@@ -14,13 +14,13 @@ Can be changed to any augur backend.
 
 ## New features not included
 
-Support for comparing two repos at the same time.
-Support for more metrics using different types of graphs (bar/pie).
-More robust error checking to avoid empty graphs or support for empty repo groups.
+- Support for comparing two repos at the same time.
+- Support for more metrics using different types of graphs (bar/pie).
+- More robust error checking to avoid empty graphs or support for empty repo groups.
 
 ## Challenges for augur development
 
-Data given by api relating to time wasn't evenly dispersed (x axis time gap between each data point varied).
-Api documentation was sometimes confusing.
-Current zephyr frontend did not work and was difficult to compare to.
-Augur api was slow to respond at times.
+- Data given by api relating to time wasn't evenly dispersed (x axis time gap between each data point varied).
+- Api documentation was sometimes confusing.
+- Current zephyr frontend did not work and was difficult to compare to.
+- Augur api was slow to respond at times.
