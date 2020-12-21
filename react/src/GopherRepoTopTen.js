@@ -14,7 +14,6 @@ class GopherRepoTopTen extends Component{
     getData(){
         var { items } = this.state;
         var d = {};
-        
         items.map((item)=>{
             var ins = item.additions
             if (!(item.cmt_author_email in d)) d[item.cmt_author_email]=0;

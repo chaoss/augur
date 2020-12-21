@@ -17,9 +17,7 @@ class GopherRepoGroupGraphs extends Component{
     getData(){
         var { items } = this.state;
         var d = {};
-        var total =0;
         items.map((item, total)=>{
-            // total = total + item.additions - item.deletions;
           d[item.cmt_author_date] = item.additions;
         })
         return d;
@@ -38,7 +36,6 @@ class GopherRepoGroupGraphs extends Component{
                 items: json,
             })
         });
-        
     }
 
     render(){
@@ -58,32 +55,14 @@ class GopherRepoGroupGraphs extends Component{
                     unit: 'year'
                 }
             }]
-        }}} width="80%" data={this.getData()} max={500} download={true} />
-                    {items.map(item=>(
-                        <tr key={item.cmt_author_email}>
-                            
-                        </tr>
-                    ))}
+        }}} width="80%" data={this.getData()} download={true} points={false}/>
                     </Container>
                 <GopherRepoTopTen></GopherRepoTopTen>
                 <GopherRepoPullRequest />
                 </div>
                 
             );
-
-
-
-        //     <Card style={{ width: '18rem' }}>
-        //     <Card.Body>
-        //         <Card.Title>Repo Name</Card.Title>
-        //         <Card.Img variant="top" src="holder.js/100px180" />
-        //         <Card.Text>
-        //             Repo info, pulled from API
-        //         </Card.Text>
-        //         <Button variant="primary">Go somewhere</Button>
-        //     </Card.Body>
-        // </Card>);
-                    }
+        }
         
     }
     

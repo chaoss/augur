@@ -14,8 +14,6 @@ class GopherRepoPullRequest extends Component{
     getData(){
         var { items } = this.state;
         var d = {};
-        console.log(items);
-        console.log(window.location.pathname.split('/')[2]);
         items.map((item)=>{
             d[item.date] = item.pull_requests;
         })
@@ -55,26 +53,11 @@ class GopherRepoPullRequest extends Component{
                             unit: 'year'
                         }
                     }]
-                    
                     }}} data={this.getData()} download={true} />
                     </Container>
                 </div>
-                
-        );
-
-
-
-        //     <Card style={{ width: '18rem' }}>
-        //     <Card.Body>
-        //         <Card.Title>Repo Name</Card.Title>
-        //         <Card.Img variant="top" src="holder.js/100px180" />
-        //         <Card.Text>
-        //             Repo info, pulled from API
-        //         </Card.Text>
-        //         <Button variant="primary">Go somewhere</Button>
-        //     </Card.Body>
-        // </Card>);
-                    }
+            );
+        }
         
     }
     
