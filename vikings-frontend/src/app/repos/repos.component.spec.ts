@@ -6,7 +6,7 @@ describe('ReposComponent', () => {
   let component: ReposComponent;
   let fixture: ComponentFixture<ReposComponent>;
 
-  beforeEach(async(() => {
+  beforeEach(async(() => { 
     TestBed.configureTestingModule({
       declarations: [ ReposComponent ]
     })
