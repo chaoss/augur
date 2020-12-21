@@ -72,8 +72,7 @@ def create_routes(server):
             return None
         else:
             return (data[0]['cmt_author_email'], data[0]['cmt_count'])
-        
-    @try_func
+
     def helper_get_author_of_most_lines_added(repo_id) -> Optional[Tuple[str, int]]:
         authorCommitCountSQL = s.sql.text("""
             SELECT
