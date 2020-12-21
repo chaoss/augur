@@ -1,4 +1,7 @@
-<div class="flex-container">
+<div class="container">
+    <h1>Metrics for {{repoName}}</h1>
+</div>
+<div class="flex-container m-2">
     <div class="flex-child"><app-line-graph [repoId]="repoId" [metric]="commitMetric"></app-line-graph></div>
     <div class="flex-child"><app-line-graph [repoId]="repoId" [metric]="pullRequestMetric"></app-line-graph></div>
     <div class="flex-child"><app-line-graph [repoId]="repoId" [metric]="committersMetric"></app-line-graph></div>

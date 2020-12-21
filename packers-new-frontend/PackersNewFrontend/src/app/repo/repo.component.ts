@@ -14,6 +14,7 @@ import { Metric } from 'src/app/reposInfo';
 export class RepoComponent implements OnInit {
 
   repoId: number;
+  repoName: string;
 
   commitMetric: Metric = Metric.commits;
   pullRequestMetric: Metric = Metric.pullRequests;
@@ -26,6 +27,8 @@ export class RepoComponent implements OnInit {
 
    ngOnInit(): void {
     this.repoId = this.activatedRoute.snapshot.params['repoId'];
+    this.repoInfoService.getRepoCodeChanges(this.repoId)
+    .subscribe(res => this.repoName = res[0].repo_name);
   }
 
 }

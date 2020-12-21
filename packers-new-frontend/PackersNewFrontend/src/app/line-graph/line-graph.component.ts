@@ -75,7 +75,7 @@ export class LineGraphComponent implements OnInit {
   *******************************************************/
   getRepoCodeChanges(): void { //west
     this.repoInfoService.getRepoCodeChanges(this.repoId).subscribe(data => {
-      console.log(data);
+      //console.log(data);
 
       var dates = data.map(r => r.date);
       var counts = data.map(r => r.commit_count);
@@ -90,7 +90,7 @@ export class LineGraphComponent implements OnInit {
 
       this.yAxisLabel = "Commits";
 
-      console.log(this.lineGraphData);
+      //console.log(this.lineGraphData);
       });
   }
 
@@ -107,7 +107,7 @@ export class LineGraphComponent implements OnInit {
   getRepoPullRequests(): void {
     
     this.repoInfoService.getRepoPullRequests(this.repoId).subscribe(data => {
-      console.log(data);
+      //console.log(data);
 
       var dates = data.map(r => r.date);
       var counts = data.map(r => r.pull_requests);
@@ -122,13 +122,13 @@ export class LineGraphComponent implements OnInit {
 
       this.yAxisLabel = "Pull Requests";
 
-      console.log(this.lineGraphData);
+      //console.log(this.lineGraphData);
       });
   }
 
   getRepoCommitters(): void {
     this.repoInfoService.getRepoCommitters(this.repoId).subscribe(data => {
-      console.log(data);
+      //console.log(data);
 
       var dates = data.map(r => r.date);
       var counts = data.map(r => r.count);
@@ -144,13 +144,13 @@ export class LineGraphComponent implements OnInit {
 
       this.yAxisLabel = "Committers";
 
-      console.log(this.lineGraphData);
+      //console.log(this.lineGraphData);
       });
   }
 
   getlinesAdded(): void {
     this.repoInfoService.getlinesAdded(this.repoId).subscribe(data => {
-      console.log(data);
+      //console.log(data);
 
       var dates = data.map(r => r.date);
       var counts = data.map(r => r.added);
@@ -165,7 +165,7 @@ export class LineGraphComponent implements OnInit {
 
       this.yAxisLabel = "Lines Added";
 
-      console.log(this.lineGraphData);
+      //console.log(this.lineGraphData);
       });
   }
 
