@@ -9,17 +9,23 @@ import traceback
 from typing import Optional, Tuple
 
 def create_routes(server):
-    
-    def try_func(func):
-        def f(*args, **kwargs):
-            try:
-                return func(*args, **kwargs)
-            except Exception as e:
-                traceback.print_exc()
-                raise e
-        return f
-    
-    @try_func
+
+    @server.app.route('/{}/giants-project/repos'.format(server.api_version))
+    def get_all_repo_ids_and_names():
+        reposSQL = s.sql.text("""
+            SELECT repo.repo_id, repo.repo_name
+            FROM repo
+            ORDER BY repo.repo_name
+        """)
+        results = pd.read_sql(reposSQL, server.augur_app.database)
+        data_str = results.to_json(orient="records", date_format='iso', date_unit='ms')
+        #data = json.loads(data_str)
+        #list_data = [item['repo_id'] for item in data]
+        #list_data_str = json.dumps(list_data)
+        return Response(response=data_str,
+                        status=200,
+                        mimetype="application/json")
+
     def helper_get_issues_with_timestamp_field_between(repo_id, field: str, begin: datetime.datetime, end: datetime.datetime) -> int:
         begin_str = begin.strftime('%Y-%m-%d %H:%M:%S')
         end_str = end.strftime('%Y-%m-%d %H:%M:%S')
@@ -45,36 +51,7 @@ def create_routes(server):
             return 0
         else:
             return data[0]['issue_count']
-    
-    @try_func
-    def helper_get_open_issues_with_timestamp_field_between(repo_id, field: str, begin: datetime.datetime, end: datetime.datetime) -> int:
-        begin_str = begin.strftime('%Y-%m-%d %H:%M:%S')
-        end_str = end.strftime('%Y-%m-%d %H:%M:%S')
-        
-        issueCountSQL = s.sql.text(f"""
-            SELECT
-                repo.repo_id,
-                COUNT(issue_id) as issue_count
-            FROM repo JOIN issues ON repo.repo_id = issues.repo_id
-            WHERE repo.repo_id = :repo_id
-            WHERE issues.closed_at IS NULL
-            AND issues.{field} BETWEEN to_timestamp(:begin_str, 'YYYY-MM-DD HH24:MI:SS') AND to_timestamp(:end_str, 'YYYY-MM-DD HH24:MI:SS')
-            GROUP BY repo.repo_id
-        """)
-        results = pd.read_sql(issueCountSQL, server.augur_app.database, params={
-            'repo_id': repo_id,
-            'begin_str': begin_str,
-            'end_str': end_str
-        })
-        data_str = results.to_json(orient="records", date_format='iso', date_unit='ms')
-        data = json.loads(data_str)
-        
-        if len(data) < 1:
-            return 0
-        else:
-            return data[0]['issue_count']
-        
-    @try_func
+
     def helper_get_author_of_most_commits(repo_id) -> Optional[Tuple[str, int]]:
         authorCommitCountSQL = s.sql.text("""
             SELECT
@@ -118,24 +95,7 @@ def create_routes(server):
         else:
             return (data[0]['cmt_author_email'], data[0]['line_added_count'])
 
-    @server.app.route('/{}/giants-project/repos'.format(server.api_version))
-    def get_all_repo_ids_name_names():
-        reposSQL = s.sql.text("""
-            SELECT repo.repo_id, repo.repo_name
-            FROM repo
-            ORDER BY repo.repo_name
-        """)
-        results = pd.read_sql(reposSQL, server.augur_app.database)
-        data_str = results.to_json(orient="records", date_format='iso', date_unit='ms')
-        #data = json.loads(data_str)
-        #list_data = [item['repo_id'] for item in data]
-        #list_data_str = json.dumps(list_data)
-        return Response(response=data_str,
-                        status=200,
-                        mimetype="application/json")
-
     @server.app.route('/{}/giants-project/status/<repo_id>'.format(server.api_version))
-    @try_func
     def get_repo_status(repo_id):
         reposSQL = s.sql.text("""
             SELECT repo.repo_id, repo.repo_name, repo.repo_git AS url
