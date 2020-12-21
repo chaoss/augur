@@ -32,12 +32,11 @@ def create_routes(server):
         
         issueCountSQL = s.sql.text(f"""
             SELECT
-                repo.repo_id,
                 COUNT(issue_id) as issue_count
-            FROM repo JOIN issues ON repo.repo_id = issues.repo_id
-            WHERE repo.repo_id = :repo_id
+            FROM issues
+            WHERE issues.repo_id = :repo_id
             AND issues.{field} BETWEEN to_timestamp(:begin_str, 'YYYY-MM-DD HH24:MI:SS') AND to_timestamp(:end_str, 'YYYY-MM-DD HH24:MI:SS')
-            GROUP BY repo.repo_id
+            GROUP BY issues.repo_id
         """)
         results = pd.read_sql(issueCountSQL, server.augur_app.database, params={
             'repo_id': repo_id,
