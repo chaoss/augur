@@ -5,6 +5,12 @@ import GopherRepoTopTen from './GopherRepoTopTen';
 import 'chart.js';
 import GopherRepoGroup from './GopherRepoGroup';
 import GopherRepoPullRequest     from './GopherRepoPullRequest';
+import GopherRepoPullRequestAccepted     from './GopherRepoPullRequestAccepted';
+import GopherRepoPullRequestDeclined from './GopherRepoPullRequestDeclined';
+import GopherRepoLicenseCoverage from './GopherRepoLicenseCoverage';
+import GopherRepoIssues from './GopherRepoIssues';
+import GopherRepoIssuesOpened from './GopherRepoIssuesOpened';
+import GopherRepoIssuesClosed from './GopherRepoIssuesClosed';
 class GopherRepoGroupGraphs extends Component{
     constructor(props){
         super(props);
@@ -19,8 +25,13 @@ class GopherRepoGroupGraphs extends Component{
         var d = {};
         var total =0;
         items.map((item, total)=>{
-            // total = total + item.additions - item.deletions;
-          d[item.cmt_author_date] = item.additions;
+            var parts = item.cmt_author_date.split('-');
+            if(parts[0] in d) {
+                d[parts[0]] += item.additions;
+            }
+            else {
+                d[parts[0]] = item.additions;
+            }
         })
         return d;
       }
@@ -50,6 +61,7 @@ class GopherRepoGroupGraphs extends Component{
             return (
                 <div className="GopherRepoGroupGraphs">
                     <h1>Graphs:</h1>
+                    <GopherRepoLicenseCoverage></GopherRepoLicenseCoverage>
                     <Container>
                     <LineChart library={{scales: {
             xAxes: [{
@@ -58,7 +70,7 @@ class GopherRepoGroupGraphs extends Component{
                     unit: 'year'
                 }
             }]
-        }}} width="80%" data={this.getData()} max={500} download={true} />
+        }}} width="80%" data={this.getData()} download={true} title={'Lines Changed / Year'}/>
                     {items.map(item=>(
                         <tr key={item.cmt_author_email}>
                             
@@ -66,7 +78,12 @@ class GopherRepoGroupGraphs extends Component{
                     ))}
                     </Container>
                 <GopherRepoTopTen></GopherRepoTopTen>
-                <GopherRepoPullRequest />
+                <GopherRepoPullRequest></GopherRepoPullRequest>
+                <GopherRepoPullRequestAccepted></GopherRepoPullRequestAccepted>
+                <GopherRepoPullRequestDeclined></GopherRepoPullRequestDeclined>
+                <GopherRepoIssues></GopherRepoIssues>
+                <GopherRepoIssuesOpened></GopherRepoIssuesOpened>
+                <GopherRepoIssuesClosed></GopherRepoIssuesClosed>
                 </div>
                 
             );
