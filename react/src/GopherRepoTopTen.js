@@ -46,9 +46,9 @@ class GopherRepoTopTen extends Component{
         else {
             return (
                 <div className="GopherRepoGroupGraphs">
-                    <h1>Graphs:</h1>
+                    <h1></h1>
                     <Container>
-                    <BarChart width="80%"  data={this.getData()} download={true} />
+                    <BarChart width="80%"  data={this.getData()} download={true} title={'Line Changed / Author'}/>
                     </Container>
                 </div>
                 
