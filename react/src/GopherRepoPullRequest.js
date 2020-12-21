@@ -55,22 +55,8 @@ class GopherRepoPullRequest extends Component{
                     <LineChart width="80%" data={this.getData()} download={true} title={'Pull Requests / Year'}/>
                     </Container>
                 </div>
-                
-        );
-
-
-
-        //     <Card style={{ width: '18rem' }}>
-        //     <Card.Body>
-        //         <Card.Title>Repo Name</Card.Title>
-        //         <Card.Img variant="top" src="holder.js/100px180" />
-        //         <Card.Text>
-        //             Repo info, pulled from API
-        //         </Card.Text>
-        //         <Button variant="primary">Go somewhere</Button>
-        //     </Card.Body>
-        // </Card>);
-                    }
+            );
+        }
         
     }
     

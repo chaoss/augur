@@ -23,7 +23,6 @@ class GopherRepoGroupGraphs extends Component{
     getData(){
         var { items } = this.state;
         var d = {};
-        var total =0;
         items.map((item, total)=>{
             var parts = item.cmt_author_date.split('-');
             if(parts[0] in d) {
@@ -49,7 +48,6 @@ class GopherRepoGroupGraphs extends Component{
                 items: json,
             })
         });
-        
     }
 
     render(){
@@ -87,20 +85,7 @@ class GopherRepoGroupGraphs extends Component{
                 </div>
                 
             );
-
-
-
-        //     <Card style={{ width: '18rem' }}>
-        //     <Card.Body>
-        //         <Card.Title>Repo Name</Card.Title>
-        //         <Card.Img variant="top" src="holder.js/100px180" />
-        //         <Card.Text>
-        //             Repo info, pulled from API
-        //         </Card.Text>
-        //         <Button variant="primary">Go somewhere</Button>
-        //     </Card.Body>
-        // </Card>);
-                    }
+        }
         
     }
     
