@@ -41,7 +41,7 @@ export class AnalysisComponent implements OnInit {
       const customheaders= new HttpHeaders()
             .set('Content-Type', 'application/json');
   
-        this.http.post("http://localhost:5000/getcommits",JSON.stringify(repo_id), {headers: customheaders}).subscribe(
+        this.http.post("http://vikings.sociallycompute.io:5000/getcommits",JSON.stringify(repo_id), {headers: customheaders}).subscribe(
 
         response=> {
           console.log(response)

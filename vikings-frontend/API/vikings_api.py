@@ -54,7 +54,9 @@ def create_app(test_config=None):
         cur.close()
         conn.close()
 
-        return jsonify(data)
+        resp = flask.Response(jsonify(data))
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        return resp
 
 
 
