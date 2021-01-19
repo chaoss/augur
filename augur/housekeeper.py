@@ -27,6 +27,7 @@ class Housekeeper:
         self._processes = []
         self.augur_logging = augur_app.logging
         self.jobs = deepcopy(augur_app.config.get_value("Housekeeper", "jobs"))
+        self.update_redirects = deepcopy(augur_app.config.get_value("Housekeeper", "update_redirects"))
         self.broker_host = augur_app.config.get_value("Server", "host")
         self.broker_port = augur_app.config.get_value("Server", "port")
         self.broker = broker
@@ -45,6 +46,10 @@ class Housekeeper:
         """)
         rs = pd.read_sql(repoUrlSQL, self.db, params={})
         all_repos = rs['repo_git'].values.tolist()
+
+        # If enabled, updates all redirects of repositories 
+        # and organizations urls for configured repo_group_id
+        self.update_url_redirects()
 
         # List of tasks that need periodic updates
         self.schedule_updates()
@@ -335,4 +340,36 @@ class Housekeeper:
 
                 job['repos'] = rs
             # time.sleep(120)
+
+    def update_url_redirects(self):
+        if 'switch' in self.update_redirects and self.update_redirects['switch'] == 1 and 'repo_group_id' in self.update_redirects:
+            repos_urls = self.get_repos_urls(self.update_redirects['repo_group_id'])
+            for url in repos_urls:
+                r = requests.get(url)
+                check_for_update = url != r.url
+                if check_for_update:
+                    self.update_repo_url(url, r.url)
+
+    def get_repos_urls(self, repo_group_id):
+        repos_sql = s.sql.text("""
+                SELECT repo_git FROM repo
+                WHERE repo_group_id = ':repo_group_id'
+            """)
+
+        repos = pd.read_sql(repos_sql, self.db, params={'repo_group_id': repo_group_id})
+
+        if len(repos) == 0:
+            logger.info("Did not find any repositories stored in augur_database for repo_group_id {}\n".format(repo_group_id))
+
+        return repos['repo_git']
+
+    def update_repo_url(self, old_url, new_url):
+
+        update_sql = s.sql.text("""
+                UPDATE repo SET repo_git = :new_url
+                WHERE repo_git = :old_url
+            """)
+
+        self.db.execute(update_sql, new_url=new_url, old_url=old_url)
+       logger.info("Updated repo url from {} to {}\n".format(new_url, old_url))
 
