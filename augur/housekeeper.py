@@ -77,10 +77,12 @@ class Housekeeper:
 
         if 'repo_group_id' in job:
             repo_group_id = job['repo_group_id']
-            logger.info('Housekeeper spawned {} model updater process for repo group id {}'.format(job['model'], repo_group_id))
+            logger.info(f"Housekeeper spawned {job['model']} model updater process " +
+                f"for repo group id {repo_group_id}")
         else:
             repo_group_id = None
-            logger.info('Housekeeper spawned {} model updater process for repo ids {}'.format(job['model'], job['repo_ids']))
+            logger.info(f"Housekeeper spawned {job['model']} model updater process " +
+                f"for repo ids {job['repo_ids']}")
 
         try:
             compatible_worker_found = False
@@ -94,10 +96,9 @@ class Housekeeper:
                     continue
 
                 logger.info("Housekeeper recognized that the broker has a worker that " + 
-                    "can handle the {} model... beginning to distribute maintained tasks".format(job['model']))
+                    f"can handle the {job['model']} model... beginning to distribute maintained tasks")
                 while True:
-                    logger.info('Housekeeper updating {} model with given {}...'.format(
-                        job['model'], job['given'][0]))
+                    logger.info(f"Housekeeper updating {job['model']} model with given {job['given'][0]}...")
                     
                     if job['given'][0] == 'git_url' or job['given'][0] == 'github_url':
                         for repo in job['repos']:
@@ -105,16 +106,16 @@ class Housekeeper:
                                 continue
                             given_key = 'git_url' if job['given'][0] == 'git_url' else 'github_url'
                             task = {
-                                "job_type": job['job_type'] if 'job_type' in job else 'MAINTAIN', 
-                                "models": [job['model']], 
-                                "display_name": "{} model for url: {}".format(job['model'], repo['repo_git']),
-                                "given": {}
+                                'job_type': job['job_type'] if 'job_type' in job else "MAINTAIN", 
+                                'models': [job['model']], 
+                                'display_name': f"{job['model']} model for url: {repo['repo_git']}",
+                                'given': {}
                             }
                             task['given'][given_key] = repo['repo_git']
-                            if "focused_task" in repo:
-                                task["focused_task"] = repo['focused_task']
+                            if 'focused_task' in repo:
+                                task['focused_task'] = repo['focused_task']
                             try:
-                                requests.post('http://{}:{}/api/unstable/task'.format(
+                                requests.post("http://{}:{}/api/unstable/task".format(
                                     broker_host,broker_port), json=task, timeout=10)
                             except Exception as e:
                                 logger.error("Error encountered: {}".format(e))
@@ -125,10 +126,10 @@ class Housekeeper:
 
                     elif job['given'][0] == 'repo_group':
                         task = {
-                                "job_type": job['job_type'] if 'job_type' in job else 'MAINTAIN', 
-                                "models": [job['model']], 
-                                "display_name": "{} model for repo group id: {}".format(job['model'], repo_group_id),
-                                "given": {
+                                'job_type': job['job_type'] if 'job_type' in job else "MAINTAIN", 
+                                'models': [job['model']], 
+                                'display_name': f"{job['model']} model for repo group id: {repo_group_id}",
+                                'given': {
                                     "repo_group": job['repos']
                                 }
                             }
@@ -138,7 +139,8 @@ class Housekeeper:
                         except Exception as e:
                             logger.error("Error encountered: {}".format(e))
 
-                    logger.info("Housekeeper finished sending {} tasks to the broker for it to distribute to your worker(s)".format(len(job['repos'])))
+                    logger.info(f"Housekeeper finished sending {len(job['repos'])} tasks to " +
+                        "the broker for it to distribute to your worker(s)")
                     time.sleep(job['delay'])
 
         except KeyboardInterrupt as e:
@@ -187,15 +189,20 @@ class Housekeeper:
                                     (
                                     b.pull_request_count - COUNT ( * )) AS pull_requests_missing,
                                     ABS (
-                                    CAST (( COUNT ( * )) AS DOUBLE PRECISION ) / CAST ( b.pull_request_count + 1 AS DOUBLE PRECISION )) AS ratio_abs,
+                                    CAST (( COUNT ( * )) AS DOUBLE PRECISION ) / CAST ( 
+                                    b.pull_request_count + 1 AS DOUBLE PRECISION )) AS ratio_abs,
                                     (
-                                    CAST (( COUNT ( * )) AS DOUBLE PRECISION ) / CAST ( b.pull_request_count + 1 AS DOUBLE PRECISION )) AS ratio_issues 
+                                    CAST (( COUNT ( * )) AS DOUBLE PRECISION ) / CAST ( 
+                                    b.pull_request_count + 1 AS DOUBLE PRECISION )) AS ratio_issues 
                                 FROM
                                     augur_data.repo left outer join  
                                     augur_data.pull_requests d on d.repo_id = repo.repo_id left outer join 
-                                                                        ( SELECT repo_id, MAX ( data_collection_date ) AS last_collected FROM augur_data.repo_info GROUP BY repo_id ORDER BY repo_id ) e 
+                                        ( SELECT repo_id, MAX ( 
+                                            data_collection_date ) AS last_collected FROM 
+                                            augur_data.repo_info GROUP BY repo_id ORDER BY repo_id ) e 
                                     on e.repo_id = d.repo_id left outer join 
-                                    augur_data.repo_info b on e.repo_id = b.repo_id and b.data_collection_date = e.last_collected
+                                    augur_data.repo_info b on e.repo_id = b.repo_id and 
+                                    b.data_collection_date = e.last_collected
                                 {}                      
                                 GROUP BY
                                     repo.repo_id,
@@ -206,7 +213,8 @@ class Housekeeper:
                                 ) yy ON zz.repo_id = yy.repo_id 
                             ) D 
                         ORDER BY ratio_abs NULLS FIRST
-                    """.format(where_condition)) if job['model'] == 'pull_requests' and 'repo_group_id' in job else s.sql.text("""
+                    """.format(where_condition)) if job['model'] == 'pull_requests' and 'repo_group_id' in job \
+                else s.sql.text("""
                         SELECT
                             * 
                         FROM
@@ -226,15 +234,19 @@ class Housekeeper:
                                     (
                                     b.issues_count - COUNT ( * )) AS issues_missing,
                                     ABS (
-                                    CAST (( COUNT ( * )) AS DOUBLE PRECISION ) / CAST ( b.issues_count + 1 AS DOUBLE PRECISION )) AS ratio_abs,
+                                    CAST (( COUNT ( * )) AS DOUBLE PRECISION ) / CAST ( b.issues_count + 1 
+                                    AS DOUBLE PRECISION )) AS ratio_abs,
                                     (
-                                    CAST (( COUNT ( * )) AS DOUBLE PRECISION ) / CAST ( b.issues_count + 1 AS DOUBLE PRECISION )) AS ratio_issues 
+                                    CAST (( COUNT ( * )) AS DOUBLE PRECISION ) / CAST ( b.issues_count + 1 
+                                    AS DOUBLE PRECISION )) AS ratio_issues 
                                 FROM
                                     augur_data.repo left outer join  
                                     augur_data.pull_requests d on d.repo_id = repo.repo_id left outer join 
                                     augur_data.repo_info b on d.repo_id = b.repo_id left outer join
-                                    ( SELECT repo_id, MAX ( data_collection_date ) AS last_collected FROM augur_data.repo_info GROUP BY repo_id ORDER BY repo_id ) e 
-                                                                        on e.repo_id = d.repo_id and b.data_collection_date = e.last_collected
+                                    ( SELECT repo_id, MAX ( data_collection_date ) AS last_collected FROM 
+                                    augur_data.repo_info GROUP BY repo_id ORDER BY repo_id ) e 
+                                                                on e.repo_id = d.repo_id and 
+                                                                b.data_collection_date = e.last_collected
                                 WHERE d.pull_request_id IS NULL
                                 {}
                                 GROUP BY
@@ -246,7 +258,8 @@ class Housekeeper:
                                 ) yy ON zz.repo_id = yy.repo_id 
                             ) D
                         ORDER BY ratio_abs NULLS FIRST
-                    """.format(where_condition)) if job['model'] == 'issues' and 'repo_group_id' in job else s.sql.text(""" 
+                    """.format(where_condition)) if job['model'] == 'issues' and 'repo_group_id' in job \
+                else s.sql.text(""" 
                         SELECT repo_git, repo_id FROM repo {} ORDER BY repo_id ASC
                     """.format(where_condition)) if 'order' not in job else s.sql.text(""" 
                         SELECT repo_git, repo.repo_id, count(*) as commit_count 
@@ -258,7 +271,8 @@ class Housekeeper:
                 
                 reorganized_repos = pd.read_sql(repo_url_sql, self.db, params={})
                 if len(reorganized_repos) == 0:
-                    logger.warning("Trying to send tasks for repo group, but the repo group does not contain any repos: {}".format(repo_url_sql))
+                    logger.warning("Trying to send tasks for defined repo(s), but the resulting " +
+                        f"query does not return any repos: {repo_url_sql}")
                     job['repos'] = []
                     continue
 
@@ -279,7 +293,8 @@ class Housekeeper:
                             'oauth_id': 0
                         }
                         result = self.helper_db.execute(self.job_table.insert().values(job_tuple))
-                        logger.debug("No job tuple for {} model was found, so one was inserted into the job table: {}".format(job['model'], job_tuple))
+                        logger.debug(f"No job tuple for {job['model']} model was found, so one was" +
+                            f" inserted into the job table: {job_tuple}")
 
                     # If a last id is not recorded, start from beginning of repos 
                     #   (first id is not necessarily 0)
