@@ -89,8 +89,9 @@ class Housekeeper:
             # Waiting for compatible worker
             while True:
                 if not compatible_worker_found:
-                    for worker in list(broker._getvalue().keys()):
-                        if job['model'] in broker[worker]['models'] and job['given'] in broker[worker]['given']:
+                    for worker in list(broker['workers']._getvalue().keys()):
+                        if job['model'] in broker['workers'][worker]['models'] and \
+                                job['given'] in broker['workers'][worker]['given']:
                             compatible_worker_found = True
                     time.sleep(3)
                     continue
