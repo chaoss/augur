@@ -163,6 +163,8 @@ class Housekeeper:
     def prep_jobs(self):
         logger.info("Preparing housekeeper jobs")
         for job in self.jobs:
+            if 'model' in job and job['model'] == 'update_org_repositories' and 'repo_group_id' in job:
+                update_org_repositories(job['repo_group_id'])
             if 'repo_group_id' in job or 'repo_ids' in job:
                 # If RG id is 0 then it just means to query all repos
                 where_and = 'AND' if job['model'] == 'issues' and 'repo_group_id' in job else 'WHERE'
@@ -336,3 +338,171 @@ class Housekeeper:
                 job['repos'] = rs
             # time.sleep(120)
 
+        def update_org_repositories(self, repo_group_id):
+            """
+            Add new repositories for specific organization to Augur's database
+            """
+            org = get_org_name()
+            totalCount = get_repos_total_count(org)
+            existing_repos = get_existing_repos(repo_group_id)
+            if totalCount > len(existing_repos):
+                repos = get_all_repos(org, totalCount)
+
+                for repo in repos:
+                    if repo['node']['name'] not in existing_repos:
+                        insert_repo(repo['node'], org, repo_group_id)
+
+        def insert_repo(self, repo, org, repo_group_id):
+            logger.info("Inserting repo {}".repo['name'])
+            insert_repo_sql = s.sql.text("""
+                INSERT INTO augur_data.repo(repo_group_id, repo_git, repo_path, repo_name, repo_added)
+                VALUES ({}, {}, {}, {}, {})
+            """.format(repo_group_id, '\''+repo['url']+'\'', '\'github.com/'+org+'/\'', '\''+repo['name']+'\'', '\''+repo['createdAt']+'\''))
+
+            self.db.execute(insert_repo_sql)
+            return
+
+        def get_value_from_fetch_data(data):
+            return data[0]
+
+        def get_existing_repos(self, repo_group_id):
+            repos_sql = s.sql.text("""
+                    SELECT repo_name FROM repo
+                    WHERE repo_group_id = '{}'
+                """.format(repo_group_id))
+
+            repos = self.db.execute(repos_sql).fetchall()
+
+            if len(repos) == 0:
+                logger.info("Did not find any repositories stored in augur_database for repo_group_id {}\n".format(repo_group_id))
+
+            repos_list = list(map(get_value_from_fetch_data, repos))
+
+            return repos_list
+
+        def get_org_name(self, repo_group_id):
+            org_name_sql = s.sql.text("""
+                    SELECT repo_group_id FROM repo_groups
+                    WHERE rg_name = '{}'
+                """.format(repo_group_id))
+
+            org_name = self.db.execute(org_name_sql).fetchone()[0]
+            if len(org_name) == 0:
+                logger.info("Failed to get organization name from repo_group_id {}".format(repo_group_id))
+            return org_name
+
+        def get_all_repos(org, totalCount):
+            maxCount = 100
+            nodes = []
+            after = ""
+
+            while totalCount > maxCount or totalCount <= maxCount and totalCount > 0:
+                totalCount = totalCount - maxCount
+                query = """
+                {
+                    repos: search(query: "user:%s archived:false", type: REPOSITORY, first:  %d%s) {
+                        edges {
+                            node {
+                                ... on Repository {
+                                    id
+                                    name
+                                    nameWithOwner
+                                    url
+                                    createdAt
+                                }
+                            }
+                            cursor
+                        }
+                    }
+                }
+                """ % (org, maxCount, after)
+
+                data = get_data(query, org)
+                if 'data' not in data:
+                    logger.info("Could not get a list of all repositories. 'data' is missing in: {}\n".format(data))
+                if 'repos' not in data['data']:
+                    logger.info("Could not get a list of all repositories. 'repos' is missing in: {}\n".format(data))
+                if 'edges' not in data['data']['repos']:
+                    logger.info("Could not get a list of all repositories. 'edges' is missing in: {}\n".format(data))
+
+                nodes = nodes + data['data']['repos']['edges']
+
+                l = len(data['data']['repos']['edges'])
+                last_el = data['data']['repos']['edges'][l-1]
+                after = ", after: \"" + last_el['cursor'] + "\""
+
+            data['data']['repos']['edges'] = nodes
+
+            return data['data']['repos']['edges']
+
+        def get_repos_total_count(org):
+            query = """
+            {
+                repos: search(query: "user:%s archived:false", type: REPOSITORY) {
+                        repositoryCount
+                }
+            }
+            """ % (org)
+
+            data = get_data(query, org)
+
+            return data['data']['repos']['repositoryCount']
+
+        def get_data(query, org):
+
+            # Hit the graphql endpoint and retry 3 times in case of failure
+            pc = PlatformConnector()
+            pc.logger = logging.getLogger()
+            pc.initialize_database_connections()
+
+            url = 'https://api.github.com/graphql'
+            ROOT_AUGUR_DIR = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+
+            num_attempts = 0
+            success = False
+            data = None
+            while num_attempts < 3:
+                logger.info("Hitting endpoint: {} ...\n".format(url))
+                r = requests.post(url, json={'query': query}, headers=pc.headers)
+                pc.update_gh_rate_limit(pc, r)
+
+                try:
+                    data = r.json()
+                except:
+                    data = json.loads(json.dumps(r.text))
+
+                if 'errors' in data:
+                    logger.info("Error!: {}".format(data['errors']))
+                    if data['errors'][0]['message'] == 'API rate limit exceeded':
+                        logger.info("Error: Exceeded rate limit for query {}\n".format(query))
+                        pc.update_gh_rate_limit(pc, r)
+                        continue
+
+                if 'data' in data:
+                    success = True
+                    if 'organization' not in data:
+                        logger.info("Github response does not contain organization {}\n".format(data))
+                        break
+                    data = data['data']['organization']
+                    if 'repositories' not in data:
+                        logger.info("Repositories data not provided for organization {}\n".format(org))
+                        break
+                    data = data['repositories']
+                    break
+                else:
+                    logger.info("Request returned a non-data dict: {}\n".format(data))
+                    if data['message'] == 'Not Found':
+                        logger.info("Github repo was not found or does not exist for endpoint: {}\n".format(url))
+                        break
+                    if data['message'] == 'You have triggered an abuse detection mechanism. Please wait a few minutes before you try again.\n':
+                        pc.update_gh_rate_limit(pc, r, temporarily_disable=True)
+                        continue
+                    if data['message'] == 'Bad credentials\n':
+                        pc.update_gh_rate_limit(pc, r, bad_credentials=True)
+                        continue
+                num_attempts += 1
+            if not success:
+                logger.error('Cannot hit endpoint after 3 attempts.\n')
+                return
+
+            return data
