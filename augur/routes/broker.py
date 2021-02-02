@@ -35,14 +35,6 @@ logger = logging.getLogger(__name__)
     'workers': {
         * worker name *: {
             'id': * worker name *,
-            # 'user_queue': [
-            #     * user defined task *,
-            #     ...
-            # ],
-            # 'maintain_queue': [
-            #     * housekeeper defined task *,
-            #     ...
-            # ],
             'status': * worker status (e.g. 'Idle') *,
             'location': * worker location *,
             'given': [
@@ -63,7 +55,7 @@ logger = logging.getLogger(__name__)
 def worker_start(worker_name=None):
     process = subprocess.Popen("cd workers/{} && {}_start".format(worker_name,worker_name), shell=True)
 
-def process_queues(broker):
+def process_queues(broker, manager):
 
     unsorted_queue = []
 
@@ -95,7 +87,7 @@ def process_queues(broker):
                 compatible_workers.append(worker)
 
         # send tasks to compatible workers
-        compatible_queues_proxy = get_compatible_queues_proxy(server.broker, model, given)
+        compatible_queues_proxy = get_compatible_queues_proxy(broker, manager, model, given)
         user_queue = compatible_queues_proxy['user_queue']
         maintain_queue = compatible_queues_proxy['maintain_queue']
 
@@ -104,12 +96,12 @@ def process_queues(broker):
             task_to_send = user_queue.pop(0) if len(user_queue) > 0 else maintain_queue.pop(0)
 
             # Check if worker is alive
-            response = requests.get(f"{worker_proxy['location']}/AUGWOP/heartbeat").json()
+            response = requests.get(f"{worker_to_accept['location']}/AUGWOP/heartbeat").json()
 
             if 'status' not in response:
                 logger.error(f"Worker: {worker_id}'s heartbeat did not return a response, setting " +
                     "worker status as 'Disconnected'\n")
-                worker_proxy['status'] = 'Disconnected'
+                worker_to_accept['status'] = 'Disconnected'
                 continue
 
             if response['status'] != 'alive':
@@ -117,29 +109,30 @@ def process_queues(broker):
                 continue
 
             logger.info(f"Worker {worker_to_accept['id']} is idle, preparing to send the " +
-                f"{task_to_send['display_name']} task to {worker_proxy['location']}/AUGWOP/task\n")
+                f"{task_to_send['display_name']} task to {worker_to_accept['location']}/AUGWOP/task\n")
             try:
-                requests.post(f"{worker_proxy['location']}/AUGWOP/task", json=task_to_send)
+                requests.post(f"{worker_to_accept['location']}/AUGWOP/task", json=task_to_send)
                 worker_to_accept['status'] = "Working"
             except:
                 logger.error(f"Sending Worker: {worker_to_accept['id']} a task did not return a response, " +
                     "setting worker status as 'Disconnected'\n")
-                worker_proxy['status'] = "Disconnected"
+                worker_to_accept['status'] = "Disconnected"
                 # If the worker died, then restart it
                 worker_start(worker_id.split('.')[len(worker_id.split('.')) - 2])
 
-def get_compatible_queues_proxy(broker, model, given):
+def get_compatible_queues_proxy(broker, manager, model, given):
 
     # Check if proxies are already made for this model and given
-    if model not in broker['tasks']:
-        broker['tasks'][model] = server.manager.dict()
-    if str(given) not in server.broker['tasks'][model]:
-        broker['tasks'][model][str(given)] = server.manager.dict()
-        broker['tasks'][model][str(given)]['user_queue'] = server.manager.list()
-        broker['tasks'][model][str(given)]['maintain_queue'] = server.manager.list()
+    
+    if model not in broker['tasks']._getvalue().keys():
+        broker['tasks'][model] = manager.dict()
+    
+    if str(given) not in broker['tasks'][model]._getvalue().keys():
+        broker['tasks'][model][str(given)] = manager.dict()
+        broker['tasks'][model][str(given)]['user_queue'] = manager.list()
+        broker['tasks'][model][str(given)]['maintain_queue'] = manager.list()
 
     return broker['tasks'][model][str(given)]
-
 
 def create_routes(server):
 
@@ -155,21 +148,20 @@ def create_routes(server):
         for given_component in list(task['given'].keys()):
             given.append(given_component)
         model = task['models'][0]
-        logger.info("Broker recieved a new user task ... adding to corresponding queue" +
+        logger.info("Broker recieved a new task ... adding to corresponding queue" +
             f" for given: {given} and model(s): {model}\n")
 
-        compatible_queues_proxy = get_compatible_queues_proxy(server.broker, model, given)
+        compatible_queues_proxy = get_compatible_queues_proxy(server.broker, server.manager, model, given)
 
         # Add to queue
-        logger.info(f"Adding task for model: {model} and given: {given}...\n")
         if task['job_type'] == "UPDATE":
             compatible_queues_proxy['user_queue'].append(task)
             logger.info(f"New length of user queue: {len(compatible_queues_proxy['user_queue'])}\n")
         elif task['job_type'] == "MAINTAIN":
             compatible_queues_proxy['maintain_queue'].append(task)
-            logger.info(f"New length of user queue: {len(compatible_queues_proxy['maintain_queue'])}\n")
+            logger.info(f"New length of maintain queue: {len(compatible_queues_proxy['maintain_queue'])}\n")
 
-        process_queues(server.broker)
+        process_queues(server.broker, server.manager)
 
         return Response(response=task,
                         status=200,
@@ -183,17 +175,33 @@ def create_routes(server):
         worker = request.json
         logger.info("Recieved HELLO message from worker {} listening on: https://localhost:{}\
                     ".format(worker['id'], worker['id'].split('.')[2]))
-        if worker['id'] not in server.broker['workers']:
-            server.broker['workers'][worker['id']] = server.manager.dict()
+        # server.broker._getvalue()
+        try:
+            print(server.broker['workers'].keys())
+        except Exception as e:
+            print(repr(e))
+        if worker['id'] not in server.broker['workers'].keys():
+            print("Starting")
+            # server.broker['workers'][worker['id']]._getvalue()
+            try:
+                server.broker['workers'][worker['id']] = server.manager.dict()
+            except Exception as e:
+                print(repr(e))
+            print("ADDING", worker['id'])
+            try:
+                server.broker['workers'][worker['id']]['given'] = server.manager.list()
+                server.broker['workers'][worker['id']]['models'] = server.manager.list()
+            
+                print("DONE")
+                for given in worker['qualifications'][0]['given']:
+                    server.broker['workers'][worker['id']]['given'].append(given)
+                for model in worker['qualifications'][0]['models']:
+                    server.broker['workers'][worker['id']]['models'].append(model)
+            except Exception as e:
+                print(repr(e))
             server.broker['workers'][worker['id']]['id'] = worker['id']
             server.broker['workers'][worker['id']]['status'] = 'Idle'
             server.broker['workers'][worker['id']]['location'] = worker['location']
-            server.broker['workers'][worker['id']]['given'] = server.manager.list()
-            server.broker['workers'][worker['id']]['models'] = server.manager.list()
-            for given in worker['qualifications'][0]['given']:
-                server.broker['workers'][worker['id']]['given'].append(given)
-            for model in worker['qualifications'][0]['models']:
-                server.broker['workers'][worker['id']]['models'].append(model)
         else:
             logger.info("Worker: {} has been reconnected.\n".format(worker['id']))
             models = server.broker['workers'][worker['id']]['models']
@@ -202,7 +210,7 @@ def create_routes(server):
             # time.sleep(10)
             server.broker['workers'][worker['id']]['status'] = 'Idle'
         
-        process_queues(server.broker)
+        process_queues(server.broker, server.manager)
 
         return Response(response=worker['id'],
                         status=200,
@@ -211,7 +219,7 @@ def create_routes(server):
     @server.app.route('/{}/completed_task'.format(server.api_version), methods=['POST'])
     def sync_queue():
         logger.info(f"Message recieved that worker {task['worker_id']} completed task: {request.json}\n")
-        process_queues(server.broker)
+        process_queues(server.broker, server.manager)
 
         return Response(response=request.json,
                         status=200,

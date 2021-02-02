@@ -130,6 +130,28 @@ def initialize_components(augur_app, disable_housekeeper):
 
         manager = mp.Manager()
         broker = manager.dict()
+        broker['workers'] = manager.dict()
+        broker['orders'] = manager.dict()
+        broker['tasks'] = manager.dict()
+
+        # Initialize job order counts in the broker
+        smallest_order = 0
+        for job in augur_app.config.get_section('Housekeeper')['jobs']:
+            order = 0 if 'order' not in job or type(job['order']) != int else job['order']
+            if order < smallest_order:
+                smallest_order = job['order']
+
+            if order in broker['orders']._getvalue().keys():
+                broker['orders'][order]['current_job_count'] += 1
+                broker['orders'][order]['total_job_count'] += 1
+            else:
+                broker['orders'][order] = manager.dict()
+                broker['orders'][order]['switch'] = 0
+                broker['orders'][order]['current_job_count'] = 1
+                broker['orders'][order]['total_job_count'] = 1
+
+        broker['orders'][smallest_order]['switch'] = 1
+
         housekeeper = Housekeeper(broker=broker, augur_app=augur_app)
 
         controller = augur_app.config.get_section('Workers')
