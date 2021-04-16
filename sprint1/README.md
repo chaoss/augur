@@ -5,7 +5,8 @@
 - Created new fork of Augur 
 - Set up Augur on server
   - LINK: <http://ec2-3-84-10-103.compute-1.amazonaws.com>
-  - LINK: <http://ec2-3-84-10-103.compute-1.amazonaws.com:5000/api/unstable>  
+  - LINK: <http://ec2-3-84-10-103.compute-1.amazonaws.com:5000/api/unstable/repo>  
+[![Augur API Status Screenshot](/sprint1/img/AugurAPIEndpt.PNG)]
 [![Augur Status Screenshot](/sprint1/img/AugurScreenshot.PNG)](<http://ec2-3-84-10-103.compute-1.amazonaws.com:5000/api/unstable>)
 - Completed Use Cases and Requirements Analysis
   - Use Case Doc: <https://docs.google.com/document/d/1kpX-QgWyduh-6M5s0f4VkoWcEuLB4odX_kPyrCN8fq4/edit?usp=sharing>
@@ -19,3 +20,4 @@
 ### Goals
 - Install Augur's frontend + frontend dependencies
 - Figure out jupyter notebooks? in order to do some frontend fixes
+- Design frontend fixes plan
