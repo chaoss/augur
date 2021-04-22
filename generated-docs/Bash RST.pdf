@@ -1,0 +1,195 @@
+%PDF-1.4
+%“Œ‹ž ReportLab Generated PDF document http://www.reportlab.com
+1 0 obj
+<<
+/F1 2 0 R /F2 3 0 R
+>>
+endobj
+2 0 obj
+<<
+/BaseFont /Helvetica /Encoding /WinAnsiEncoding /Name /F1 /Subtype /Type1 /Type /Font
+>>
+endobj
+3 0 obj
+<<
+/BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding /Name /F2 /Subtype /Type1 /Type /Font
+>>
+endobj
+4 0 obj
+<<
+/Contents 14 0 R /MediaBox [ 0 0 595.2756 841.8898 ] /Parent 13 0 R /Resources <<
+/Font 1 0 R /ProcSet [ /PDF /Text /ImageB /ImageC /ImageI ]
+>> /Rotate 0 /Trans <<
+
+>> 
+  /Type /Page
+>>
+endobj
+5 0 obj
+<<
+/Outlines 7 0 R /PageLabels 15 0 R /PageMode /UseNone /Pages 13 0 R /Type /Catalog
+>>
+endobj
+6 0 obj
+<<
+/Author () /CreationDate (D:20210121175546+00'00') /Creator (\(unspecified\)) /Keywords () /ModDate (D:20210121175546+00'00') /Producer (ReportLab PDF Library - www.reportlab.com) 
+  /Subject (\(unspecified\)) /Title (Augur  Installation bash script) /Trapped /False
+>>
+endobj
+7 0 obj
+<<
+/Count 6 /First 8 0 R /Last 8 0 R /Type /Outlines
+>>
+endobj
+8 0 obj
+<<
+/Count 4 /Dest [ 4 0 R /XYZ 62.69291 695.0236 0 ] /First 9 0 R /Last 12 0 R /Parent 7 0 R /Title (Info about the script)
+>>
+endobj
+9 0 obj
+<<
+/Dest [ 4 0 R /XYZ 62.69291 662.0236 0 ] /Next 10 0 R /Parent 8 0 R /Title (OS Requirements)
+>>
+endobj
+10 0 obj
+<<
+/Dest [ 4 0 R /XYZ 62.69291 566.0236 0 ] /Next 11 0 R /Parent 8 0 R /Prev 9 0 R /Title (Parameters for Input)
+>>
+endobj
+11 0 obj
+<<
+/Dest [ 4 0 R /XYZ 62.69291 470.0236 0 ] /Next 12 0 R /Parent 8 0 R /Prev 10 0 R /Title (Possible Errors)
+>>
+endobj
+12 0 obj
+<<
+/Dest [ 4 0 R /XYZ 62.69291 374.0236 0 ] /Parent 8 0 R /Prev 11 0 R /Title (Possible Outputs)
+>>
+endobj
+13 0 obj
+<<
+/Count 1 /Kids [ 4 0 R ] /Type /Pages
+>>
+endobj
+14 0 obj
+<<
+/Length 3528
+>>
+stream
+1 0 0 1 0 0 cm  BT /F1 12 Tf 14.4 TL ET
+q
+1 0 0 1 62.69291 741.0236 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 4 Tm /F2 20 Tf 24 TL 93.80488 0 Td (Augur Installation bash script) Tj T* -93.80488 0 Td ET
+Q
+Q
+q
+1 0 0 1 62.69291 707.0236 cm
+q
+BT 1 0 0 1 0 14 Tm 1.123876 Tw 12 TL /F1 10 Tf 0 0 0 rg (This page will help guide you through using the bash script that was made for an easier and smoother) Tj T* 0 Tw (installation of Augur) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 674.0236 cm
+q
+BT 1 0 0 1 0 3.5 Tm 21 TL /F2 17.5 Tf 0 0 0 rg (Info about the script) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 644.0236 cm
+q
+BT 1 0 0 1 0 3 Tm 18 TL /F2 15 Tf 0 0 0 rg (OS Requirements) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 578.0236 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 50 Tm /F1 10 Tf 12 TL 1.424651 Tw (Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et) Tj T* 0 Tw .22561 Tw (dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex) Tj T* 0 Tw 1.572651 Tw (ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu) Tj T* 0 Tw 1.642126 Tw (fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt) Tj T* 0 Tw (mollit anim id est laborum.) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 548.0236 cm
+q
+BT 1 0 0 1 0 3 Tm 18 TL /F2 15 Tf 0 0 0 rg (Parameters for Input) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 482.0236 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 50 Tm /F1 10 Tf 12 TL 1.424651 Tw (Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et) Tj T* 0 Tw .22561 Tw (dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex) Tj T* 0 Tw 1.572651 Tw (ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu) Tj T* 0 Tw 1.642126 Tw (fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt) Tj T* 0 Tw (mollit anim id est laborum.) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 452.0236 cm
+q
+BT 1 0 0 1 0 3 Tm 18 TL /F2 15 Tf 0 0 0 rg (Possible Errors) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 386.0236 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 50 Tm /F1 10 Tf 12 TL 1.424651 Tw (Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et) Tj T* 0 Tw .22561 Tw (dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex) Tj T* 0 Tw 1.572651 Tw (ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu) Tj T* 0 Tw 1.642126 Tw (fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt) Tj T* 0 Tw (mollit anim id est laborum.) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 356.0236 cm
+q
+BT 1 0 0 1 0 3 Tm 18 TL /F2 15 Tf 0 0 0 rg (Possible Outputs) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 290.0236 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 50 Tm /F1 10 Tf 12 TL 1.424651 Tw (Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et) Tj T* 0 Tw .22561 Tw (dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex) Tj T* 0 Tw 1.572651 Tw (ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu) Tj T* 0 Tw 1.642126 Tw (fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt) Tj T* 0 Tw (mollit anim id est laborum.) Tj T* ET
+Q
+Q
+ 
+endstream
+endobj
+15 0 obj
+<<
+/Nums [ 0 16 0 R ]
+>>
+endobj
+16 0 obj
+<<
+/S /D /St 1
+>>
+endobj
+xref
+0 17
+0000000000 65535 f 
+0000000073 00000 n 
+0000000114 00000 n 
+0000000221 00000 n 
+0000000333 00000 n 
+0000000538 00000 n 
+0000000642 00000 n 
+0000000930 00000 n 
+0000001001 00000 n 
+0000001143 00000 n 
+0000001257 00000 n 
+0000001389 00000 n 
+0000001517 00000 n 
+0000001633 00000 n 
+0000001693 00000 n 
+0000005273 00000 n 
+0000005314 00000 n 
+trailer
+<<
+/ID 
+[<58630942e07d4f5ed4dfef019c6d1f01><58630942e07d4f5ed4dfef019c6d1f01>]
+% ReportLab generated PDF document -- digest (http://www.reportlab.com)
+
+/Info 6 0 R
+/Root 5 0 R
+/Size 17
+>>
+startxref
+5348
+%%EOF
