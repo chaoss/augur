@@ -79,6 +79,7 @@ class Server(object):
             """
             status = {
                 'status': 'OK',
+                'Hello': 'World',
             }
             return Response(response=json.dumps(status),
                             status=200,
