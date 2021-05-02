@@ -9,7 +9,7 @@ Make sure to save off the credentials you use when you create the database, you'
 
 
 PostgreSQL Installation
-=======================
+-----------------------
 
 Before you can install our schema, you will need to make sure you have write access to a PostgreSQL 10 or later database.
 
@@ -45,7 +45,7 @@ We recommend using `Postgres.app <https://postgresapp.com/>`_ if you're on macOS
 Installation instructions can also be `found here <https://www.postgresql.org/download/macosx/>`_.
 
 Creating a Database
-===================
+-------------------
 
 Running and Connecting to the Postgres Server 
 ---------------------------------------------
@@ -84,7 +84,7 @@ Using the Postgres Skeleton generator (tentative)
 TODO might not implement this yet
 
 Connecting to the database during "make install"
-================================================
+------------------------------------------------
 When you run, ``make install`` you will eventually be prompted with the following:
 
 .. image:: ../assets/database.png
