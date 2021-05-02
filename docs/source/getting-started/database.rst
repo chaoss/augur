@@ -85,4 +85,50 @@ TODO might not implement this yet
 
 Connecting to the database during "make install"
 ================================================
-TODO Put picture of prompt here
+When you run, ``make install`` you will eventually be prompted with the following:
+
+.. image:: ../assets/database.png
+
+
+What do each of this mean?
+
+1. Initialize a new database and install the schema 
+---------------------------------------------------
+You have a Postgres database, but you have not created a new "Augur" table / "Augur" user
+
+
+Enter your default postgres database and password.
+This will most likely be the ``postgres`` table and ``postgres`` user.
+
+The password will be the ``root`` password for your database (postgres user).
+
+.. image:: ../assets/selection1database1.png
+
+Enter the IP address (hostname) of your postgres instance and the port it is hosted on (normally 5432)
+
+.. image:: ../assets/selection1database2.png
+
+Enter the new credentials for the augur user that augur will use to access the database.
+
+.. image:: ../assets/selection1database3.png
+
+
+
+2. Connect to an existing empty database and ONLY install the schema?
+---------------------------------------------------------------------
+You have a Postgres database with existing "augur" table and "augur" user
+
+Enter the credentials for the "augur" user/table that augur will use to access the database.
+
+.. image:: ../assets/selection2database1.png
+
+Same instructions for hostname and port from Case 1
+
+3. Connect to a database with schema already installed
+------------------------------------------------------
+
+Enter the existing credentials for the "augur" user/table with preexisting schema that augur will use to access the database.
+
+.. image:: ../assets/selection3database1.png
+
+Same instructions for hostname and port from Case 1
