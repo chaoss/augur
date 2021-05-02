@@ -46,13 +46,43 @@ Installation instructions can also be `found here <https://www.postgresql.org/do
 
 Creating a Database
 ===================
-Running the Postgres Server 
----------------------------
+
+Running and Connecting to the Postgres Server 
+---------------------------------------------
+
+if you were using ``psql`` to connect to an instance on your machine ``localhost`` under the default user ``postgres`` on the default PostgreSQL port ``5432``, you might run something like this to connect to the server:
+
+.. code-block:: bash
+
+    $ psql -h localhost -U postgres -p 5432
+
+
 Creating the Augur Table & Database User 
 ----------------------------------------
+
+To setup your Augur table, run the following, 
+
+.. code-block:: postgresql 
+    
+    CREATE DATABASE augur;
+    CREATE USER augur WITH ENCRYPTED PASSWORD 'password';
+    GRANT ALL PRIVILEGES ON DATABASE augur TO augur;
+
+When connected to a psql terminal, run the following 
+
+.. code-block:: postgresql
+
+    postgres=# CREATE DATABASE augur;
+    postgres=# CREATE USER augur WITH ENCRYPTED PASSWORD 'password';
+    postgres=# GRANT ALL PRIVILEGES ON DATABASE augur TO augur;
+
+Replace 'password' with your custom password. Make sure to save your password to a secure location for backup.
+
+
 Using the Postgres Skeleton generator (tentative)
 -------------------------------------------------
+TODO might not implement this yet
 
 Connecting to the database during "make install"
 ================================================
-
+TODO Put picture of prompt here
