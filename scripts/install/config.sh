@@ -73,10 +73,6 @@ function get_api_key_and_repo_path() {
 function set_db_credentials() {
 
   install_locally=${1-false}
-  echo "For Database: If you can't remember, try 'augur'"
-  echo "For User: If you can't remember, try 'augur'"
-  echo "For Password: Enter the database password you created on a previous install"
-  echo
 
   read -p "Database: " db_name
   read -p "User: " db_user
