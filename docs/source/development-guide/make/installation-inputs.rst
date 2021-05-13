@@ -142,6 +142,7 @@ If you choose “1” to use an existing directory:
 +-------------------+----------------------------------------------------------------------+
 
 If you choose “2” to create a new directory
+
 .. image:: images/make_install_7_2DirectoryPath.PNG
 
 +-------------------------+-------------------------------------------------------------------------------+
