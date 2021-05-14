@@ -24,15 +24,15 @@ If you choose “Y”, the next stopping point will be:
 
 Now you must provide these following inputs:
 
-+-------------------------+----------------------------------------------------------------------------------------------------------+
-| Input                   | Explanation                                                                                              |
-+=========================+==========================================================================================================+
-| Use new or existing DB  | | Enter “1” if this is your first time running the augur install                                         |
-|                         | | Enter “2” if you already created a database with a previous augur install but schema was not installed |
-|                         | | Enter “3” if you already created a database with a previous augur install and                          |
-|                         | |  successfully installed the schema                                                                     |
-|                         | | See [Michael’s documentation] for detail regarding database setup                                      |
-+-------------------------+----------------------------------------------------------------------------------------------------------+
++-------------------------+-----------------------------------------------------------------------------------------------------------+
+| Input                   | Explanation                                                                                               |
++=========================+===========================================================================================================+
+| Use new or existing DB  | | Enter “1” if this is your first time running the augur install                                          |
+|                         | | Enter “2” if you already created a database with a previous augur install but schema was not installed  |
+|                         | | Enter “3” if you already created a database with a previous augur install and                           |
+|                         | |  successfully installed the schema                                                                      |
+|                         | | See 'database documentation <../../getting-started/database.html>'_ for detail regarding database setup |
++-------------------------+-----------------------------------------------------------------------------------------------------------+
 
 If you choose “1” to initialize a new database, you will now have to enter the following inputs:
 
@@ -104,13 +104,13 @@ Next, you will be asked to provide some API keys:
 
 .. image:: images/make_install_5APIkey.PNG
 
-+-----------------+-------------------------------------------------------------------------+
-| Input           | Explanation                                                             |
-+=================+=========================================================================+
-| GitHub API Key  | See [Issac’s documentation] for details on how to get a GitHub API Key  |
-+-----------------+-------------------------------------------------------------------------+
-| GitLab API Key  | See [Issac’s documentation] for details on how to get a GitLab API Key  |
-+-----------------+-------------------------------------------------------------------------+
++-----------------+----------------------------------------------------------------------------------------------------+
+| Input           | Explanation                                                                                        |
++=================+====================================================================================================+
+| GitHub API Key  | See 'API key documentation <../../auth-api/api.html>'_ for details on how to get a GitHub API Key  |
++-----------------+----------------------------------------------------------------------------------------------------+
+| GitLab API Key  | See 'API key documentation <../../auth-api/api.html>'_ for details on how to get a GitLab API Key  |
++-----------------+----------------------------------------------------------------------------------------------------+
 
 ------------------------
 
@@ -153,6 +153,8 @@ If you choose “2” to create a new directory
 |                         | |  Remember that you cannot use “$HOME” type variables, you must              |
 |                         | |  use an absolute path like “/home/dir1/dir2”                                |
 +-------------------------+-------------------------------------------------------------------------------+
+
+------------------------------
 
 After finishing the config file setup or if you choose “n” to not overwrite the config file:
 Now you have a choice to install augur frontend dependencies
