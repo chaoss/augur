@@ -24,6 +24,10 @@ If you're looking for the fastest possible way to get Augur started, we recommen
 
     If you want to collect data over the long term, we strongly advise against `using a Docker container for your database <https://vsupalov.com/database-in-docker/>`_.
 
+.. note::
+
+    ``make install`` uses the ``psql`` command to load the database schema. Please make sure the host OS can run the psql command even if a docker DB is used.
+
 
 For Windows Users
 -----------------
@@ -77,11 +81,6 @@ When connected to a psql terminal, run the following
     postgres=# GRANT ALL PRIVILEGES ON DATABASE augur TO augur;
 
 Replace 'password' with your custom password. Make sure to save your password to a secure location for backup.
-
-
-Using the Postgres Skeleton generator (tentative)
--------------------------------------------------
-TODO might not implement this yet
 
 Connecting to the database during "make install"
 ------------------------------------------------
