@@ -31,7 +31,7 @@ Now you must provide these following inputs:
 |                         | | Enter “2” if you already created a database with a previous augur install but schema was not installed  |
 |                         | | Enter “3” if you already created a database with a previous augur install and                           |
 |                         | |  successfully installed the schema                                                                      |
-|                         | | See 'database documentation <../../getting-started/database.html>'_ for detail regarding database setup |
+|                         | | See `database documentation <../../getting-started/database.html>`_ for detail regarding database setup |
 +-------------------------+-----------------------------------------------------------------------------------------------------------+
 
 If you choose “1” to initialize a new database, you will now have to enter the following inputs:
@@ -107,9 +107,9 @@ Next, you will be asked to provide some API keys:
 +-----------------+----------------------------------------------------------------------------------------------------+
 | Input           | Explanation                                                                                        |
 +=================+====================================================================================================+
-| GitHub API Key  | See 'API key documentation <../../auth-api/api.html>'_ for details on how to get a GitHub API Key  |
+| GitHub API Key  | See `API key documentation <../../auth-api/api.html>`_ for details on how to get a GitHub API Key  |
 +-----------------+----------------------------------------------------------------------------------------------------+
-| GitLab API Key  | See 'API key documentation <../../auth-api/api.html>'_ for details on how to get a GitLab API Key  |
+| GitLab API Key  | See `API key documentation <../../auth-api/api.html>`_ for details on how to get a GitLab API Key  |
 +-----------------+----------------------------------------------------------------------------------------------------+
 
 ------------------------
