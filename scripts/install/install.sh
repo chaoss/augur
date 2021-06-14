@@ -39,7 +39,7 @@ else
   esac
 fi
 
-scripts/install/frontend.sh
+# scripts/install/frontend.sh
 scripts/install/api_key.sh
 scripts/install/nltk_dictionaries.sh
 
