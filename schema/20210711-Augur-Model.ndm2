@@ -46052,8 +46052,8 @@
           "type": "table",
           "schemaName": "augur_data",
           "tableName": "repo_labor",
-          "x": 4560,
-          "y": 3250,
+          "x": 4195,
+          "y": 2888,
           "width": 245,
           "height": 408,
           "isBold": false,
@@ -46180,8 +46180,8 @@
           "type": "table",
           "schemaName": "augur_data",
           "tableName": "topic_words",
-          "x": 2874,
-          "y": 3311,
+          "x": 2550,
+          "y": 3569,
           "width": 230,
           "height": 219,
           "isBold": false,
@@ -49422,8 +49422,8 @@
           "visible": true,
           "vertices": [
             {
-              "x": 4820,
-              "y": 3620
+              "x": 4455,
+              "y": 3258
             },
             {
               "x": 4860,
@@ -49439,8 +49439,8 @@
             }
           ],
           "label": {
-            "x": 4816,
-            "y": 3622,
+            "x": 4451,
+            "y": 3260,
             "width": 142,
             "height": 31,
             "fontName": "Arial Unicode MS",
@@ -49632,12 +49632,12 @@
           "visible": true,
           "vertices": [
             {
-              "x": 3115,
-              "y": 3750
+              "x": 2979,
+              "y": 3804
             },
             {
-              "x": 3150,
-              "y": 3750
+              "x": 2979,
+              "y": 3820
             },
             {
               "x": 3150,
@@ -49649,8 +49649,8 @@
             }
           ],
           "label": {
-            "x": 3111,
-            "y": 3752,
+            "x": 2987,
+            "y": 3794,
             "width": 141,
             "height": 31,
             "fontName": "Arial Unicode MS",
