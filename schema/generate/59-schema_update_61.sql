@@ -3,5 +3,8 @@ BEGIN;
 
 COMMIT; 
 
+INSERT INTO "augur_operations"."worker_history" ("history_id", "repo_id", "worker", "job_model", "oauth_id", "timestamp", "status", "total_results") VALUES (1, 1, 'workers.insight_worker.49025', 'insights', NULL, '2021-07-14 15:16:16', 'Success', 0);
+INSERT INTO "augur_operations"."worker_history" ("history_id", "repo_id", "worker", "job_model", "oauth_id", "timestamp", "status", "total_results") VALUES (2, 1, 'workers.linux_badge_worker.47216', 'badges', NULL, '2021-07-14 15:16:19', 'Success', 1);
+
 update "augur_operations"."augur_settings" set value = 61 where setting = 'augur_data_version';
 
