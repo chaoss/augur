@@ -14,7 +14,10 @@ from workers.worker_base import Worker
 # 1. Recognizing when a repository is a forked repository by updating the "forked_from" field and 
 # 2. Recognizing when a repository is archived, and recording the data we observed the change in status. 
 
-class RepoInfoWorker(Worker):
+#Breaks if doesn't inherit from GitInterfaceable
+from workers.worker_git_integration import WorkerGitInterfaceable
+
+class RepoInfoWorker(WorkerGitInterfaceable):
     def __init__(self, config={}):
 
         worker_type = "repo_info_worker"

@@ -1,4 +1,3 @@
-
 #SPDX-License-Identifier: MIT
 import ast
 import json
@@ -16,7 +15,10 @@ import sqlalchemy as s
 from sqlalchemy.sql.expression import bindparam
 from workers.worker_base import Worker
 
-class GitHubPullRequestWorker(Worker):
+#This class breaks if it doesn't inherit from this class.
+from workers.worker_git_integration import WorkerGitInterfaceable
+
+class GitHubPullRequestWorker(WorkerGitInterfaceable):
     """
     Worker that collects Pull Request related data from the
     Github API and stores it in our database.
@@ -48,7 +50,7 @@ class GitHubPullRequestWorker(Worker):
 
         # Define data collection info
         self.tool_source = 'GitHub Pull Request Worker'
-        self.tool_version = '1.0.0'
+        self.tool_version = '1.2.0'
         self.data_source = 'GitHub API'
 
         #Needs to be an attribute of the class for incremental database insert using paginate_endpoint
@@ -706,7 +708,7 @@ class GitHubPullRequestWorker(Worker):
                 ))).fetchall()
 
         source_reviews_insert, source_reviews_update = self.new_organize_needed_data(
-            pr_pk_source_reviews, augur_table=self.pull_request_reviews_table,
+            pr_pk_source_reviews, table_values=table_values,
             action_map=review_action_map
         )
 
