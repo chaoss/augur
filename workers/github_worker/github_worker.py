@@ -210,7 +210,7 @@ class GitHubWorker(WorkerGitInterfaceable):
         }
 
         # list to hold contributors needing insertion or update
-        issue_comments = self.paginate_endpoint(
+        issue_comments = self.new_paginate_endpoint(
             comments_url, action_map=comment_action_map, table=self.message_table,
             where_clause=self.message_table.c.msg_id.in_(
                 [
@@ -300,7 +300,7 @@ class GitHubWorker(WorkerGitInterfaceable):
         self.logger.info(pd.DataFrame(pk_source_issues).columns)
         self.logger.info(pd.DataFrame(pk_source_issues))
         #list to hold contributors needing insertion or update
-        issue_events = self.paginate_endpoint(
+        issue_events = self.new_paginate_endpoint(
             events_url, table=self.issue_events_table, action_map=event_action_map,
             where_clause=self.issue_events_table.c.issue_id.in_(
                 set(pd.DataFrame(pk_source_issues)['issue_id'])
@@ -441,8 +441,8 @@ class GitHubWorker(WorkerGitInterfaceable):
             s.sql.select(self.get_relevant_columns(self.issue_assignees_table,assignee_action_map))
         ).fetchall()
 
-        source_assignees_insert, _ = self.organize_needed_data(
-            assignees_all, table_values=table_values_issue_assignees,
+        source_assignees_insert, _ = self.new_organize_needed_data(
+            assignees_all, augur_table=self.issue_assignees_table,
             action_map=assignee_action_map
         )
 
@@ -479,13 +479,13 @@ class GitHubWorker(WorkerGitInterfaceable):
             }
         }
 
+
         table_values_issue_labels = self.db.execute(
             s.sql.select(self.get_relevant_columns(self.issue_labels_table,label_action_map))
         ).fetchall()
 
-
-        source_labels_insert, _ = self.organize_needed_data(
-            labels_all, table_values=table_values_issue_labels,
+        source_labels_insert, _ = self.new_organize_needed_data(
+            labels_all, augur_table=self.issue_labels_table,
             action_map=label_action_map
         )
         labels_insert = [
