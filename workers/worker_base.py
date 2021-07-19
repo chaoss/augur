@@ -15,7 +15,7 @@ class Worker(Persistant):
     ## Set Thread Safety for OSX
     # os.system("./osx-thread.sh")
 
-    def __init__(self, worker_type, config={}, given=[], models=[], data_tables=[], operations_tables=[], platform="github"):
+    def __init__(self, worker_type, config={}, given=[], models=[], data_tables=[], operations_tables=[]):
 
         #Construct the persistant functionality for the worker
         super().__init__(worker_type,data_tables,operations_tables)
