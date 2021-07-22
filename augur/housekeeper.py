@@ -54,7 +54,7 @@ class Housekeeper:
         # If enabled, updates all redirects of repositories 
         # and organizations urls for configured repo_group_id
         self.update_url_redirects()
-        self.update_org_repositories()
+        self.update_org_repos()
 
         # List of tasks that need periodic updates
         self.schedule_updates()
@@ -454,26 +454,26 @@ class Housekeeper:
         if iteration == total:
             print()
 
-    def update_org_repositories(self):
+    def update_org_repos(self):
         """
         Add new repositories for specific organization to Augur's database
         """
 
         if 'switch' in self.update_org_repositories and self.update_org_repositories['switch'] == 1 and 'repo_group_id' in self.update_org_repositories:
-            if self.update_redirects['repo_group_id'] == 0:
+            if self.update_org_repositories['repo_group_id'] == 0:
                 logger.info("Repo Group Set to Zero for URL Updates")
             else:
                 logger.info("Repo Group ID Specified.")
 
             org = self.get_org_name(self.update_org_repositories['repo_group_id'])
             totalCount = self.get_repos_total_count(org)
-            existing_repos = self.get_existing_repos(self.update_redirects['repo_group_id'])
+            existing_repos = self.get_existing_repos(self.update_org_repositories['repo_group_id'])
             if totalCount > len(existing_repos):
                 repos = self.get_all_repos(org, totalCount)
 
                 for repo in repos:
                     if repo['node']['name'] not in existing_repos:
-                        self.insert_repo(repo['node'], org, self.update_redirects['repo_group_id'])
+                        self.insert_repo(repo['node'], org, self.update_org_repositories['repo_group_id'])
 
     def insert_repo(self, repo, org, repo_group_id):
         logger.info("Inserting repo {}".repo['name'])
