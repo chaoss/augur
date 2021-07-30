@@ -174,6 +174,16 @@ class PlatformConnector:
 
         return owner, repo
 
+    def init_oauth_keys(self):
+        self.logger.info("Initializing API key.")
+        if 'gh_api_key' in self.config or 'gitlab_api_key' in self.config:
+            try:
+                self.init_oauths(self.platform)
+            except AttributeError:
+                self.logger.error("Worker not configured to use API key!")
+        else:
+            self.oauths = [{'oauth_id': 0}]
+
     def init_oauths(self, platform="github"):
         self.oauths = []
         self.headers = None

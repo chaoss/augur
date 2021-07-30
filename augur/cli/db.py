@@ -518,6 +518,7 @@ def get_data(augur_app, query, org):
     pc.logger = logging.getLogger()
     pc.db = augur_app.db
     pc.helper_db = augur_app.helper_db
+    pc.init_oauth_keys()
 
     url = 'https://api.github.com/graphql'
     ROOT_AUGUR_DIR = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))

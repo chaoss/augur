@@ -461,22 +461,22 @@ class Housekeeper:
 
         if 'switch' in self.update_org_repositories and self.update_org_repositories['switch'] == 1 and 'repo_group_id' in self.update_org_repositories:
             if self.update_org_repositories['repo_group_id'] == 0:
-                logger.info("Repo Group Set to Zero for URL Updates")
+                logger.info("Repo Group Set to Zero for repo updates")
             else:
                 logger.info("Repo Group ID Specified.")
 
             org = self.get_org_name(self.update_org_repositories['repo_group_id'])
+
             totalCount = self.get_repos_total_count(org)
             existing_repos = self.get_existing_repos(self.update_org_repositories['repo_group_id'])
-            if totalCount > len(existing_repos):
-                repos = self.get_all_repos(org, totalCount)
+            repos = self.get_all_repos(org, totalCount)
 
-                for repo in repos:
-                    if repo['node']['name'] not in existing_repos:
-                        self.insert_repo(repo['node'], org, self.update_org_repositories['repo_group_id'])
+            for repo in repos:
+                if repo['node']['name'] not in existing_repos:
+                    self.insert_repo(repo['node'], org, self.update_org_repositories['repo_group_id'])
 
     def insert_repo(self, repo, org, repo_group_id):
-        logger.info("Inserting repo {}".repo['name'])
+        logger.info("Inserting repo {}".format(repo['name']))
         insert_repo_sql = s.sql.text("""
             INSERT INTO augur_data.repo(repo_group_id, repo_git, repo_path, repo_name, repo_added)
             VALUES ({}, {}, {}, {}, {})
@@ -505,8 +505,8 @@ class Housekeeper:
 
     def get_org_name(self, repo_group_id):
         org_name_sql = s.sql.text("""
-                SELECT repo_group_id FROM repo_groups
-                WHERE rg_name = '{}'
+                SELECT rg_name FROM repo_groups
+                WHERE repo_group_id = '{}'
             """.format(repo_group_id))
 
         org_name = self.db.execute(org_name_sql).fetchone()[0]
@@ -578,6 +578,7 @@ class Housekeeper:
         pc.logger = logging.getLogger()
         pc.db = self.db
         pc.helper_db = self.helper_db
+        pc.init_oauth_keys()
 
         url = 'https://api.github.com/graphql'
         ROOT_AUGUR_DIR = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
