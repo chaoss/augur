@@ -4,6 +4,9 @@ FROM python:3.8.11-slim-buster
 LABEL maintainer="outdoors@acm.org"
 LABEL version="0.17.0"
 
+RUN addgroup --gid 1000 augur
+RUN adduser --disabled-password --gecos '' --uid 1000 --gid 1000 user
+
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN set -x \
@@ -29,19 +32,21 @@ COPY ./schema/ schema/
 
 COPY ./util/docker/backend/backend.docker.config.json .
 
+USER augur
 RUN set -x \
     && pip install .
 
+USER root
 RUN ./scripts/docker/install-go.sh
+USER augur
 RUN ./scripts/install/workers.sh 
 RUN augur config init --rc-config-file /augur/backend.docker.config.json \
     && mkdir -p repos/ logs/
 
 COPY ./util/docker/backend/entrypoint.sh /
+USER ROOT
 RUN chmod +x /entrypoint.sh
 
-RUN addgroup --gid 1000 augur
-RUN adduser --disabled-password --gecos '' --uid 1000 --gid 1000 user
 USER augur
 
 ENTRYPOINT /entrypoint.sh
