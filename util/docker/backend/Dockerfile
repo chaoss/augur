@@ -16,6 +16,7 @@ RUN set -x \
         gcc \
         python3-pip \
         wget \
+        sudo \
         postgresql-client \
     && rm -rf /var/lib/apt/lists/*
 
@@ -37,10 +38,9 @@ COPY ./schema/ schema/
 
 COPY ./util/docker/backend/backend.docker.config.json .
 
+USER root
 RUN ./scripts/docker/main-install.sh
 
-
-USER root
 RUN ./scripts/docker/install-go.sh
 RUN ./scripts/install/workers.sh
 
