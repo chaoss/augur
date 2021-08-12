@@ -5,7 +5,7 @@ LABEL maintainer="outdoors@acm.org"
 LABEL version="0.17.0"
 
 RUN addgroup --gid 1000 augur
-RUN adduser --disabled-password --gecos '' --uid 1000 --gid 1000 user
+RUN adduser --disabled-password --gecos '' --uid 1000 --gid 1000 augur
 
 ENV DEBIAN_FRONTEND=noninteractive
 
