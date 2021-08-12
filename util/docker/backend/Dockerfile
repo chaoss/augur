@@ -19,8 +19,10 @@ RUN set -x \
         postgresql-client \
     && rm -rf /var/lib/apt/lists/*
 
+USER augur
 RUN mkdir /virtualenv
 RUN python -m venv /virtualenv/augur_env
+USER root
 EXPOSE 5000
 
 WORKDIR /augur
