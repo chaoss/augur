@@ -19,6 +19,8 @@ RUN set -x \
         postgresql-client \
     && rm -rf /var/lib/apt/lists/*
 
+RUN mkdir /virtualenv
+RUN python -m venv /virtualenv/augur_env
 EXPOSE 5000
 
 WORKDIR /augur
@@ -33,14 +35,17 @@ COPY ./schema/ schema/
 
 COPY ./util/docker/backend/backend.docker.config.json .
 
-
+RUN activate /virtualenv/augur_env/bin/activate
 RUN set -x \
     && pip install .
 
+
 USER root
 RUN ./scripts/docker/install-go.sh
+RUN ./scripts/install/workers.sh
+
 USER augur
-RUN ./scripts/install/workers.sh 
+RUN activate /virtualenv/augur_env/bin/activate 
 RUN augur config init --rc-config-file /augur/backend.docker.config.json \
     && mkdir -p repos/ logs/
 
@@ -49,5 +54,5 @@ USER ROOT
 RUN chmod +x /entrypoint.sh
 
 USER augur
-
+RUN activate /virtualenv/augur_env/bin/activate
 ENTRYPOINT /entrypoint.sh
