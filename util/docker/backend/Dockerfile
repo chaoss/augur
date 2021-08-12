@@ -39,4 +39,9 @@ RUN augur config init --rc-config-file /augur/backend.docker.config.json \
 
 COPY ./util/docker/backend/entrypoint.sh /
 RUN chmod +x /entrypoint.sh
+
+RUN addgroup --gid 1000 augur
+RUN adduser --disabled-password --gecos '' --uid 1000 --gid 1000 user
+USER augur
+
 ENTRYPOINT /entrypoint.sh
