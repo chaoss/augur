@@ -22,6 +22,7 @@ RUN set -x \
 EXPOSE 5000
 
 WORKDIR /augur
+USER augur
 COPY ./README.md .
 COPY ./augur/ augur/
 COPY ./metadata.py .
@@ -32,7 +33,7 @@ COPY ./schema/ schema/
 
 COPY ./util/docker/backend/backend.docker.config.json .
 
-USER augur
+
 RUN set -x \
     && pip install .
 
