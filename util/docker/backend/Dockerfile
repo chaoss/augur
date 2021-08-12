@@ -35,7 +35,7 @@ COPY ./schema/ schema/
 
 COPY ./util/docker/backend/backend.docker.config.json .
 
-RUN source /virtualenv/augur_env/bin/activate
+RUN /bin/bash -c "source /virtualenv/augur_env/bin/activate"
 RUN set -x \
     && pip install .
 
@@ -45,7 +45,7 @@ RUN ./scripts/docker/install-go.sh
 RUN ./scripts/install/workers.sh
 
 USER augur
-RUN source /virtualenv/augur_env/bin/activate 
+RUN /bin/bash -c "source /virtualenv/augur_env/bin/activate"
 RUN augur config init --rc-config-file /augur/backend.docker.config.json \
     && mkdir -p repos/ logs/
 
@@ -54,5 +54,5 @@ USER ROOT
 RUN chmod +x /entrypoint.sh
 
 USER augur
-RUN source /virtualenv/augur_env/bin/activate
+RUN /bin/bash -c "source /virtualenv/augur_env/bin/activate"
 ENTRYPOINT /entrypoint.sh

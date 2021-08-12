@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #python venv
-activate /virtualenv/augur_env/bin/activate
+source /virtualenv/augur_env/bin/activate
 set -eo pipefail
 
 echo "Installing workers and their dependencies..."
