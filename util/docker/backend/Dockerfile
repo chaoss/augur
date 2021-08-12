@@ -20,8 +20,8 @@ RUN set -x \
     && rm -rf /var/lib/apt/lists/*
 
 USER augur
-RUN mkdir /virtualenv
-RUN python -m venv /virtualenv/augur_env
+RUN mkdir /home/augur/virtualenv
+RUN python -m venv /home/augur/virtualenv/augur_env
 USER root
 EXPOSE 5000
 

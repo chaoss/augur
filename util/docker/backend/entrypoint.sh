@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #SPDX-License-Identifier: MIT
-source /virtualenv/augur_env/bin/activate
+source /home/augur/virtualenv/augur_env/bin/activate
 set -e
 
 if [[ "$AUGUR_DB_SCHEMA_BUILD" == "1" ]]; then
