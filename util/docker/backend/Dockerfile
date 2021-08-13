@@ -42,6 +42,7 @@ RUN ./scripts/docker/main-install.sh
 
 USER root
 RUN ./scripts/docker/install-go.sh
+RUN chmod +x scripts/docker/*
 USER augur
 RUN ./scripts/docker/workers.sh
 RUN ./scripts/docker/docker-config.sh
