@@ -53,7 +53,7 @@ RUN ./scripts/docker/workers.sh
 RUN ./scripts/docker/docker-config.sh
 
 COPY ./util/docker/backend/entrypoint.sh /
-USER ROOT
+USER root
 RUN chmod +x /entrypoint.sh
 
 USER augur
