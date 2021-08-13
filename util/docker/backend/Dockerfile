@@ -38,11 +38,13 @@ COPY ./schema/ schema/
 
 COPY ./util/docker/backend/backend.docker.config.json .
 
+USER root
+RUN chmod a+x scripts/docker/*
+USER augur
 RUN ./scripts/docker/main-install.sh
 
 USER root
 RUN ./scripts/docker/install-go.sh
-RUN chmod a+x scripts/docker/*
 USER augur
 RUN ./scripts/docker/workers.sh
 RUN ./scripts/docker/docker-config.sh
