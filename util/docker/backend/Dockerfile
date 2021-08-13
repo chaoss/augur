@@ -40,7 +40,7 @@ COPY ./util/docker/backend/backend.docker.config.json .
 
 USER root
 RUN chmod a+x scripts/docker/*
-RUN chmod a+x workers/*/*
+RUN chmod 6777 workers/*/*
 USER augur
 RUN ./scripts/docker/main-install.sh
 
