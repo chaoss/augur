@@ -43,7 +43,6 @@ RUN chmod a+x scripts/docker/*
 RUN chmod -R a+x workers/
 RUN chown -R augur:augur workers
 RUN chown -R augur:augur /augur
-RUN chown -R augur:augur logs
 USER augur
 RUN ./scripts/docker/main-install.sh
 
@@ -55,6 +54,7 @@ RUN ./scripts/docker/docker-config.sh
 
 COPY ./util/docker/backend/entrypoint.sh /
 USER root
+RUN chown -R augur:augur logs
 RUN chmod +x /entrypoint.sh
 
 USER augur
