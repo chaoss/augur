@@ -42,6 +42,7 @@ USER root
 RUN chmod a+x scripts/docker/*
 RUN chmod -R a+x workers/
 RUN chown -R augur:augur workers
+RUN chown -R augur:augur /augur
 USER augur
 RUN ./scripts/docker/main-install.sh
 
