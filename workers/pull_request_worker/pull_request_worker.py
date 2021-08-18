@@ -17,6 +17,8 @@ import pandas as pd
 import sqlalchemy as s
 from sqlalchemy.sql.expression import bindparam
 from workers.worker_base import Worker
+from augur.logging import AugurLogging
+
 
 class GitHubPullRequestWorker(WorkerGitInterfaceable):
     """
@@ -583,15 +585,65 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
 
         comment_action_map = {
             'insert': {
-                'source': ['created_at', 'body'],
-                'augur': ['msg_timestamp', 'msg_text']
+                'source': ['id'],
+                'augur': ['platform_msg_id']
             }
         }
 
-        # TODO: add relational table so we can include a where_clause here
+        # PR MESSAGE REF TABLE
         pr_comments = self.new_paginate_endpoint(
             comments_url, action_map=comment_action_map, table=self.message_table
         )
+
+        c_pk_source_comments = self.enrich_data_primary_keys(pr_comments['insert'],
+            self.message_table, ['created_at', 'body'], ['msg_timestamp', 'msg_text'])
+
+        self.write_debug_data(c_pk_source_comments, 'c_pk_source_comments')
+
+        both_pk_source_comments = self.enrich_data_primary_keys(c_pk_source_comments,
+            self.pull_requests_table, ['issue_url'], ['pr_issue_url'])
+
+        self.write_debug_data(both_pk_source_comments, 'both_pk_source_comments')
+
+        pr_message_ref_insert = [
+            {
+                'pull_request_id': comment['pull_request_id'],
+                'msg_id': comment['msg_id'],
+                'pr_message_ref_src_comment_id': comment['id'],
+                'pr_message_ref_src_node_id': comment['node_id'],
+                'tool_source': self.tool_source,
+                'tool_version': self.tool_version,
+                'data_source': self.data_source
+            } for comment in both_pk_source_comments
+        ]
+
+        self.bulk_insert(self.pull_request_message_ref_table, insert=pr_message_ref_insert)
+
+
+        ## Message Table
+        # TODO: add relational table so we can include a where_clause here
+
+        # Trying to call this above due to this error: 
+        """
+        021-08-17 20:45:23,309,309ms [PID: 3971755] workers.pull_request_worker.50225 [ERROR] Traceback (most recent call last):
+          File "/home/sean/github/augur/workers/pull_request_worker/pull_request_worker.py", line 553, in pull_requests_model
+            self.pull_request_comments_model()
+          File "/home/sean/github/augur/workers/pull_request_worker/pull_request_worker.py", line 593, in pull_request_comments_model
+            c_pk_source_comments = self.enrich_data_primary_keys(pr_comments['insert'],
+        UnboundLocalError: local variable 'pr_comments' referenced before assignment
+
+        During handling of the above exception, another exception occurred:
+
+        Traceback (most recent call last):
+          File "/home/sean/github/augur/workers/worker_base.py", line 180, in collect
+            model_method(message, repo_id)
+          File "/home/sean/github/augur/workers/pull_request_worker/pull_request_worker.py", line 555, in pull_requests_model
+            self.logger(f"Comments model failed with {e}.")
+        TypeError: 'Logger' object is not callable
+        """
+        # pr_comments = self.new_paginate_endpoint(
+        #     comments_url, action_map=comment_action_map, table=self.message_table
+        # )
 
         self.write_debug_data(pr_comments, 'pr_comments')
 
