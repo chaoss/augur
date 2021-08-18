@@ -14,6 +14,7 @@ import copy
 import concurrent
 import multiprocessing
 import psycopg2
+import psycopg2.extensions
 import csv
 import io
 from logging import FileHandler, Formatter, StreamHandler
@@ -29,13 +30,15 @@ from augur.logging import AugurLogging
 from sqlalchemy.sql.expression import bindparam
 from concurrent import futures
 import dask.dataframe as dd
-from augur.platform_connector import PlatformConnector
 
-class Persistant(PlatformConnector):
+class Persistant():
 
-    def __init__(self, worker_type, config={}, given=[], data_tables=[],operations_tables=[], db=None, helper_db=None, platform="github"):
-        
-        super(Persistant, self).__init__(config, given, data_tables, operations_tables, db, helper_db, platform)
+    ROOT_AUGUR_DIR = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+
+    def __init__(self, worker_type, data_tables=[],operations_tables=[]):
+
+        self.db_schema = None 
+        self.helper_schema = None 
         self.worker_type = worker_type
         #For database functionality
         self.data_tables = data_tables
@@ -92,7 +95,7 @@ class Persistant(PlatformConnector):
             'name_database': self.augur_config.get_value('Database', 'name'),
             'password_database': self.augur_config.get_value('Database', 'password')
         })
-        
+
         # Initialize logging in the main process
         self.initialize_logging()
 
@@ -115,8 +118,7 @@ class Persistant(PlatformConnector):
         if self.config['debug']:
             self.config['log_level'] = 'DEBUG'
 
-        super(Worker, self).initialize_logging()
-        if "verbose" in self.config and self.config["verbose"]:
+        if self.config['verbose']:
             format_string = AugurLogging.verbose_format_string
         else:
             format_string = AugurLogging.simple_format_string
@@ -157,14 +159,14 @@ class Persistant(PlatformConnector):
         logger.setLevel(self.config['log_level'])
         logger.propagate = False
 
-        if 'debug' in self.config and self.config['debug']:
+        if self.config['debug']:
             self.config['log_level'] = 'DEBUG'
             console_handler = StreamHandler()
             console_handler.setFormatter(formatter)
             console_handler.setLevel(self.config['log_level'])
             logger.addHandler(console_handler)
 
-        if 'quiet' in self.config and self.config['quiet']:
+        if self.config['quiet']:
             logger.disabled = True
 
         self.logger = logger
@@ -178,13 +180,13 @@ class Persistant(PlatformConnector):
         # Create an sqlalchemy engine for both database schemas
         self.logger.info("Making database connections")
 
-        db_schema = 'augur_data'
+        self.db_schema = 'augur_data'
         self.db = s.create_engine(DB_STR,  poolclass=s.pool.NullPool,
-            connect_args={'options': '-csearch_path={}'.format(db_schema)})
-
-        helper_schema = 'augur_operations'
+            connect_args={'options': '-csearch_path={}'.format(self.db_schema)})
+        # , 'client_encoding': 'utf8'
+        self.helper_schema = 'augur_operations'
         self.helper_db = s.create_engine(DB_STR, poolclass=s.pool.NullPool,
-            connect_args={'options': '-csearch_path={}'.format(helper_schema)})
+            connect_args={'options': '-csearch_path={}'.format(self.helper_schema)})
 
         metadata = s.MetaData()
         helper_metadata = s.MetaData()
@@ -215,7 +217,14 @@ class Persistant(PlatformConnector):
                 self.logger.error("Error setting attribute for table: {} : {}".format(table, e))
 
         # Increment so we are ready to insert the 'next one' of each of these most recent ids
-        self.history_id = self.get_max_id('worker_history', 'history_id', operations_table=True) + 1
+        self.logger.info("Trying to find max id of table...")
+        try:
+            self.history_id = self.get_max_id('worker_history', 'history_id', operations_table=True) + 1
+        except Exception as e:
+            self.logger.info(f"Could not find max id. ERROR: {e}")
+        
+        #25151
+        #self.logger.info(f"Good, passed the max id getter. Max id: {self.history_id}")
 
     #Make sure the type used to store date is synced with the worker?
     def sync_df_types(self, subject, source, subject_columns, source_columns):
@@ -440,7 +449,7 @@ class Persistant(PlatformConnector):
                 need_insertion = new_data_df.merge(table_values_df, suffixes=('','_table'),
                         how='outer', indicator=False, left_on=action_map['insert']['source'],
                         right_on=action_map['insert']['augur']).loc[lambda x : x['_merge']=='left_only']
-                
+
 
 
             if 'update' in action_map:
@@ -748,7 +757,7 @@ class Persistant(PlatformConnector):
                 """
                 # gets a DBAPI connection that can provide a cursor
                 dbapi_conn = conn.connection
-                with dbapi_conn.cursor() as cur:
+                with dbapi_conn.cursor() as curs:
                     s_buf = io.StringIO()
                     writer = csv.writer(s_buf)
                     writer.writerows(data_iter)
@@ -763,12 +772,20 @@ class Persistant(PlatformConnector):
                     sql = 'COPY {} ({}) FROM STDIN WITH CSV'.format(
                         table_name, columns)
                     #This causes the github worker to throw an error with pandas
-                    cur.copy_expert(sql=sql, file=s_buf)
+                    #cur.copy_expert(sql=sql, file=self.text_clean(s_buf))
+                    # s_buf_encoded = s_buf.read().encode("UTF-8") 
+                    #self.logger.info(f"this is the sbuf_encdoded {s_buf_encoded}")
+                    try: 
+                        curs.copy_expert(sql=sql, file=s_buf)
+                    except Exception as e: 
+                        self.logger.info(f"this is the error: {e}.")
+
 
             df = pd.DataFrame(insert)
             if convert_float_int:
                 df = self._convert_float_nan_to_int(df)
             df.to_sql(
+                schema = self.db_schema,
                 name=table.name,
                 con=self.db,
                 if_exists="append",
@@ -795,12 +812,38 @@ class Persistant(PlatformConnector):
             :returns: Same data list with each element's field updated with NUL characters
                 removed
         """
+        #self.logger.info(f"Original data point{field:datapoint[field]}")
+
         return [
             {
                 **data_point,
-                field: data_point[field].replace("\x00", "\uFFFD")
+                #field: data_point[field].replace("\x00", "\uFFFD")
+                #self.logger.info(f"Null replaced data point{field:datapoint[field]}")
+                ## trying to use standard python3 method for text cleaning here. 
+                # This was after `data_point[field]` for a while as `, "utf-8"` and did not work
+                # Nay, it cause silent errors without insert; or was part of that hot mess. 
+                # field: bytes(data_point[field]).decode("utf-8", "ignore")  
+                field: bytes(data_point[field], "utf-8").decode("utf-8", "ignore").replace("\x00", "\uFFFD")
+                #0x00
             } for data_point in data
         ]
+
+    # def text_clean(self, data, field):
+    #     """ "Cleans" the provided field of each dict in the list of dicts provided
+    #         by removing NUL (C text termination) characters
+    #         Example: "\u0000"
+
+    #         :param data: List of dicts
+    #         :param field: String
+    #         :returns: Same data list with each element's field updated with NUL characters
+    #             removed
+    #     """
+    #     return [
+    #         {
+    #             **data_point,
+    #             field: data_point[field].replace("\x00", "\uFFFD")
+    #         } for data_point in data
+    #     ]
 
     def _add_nested_columns(self, df, column_names):
         # todo: support deeper nests (>1) and only expand necessary columns
