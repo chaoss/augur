@@ -777,7 +777,7 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
                 'cntrb_id': review['cntrb_id'],
                 'pr_review_author_association': review['author_association'],
                 'pr_review_state': review['state'],
-                'pr_review_body': unicode(review['body'], "utf-8").replace("\x00", "\uFFFD")
+                'pr_review_body': unicode(review['body'], "utf-8").replace("\x00", "\uFFFD"),
                 'pr_review_submitted_at': review['submitted_at'] if (
                     'submitted_at' in review
                 ) else None,
