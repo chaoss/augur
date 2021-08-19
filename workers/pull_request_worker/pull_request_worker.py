@@ -441,7 +441,7 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
                 'pr_src_locked': pr['locked'],
                 'pr_src_title': pr['title'],
                 'pr_augur_contributor_id': pr['cntrb_id'],
-                'pr_body': bytes(pr['body'], "utf-8").decode("utf-8", "ignore").replace("\x00", "\uFFFD"),
+                'pr_body': str(pr['body'], "utf-8").decode("utf-8", "ignore").replace("\x00", "\uFFFD"),
                 'pr_created_at': pr['created_at'],
                 'pr_updated_at': pr['updated_at'],
                 'pr_closed_at': pr['closed_at'],
@@ -613,7 +613,7 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
         pr_comments_insert = [
             {
                 'pltfrm_id': self.platform_id,
-                'msg_text': bytes(comment['body'], "utf-8").decode("utf-8", "ignore").replace("\x00", "\uFFFD"),
+                'msg_text': str(comment['body'], "utf-8").decode("utf-8", "ignore").replace("\x00", "\uFFFD"),
                 'msg_timestamp': comment['created_at'],
                 'cntrb_id': comment['cntrb_id'],
                 'tool_source': self.tool_source,
@@ -857,7 +857,7 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
         review_msg_insert = [
             {
                 'pltfrm_id': self.platform_id,
-                'msg_text': bytes(comment['body'], "utf-8").decode("utf-8", "ignore").replace("\x00", "\uFFFD"),
+                'msg_text': str(comment['body'], "utf-8").decode("utf-8", "ignore").replace("\x00", "\uFFFD"),
                 'msg_timestamp': comment['created_at'],
                 'cntrb_id': comment['cntrb_id'],
                 'tool_source': self.tool_source,
