@@ -441,7 +441,9 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
                 'pr_src_locked': pr['locked'],
                 'pr_src_title': pr['title'],
                 'pr_augur_contributor_id': pr['cntrb_id'],
-                'pr_body': pr['body'].encode(encoding='UTF-8',errors='ignore').decode(encoding='UTF-8',errors='ignore'),
+                'pr_body': pr['body'].encode(encoding='UTF-8',errors='ignore').decode(encoding='UTF-8',errors='ignore') if (
+                    'body' in pr
+                ) else None,
                 'pr_created_at': pr['created_at'],
                 'pr_updated_at': pr['updated_at'],
                 'pr_closed_at': pr['closed_at'],
@@ -546,7 +548,7 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
         try: 
             pk_source_prs = self._get_pk_source_prs()
         except Exception as e: 
-            self.logger(f"Pull Requests model failed with {e}.")
+            self.logger.info(f"Pull Requests model failed with {e}.")
 
         self.write_debug_data(pk_source_prs, 'pk_source_prs')
 
@@ -554,19 +556,19 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
             try: 
                 self.pull_request_comments_model()
             except Exception as e: 
-                self.logger(f"Comments model failed with {e}.")
+                self.logger.info(f"Comments model failed with {e}.")
             try: 
                 self.pull_request_events_model(pk_source_prs)
             except Exception as e: 
-                self.logger(f"PR Events model failed with {e}.")
+                self.logger.info(f"PR Events model failed with {e}.")
             try:
                 self.pull_request_reviews_model(pk_source_prs)
             except Exception as e: 
-                self.logger(f"PR Reviews model failed with {e}.")
+                self.logger.info(f"PR Reviews model failed with {e}.")
             try: 
                 self.pull_request_nested_data_model(pk_source_prs)
             except Exception as e: 
-                self.logger(f"PR Nested Data model failed with {e}.")
+                self.logger.info(f"PR Nested Data model failed with {e}.")
 
         self.register_task_completion(self.task_info, self.repo_id, 'pull_requests')
 
@@ -613,7 +615,9 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
         pr_comments_insert = [
             {
                 'pltfrm_id': self.platform_id,
-                'msg_text': pr['body'].encode(encoding='UTF-8',errors='ignore').decode(encoding='UTF-8',errors='ignore'),
+                'msg_text': pr['body'].encode(encoding='UTF-8',errors='ignore').decode(encoding='UTF-8',errors='ignore') if (
+                    'body' in pr
+                ) else None,
                 'msg_timestamp': comment['created_at'],
                 'cntrb_id': comment['cntrb_id'],
                 'tool_source': self.tool_source,
@@ -777,7 +781,9 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
                 'cntrb_id': review['cntrb_id'],
                 'pr_review_author_association': review['author_association'],
                 'pr_review_state': review['state'],
-                'pr_review_body': review['body'].encode(encoding='UTF-8',errors='ignore').decode(encoding='UTF-8',errors='ignore'),
+                'pr_review_body': review['body'].encode(encoding='UTF-8',errors='ignore').decode(encoding='UTF-8',errors='ignore') if (
+                    'body' in review 
+                ) else None,
                 'pr_review_submitted_at': review['submitted_at'] if (
                     'submitted_at' in review
                 ) else None,
@@ -853,11 +859,12 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
             )
         else:
             self.logger.info("Contributor enrichment is not needed, nothing to insert from the action map.")
-
         review_msg_insert = [
             {
                 'pltfrm_id': self.platform_id,
-                'msg_text': comment['body'].encode(encoding='UTF-8',errors='ignore').decode(encoding='UTF-8',errors='ignore'),
+                'msg_text': comment['body'].encode(encoding='UTF-8',errors='ignore').decode(encoding='UTF-8',errors='ignore') if (
+                    'body' in comment
+                ) else None,
                 'msg_timestamp': comment['created_at'],
                 'cntrb_id': comment['cntrb_id'],
                 'tool_source': self.tool_source,
