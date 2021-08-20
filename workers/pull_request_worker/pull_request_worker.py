@@ -442,7 +442,7 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
                 'pr_src_title': pr['title'],
                 'pr_augur_contributor_id': pr['cntrb_id'],
                 'pr_body': pr['body'].encode(encoding='UTF-8',errors='ignore').decode(encoding='UTF-8',errors='ignore') if (
-                    'body' in pr
+                    pr['body']
                 ) else None,
                 'pr_created_at': pr['created_at'],
                 'pr_updated_at': pr['updated_at'],
@@ -615,8 +615,8 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
         pr_comments_insert = [
             {
                 'pltfrm_id': self.platform_id,
-                'msg_text': pr['body'].encode(encoding='UTF-8',errors='ignore').decode(encoding='UTF-8',errors='ignore') if (
-                    'body' in pr
+                'msg_text': comment['body'].encode(encoding='UTF-8',errors='ignore').decode(encoding='UTF-8',errors='ignore') if (
+                    comment['body']
                 ) else None,
                 'msg_timestamp': comment['created_at'],
                 'cntrb_id': comment['cntrb_id'],
@@ -782,7 +782,7 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
                 'pr_review_author_association': review['author_association'],
                 'pr_review_state': review['state'],
                 'pr_review_body': review['body'].encode(encoding='UTF-8',errors='ignore').decode(encoding='UTF-8',errors='ignore') if (
-                    'body' in review 
+                    review['body']
                 ) else None,
                 'pr_review_submitted_at': review['submitted_at'] if (
                     'submitted_at' in review
@@ -863,7 +863,7 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
             {
                 'pltfrm_id': self.platform_id,
                 'msg_text': comment['body'].encode(encoding='UTF-8',errors='ignore').decode(encoding='UTF-8',errors='ignore') if (
-                    'body' in comment
+                    comment['body']
                 ) else None,
                 'msg_timestamp': comment['created_at'],
                 'cntrb_id': comment['cntrb_id'],
