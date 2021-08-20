@@ -441,7 +441,7 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
                 'pr_src_locked': pr['locked'],
                 'pr_src_title': pr['title'],
                 'pr_augur_contributor_id': pr['cntrb_id'],
-                'pr_body': pr['body'].decode().replace("\x00", "\uFFFD"),
+                'pr_body': bytes(pr['body'], "utf-8").decode().encode(encoding='UTF-8',errors='ignore').replace("\x00", "\uFFFD"),
                 'pr_created_at': pr['created_at'],
                 'pr_updated_at': pr['updated_at'],
                 'pr_closed_at': pr['closed_at'],
@@ -613,7 +613,7 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
         pr_comments_insert = [
             {
                 'pltfrm_id': self.platform_id,
-                'msg_text': bytes(comment['body'], "utf-8").decode().replace("\x00", "\uFFFD"),
+                'msg_text': bytes(pr['body'], "utf-8").decode().encode(encoding='UTF-8',errors='ignore').replace("\x00", "\uFFFD"),
                 'msg_timestamp': comment['created_at'],
                 'cntrb_id': comment['cntrb_id'],
                 'tool_source': self.tool_source,
@@ -777,7 +777,7 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
                 'cntrb_id': review['cntrb_id'],
                 'pr_review_author_association': review['author_association'],
                 'pr_review_state': review['state'],
-                'pr_review_body': review['body'].decode().replace("\x00", "\uFFFD"),
+                'pr_review_body': bytes(review['body'], "utf-8").decode().encode(encoding='UTF-8',errors='ignore').replace("\x00", "\uFFFD"),
                 'pr_review_submitted_at': review['submitted_at'] if (
                     'submitted_at' in review
                 ) else None,
@@ -857,7 +857,7 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
         review_msg_insert = [
             {
                 'pltfrm_id': self.platform_id,
-                'msg_text': comment['body'].decode().replace("\x00", "\uFFFD"),
+                'msg_text': bytes(comment['body'], "utf-8").decode().encode(encoding='UTF-8',errors='ignore').replace("\x00", "\uFFFD"),
                 'msg_timestamp': comment['created_at'],
                 'cntrb_id': comment['cntrb_id'],
                 'tool_source': self.tool_source,
