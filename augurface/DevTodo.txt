@@ -1,1 +1,3 @@
 * Continue abstracting RepoGroup into several smaller components
+* Use HTTPS to make available securely
+* Add login
