@@ -9,6 +9,11 @@ branch | status
    dev | [![Build Status](https://travis-ci.com/chaoss/augur.svg?branch=dev)](https://travis-ci.com/chaoss/augur)
 
 
+## Final Project -- Group 10
+
+This is a fork of augur for the final project of CS 4320 fall semester group 10. Documentation for the changes made to Augur for this project can be found in the [group10 directory in the root of the project](group10).
+
+
 [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/2788/badge)](https://bestpractices.coreinfrastructure.org/projects/2788)
 
 ## What is Augur?
@@ -40,9 +45,9 @@ This data is collected by dedicated data collection workers controlled by Augur,
 
 ## Getting Started
 
-If you're interested in collecting data with our tool, the Augur team has worked hard to develop a detailed guide to get started with our project which can be found [in our documentation](https://oss-augur.readthedocs.io/en/main/getting-started/toc.html).
+If you're interested in collecting data with our tool, the Augur team has worked hard to develop a detailed guide to get started with our project which can be found [in our documentation](https://oss-augur.readthedocs.io/en/master/getting-started/toc.html).
 
-If you're looking to contribute to Augur's code, you can find installation instructions, development guides, architecture references (coming soon), best practices and more in our [developer documentation](https://oss-augur.readthedocs.io/en/main/development-guide/toc.html). Please know that while it's still rather sparse right now,
+If you're looking to contribute to Augur's code, you can find installation instructions, development guides, architecture references (coming soon), best practices and more in our [developer documentation](https://oss-augur.readthedocs.io/en/master/development-guide/toc.html). Please know that while it's still rather sparse right now,
 but we are actively adding to it all the time. If you get stuck, please feel free to [ask for help](https://github.com/chaoss/augur/issues/new)!
 
 ## Contributing
