@@ -21,6 +21,6 @@ was used as an example of other issues that arrized when people were trying to g
 video posted that would explian how to install augur into a server and get it working, but that so far hasn't appeared. As such, our team has gotten stuck 
 in terms of getting the a deployable instance.
 
-In the near future I will work with the professor to get this instance deployed, but until then, its'g going to have to go unfulfilled.
+In the near future I will work with the professor to get this instance deployed, but until then, it's going to have to go unfulfilled.
 
 -------------------------------------------------------------------------------------------------------------------------------------------
