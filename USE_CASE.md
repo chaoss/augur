@@ -38,5 +38,5 @@ Steps of Execution
 -From the groups component the user can search for a specific group repository and if the user needs help they can access the search info similarly for the repository component the user can also use the find repository feature 
 
 UML Diagram
-![uml1](journal/screenshots/use-caase-umldiagram1.png)
-![uml2](journal/screenshots/use-caase-umldiagram2.png)
+![uml1](journal/screenshots/use-case-umldiagram1.png)
+![uml2](journal/screenshots/use-case-umldiagram2.png)
