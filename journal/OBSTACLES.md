@@ -13,7 +13,10 @@ This then lead to the system asking for the password to my user dvin.hackman. Ho
 It turned out that I had to log into PostgreSQL as a root user and set the password for postgres.
 
 Yet after all of this, when I finally got throug and even enabled git, there came a problem when it was time to use the sudo apt make command.
-Specifically the error "Invalid operation make." I know that this was an issue that wasbrought up in class, but as far as I can remember this 
+Specifically the error "Invalid operation make." 
+![nov14](screenshots/nov-14-2021.png)
+
+I know that this was an issue that was brought up in class, but as far as I can remember this 
 was used as an example of other issues that arrized when people were trying to get Augur to work. The instructor said that there woul be a 
 video posted that would explian how to install augur into a server and get it working, but that so far hasn't appeared. As such, our team has gotten stuck 
 in terms of getting the a deployable instance.
