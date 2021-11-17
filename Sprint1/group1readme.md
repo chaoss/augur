@@ -1,7 +1,6 @@
 # 4320 Group 1
 
-## Group Members
-
+Group Members:
 Ashton Hess, Tyler Wilkins, Solomon DellaPenna, Jayson Ashford
 
 ## Project Description
