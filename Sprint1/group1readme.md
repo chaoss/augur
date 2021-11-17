@@ -6,7 +6,7 @@ Ashton Hess, Tyler Wilkins, Solomon DellaPenna, Jayson Ashford
 
 ## Project Description
 
-Our team plans to crate new API endpoints allowing users to pass a contributor's email as a parameter. The endpoints will then return data on the contributions of the contributor with the specifiec email address (if they exist). THe data returned on a successful operation of these endpoints will be similar to the data already being fetched by existing endpoints, with the distinction of these new endpoints being contributor specific.   
+Our team plans to crate new API endpoints allowing users to pass a contributor's email as a parameter. The endpoints will then return data on the contributions of the contributor with the specifiec email address (if they exist). The data returned on a successful operation of these endpoints will be similar to the data already being fetched by existing endpoints, with the distinction of these new endpoints being contributor specific.   
 
 ## Use cases and use case diagrams:
 
