@@ -27,6 +27,7 @@ Users share privacy concerns related to their accounts email. If users are uncom
 **Extensions:**
 
 **Steps of Execution (Requirements):**
+A chart of requirements is provided in this folder. 
 
 **A Use Case Diagram (following the UML Standard for expressing use cases):**
 Use case diagram files are in this folder.
