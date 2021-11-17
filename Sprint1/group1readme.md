@@ -1,4 +1,4 @@
-# 4320 Group 1
+# CS4320 Group 1 Sprint1
 
 Group Members:
 
