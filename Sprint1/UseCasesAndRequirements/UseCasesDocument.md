@@ -36,7 +36,7 @@ Users share privacy concerns related to their accounts email. If users are uncom
 A chart of requirements is provided in this folder. 
 
 ### **A Use Case Diagram (following the UML Standard for expressing use cases):**
-Use case diagram files are in this folder.
+![Use Case Diagram](usecase_diagram.png)
 
 ## **Dependent Use Cases:**
 One use case that could depend on these data endpoints is a UI element or anything on the front end that shows statistics pertaining to a user’s email. 
