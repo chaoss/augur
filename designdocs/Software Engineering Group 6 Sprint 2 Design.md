@@ -12,3 +12,9 @@
 
 4. Fixes on Repo Page
 ![Repo Page Picture](RepoesPage.png)
+
+5. Navigation Sequence Document
+![Navigation Sequence Picture](NavigationSequence.png)
+
+6. Repositroy Page Sequence Document
+![Repository Sequence Picture](RepositoryPageSequence.png)
