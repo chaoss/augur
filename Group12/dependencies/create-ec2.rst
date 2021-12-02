@@ -1,4 +1,3 @@
-===============================
 Creating an Amazon EC2 Instance
 ===============================
 **Creating an Amazon EC2 Instance will allow you to run augur from that instance. You will need Amazon credits, and the instance type must have at least 4GB of memory. Follow the steps below to set up the Amazon EC2 Instance with the correct requirements in order to run Augur!**
@@ -94,4 +93,3 @@ Create a new key-pair of an RSA type with a specific name or choose an existing 
 At this point your instance should be good to go. Make sure your instance is running and your key-pair is stored inside a safe, but accessible, folder.
 
 |
-
