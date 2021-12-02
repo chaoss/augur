@@ -78,6 +78,6 @@ SSH into Amazon EC2 Instance
 
  .. code-block:: bash 
 
-    ssh -i “keypair.pem” ubuntu@ec2-publicDNS-1-23-45.amazonaws.com
+    ssh -i “keypair.pem” ubuntu@ec2-1-23-45-67.amazonaws.com
 5. Open an SSH client in the directory of the key-pair file 
 6. Paste the previous line and press enter
