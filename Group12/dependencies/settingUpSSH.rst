@@ -9,7 +9,7 @@ Mac
 1. Open Terminal
 2. Change directory to where the key-pair is located:
 
- .. code-block:: bash 
+  code-block:: bash 
 
     cd /path/to/keypair.pem
 3. Change key-pair permissions to give the owner of the document read access and no permission to group and world. **chmod** is the command to change file permissions, and **400** are the permissions associated with the given restrictions:
