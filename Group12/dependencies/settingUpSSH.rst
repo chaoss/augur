@@ -5,12 +5,12 @@ In order to connect to the Amazon EC2 instance, the permissions on the .pem key-
 
 Mac
 ===
-- Open Terminal
-- Change directory to where the key-pair is located:
+1. Open Terminal
+2. Change directory to where the key-pair is located:
 - .. code-block:: bash 
 
     cd /path/to/keypair.pem
-- Change key-pair permissions to give the owner of the document read access and no permission to group and world. **chmod** is the command to change file permissions, and **400** are the permissions associated with the given restrictions:
+3. Change key-pair permissions to give the owner of the document read access and no permission to group and world. **chmod** is the command to change file permissions, and **400** are the permissions associated with the given restrictions:
 - .. code-block:: bash 
 
     chmod 400
@@ -21,51 +21,51 @@ How to set the correct permissions varies based on the command-line interface be
 
 `PowerShell <https://docs.microsoft.com/en-us/powershell/scripting/overview?view=powershell-7.2>`_
 ---------------------------------------------------------------------------------------------------
-- Open PowerShell
+1. Open PowerShell
 - .. code-block:: bash 
 
     cd /path/to/keypair.pem
-- Create a variable set to the location of the key-pair file
+2. Create a variable set to the location of the key-pair file
 - .. code-block:: bash 
 
     $path = “.\key-pair.pem”
-- Reset the file to remove explicit permissions
+3. Reset the file to remove explicit permissions
 - .. code-block:: bash 
 
     icacls.exe $path /reset
-- Give the current user explicit read-permission
+4. Give the current user explicit read-permission
 - .. code-block:: bash 
 
     icacls.exe $path /GRANT:R “$($env:USERNAME):(R)”
-- Disable inheritance and remove inherited permissions
+5. Disable inheritance and remove inherited permissions
 - .. code-block:: bash 
 
     icacls.exe $path /inheritance:r
 
 `Windows Subsystem for Linux  <https://docs.microsoft.com/en-us/windows/wsl/install>`_
 ---------------------------------------------------------------------------------------
-- Open Windows Subsystem for Linux
-- Change directory to where the key-pair is located:
+1. Open Windows Subsystem for Linux
+2. Change directory to where the key-pair is located:
 - .. code-block:: bash 
 
     cd /path/to/keypair.pem
-- Copy the key-pair file to outside of the /mnt directory
+3. Copy the key-pair file to outside of the /mnt directory
 - .. code-block:: bash 
 
     cp keypair.pem /home
-- Change key-pair permissions to give the owner of the document read access and no permission to group and world. “chmod” is the command to change file permissions, and 400 are the permissions associated with the given restrictions:
+4. Change key-pair permissions to give the owner of the document read access and no permission to group and world. “chmod” is the command to change file permissions, and 400 are the permissions associated with the given restrictions:
 - .. code-block:: bash 
 
     chmod 400
 
 SSH into Amazon EC2 Instance
 ============================
-- Select the Amazon EC2 instance on the AWS console
-- Choose Connect on the instance page
-- Go to the SSH client tab
-- Copy the line that includes the key-pair name and the Public DNS:
+1. Select the Amazon EC2 instance on the AWS console
+2. Choose Connect on the instance page
+3. Go to the SSH client tab
+4. Copy the line that includes the key-pair name and the Public DNS:
 - .. code-block:: bash 
 
     ssh -i “keypair.pem” ubuntu@ec2-publicDNS-1-23-45.amazonaws.com
-- Open an SSH client in the directory of the key-pair file 
-- Paste the previous line and press enter
+5. Open an SSH client in the directory of the key-pair file 
+6. Paste the previous line and press enter
