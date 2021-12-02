@@ -5,6 +5,7 @@ In order to connect to the Amazon EC2 instance, the permissions on the .pem key-
 
 Mac
 ===
+
 1. Open Terminal
 2. Change directory to where the key-pair is located:
 - .. code-block:: bash 
