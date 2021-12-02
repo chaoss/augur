@@ -1,7 +1,7 @@
 Set Up
 ======
 
-This section describes the requirements and deployment of an Amazon EC2 instance.
+This section describes the requirements and deployment of an Amazon EC2 instance. It also contains how to install augur and it's essential dependencies.
 
 
 .. toctree::
