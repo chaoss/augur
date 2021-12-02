@@ -10,5 +10,5 @@ This directory contains the contributions of group 12 towards Augur. The `depend
 - Added our reflections on Sprint 2 and goals for Sprint 3
 
 ### Sprint 3
-- Created new documentation for setting up an Amazon EC2 instance for installing Augur in reStructuredText format
+- Created new documentation for setting up an Amazon EC2 instance for installing Augur in reStructuredText format, which can be found in the "dependencies" directory.
 - Added our reflections on Sprint 3 and goals for Sprint 4
