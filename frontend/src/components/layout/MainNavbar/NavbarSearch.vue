@@ -7,7 +7,7 @@
                 <i class="material-icons">search</i>
             </d-input-group-text>
             <!-- <input type="text" class="search reposearch" name="headersearch" placeholder="GitHub URL" @change="onRepo"> -->
-            <d-input class="navbar-search navbarSearchInput" @change="onRepo" placeholder="Search for one of your repos ( *repo group name*/*repo name* )" />
+            <d-input class="navbar-search navbarSearchInput" @change="onRepo" placeholder="Search to see repository data (group name/repo name)" />
         </d-input-group>
     <!-- </d-form> -->
   </div>
