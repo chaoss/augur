@@ -8,7 +8,7 @@ Amazon EC2 Instance Requirements
 --------------------------------
 The following requirements must be met when creating your Amazon EC2 Instance for the installation of Augur:
 
-- Ubuntu Server 20.4 and up AMI
+- Ubuntu Server 20.4 or newer AMI
 - At least 30GB of storage space
 - At least 4GB of RAM
 
