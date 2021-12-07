@@ -39,7 +39,9 @@ class Application():
         self.gunicorn_options = {
             'bind': '%s:%s' % (self.config.get_value("Server", "host"), self.config.get_value("Server", "port")),
             'workers': int(self.config.get_value('Server', 'workers')),
-            'timeout': int(self.config.get_value('Server', 'timeout'))
+            'timeout': int(self.config.get_value('Server', 'timeout')),
+            'certfile': '/home/group10/github/augur/group10/certs/augur-snakeoil.pem',
+            'keyfile': '/home/group10/github/augur/group10/certs/augur-snakeoil.key'
         }
         self.logging.configure_logging(self.config)
         self.gunicorn_options.update(self.logging.gunicorn_logging_options)
@@ -109,4 +111,3 @@ class Application():
             logger.debug("Shutting down manager...")
             self.manager.shutdown()
             self.manager = None
-
