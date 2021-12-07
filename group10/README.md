@@ -21,12 +21,13 @@ Our first attempt at serving the backend over HTTPS was to use a "snakeoil" cert
 The snakeoil certificate was generated with the following command:
 
 ```bash
-group10@Ubuntu-2004-focal-64-minimal:~/github/augur/group10$ mkdir certs; cd certs
 group10@Ubuntu-2004-focal-64-minimal:~/github/augur/group10/certs$ openssl req \
   -newkey rsa:4096 -new -nodes -x509 -days 365 \
   -subj '/C=US/ST=MO/L=Columbia/O=University of Missouri, CS 4320, Group 10/CN=team10.guillotine.io' \
   -keyout augur-snakeoil.key -out augur-snakeoil.pem
 ```
+
+Note: Both files were committed to the repository ([private key](./certs/augur-snakeoil.key), [certificate](./certs/augur-snakeoil.pem)), which is typically *highly discouraged*. Given that these files are self-signed and are only for a proof of concept, this poses no security risk.
 
 Our first approach at the code lead us to try configuring the Flask server to use our certificate as seen in [this SO answer](https://stackoverflow.com/a/65152383/5673922). After searching through the code for a call to `Flask.run` we realized that the Flask server is managed by Gunicorn, meaning that we must configure Gunicorn and not Flask.
 
