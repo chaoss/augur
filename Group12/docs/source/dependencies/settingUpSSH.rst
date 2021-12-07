@@ -12,6 +12,7 @@ Mac
  .. code-block:: bash 
 
     cd /path/to/keypair.pem
+    
 3. Change key-pair permissions to give the owner of the document read access and no permission to group and world. **chmod** is the command to change file permissions, and **400** are the permissions associated with the given restrictions:
 
  .. code-block:: bash 
