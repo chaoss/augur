@@ -16,7 +16,7 @@ Mac
 
  .. code-block:: bash 
 
-    chmod 400
+    chmod 400 keypair.pem
 
 Windows
 =======
@@ -67,7 +67,7 @@ How to set the correct permissions varies based on the command-line interface be
 
  .. code-block:: bash 
 
-    chmod 400
+    chmod 400 /home/keypair.pem
 
 SSH into Amazon EC2 Instance
 ============================
