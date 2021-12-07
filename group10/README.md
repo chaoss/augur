@@ -31,10 +31,12 @@ Make sure any internal links that worked with http now are properly changed to h
 **Development process:**
 
 Methodology:
+
 Do a team mob during the initial implementation to keep everyone on the same page.
 Then, split up into sub-teams to tackle sub-components of the feature such as certificate generation/management, configuring flask to use the certificates, configuring all endpoints to use HTTPS.
 
 Implementation steps:
+
 - Acquire and setup SSL certificate
 - Configure and update Augur (flask) to enable HTTPS
 - Configure and update endpoints to use HTTPS
@@ -100,8 +102,8 @@ self.gunicorn_options = {
     'bind': '%s:%s' % (self.config.get_value("Server", "host"), self.config.get_value("Server", "port")),
     'workers': int(self.config.get_value('Server', 'workers')),
     'timeout': int(self.config.get_value('Server', 'timeout')),
-    **'certfile': '/home/group10/github/augur/group10/certs/augur-snakeoil.pem',**
-    **'keyfile': '/home/group10/github/augur/group10/certs/augur-snakeoil.key'**
+    'certfile': '/home/group10/github/augur/group10/certs/augur-snakeoil.pem',
+    'keyfile': '/home/group10/github/augur/group10/certs/augur-snakeoil.key'
 }
 ```
 
