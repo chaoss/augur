@@ -41,7 +41,21 @@ Implementation steps:
 
 ## Sprint 2
 
-- Goals document (detailing plan of action for implementing our sprint goals) created
+### Goals
+
+1. Get access to the “group10” database and code so we can start testing https functionality
+1. Install augur for development
+1. Ensure installation is correct and that it can be rebuilt after changing code
+1. Ensure existing tests pass
+1. Create preliminary tests for https in case some critical system interferes with trying to modify the http functionality
+1. Establish https functionality and compatibility on the guillotine.io server
+1. Search for and clean out any bugs and issues created by the new functionality, so that it is ready to be transferred to the actual augur server
+
+### Tests
+
+There aren’t any new tests that need to be made specifically for our project, since our focus is making sure that existing tests and functionality all perform the same on https servers as they do with http.
+Make sure https support doesn’t break existing tests.
+Maybe add new tests for the API protocol.
 
 ## Sprint 3
 
