@@ -49,3 +49,5 @@ cat logs/gunicorn.log
 [2021-12-07 01:00:32 +0100] [489116] [INFO] Booting worker with pid: 489116
 [2021-12-07 01:00:32 +0100] [489119] [INFO] Booting worker with pid: 489119
 [2021-12-07 01:00:32 +0100] [489138] [INFO] Booting worker with pid: 489138
+
+(augur_env) group10@Ubuntu-2004-focal-64-minimal:~/github/augur$ curl -ksSL https:/{"status": "OK"}; echo
