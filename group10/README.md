@@ -14,23 +14,30 @@ This document describes the work done for each sprint of integrating HTTPS suppo
 
 ## Sprint 3
 
-- Testing and documentation: 
+### Experimentation
 
+Our first attempt at serving the backend over HTTPS was to use a "snakeoil" certificate (self-signed) for a proof of concept.
 
-certfile and keyfile alteration: 
+The snakeoil certificate was generated with the following command:
 
-        self.gunicorn_options = {
-            'bind': '%s:%s' % (self.config.get_value("Server", "host"), self.config.get_value("Server", "port")),
-            'workers': int(self.config.get_value('Server', 'workers')),
-            'timeout': int(self.config.get_value('Server', 'timeout')),
-            'certfile': '/home/group10/github/augur/certs/ssl-cert-snakeoil.pem',
-            'keyfile': '/home/group10/github/augur/certs/ssl-cert-snakeoil.key'
-        }
+```bash
+group10@Ubuntu-2004-focal-64-minimal:~/github/augur/group10$ mkdir certs; cd certs
+group10@Ubuntu-2004-focal-64-minimal:~/github/augur/group10/certs$ openssl req \
+  -newkey rsa:4096 -new -nodes -x509 -days 365 \
+  -subj '/C=US/ST=MO/L=Columbia/O=University of Missouri, CS 4320, Group 10/CN=team10.guillotine.io' \
+  -keyout augur-snakeoil.key -out augur-snakeoil.pem
+```
 
-# GUnicorn backend with certfile and keyfile before and after: 
-before- 
+Our first approach at the code lead us to try configuring the Flask server to use our certificate as seen in [this SO answer](https://stackoverflow.com/a/65152383/5673922). After searching through the code for a call to `Flask.run` we realized that the Flask server is managed by Gunicorn, meaning that we must configure Gunicorn and not Flask.
+
+An example of Gunicorn SSL configuration can be seen in [this SO answer](https://stackoverflow.com/a/67129353/5673922), but Augur does not use a config file for Gunicorn. So, working forwards from running the backend start command we can find where Gunicorn is configured. When `augur backend start` is run, the corresponding function in `augur.cli.backend` is invoked which creates an instance of `augur.application.Application`. Here, we can see a dictionary named `gunicorn_options` which sets some familiar looking values that were also used in the config file from the previously mentioned SO answer. After adding `certfile` and `keyfile` with paths to our snakeoil cert files and restarting the server, we see the gunicorn log file changes to now use HTTPS in the URL on which it is listening.
+
+Gunicorn log before config change:
+
+```bash
+(augur_env) group10@Ubuntu-2004-focal-64-minimal:~/github/augur$ cat logs/gunicorn.log
 [2021-12-07 00:59:21 +0100] [486894] [INFO] Starting gunicorn 20.1.0
-[2021-12-07 00:59:21 +0100] [486894] [INFO] Listening at: http://0.0.0.0:5099 (486894)
+[2021-12-07 00:59:21 +0100] [486894] [INFO] Listening at: http://0.0.0.0:5099 (486894)  # Note the HTTP URL here
 [2021-12-07 00:59:21 +0100] [486894] [INFO] Using worker: sync
 [2021-12-07 00:59:21 +0100] [487129] [INFO] Booting worker with pid: 487129
 [2021-12-07 00:59:21 +0100] [487130] [INFO] Booting worker with pid: 487130
@@ -38,16 +45,62 @@ before-
 [2021-12-07 00:59:21 +0100] [487132] [INFO] Booting worker with pid: 487132
 [2021-12-07 00:59:21 +0100] [487133] [INFO] Booting worker with pid: 487133
 [2021-12-07 00:59:21 +0100] [487134] [INFO] Booting worker with pid: 487134
+```
 
-after-
-cat logs/gunicorn.log 
+The new Gunicorn config dictionary:
+
+```python
+self.gunicorn_options = {
+    'bind': '%s:%s' % (self.config.get_value("Server", "host"), self.config.get_value("Server", "port")),
+    'workers': int(self.config.get_value('Server', 'workers')),
+    'timeout': int(self.config.get_value('Server', 'timeout')),
+    **'certfile': '/home/group10/github/augur/group10/certs/augur-snakeoil.pem',**
+    **'keyfile': '/home/group10/github/augur/group10/certs/augur-snakeoil.key'**
+}
+```
+
+Restart the backend:
+
+```bash
+(augur_env) group10@Ubuntu-2004-focal-64-minimal:~/github/augur$ augur backend stop
+(augur_env) group10@Ubuntu-2004-focal-64-minimal:~/github/augur$ augur backend kill
+(augur_env) group10@Ubuntu-2004-focal-64-minimal:~/github/augur$ (nohup augur backend start >logs/test.out 2>logs/test.err &)
+```
+
+Gunicorn log after config change:
+
+```bash
+(augur_env) group10@Ubuntu-2004-focal-64-minimal:~/github/augur$ cat logs/gunicorn.log
 [2021-12-07 01:00:32 +0100] [488873] [INFO] Starting gunicorn 20.1.0
-[2021-12-07 01:00:32 +0100] [488873] [INFO] Listening at: https://0.0.0.0:5099 (488873)
+[2021-12-07 01:00:32 +0100] [488873] [INFO] Listening at: https://0.0.0.0:5099 (488873)  # Note the HTTPS URL here
 [2021-12-07 01:00:32 +0100] [488873] [INFO] Using worker: sync
 [2021-12-07 01:00:32 +0100] [489111] [INFO] Booting worker with pid: 489111
 [2021-12-07 01:00:32 +0100] [489114] [INFO] Booting worker with pid: 489114
 [2021-12-07 01:00:32 +0100] [489116] [INFO] Booting worker with pid: 489116
 [2021-12-07 01:00:32 +0100] [489119] [INFO] Booting worker with pid: 489119
 [2021-12-07 01:00:32 +0100] [489138] [INFO] Booting worker with pid: 489138
+```
 
-(augur_env) group10@Ubuntu-2004-focal-64-minimal:~/github/augur$ curl -ksSL https:/{"status": "OK"}; echo
+Test endpoint with HTTPS URL:
+
+```bash
+# curl -L is required because the server will redirect
+# curl -k is required because the certificate is not signed by a CA, this allows insecure connections
+(augur_env) group10@Ubuntu-2004-focal-64-minimal:~/github/augur$ curl -ksSL https://localhost:5099/
+{"status": "OK"}
+```
+
+New line in Gunicorn log from curl:
+
+```bash
+(augur_env) group10@Ubuntu-2004-focal-64-minimal:~/github/augur$ tail -2 logs/gunicorn.log
+127.0.0.1 - - [07/Dec/2021:02:41:02 +0100] "GET / HTTP/1.1" 302 231 "-" "curl/7.68.0"
+127.0.0.1 - - [07/Dec/2021:02:41:02 +0100] "GET /api/unstable HTTP/1.1" 200 16 "-" "curl/7.68.0"
+```
+
+### Improvements for the next sprint
+
+- Get values for `certfile` and `keyfile` in `gunicorn_options` similarly to other options: from the augur config
+- During installation, generate certificates or request them from letsencrypt
+- Update frontend to use new HTTPS URL for backend queries
+- Update frontend Nginx config to use the same certificate
