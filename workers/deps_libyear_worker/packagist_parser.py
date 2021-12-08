@@ -12,3 +12,6 @@ def map_dependencies(dict, key, type):
     return deps
 
 
+def parse_compose(file_handle):
+    manifest= json.load(file_handle)
+    return map_dependencies(manifest, 'require', 'runtime') + map_dependencies(manifest, 'require-dev', 'development')
