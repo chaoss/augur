@@ -6,3 +6,8 @@ def get_packagist_data(package):
     if r.status_code < 400:
         return r.json()
     return {}
+
+
+def clean_version(version):
+    version = [v for v in version if v.isdigit() or v == '.']
+    return ''.join(version)
