@@ -6,6 +6,7 @@ from pypi_parser import parse_conda, parse_pipfile,parse_pipfile_lock,parse_poet
 from npm_parser import parse_package_json
 from pypi_libyear_util import sort_dependency_requirement,get_pypi_data,get_latest_version,get_release_date
 from npm_libyear_utils import get_NPM_data, get_npm_release_date, get_npm_latest_version,get_npm_current_version
+from packagist_parser import parse_compose
 
 #Files That would be parsed should be added here
 file_list = [
@@ -20,7 +21,8 @@ file_list = [
     'environment.yaml',
     'environment.yml.lock',
     'environment.yaml.lock',
-    'package.json'
+    'package.json',
+    'composer.json'
 ]
 
 
@@ -76,6 +78,9 @@ def get_parsed_deps(path):
             
         elif f == 'package.json':
             dependency_list = parse_package_json(file_handle)
+
+        elif f == 'composer.json':
+            dependency_list = parse_compose(file_handle)
         
         return dependency_list
 
