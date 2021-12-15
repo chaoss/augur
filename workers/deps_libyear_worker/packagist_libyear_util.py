@@ -16,7 +16,7 @@ def clean_version(version):
 def get_packagist_release_date(data, version):
     try:
         if data:
-            release_date = data['package']['time']
+            release_date = data['package'][version]['time']
             if release_date:
                 return release_date
             return None
