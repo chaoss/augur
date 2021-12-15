@@ -11,3 +11,33 @@ def get_packagist_data(package):
 def clean_version(version):
     version = [v for v in version if v.isdigit() or v == '.']
     return ''.join(version)
+
+
+def get_packagist_release_date(data, version):
+    pass
+
+
+def get_latest_packagist_patch(version, data):
+    versions = data['versions']
+    try:
+        index = list(versions.keys()).index(version)
+    except:
+        #NOTE Add error logging here. 
+        pass
+    consider_version = version
+
+
+def get_lastest_packagist_minor():
+    pass
+
+
+def get_packagist_latest_version(data):
+    pass
+
+
+def get_packagist_current_version(data, requirement):
+    if requirement[0] == '~':
+        return get_latest_packagist_patch(clean_version(requirement), data)
+    elif requirement[0] == '^':
+        return get_lastest_packagist_minor(clean_version(requirement), data)
+    
