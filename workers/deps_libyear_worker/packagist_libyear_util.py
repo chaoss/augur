@@ -30,7 +30,8 @@ def get_latest_packagist_patch(version, data):
     consider_version = version
     try:
         if len(version.split('.')) < 3:
-            version = version + '.0'
+            while len(version.split('.')) == 3:
+                version = version + '.0'
 
         #This is for weird inconsistency in packagist as versions can be either as v1.1.1 or 1.1.1 
         version_string = 'v'+ version
@@ -59,7 +60,8 @@ def get_lastest_packagist_minor(version, data):
     versions = data['package']['versions']
     try:
         if len(version.split('.')) < 3:
-            version = version + '.0'
+            while len(version.split('.')) == 3:
+                version = version + '.0'
 
         #This is for weird inconsistency in packagist as versions can be either as v1.1.1 or 1.1.1 
         version_string = 'v'+ version
@@ -99,6 +101,7 @@ def get_packagist_latest_version(data):
 
 
 def get_packagist_current_version(data, requirement):
+
     if requirement[0] == '~':
         return get_latest_packagist_patch(clean_version(requirement), data)
     elif requirement[0] == '^':
