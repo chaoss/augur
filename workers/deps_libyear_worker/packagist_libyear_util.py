@@ -24,6 +24,9 @@ def get_latest_packagist_patch(version, data):
     except:
         #NOTE Add error logging here. 
         pass
+    if len(version.split('.')) < 3:
+        version = version + '.0'
+    major,minor,patch = version.split('.')
     consider_version = version
 
 
