@@ -7,7 +7,7 @@ from npm_parser import parse_package_json
 from pypi_libyear_util import sort_dependency_requirement,get_pypi_data,get_latest_version,get_release_date
 from npm_libyear_utils import get_NPM_data, get_npm_release_date, get_npm_latest_version,get_npm_current_version
 from packagist_parser import parse_compose
-from packagist_libyear_util import get_packagist_data
+from packagist_libyear_util import get_packagist_data, get_packagist_current_version, get_packagist_latest_version, get_packagist_release_date
 
 #Files That would be parsed should be added here
 file_list = [
@@ -115,6 +115,8 @@ def get_deps_libyear_data(path):
         for dependency in dependencies:
 
             #NOTE: Add new if for new package parser
+
+            #For PYPI
             if dependency['package'] == 'PYPI':
                 data = get_pypi_data(dependency['name'])
                 current_version = sort_dependency_requirement(dependency,data)
@@ -123,6 +125,7 @@ def get_deps_libyear_data(path):
                 if current_version:
                     current_release_date = get_release_date(data, current_version)
 
+            #For NPM
             elif dependency['package'] == 'NPM':
                 data = get_NPM_data(dependency['name'])
                 current_version = get_npm_current_version(data, dependency['requirement'])
@@ -131,8 +134,14 @@ def get_deps_libyear_data(path):
                 if current_version:
                     current_release_date = get_npm_release_date(data, current_version)
 
+            #For packagist
             elif dependency['package'] == 'packagist':
                 data = get_packagist_data(dependency['name'])
+                current_version = get_packagist_current_version(data, dependency['requirement'])
+                latest_version = get_packagist_latest_version(data)
+                latest_release_date = get_packagist_release_date(data, latest_version)
+                if current_version:
+                    current_release_date = get_packagist_release_date(data, current_version)
 
             libyear = get_libyear(current_version, current_release_date, latest_version, latest_release_date)
             if not latest_release_date:
