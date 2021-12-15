@@ -14,7 +14,15 @@ def clean_version(version):
 
 
 def get_packagist_release_date(data, version):
-    pass
+    try:
+        if data:
+            release_date = data['package']['time']
+            if release_date:
+                return release_date
+            return None
+    except:
+        #NOTE: add error logging here
+        pass
 
 
 def get_latest_packagist_patch(version, data):
