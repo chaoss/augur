@@ -52,7 +52,7 @@ def get_lastest_packagist_minor(version, data):
     try:
         if len(version.split('.')) < 3:
             version = version + '.0'
-            
+
         #This is for weird inconsistency in packagist as versions can be either as v1.1.1 or 1.1.1 
         version_string = 'v'+ version
         if version_string in list(versions.keys()):
@@ -76,7 +76,18 @@ def get_lastest_packagist_minor(version, data):
 
 
 def get_packagist_latest_version(data):
-    pass
+    try:
+        versions = data['package']['versions']
+        for version in list(versions.keys()):
+            #getting the lastes STABLE version
+            if not 'dev' in version:
+                if not 'alpha' in version:
+                    if not 'beta' in version:
+                        return version
+    except:
+        #NOTE: Add error logs 
+        return None
+
 
 
 def get_packagist_current_version(data, requirement):
