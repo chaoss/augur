@@ -46,8 +46,33 @@ def get_latest_packagist_patch(version, data):
     return consider_version
 
 
-def get_lastest_packagist_minor():
-    pass
+def get_lastest_packagist_minor(version, data):
+
+    versions = data['package']['versions']
+    try:
+        if len(version.split('.')) < 3:
+            version = version + '.0'
+            
+        #This is for weird inconsistency in packagist as versions can be either as v1.1.1 or 1.1.1 
+        version_string = 'v'+ version
+        if version_string in list(versions.keys()):
+            index = list(reversed(list(versions.keys()))).index(version_string)
+        else:
+            index = list(reversed(list(versions.keys()))).index(version)
+
+        major,minor,patch = version.split('.')
+        consider_version = get_latest_packagist_patch(version, data)
+        for v in list(reversed(list(versions.keys())))[index:]:
+            if not 'dev' in v:
+                v=clean_version(v)
+                if v.split('.')[0]==major:
+                    if v.split('.')[1]>minor:
+                        consider_version = v
+    except:
+        #NOTE: Add error logging here
+        pass
+
+    return consider_version
 
 
 def get_packagist_latest_version(data):
