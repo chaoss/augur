@@ -21,15 +21,24 @@ def get_latest_packagist_patch(version, data):
     versions = data['versions']
     consider_version = version
     try:
-        index = list(reversed(list(versions.keys()))).index(version)
         if len(version.split('.')) < 3:
             version = version + '.0'
+
+        #This is for weird inconsistency in packagist as versions can be either as v1.1.1 or 1.1.1 
+        version_string = 'v'+ version
+        if version_string in list(versions.keys()):
+            index = list(reversed(list(versions.keys()))).index(version_string)
+        else:
+            index = list(reversed(list(versions.keys()))).index(version)
+
         major,minor,patch = version.split('.')
         for v in list(reversed(list(versions.keys())))[index:]:
-            if v.split('.')[0]==major:
-                if v.split('.')[1]== minor:
-                    if v.split('.')[2]>patch:
-                        consider_version = v
+            if not 'dev' in v:
+                v=clean_version(v)
+                if v.split('.')[0]==major:
+                    if v.split('.')[1]== minor:
+                        if v.split('.')[2]>patch:
+                            consider_version = v
     except:
         #NOTE Add error logging here. 
         pass
