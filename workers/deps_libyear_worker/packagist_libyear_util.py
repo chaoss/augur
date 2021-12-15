@@ -19,15 +19,22 @@ def get_packagist_release_date(data, version):
 
 def get_latest_packagist_patch(version, data):
     versions = data['versions']
+    consider_version = version
     try:
-        index = list(versions.keys()).index(version)
+        index = list(reversed(list(versions.keys()))).index(version)
+        if len(version.split('.')) < 3:
+            version = version + '.0'
+        major,minor,patch = version.split('.')
+        for v in list(reversed(list(versions.keys())))[index:]:
+            if v.split('.')[0]==major:
+                if v.split('.')[1]== minor:
+                    if v.split('.')[2]>patch:
+                        consider_version = v
     except:
         #NOTE Add error logging here. 
         pass
-    if len(version.split('.')) < 3:
-        version = version + '.0'
-    major,minor,patch = version.split('.')
-    consider_version = version
+    
+    return consider_version
 
 
 def get_lastest_packagist_minor():
