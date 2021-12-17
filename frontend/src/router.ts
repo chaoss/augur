@@ -102,7 +102,7 @@ const routes = [
     ],
   },
   {
-    path: '/',
+    path: '/home',
     component: Default,
     children: [
       {
