@@ -1,4 +1,6 @@
 import requests
+import re
+
 
 def get_packagist_data(package):
     url = "https://repo.packagist.org/packages/%s.json" % package
@@ -29,6 +31,9 @@ def get_latest_packagist_patch(version, data):
     versions = data['versions']
     consider_version = version
     try:
+
+        # Versions can be incompletely represented and not exist in the registry. Since we deal versions as strings 
+        # instead of tags this step is necessary to avoid unneccesary errors.
         if len(version.split('.')) < 3:
             while len(version.split('.')) == 3:
                 version = version + '.0'
@@ -59,6 +64,9 @@ def get_lastest_packagist_minor(version, data):
 
     versions = data['package']['versions']
     try:
+
+        # Versions can be incompletely represented and not exist in the registry. Since we deal versions as strings 
+        # instead of tags this step is necessary to avoid unneccesary errors.
         if len(version.split('.')) < 3:
             while len(version.split('.')) == 3:
                 version = version + '.0'
@@ -99,6 +107,11 @@ def get_packagist_latest_version(data):
         return None
 
 
+def upper_limit_dependency(data, requirement):
+    #code 
+    pass
+
+
 
 def get_packagist_current_version(data, requirement):
 
@@ -106,4 +119,6 @@ def get_packagist_current_version(data, requirement):
         return get_latest_packagist_patch(clean_version(requirement), data)
     elif requirement[0] == '^':
         return get_lastest_packagist_minor(clean_version(requirement), data)
+    elif re.search(r'<',requirement):
+        return upper_limit_dependency(data, requirement)
     
