@@ -157,7 +157,7 @@
         to: {
           name: 'about',
         },
-        htmlBefore: '<i class="material-icons">group_work</i>',
+        htmlBefore: '<i class="material-icons">info</i>',
         htmlAfter: '',
       },
       // {
@@ -225,5 +225,9 @@
     .dropdown-menu {
       display: block;
     }
+  }
+
+  #logo {
+    margin-bottom: 5em;
   }
 </style>
