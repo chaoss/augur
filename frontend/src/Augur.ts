@@ -29,6 +29,7 @@ var store = require('@/store/store').default;
 
 // Layouts
 import Default from '@/layouts/Default.vue';
+import Home from '@/layouts/Home.vue';
 
 // Utility
 import AugurAPI from '@/AugurAPI';
@@ -36,7 +37,7 @@ import AugurStats from '@/AugurStats';
 
 ShardsVue.install(Vue);
 
-Vue.component('default-layout', Default);
+Vue.component('default-layout', Home);
 
 Vue.config.productionTip = false;
 Vue.prototype.$eventHub = new Vue();

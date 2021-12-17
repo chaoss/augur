@@ -33,14 +33,20 @@ import InspectInsight from './views/InspectInsight.vue';
 import RiskMetrics from "@/views/RiskMetrics.vue";
 import NProgress from "nprogress";
 import SlackConfig from './views/SlackConfig.vue';
+import Home from './layouts/Home.vue';
+import { component } from 'vue/types/umd';
 
 const routes = [
+  {
+    path: '',
+    component: Home,
+  },
   {
     path: '/insights',
     component: Default,
     children: [
       {
-        path: '',
+        path: '/home',
         name: 'home',
         components: {
           sidebar: MainSidebar,
@@ -55,7 +61,7 @@ const routes = [
     component: Default,
     children: [
       {
-        path: '',
+        path: '/home',
         name: 'slack_config',
         components: {
           sidebar: MainSidebar,
@@ -66,11 +72,11 @@ const routes = [
     ],
   },
   {
-    path: '/', //repo_groups
+    path: '/home', //repo_groups
     component: Default,
     children: [
       {
-        path: '',
+        path: '/home',
         name: 'repo_groups',
         components: {
           sidebar: MainSidebar,
@@ -85,7 +91,7 @@ const routes = [
     component: Default,
     children: [
       {
-        path: '',
+        path: '/home',
         name: 'workers',
         components: {
           sidebar: MainSidebar,
@@ -96,11 +102,11 @@ const routes = [
     ],
   },
   {
-    path: '/repos',
+    path: '/home',
     component: Default,
     children: [
       {
-        path: '',
+        path: '/home',
         name: 'repos',
         components: {
           sidebar: MainSidebar,
@@ -130,7 +136,7 @@ const routes = [
     component: Default,
     children: [
       {
-        path: '',
+        path: '/home',
         name: 'config',
         components: {
           sidebar: MainSidebar,
@@ -145,7 +151,7 @@ const routes = [
     component: Default,
     children: [
       {
-        path: '',
+        path: '/home',
         name: 'inspect_insight',
         components: {
           sidebar: MainSidebar,
@@ -184,7 +190,7 @@ const routes = [
     component: Default,
     children: [
       {
-        path: '',
+        path: '/home',
         name: 'repo_overview_compare',
         components: {
           sidebar: MainSidebar,
