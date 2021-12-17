@@ -9,6 +9,7 @@
         <p>There was a problem on our end. Please try again later.</p>
         <!-- <v-btn to ="/Dashboard">Back</v-btn> -->
         <d-button pill @click="$router.go(-1)">&larr; Go Back</d-button>
+        <a href="https://github.com/chaoss/augur/issues/new/choose ">Report Bug</a>
       </div>
     </div>
   </d-container>
@@ -18,3 +19,9 @@
 import { Vue } from 'vue-property-decorator';
 export default class Errors extends Vue {}
 </script>
+
+<style scoped>
+a{
+  margin-top: 20px;
+}
+</style>
