@@ -152,6 +152,14 @@
         htmlBefore: '<i class="material-icons">group_work</i>',
         htmlAfter: '',
       },
+      {
+        title: 'About',
+        to: {
+          name: 'about',
+        },
+        htmlBefore: '<i class="material-icons">group_work</i>',
+        htmlAfter: '',
+      },
       // {
       //   title: 'Explore Insights',
       //   to: {

@@ -14,6 +14,7 @@ var port = config['Frontend'] ? (config['Frontend']['port'] ? ':' + config['Fron
 var host = config['Frontend'] ? (config['Frontend']['host']) : (config['Server']['host'])
 const AugurAPI = new AugurAPIModule('http://' + host + port);
 
+import About from './views/About.vue';
 import Errors from './views/Errors.vue';
 import Tables from './views/Tables.vue';
 import Dashboard from './views/Dashboard.vue';
@@ -236,6 +237,22 @@ const routes = [
     path: '/errors',
     name: 'errors',
     component: Errors,
+  },
+  {
+    path: '/about',
+    name: 'about',
+    component: Default,
+    children: [
+      {
+        path: '',
+        name: 'about',
+        components: {
+          sidebar: MainSidebar,
+          navbar: MainNavbar,
+          content: About,
+        },
+      }
+    ],
   },
   {
     path: '*',
