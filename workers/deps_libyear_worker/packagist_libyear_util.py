@@ -160,6 +160,6 @@ def get_packagist_current_version(data, requirement):
                 return get_latest_packagist_patch(clean_version(requirement), data)
 
             else:
-                return clean_version(requirement)
+                return requirement
     
     

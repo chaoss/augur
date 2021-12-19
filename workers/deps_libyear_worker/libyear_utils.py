@@ -1,3 +1,4 @@
+from datetime import datetime
 from distutils.version import LooseVersion
 import dateutil.parser
 from distutils import version
@@ -7,7 +8,7 @@ from npm_parser import parse_package_json
 from pypi_libyear_util import sort_dependency_requirement,get_pypi_data,get_latest_version,get_release_date
 from npm_libyear_utils import get_NPM_data, get_npm_release_date, get_npm_latest_version,get_npm_current_version
 from packagist_parser import parse_compose
-from packagist_libyear_util import get_packagist_data, get_packagist_current_version, get_packagist_latest_version, get_packagist_release_date
+from packagist_libyear_util import get_packagist_data, get_packagist_current_version, get_packagist_latest_version, get_packagist_release_date, check_version_branch
 
 #Files That would be parsed should be added here
 file_list = [
@@ -142,6 +143,11 @@ def get_deps_libyear_data(path):
                 latest_release_date = get_packagist_release_date(data, latest_version)
                 if current_version:
                     current_release_date = get_packagist_release_date(data, current_version)
+                    #Checking if the representation is a branch as packagist allows to specify a branch instead of versions for a package.
+                    if check_version_branch(current_version):
+                        current_release_date = datetime.now()
+                        latest_release_date = current_release_date
+                        latest_version = current_version
 
             libyear = get_libyear(current_version, current_release_date, latest_version, latest_release_date)
             if not latest_release_date:
