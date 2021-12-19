@@ -97,7 +97,7 @@ def get_packagist_latest_version(data):
     try:
         versions = data['package']['versions']
         for version in list(versions.keys()):
-            #getting the lastes STABLE version
+            #getting the lastest STABLE version
             if not 'dev' in version:
                 if not 'alpha' in version:
                     if not 'beta' in version:
@@ -108,8 +108,10 @@ def get_packagist_latest_version(data):
 
 
 def upper_limit_dependency(data, requirement):
-    #code 
-    pass
+    version = clean_version(requirement)
+    release_list = list(data['package']['versions'].keys())
+    index = release_list.index(version)
+    return release_list[index +1]
 
 
 
