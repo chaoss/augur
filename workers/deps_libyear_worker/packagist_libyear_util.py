@@ -123,23 +123,38 @@ def check_version_branch(requirement):
 
 def get_packagist_current_version(data, requirement):
 
-    if requirement[0] == '~':
-        return get_latest_packagist_patch(clean_version(requirement), data)
-    elif requirement[0] == '^':
-        return get_lastest_packagist_minor(clean_version(requirement), data)
+    if re.search(r'|',requirement) or re.search(r' ',requirement) or re.search(r',',requirement):
 
-    elif requirement == '' or requirement is None or requirement == '*':
-        return get_packagist_latest_version(data)
+        if re.search(r'|',requirement):
+            seperation = requirement.split('|')
+            get_packagist_current_version(data, seperation[len(seperation)-1])
 
-    elif re.search(r'<',requirement):
-        return upper_limit_dependency(data, requirement)
-    elif re.search(r'>=', requirement):
-        return get_packagist_latest_version(data)
-    
+        elif re.search(r' ',requirement):
+            seperation = requirement.split(' ')
+            get_packagist_current_version(data, seperation[len(seperation)-1])
+
+        elif re.search(r',',requirement):
+            seperation = requirement.split(',')
+            get_packagist_current_version(data, seperation[len(seperation)-1])
+        
     else:
-        if check_version_branch:
-            return requirement
+        if requirement[0] == '~':
+            return get_latest_packagist_patch(clean_version(requirement), data)
+        elif requirement[0] == '^':
+            return get_lastest_packagist_minor(clean_version(requirement), data)
+
+        elif requirement == '' or requirement is None or requirement == '*':
+            return get_packagist_latest_version(data)
+
+        elif re.search(r'<',requirement):
+            return upper_limit_dependency(data, requirement)
+        elif re.search(r'>=', requirement):
+            return get_packagist_latest_version(data)
+        
         else:
-            return clean_version(requirement)
+            if check_version_branch:
+                return requirement
+            else:
+                return clean_version(requirement)
     
     
