@@ -69,14 +69,14 @@ def get_latest_version(data):
 
 def get_release_date(data, version):
     if not data:
-        print('invalid data')
+        # print('invalid data')
         return None
     releases = data['releases']
     name = data['info']['name']
     try:
         version_date = releases[version][-1]['upload_time_iso_8601']
     except IndexError:
-        print(f'Used release of {name}=={version} has no upload time.')
+        # print(f'Used release of {name}=={version} has no upload time.')
         return None    
     # version_date = dateutil.parser.parse(version_date)
     return version_date
@@ -112,6 +112,6 @@ def get_libyear(current_version, current_release_date, latest_version, latest_re
     latest_release_date = dateutil.parser.parse(latest_release_date)    
 
     libdays = (latest_release_date - current_release_date).days
-    print(libdays)
+    # print(libdays)
     libyear = libdays/365
     return libyear

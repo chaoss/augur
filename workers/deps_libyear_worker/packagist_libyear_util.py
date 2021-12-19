@@ -114,6 +114,12 @@ def upper_limit_dependency(data, requirement):
     return release_list[index +1]
 
 
+def check_version_branch(requirement):
+    if requirement[-4:] == '-dev' or requirement[0:4] == 'dev-':
+        return True
+    return False
+
+
 
 def get_packagist_current_version(data, requirement):
 
@@ -121,6 +127,19 @@ def get_packagist_current_version(data, requirement):
         return get_latest_packagist_patch(clean_version(requirement), data)
     elif requirement[0] == '^':
         return get_lastest_packagist_minor(clean_version(requirement), data)
+
+    elif requirement == '' or requirement is None or requirement == '*':
+        return get_packagist_latest_version(data)
+
     elif re.search(r'<',requirement):
         return upper_limit_dependency(data, requirement)
+    elif re.search(r'>=', requirement):
+        return get_packagist_latest_version(data)
+    
+    else:
+        if check_version_branch:
+            return requirement
+        else:
+            return clean_version(requirement)
+    
     
