@@ -154,6 +154,11 @@ def get_packagist_current_version(data, requirement):
         else:
             if check_version_branch:
                 return requirement
+            elif requirement.split('.')[1] == '*':
+                return get_lastest_packagist_minor(clean_version(requirement), data)
+            elif requirement.split('.')[2] == '*':
+                return get_latest_packagist_patch(clean_version(requirement), data)
+
             else:
                 return clean_version(requirement)
     
