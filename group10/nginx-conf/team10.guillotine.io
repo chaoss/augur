@@ -14,10 +14,10 @@ server {
 		try_files $uri $uri/ /index.html;
 	}
 
-#	location /api/unstable/ {
-#		proxy_pass http://zephyr.osshealth.io:5001;
-#		proxy_set_header Host $host;
-#	}
+	location /api/unstable/ {
+		proxy_pass https://team10.guillotine.io:5099;
+		proxy_set_header Host $host;
+	}
 
 	location /api_docs/ {
 		root /home/sean/github/augur-howison/frontend/public;
