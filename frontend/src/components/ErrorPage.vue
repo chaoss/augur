@@ -12,7 +12,7 @@
  export default {
     data() {
       return {
-        'formAction': '/login?next=' + encodeURI('http://' + window.location.host)
+        'formAction': '/login?next=' + encodeURI('https://' + window.location.host)
       }
     },
     methods: {

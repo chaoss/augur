@@ -32,7 +32,7 @@ export default{
   data () {
     return {
       'user': AUGUR_SESSION['username'],
-      'logoutLink': '/logout?next=' + encodeURI('http://' + window.location.host)
+      'logoutLink': '/logout?next=' + encodeURI('https://' + window.location.host)
     }
   },
    methods: {
