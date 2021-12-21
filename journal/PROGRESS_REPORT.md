@@ -42,3 +42,6 @@ for reasons unknown. While the goal of our group was to fix the routing issues, 
 No wonder there are so many issues with the navigation, the routing in off itself os broken. 
 
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+December 17 2021
+
