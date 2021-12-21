@@ -73,7 +73,7 @@ I also added another button on the error page that lets the user report a bug. O
 that all the routing is done in the router.ts file and not the router.js file, but once I realized that the routing wasn't 
 too difficult to fix and the front page wasn't too difficult to add in.
 
-![RoutingEdit](screenshots/routing editexample.png)
+![RoutingEdit](screenshots/routing_editexample.png)
 
 **Kermit:** For this sprint I created an about page that explains what Augur is and what each tab does. 
 This gives the user information on what to expect and all the things they can do. This page was added to the side navbar 
