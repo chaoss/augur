@@ -79,6 +79,9 @@ class DepsLibyearWorker(WorkerGitInterfaceable):
 
         deps = get_deps_libyear_data(path)
 
+        self.logger.info(f'Deps collected!')
+        self.logger.info(f'sample: {deps[0]}')
+
         try: 
 
             for dep in deps:

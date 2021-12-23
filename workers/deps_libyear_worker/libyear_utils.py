@@ -24,7 +24,7 @@ file_list = [
     'environment.yml.lock',
     'environment.yaml.lock',
     'package.json',
-    'composer.json'
+    'composer.json',
 ]
 
 

@@ -123,8 +123,10 @@ def check_version_branch(requirement):
 
 def get_packagist_current_version(data, requirement):
 
+    # Checking if multiple requirements are provided for a single package.
     if re.search(r'|',requirement) or re.search(r' ',requirement) or re.search(r',',requirement):
 
+        #Considering the last tag in the 'OR' of the version representation
         if re.search(r'|',requirement):
             seperation = requirement.split('|')
             get_packagist_current_version(data, seperation[len(seperation)-1])
