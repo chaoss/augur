@@ -1285,7 +1285,6 @@ class Persistant():
             stacker = traceback.format_exc()
             self.logger.debug(f"{stacker}")
 
-
     def retrieve_tuple(self, key_values, tables):
         table_str = tables[0]
         del tables[0]
@@ -1307,3 +1306,10 @@ class Persistant():
             pd.read_sql(retrieveTupleSQL, self.db, params={}).to_json(orient="records")
         )
         return values
+
+    def print_traceback(self, exception_message, exception, debug_log=True):
+
+        if debug_log:
+            self.logger.debug(f"{exception_message}. ERROR: {exception}", exc_info=sys.exc_info())
+        else:
+            self.logger.info(f"{exception_message}. ERROR: {exception}", exc_info=sys.exc_info())

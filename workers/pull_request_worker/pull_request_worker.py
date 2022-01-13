@@ -577,12 +577,7 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
 
         return pk_source_prs
 
-    def print_traceback(self, exception_message, exception, debug_log=True):
 
-        if debug_log:
-            self.logger.debug(f"{exception_message}. ERROR: {exception}", exc_info=sys.exc_info())
-        else:
-            self.logger.info(f"{exception_message}. ERROR: {exception}", exc_info=sys.exc_info())
 
     def pull_requests_model(self, entry_info, repo_id):
         """Pull Request data collection function. Query GitHub API for PhubRs.
@@ -590,6 +585,12 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
         :param entry_info: A dictionary consisiting of 'git_url' and 'repo_id'
         :type entry_info: dict
         """
+
+        try:
+            x = 1 / 0
+            self.logger.info(x)
+        except Exception as e:
+            self.print_traceback("testing exception in beginning of pr model", e, False)
 
         github_url = self.task_info['given']['github_url']
 
