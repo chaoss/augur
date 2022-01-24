@@ -1296,6 +1296,18 @@ class Persistant():
         )
         return values
 
+    """
+    Prints the traceback when an exception occurs
+    
+    Params
+        exception_message: String - Explain the location that the exception occurred
+        exception: String - Exception object that python returns during an Exception
+        debug_log: Boolean - Determines whether the message is printed to the debug log or info log
+        
+    Notes
+        To print the location of the exception to the info log and the traceback to the debug log, 
+        add a self.logger.info call then call self.print_traceback("", e) to print the traceback to only the debug log
+    """
     def print_traceback(self, exception_message, exception, debug_log=True):
 
         if debug_log:
