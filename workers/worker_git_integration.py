@@ -1,8 +1,11 @@
 #Get everything that the base depends on.
+import math
+
 from numpy.lib.utils import source
 from workers.worker_base import *
 import sqlalchemy as s
-import time 
+import time
+import math
 
 #This is a worker base subclass that adds the ability to query github/gitlab with the api key
 class WorkerGitInterfaceable(Worker):
@@ -275,7 +278,7 @@ class WorkerGitInterfaceable(Worker):
         source_data = expanded_source_df.to_dict(orient='records')
 
         #Filter out bad data where we can't even hit the api.
-        source_data = [data for data in source_data if f'{prefix}login' in data and data[f'{prefix}login'] != None]
+        source_data = [data for data in source_data if f'{prefix}login' in data and data[f'{prefix}login'] != None and type(data[f'{prefix}login']) is str]
 
         self.logger.info(f"table_values_cntrb keys: {table_values_cntrb[0].keys()}")
         # self.logger.info(f"source_data keys: {source_data[0].keys()}")
@@ -284,13 +287,19 @@ class WorkerGitInterfaceable(Worker):
         #TODO: seperate this method into it's own worker.
         #cntrb_id_offset = self.get_max_id(self.contributors_table, 'cntrb_id') - 1
 
+        self.logger.debug(f"Enriching {len(source_data)} contributors.")
+
+        # source_data = source_data.loc[data[f'{prefix}login'] != 'nan']
+
         # loop through data to test if it is already in the database
         for index, data in enumerate(source_data):
 
+            if data[f'{prefix}login'] == 'nan':
+                self.logger.debug("Nan user found continuing")
+                continue
+
             #removed this log because it was generating a lot of data.
             #self.logger.info(f"Enriching {index} of {len(source_data)}")
-            self.logger.debug(f"Enriching {len(source_data)} contributors.")
-
 
             user_unique_ids = []
 
@@ -299,31 +308,23 @@ class WorkerGitInterfaceable(Worker):
                 #This will trigger a KeyError if data has alt identifier.
                 data[f'{prefix}id']
                 for row in table_values_cntrb:
-                  try:
-                    # if str(row['gh_user_id']) == 'NaN': # 12/2/2021 SPG -- just skipping this user for now
-                    #     user_unique_ids.append(row(74832)) # actual gh_user_id for login nan
-                    #     # continue took out continue 
-                    # else: # 12/13/2021 ... I don't know .. trying this. 
-                    user_unique_ids.append(row['gh_user_id']) ## cast as string by SPG on 11/28/2021 due to `nan` user
-                        # by 12/2/2021 it became clear this was causing a match failure. Removed string cast. 
-                  except Exception as e:
-                    self.logger.info(f"Error adding gh_user_id: {e}. Row: {row}")
-                    stacker = traceback.format_exc()
-                    self.logger.debug(f"{stacker}")
-                    pass # added pass to keep loop going if this fails 12/2/2021
+                    # removed checks for nan user in this block because this is getting all the gh_user_ids that are
+                    # already in the database so it doesn't need to be filtered from the database, it needs to be
+                    # filtered out so it is never inserted into the database
+                    # Andrew Brain 12/21/2021
+                    user_unique_ids.append(row['gh_user_id'])
+
             except KeyError:
-                self.logger.info("Source data doesn't have user.id. Using node_id instead.")
-                stacker = traceback.format_exc()
-                self.logger.debug(f"{stacker}")
-                pass 
+                self.print_traceback("Enrich_cntrb_id, data doesn't have user.id. Using node_id instead", e, True)
+
             finally: 
                 for row in table_values_cntrb:
-                  try:
-                    user_unique_ids.append(row['gh_node_id'])
-                  except Exception as e:
-                    self.logger.info(f"Error adding gh_node_id: {e}. Row: {row}")
-                    stacker = traceback.format_exc()
-                    self.logger.debug(f"{stacker}")
+                    try:
+                        user_unique_ids.append(row['gh_node_id'])
+                    except Exception as e:
+                        self.logger.info(f"Error adding gh_node_id: {e}. Row: {row}")
+                        self.print_traceback("", e, True)
+
 
 
             #self.logger.info(f"gh_user_ids: {gh_user_ids}")
@@ -387,7 +388,7 @@ class WorkerGitInterfaceable(Worker):
               while attempts < 10:
                 self.logger.info(f"Hitting endpoint: {url} ...\n")
                 try:
-                  response = requests.get(url=url , headers=self.headers)
+                  response = requests.get(url=url, headers=self.headers)
                 except TimeoutError:
                   self.logger.info(f"User data request for enriching contributor data failed with {attempts} attempts! Trying again...")
                   time.sleep(10)
@@ -513,6 +514,16 @@ class WorkerGitInterfaceable(Worker):
           "Contributor id enrichment successful, result has "
           f"{len(source_data)} data points.\n"
         )
+
+        for data in source_data:
+
+            self.logger.debug("User login type: " + str(type(data[f'{prefix}login'])) + ". Login: " + str(data[f'{prefix}login']))
+
+            try:
+                data['cntrb_id']
+            except:
+                self.logger.debug(f"AB ERROR: data exiting enrich_cntrb_id without cntrb_id, login is: " + str(data[f'{prefix}login']))
+
         return source_data
 
 
@@ -988,9 +999,12 @@ class WorkerGitInterfaceable(Worker):
                 self.oauths[0]['rate_limit'] -= 1
                 self.logger.info("Headers did not work, had to decrement")
                 time.sleep(30)
+
         self.logger.info(
             f"Updated rate limit, you have: {self.oauths[0]['rate_limit']} requests remaining."
         )
+
+        #Stalls after here for some reason.
         if self.oauths[0]['rate_limit'] <= 0:
             try:
                 reset_time = response.headers['X-RateLimit-Reset']
@@ -1363,12 +1377,8 @@ class WorkerGitInterfaceable(Worker):
 
                         ## Added additional exception logging and a pass in this block.
                         except Exception as e:
-                            self.logger.debug(
-                                f"{url} generated an exception: count is {count}, attemts are {attempts}."
-                            )
-                            stacker = traceback.format_exc()
-                            self.logger.debug(f"\n\n{stacker}\n\n")
-                            pass
+                            self.logger.info(f"Error adding gh_node_id: {e}. Row: {row}")
+                            self.print_traceback(f"{url} generated an exception: count is {count}, attemts are {attempts}.", e, True)
 
                 attempts += 1
 
@@ -1381,7 +1391,7 @@ class WorkerGitInterfaceable(Worker):
 
     #insertion_method and stagger are arguments that allow paginate_endpoint to insert at around ~500 pages at a time.
     def paginate_endpoint(
-        self, url, action_map={}, table=None, where_clause=True, platform='github', in_memory=True, stagger=False, insertion_method=None, insertion_threshold=500
+        self, url, action_map={}, table=None, where_clause=True, platform='github', in_memory=True, stagger=False, insertion_method=None, insertion_threshold=1000
     ):
 
         #Get augur columns using the action map along with the primary key
