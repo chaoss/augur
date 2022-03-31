@@ -23,7 +23,7 @@ If you are less familiar with Docker, or experience issues you cannot resolve at
 
 Credentials
 ------------
-Before you get started with Docker, you'll need to set up a PostgreSQL instance either locally or using a remote host. Alternatively, you can also set up the databse within a docker container either manually or through the script but this is not recommended.
+Before you get started with Docker, you'll need to set up a PostgreSQL instance either locally or using a remote host. Alternatively, you can also set up the database within a docker container either manually or through the script but this is not recommended.
 
 .. note::
 
@@ -83,7 +83,7 @@ If you're doing data collection or just want to try out Augur, you'll want to us
 
 .. note::
 
-  Linux is currently the only supported platform for the script. Docker is slightly differant on macOS. Additionally, the script uses a network alias for local connections which is done differantly for macOS. The script will setup the alias for macOS correctly but it is untested for macOS and can be unpredictable.
+  Linux is currently the only supported platform for the script. Docker is slightly different on macOS. Additionally, the script uses a network alias for local connections which is done differently for macOS. The script will setup the alias for macOS correctly but it is untested for macOS and can be unpredictable.
 
 Docker Setup Script
 -------------------
