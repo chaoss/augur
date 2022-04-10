@@ -11,6 +11,18 @@ branch | status
 
 [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/2788/badge)](https://bestpractices.coreinfrastructure.org/projects/2788)
 
+
+## CS4320 Final Project: Team Terrapins
+Team Members: Jackson Haskamp, Tasha Sennah Ogoti, Kamden Riley, Erika Zhou 
+
+CS4320 Software Engineering – Section 01 with Dr. Sean Goggins, Spring Semester 2022
+
+Our team decided to work with Augur's GitHub issue [“GSoC Idea: Machine Learning based Community Health and Communication #1637”](https://github.com/chaoss/augur/issues/1637).
+
+### Deliverables
+Some deliverables files (including sprint Progress Report(s)) are stored in the folder for their respective sprint in the `deliverables` folder.
+
+
 ## What is Augur?
 
 Augur is a software suite for collecting and measuring structured data
