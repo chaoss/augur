@@ -2,7 +2,7 @@ Augur Documentation
 ==================================
 
 Welcome to the Augur project's official documentation. Below is a brief primer on the project and its goals.
-if you're new to the project, we recommend giving it a once-over as a gentle introduction. Otherwise, feel free to hop right into the docs!
+If you're new to the project, we recommend giving it a once-over as a gentle introduction. Otherwise, feel free to hop right into the docs!
 
 .. toctree::
    :maxdepth: 2
@@ -40,7 +40,6 @@ Current maintainers
 - `Sean P. Goggins <http://www.seangoggins.net>`_
 - `Matt Snell <https://github.com/Nebrethar>`_
 - `Andrew Brain <https://github.com/ABrain7710>`_
-
 
 Former maintainers
 --------------------
