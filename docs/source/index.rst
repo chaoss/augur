@@ -41,7 +41,6 @@ Current maintainers
 - `Matt Snell <https://github.com/Nebrethar>`_
 - `Andrew Brain <https://github.com/ABrain7710>`_
 
-
 Former maintainers
 --------------------
 - `Christian Cmehil-Warn <https://github.com/christiancme>`_
