@@ -63,7 +63,7 @@ Python Virtual Environment Configuration
 
 .. code-block:: bash
 
-	# make sure you are logged in as your own user (i.e. "sean")
+	# Ensure you are logged in as your own user on Github and change the "<YOUR_GITHUB_USERNAME>" to your Github username (e.g. "sean")
 	git clone https://github.com/chaoss/augur.git
 	cd augur/
 	sudo apt install make
