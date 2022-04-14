@@ -1,6 +1,28 @@
 // #SPDX-License-Identifier: MIT
 // Shards Dashboard Variables
 
+:root {
+  --nav-background:#ffffff;
+  --body-background: #f5f6f8;
+  --white-body-background: #eeeeee;
+  // --background : #eaeaea;
+  --section-bg: #fefefe;
+  --card-color:#ffffff;
+  
+}
+
+
+/* Define styles for the root window with dark - mode preference */
+:root.dark-theme {
+  --body-background: #292e3a;
+  // --background : #5e5e5e;
+  --section-bg: #333333;
+  --white-body-background: #303030;
+  --card-color:#333333;
+  --nav-background:#333333;
+}
+
+
 // New grays
 $fiord-blue:   #3D5170 !default;
 $shuttle-gray: #5A6169 !default;
@@ -52,7 +74,7 @@ $side-shadow: 0 0.125rem 9.375rem rgba($shuttle-gray, .1),
 
 
 // Body
-$body-background: #F5F6F8 !default;
+// $body-background: #F5F6F8 !default;
 $body-font-size: 15px !default;
 
 
@@ -103,7 +125,7 @@ $notifications-dropdown-item-padding-top: 0.625rem !default;
 $notifications-dropdown-item-padding-bottom: 0.625rem !default;
 $notifications-dropdown-item-border-bottom: 1px solid $border-color !default;
 
-$notifications-icon-background-color: $body-background !default;
+$notifications-icon-background-color: var(--body-background) !default;
 $notifications-icon-width: 2.1875rem !default;
 $notifications-icon-height: 2.1875rem !default;
 $notifications-icon-color: $text-light-color !default;

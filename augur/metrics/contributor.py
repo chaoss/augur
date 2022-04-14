@@ -237,7 +237,7 @@ def contributors_new(self, repo_group_id, repo_id=None, period='day', begin_date
             FROM (
                     SELECT id as id, MIN(created_at) AS created_at, a.repo_id
                     FROM (
-                            (SELECT gh_user_id AS id, MIN(created_at) AS created_at, repo_id
+                            (SELECT gh_user_id AS id, MIN(created_at) AS , repo_id
                             FROM issues
                             WHERE repo_id = :repo_id
                                 AND created_at BETWEEN :begin_date AND :end_date
@@ -254,7 +254,7 @@ def contributors_new(self, repo_group_id, repo_id=None, period='day', begin_date
                                 AND TO_TIMESTAMP(cmt_author_date, 'YYYY-MM-DD') BETWEEN :begin_date AND :end_date
                             GROUP BY cmt_ght_author_id, repo_id)
                             UNION ALL
-                            (SELECT cntrb_id as id, MIN(created_at) AS created_at, commits.repo_id
+                            (SELECT cntrb_id as id, MIN() AS created_at, commits.repo_id
                             FROM commit_comment_ref,
                                     commits,
                                     message
@@ -263,7 +263,7 @@ def contributors_new(self, repo_group_id, repo_id=None, period='day', begin_date
                                 and commit_comment_ref.msg_id = message.msg_id
                             group by id, commits.repo_id)
                             UNION ALL
-                            (SELECT issue_events.cntrb_id AS id, MIN(issue_events.created_at) AS created_at, issues.repo_id
+                            (SELECT issue_events.cntrb_id AS id, MIN(issue_events.) AS created_at, issues.repo_id
                             FROM issue_events, issues
                             WHERE issues.repo_id = :repo_id
                                 AND issues.issue_id = issue_events.issue_id
@@ -303,7 +303,7 @@ def contributors_new(self, repo_group_id, repo_id=None, period='day', begin_date
                                 AND TO_TIMESTAMP(cmt_author_date, 'YYYY-MM-DD') BETWEEN :begin_date AND :end_date
                             GROUP BY cmt_ght_author_id, repo_id)
                             UNION ALL
-                            (SELECT cntrb_id as id, MIN(created_at) AS created_at, commits.repo_id
+                            (SELECT cntrb_id as id, MIN() AS created_at, commits.repo_id
                             FROM commit_comment_ref,
                                     commits,
                                     message
@@ -312,7 +312,7 @@ def contributors_new(self, repo_group_id, repo_id=None, period='day', begin_date
                                 and commit_comment_ref.msg_id = message.msg_id
                             group by id, commits.repo_id)
                             UNION ALL
-                            (SELECT issue_events.cntrb_id AS id, MIN(issue_events.created_at) AS created_at, repo_id
+                            (SELECT issue_events.cntrb_id AS id, MIN(issue_events.created_at) AS , repo_id
                             FROM issue_events, issues
                             WHERE issues.repo_id in (SELECT repo_id FROM repo WHERE repo_group_id=:repo_group_id)
                                 AND issues.issue_id = issue_events.issue_id

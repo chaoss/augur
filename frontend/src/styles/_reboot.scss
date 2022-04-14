@@ -17,7 +17,7 @@ html {
 
 // Body
 body {
-  background: $body-background;
+  background: var(--body-background);
   font-size: 15px;
   font-weight: 500;
 

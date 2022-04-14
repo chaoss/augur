@@ -3,6 +3,7 @@
 
 .main-navbar .navbar {
   height: $main-navbar-height;
+  
 
   > * {
     display: flex;
@@ -10,6 +11,8 @@
 
   .nav-link {
     min-width: $main-navbar-nav-link-min-width;
+    
+    
   }
 
   // Notifications
@@ -62,6 +65,7 @@
         &__icon-wrapper {
           display: flex;
           padding: 0 5px;
+          
         }
 
         &__icon {
@@ -128,6 +132,7 @@
     border-top-left-radius: 0;
     border-top-right-radius: 0;
     border-top: none;
+    
   }
 
   .nav-link-icon i {

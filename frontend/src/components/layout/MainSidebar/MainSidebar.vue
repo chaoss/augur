@@ -2,7 +2,7 @@
 <template>
   <aside class="main-sidebar col-1 px-0 mainSideBaraside"><!--:class="['main-sidebar', 'col-12', 'col-md-3', 'col-lg-2', 'px-0', sidebarVisible ? 'open' : '']">-->
       <div class="main-navbar">
-        <nav class="navbar align-items-stretch navbar-light bg-white flex-md-nowrap border-bottom p-0">
+        <nav class="navbar align-items-stretch navbar-light body-bg-color flex-md-nowrap border-bottom p-0">
           <a class="navbar-brand w-100 mr-0 mainSideBara" href="#">
             <div class="d-table m-auto">
               <a href="/">

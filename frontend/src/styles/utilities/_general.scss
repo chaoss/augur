@@ -13,3 +13,23 @@
 .no-shadow {
   box-shadow: none !important;
 }
+
+// body background color
+.body-bg-color{
+  background-color: var(--body-background)!important;
+  }
+
+  .body-white-bg-color{
+    background-color: var(--white-body-background);
+    }
+
+  .section-bg-color{
+    background-color: var(--section-bg);
+  }  
+
+  .card-bg-color{
+          background-color: var(--card-color);
+  }
+  .nav-bg-color{
+    background-color: var(--nav-bg-color);
+  }

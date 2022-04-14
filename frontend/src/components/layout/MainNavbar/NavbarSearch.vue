@@ -3,11 +3,11 @@
   <div class="main-navbar__search w-100 d-none d-md-flex d-lg-flex navbarSearchDiv" >
     <!-- <d-form class="main-navbar__search w-100 d-none d-md-flex d-lg-flex" style="margin-bottom: 0 !important"> -->
         <d-input-group class="ml-3" seamless>
-            <d-input-group-text slot="prepend">
+            <d-input-group-text slot="prepend" class="body-bg-color">
                 <i class="material-icons">search</i>
             </d-input-group-text>
             <!-- <input type="text" class="search reposearch" name="headersearch" placeholder="GitHub URL" @change="onRepo"> -->
-            <d-input class="navbar-search navbarSearchInput" @change="onRepo" placeholder="Search for one of your repos ( *repo group name*/*repo name* )" />
+            <d-input  class="navbar-search navbarSearchInput body-bg-color" @change="onRepo" placeholder="Search for one of your repos ( *repo group name*/*repo name* )" />
         </d-input-group>
     <!-- </d-form> -->
   </div>

@@ -29,5 +29,5 @@
     "max-line-length": false,
     "one-line": false
   },
-  "strictFunctionTypes": false
+  "strictFunctionTypes": false,
 }

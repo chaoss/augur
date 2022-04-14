@@ -13,7 +13,7 @@
   margin-top: auto;
   margin-bottom: auto;
   font-size: $card-view-report-font-size;
-
+background-color: var(--card-color);
   a {
     color: $card-view-report-link-color;
 
@@ -21,4 +21,7 @@
       color: $card-view-report-link-color-hover;
     }
   }
+}
+.dashboardDiv{
+  background-color: var(--card-color);
 }
