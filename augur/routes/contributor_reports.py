@@ -965,6 +965,8 @@ def create_routes(server):
 
         return_data = request.args.get('return_data', "false").lower()
 
+        print(f"Hitting returning_contributors_pie_chart with repo_id {repo_id} and returning data: {return_data}")
+
         if error:
             return Response(response=error["message"],
                             mimetype='application/json',
@@ -1007,7 +1009,9 @@ def create_routes(server):
              'Repeat': int(repeat_contributors)}
 
         if return_data == "true":
-            raw_data = {"data": x}
+            raw_data = {"repo_name": repo_dict[repo_id], "start_date": start_date, "end_date": end_date, "required_contributions": required_contributions, "required_time": required_time, "data": x}
+            print("Returning")
+            print(raw_data)
             return raw_data
 
         # turn dict 'x' into a dataframe with columns 'contributor_type', and 'counts'
