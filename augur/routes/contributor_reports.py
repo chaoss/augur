@@ -963,6 +963,8 @@ def create_routes(server):
 
         repo_id, start_date, end_date, error = get_repo_id_start_date_and_end_date()
 
+        return_data = request.args.get('return_data', "false").lower()
+
         if error:
             return Response(response=error["message"],
                             mimetype='application/json',
@@ -1001,12 +1003,17 @@ def create_routes(server):
         repeat_contributors = driver_df.loc[driver_df['type'] == 'repeat'].count()['new_contributors']
 
         # create a dict with the # of drive-by and repeat contributors
-        x = {'Drive_By': drive_by_contributors,
-             'Repeat': repeat_contributors}
+        x = {'Drive_By': int(drive_by_contributors),
+             'Repeat': int(repeat_contributors)}
+
+        if return_data == "true":
+            raw_data = {"data": x}
+            return raw_data
 
         # turn dict 'x' into a dataframe with columns 'contributor_type', and 'counts'
         data = pd.Series(x).reset_index(name='counts').rename(columns={'index': 'contributor_type'})
 
+        # data modifications so it works with bokeh (not acutally the raw data)
         data['angle'] = data['counts'] / data['counts'].sum() * 2 * pi
         data['color'] = ('#0072B2', '#E69F00')
         data['percentage'] = ((data['angle'] / (2 * pi)) * 100).round(2)
