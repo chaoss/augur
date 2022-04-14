@@ -70,7 +70,7 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
                 html = requests.get(url, stream=True, headers=self.headers)
                 return html, extra_data
             except requests.exceptions.RequestException as e:
-                self.logger.debug(f"load_url inside multi_thread_urls failed with {e}, for usl {url}. exception registerred.registered")
+                self.logger.debug(f"load_url inside multi_thread_urls failed with {e}, for usl {url}. exception registered.registered")
 
         self.logger.info("Beginning to multithread API endpoints.")
 
@@ -117,13 +117,13 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
 
                             elif response.status_code == 200:
                                 try:
-                                    page_data = response.json() 
+                                    page_data = response.json()
                                     # This seems to not be working.
                                     ### added by SPG 12/1/2021 for dealing with empty JSON pages where there
                                     ### are no reviews.
                                     #if not 'results' in page_data or len(page_data['results']) == 0:
-                                    #    continue  
-                                  
+                                    #    continue
+
                                 except:
                                     page_data = json.loads(json.dumps(response.text))
                                     continue
@@ -348,7 +348,7 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
                 'tool_source': self.tool_source,
                 'tool_version': self.tool_version,
                 'data_source': 'GitHub API',
-                'repo_id': self.repo_id, 
+                'repo_id': self.repo_id,
             } for pr_file in self.graphql_paginate(query, {'files': None})]
 
 
@@ -506,7 +506,7 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
 
         #Database action map is essential in order to avoid duplicates messing up the data
         ## 9/20/2021: SPG added closed_at, updated_at, and merged_at to the update map.
-        ## 11/29/2021: And this is the cause of PR updates not working because it doesn't handle NULLs ... I think. 
+        ## 11/29/2021: And this is the cause of PR updates not working because it doesn't handle NULLs ... I think.
         pr_action_map = {
             'insert': {
                 'source': ['id'],
@@ -535,7 +535,7 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
 
             #This is sending empty data to enrich_cntrb_id, fix with check
             if len(inc_source_prs['insert']) > 0:
-                try: 
+                try:
                     inc_source_prs['insert'] = self.enrich_cntrb_id(
                         inc_source_prs['insert'], str('user.login'), action_map_additions={
                             'insert': {
@@ -550,12 +550,12 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
                 self.logger.info("Contributor enrichment is not needed, no inserts in action map.")
 
             prs_insert = []
-            try: 
+            try:
                 prs_insert = [
                 {
                     'repo_id': self.repo_id,
                     'pr_url': pr['url'],
-                    'pr_src_id': int(str(pr['id']).encode(encoding='UTF-8').decode(encoding='UTF-8')),#1-22-2022 inconsistent casting; sometimes int, sometimes float in bulk_insert 
+                    'pr_src_id': int(str(pr['id']).encode(encoding='UTF-8').decode(encoding='UTF-8')),#1-22-2022 inconsistent casting; sometimes int, sometimes float in bulk_insert
                     'pr_src_node_id': pr['node_id'],  ## 9/20/2021 - This was null. No idea why.
                     'pr_html_url': pr['html_url'],
                     'pr_diff_url': pr['diff_url'],
@@ -566,9 +566,9 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
                     'pr_src_state': pr['state'],
                     'pr_src_locked': pr['locked'],
                     'pr_src_title': str(pr['title']),
-                    'pr_augur_contributor_id': int(pr['cntrb_id']) if ( ## Changed later on 12/3/2021 to use default contributor if something in enrich_cntrb_id broke 
-                    ### MUST ENSURE THIS DOES NOT CAUSE ANY MAJOR ISSUES ... i.e., its a little risky if we aren't dealing with more than the rare anomaly, which as 
-                    ### of 12/3/2021 appears empirically to be the case. 
+                    'pr_augur_contributor_id': int(pr['cntrb_id']) if ( ## Changed later on 12/3/2021 to use default contributor if something in enrich_cntrb_id broke
+                    ### MUST ENSURE THIS DOES NOT CAUSE ANY MAJOR ISSUES ... i.e., its a little risky if we aren't dealing with more than the rare anomaly, which as
+                    ### of 12/3/2021 appears empirically to be the case.
                         int(pr['cntrb_id']) ## cast as an int because of an otherwise inexplicable error.
                     ) else int(1), # also cast as an int due to an otherwise inexplicble error
                     ### Changed to int cast based on error 12/3/2021 SPG (int cast above is first change on 12/3)
@@ -577,10 +577,10 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
                     ) else None,
                     'pr_created_at': pr['created_at'],
                     'pr_updated_at': pr['updated_at'],
-                    'pr_closed_at': None if not (  
+                    'pr_closed_at': None if not (
                         pr['closed_at']
                     ) else pr['closed_at'],
-                    'pr_merged_at': None if not (  
+                    'pr_merged_at': None if not (
                         pr['merged_at']
                     ) else pr['merged_at'],
                     'pr_merge_commit_sha': pr['merge_commit_sha'],
@@ -600,7 +600,7 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
                     'pr_src_issue_url': pr['issue_url'],
                     'pr_src_comments_url': pr['comments_url'],
                     'pr_src_review_comments_url': pr['review_comments_url'],
-                    'pr_src_commits_url': pr['commits_url'], 
+                    'pr_src_commits_url': pr['commits_url'],
                     'pr_src_statuses_url': pr['statuses_url'],
                     'pr_src_author_association': pr['author_association'],
                     'tool_source': self.tool_source,
@@ -612,7 +612,7 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
                 self.print_traceback("Extracting data from source in pr model", e)
             #The b_pr_src_id bug comes from here
             '''
-            9/20/2021: Put the method definition for bulk insert here for reference. The method 
+            9/20/2021: Put the method definition for bulk insert here for reference. The method
             is found in $AUGUR_HOME/workers/worker_persistence.py
               def bulk_insert(
                     self, table, insert=[], update=[], unique_columns=[], update_columns=[],
@@ -719,7 +719,7 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
 
         pk_source_prs = []
 
-        try: 
+        try:
             pk_source_prs = self._get_pk_source_prs()
         except Exception as e:
             self.print_traceback("Pull Requests model", e)
@@ -732,14 +732,14 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
             except Exception as e:
                 self.print_traceback("PR comments model", e)
             finally:
-                try: 
+                try:
                     self.pull_request_events_model(pk_source_prs)
                     self.logger.info(f"Pull request events model.")
                 except Exception as e:
                     self.print_traceback("PR events model", e)
 
                 finally:
-                    try: 
+                    try:
                         self.logger.info(f"Pull request reviews model factored out for now due to speed.")
                     except Exception as e:
                         self.print_traceback("PR reviews model, which is factored out for now due to speed", e)
@@ -797,7 +797,7 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
             else:
                 self.logger.info("Contributor enrichment is not needed, no inserts in action map.")
             pr_comments_insert = [] # added 12/3/2021 to put the value assignment into a try/except block
-            try: 
+            try:
                 pr_comments_insert = [
                     {
                         'pltfrm_id': self.platform_id,
@@ -805,13 +805,13 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
                             comment['body']
                         ) else None,
                         'msg_timestamp': comment['created_at'],
-                        'cntrb_id': int(comment['cntrb_id']) if ( ### added 12/3/2021 to address data anomalies. MONITOR. POSSIBLY WRONG if anomalies are *NOT* 
+                        'cntrb_id': int(comment['cntrb_id']) if ( ### added 12/3/2021 to address data anomalies. MONITOR. POSSIBLY WRONG if anomalies are *NOT*
                             ### EXTREMELY RARE
                             comment['cntrb_id']
                         ) else 1,
                         'tool_source': self.tool_source,
                         'tool_version': self.tool_version,
-                        'data_source': self.data_source, 
+                        'data_source': self.data_source,
                         'repo_id': self.repo_id,
                         'platform_msg_id': int(comment['id']),
                         'platform_node_id': comment['node_id']
@@ -821,14 +821,14 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
                 self.print_traceback("Creting list of pr comments", e)
 
             try:
-                self.bulk_insert(self.message_table, insert=pr_comments_insert, 
+                self.bulk_insert(self.message_table, insert=pr_comments_insert,
                     unique_columns=comment_action_map['insert']['augur'])
             except Exception as e:
                 self.print_traceback("Bulk inserting pr comments", e)
             finally:
                     try:
                         c_pk_source_comments = self.enrich_data_primary_keys(
-                            inc_pr_comments['insert'], self.message_table, 
+                            inc_pr_comments['insert'], self.message_table,
                             comment_action_map['insert']['source'],
                             comment_action_map['insert']['augur'], in_memory=True)
 
@@ -844,7 +844,7 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
                             ['pull_request_url'], ['pr_url'], in_memory=True)
                         ## The pull_request_url and pr_url mappings are going on my emergent understanding
                         ## that enrich primary keys is retrieving the primary key from the already populated
-                        ## pull requests table, using the endpoint's 'pull_request_url' value, and mapping it 
+                        ## pull requests table, using the endpoint's 'pull_request_url' value, and mapping it
                         ## to the 'pr_url' in the pull_requests Table. SPG 12/2/2021
 
                         self.logger.info(f"log of the length of both_pk_source_comments {len(both_pk_source_comments)}.")
@@ -852,7 +852,7 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
 
        # both_pk_source_comments = self.enrich_data_primary_keys(
        #      c_pk_source_comments, self.pull_request_reviews_table, ['pull_request_review_id'],
-       #      ['pr_review_src_id'], in_memory=True 
+       #      ['pr_review_src_id'], in_memory=True
        #  )
 
                         #self.write_debug_data(both_pk_source_comments, 'both_pk_source_comments')
@@ -877,7 +877,7 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
                     finally:
                         self.logger.info("Finished message insert section.")
         # TODO: add relational table so we can include a where_clause here
-        try: 
+        try:
             pr_comments = self.paginate_endpoint(
                 comments_url, action_map=comment_action_map, table=self.message_table,
                 where_clause=self.message_table.c.msg_id.in_(
@@ -898,7 +898,7 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
             )
             pr_comments_insert(pr_comments,comment_action_map,comment_ref_action_map)
             self.logger.info(f"comments inserted for repo_id: {self.repo_id}")
-            return 
+            return
         except Exception as e:
             self.print_traceback("Staggered paginate endpoint for pr comments", e)
         finally:
@@ -966,24 +966,24 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
                 'data_source': self.data_source,
                 'pr_platform_event_id': int(event['issue.id']),
                 'platform_id': self.platform_id,
-                'repo_id': self.repo_id 
-            } for event in pk_pr_events if event['actor'] is not None #12/6/2021 added event['cntrb_id'] as NULLs were getting through. 
+                'repo_id': self.repo_id
+            } for event in pk_pr_events if event['actor'] is not None #12/6/2021 added event['cntrb_id'] as NULLs were getting through.
         ]
-        try: 
+        try:
             self.bulk_insert(self.pull_request_events_table, insert=pr_events_insert, unique_columns=event_action_map['insert']['augur'])
         except Exception as e:
             self.print_traceback("Bulk insert pr events", e)
 
     def pull_request_nested_data_model(self, pk_source_prs=[]):
-        try: 
+        try:
 
             if not pk_source_prs:
                 pk_source_prs = self._get_pk_source_prs()
                 #prdata = json.loads(json.dumps(pk_source_prs))
                 #self.logger.debug(f"nested data model pk_source_prs structure is: {prdata}.")
-            else: 
+            else:
                 #prdata = json.loads(json.dumps(pk_source_prs))
-                self.logger.debug("nested model loaded.") 
+                self.logger.debug("nested model loaded.")
         except Exception as e:
             self.print_traceback("Getting source prs in nested pr model", e)
         labels_all = []
@@ -1021,8 +1021,8 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
             pr_nested_loop = 1
             while (pr_nested_loop <5):
                 try:
-                    if pr_nested_loop == 1: 
-                        pr_nested_loop += 1                
+                    if pr_nested_loop == 1:
+                        pr_nested_loop += 1
                         # PR labels insertion
                         label_action_map = {
                             'insert': {
@@ -1053,13 +1053,13 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
                                 'tool_source': self.tool_source,
                                 'tool_version': self.tool_version,
                                 'data_source': self.data_source,
-                                'repo_id': self.repo_id 
+                                'repo_id': self.repo_id
                             } for label in source_labels_insert
                         ]
 
                         self.bulk_insert(self.pull_request_labels_table, insert=labels_insert)
 
-                    elif pr_nested_loop == 2: 
+                    elif pr_nested_loop == 2:
                         pr_nested_loop += 1
                         # PR reviewers insertion
                         reviewer_action_map = {
@@ -1068,7 +1068,7 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
                                 'augur': ['pull_request_id', 'pr_reviewer_src_id']
                             }
                         }
-               
+
                         table_values_issue_labels = self.db.execute(
                             s.sql.select(self.get_relevant_columns(self.pull_request_reviewers_table,reviewer_action_map))
                         ).fetchall()
@@ -1097,12 +1097,12 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
                                 'tool_source': self.tool_source,
                                 'tool_version': self.tool_version,
                                 'data_source': self.data_source,
-                                'repo_id': self.repo_id 
+                                'repo_id': self.repo_id
                             } for reviewer in source_reviewers_insert if 'login' in reviewer
                         ]
                         self.bulk_insert(self.pull_request_reviewers_table, insert=reviewers_insert)
 
-                    elif pr_nested_loop ==3: 
+                    elif pr_nested_loop ==3:
                         # PR assignees insertion
                         pr_nested_loop += 1
                         assignee_action_map = {
@@ -1143,12 +1143,12 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
                                 'tool_source': self.tool_source,
                                 'tool_version': self.tool_version,
                                 'data_source': self.data_source,
-                                'repo_id': self.repo_id 
+                                'repo_id': self.repo_id
                             } for assignee in source_assignees_insert if 'login' in assignee
                         ]
                         self.bulk_insert(self.pull_request_assignees_table, insert=assignees_insert)
 
-                    elif pr_nested_loop == 4: 
+                    elif pr_nested_loop == 4:
                         # PR meta insertion
                         pr_nested_loop += 1
                         meta_action_map = {
@@ -1190,18 +1190,18 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
                                 'tool_source': self.tool_source,
                                 'tool_version': self.tool_version,
                                 'data_source': self.data_source,
-                                'repo_id': self.repo_id 
+                                'repo_id': self.repo_id
                             } for meta in source_meta_insert if 'login' in meta['user']  # trying to fix bug SPG 11/29/2021 #meta['user'] and 'login' in meta['user']
                         ]  # reverted above to see if it works with other fixes.
                         self.bulk_insert(self.pull_request_meta_table, insert=meta_insert)
 
                 except Exception as e:
                     self.print_traceback(f"Nested model error at loop {pr_nested_loop}", e)
-                    continue   
+                    continue
 
     def query_pr_repo(self, pr_repo, pr_repo_type, pr_meta_id):
         """ TODO: insert this data as extra columns in the meta table """
-        try: 
+        try:
             self.logger.info(f'Querying PR {pr_repo_type} repo')
 
             table = 'pull_request_repo'
@@ -1233,7 +1233,7 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
                 'pr_repo_name': new_pr_repo['name'],
                 'pr_repo_full_name': new_pr_repo['full_name'],
                 'pr_repo_private_bool': new_pr_repo['private'],
-                'pr_cntrb_id': cntrb_id, #12/6/2021 removed int casting 
+                'pr_cntrb_id': cntrb_id, #12/6/2021 removed int casting
                 'tool_source': self.tool_source,
                 'tool_version': self.tool_version,
                 'data_source': self.data_source
@@ -1252,4 +1252,4 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
             self.logger.debug(f"repo exception registerred for PRs: {e}")
             self.logger.debug(f"Nested Model error at loop {pr_nested_loop} : {e}.")
             stacker = traceback.format_exc()
-            self.logger.debug(f"{stacker}")  
+            self.logger.debug(f"{stacker}")
