@@ -597,9 +597,11 @@ def create_routes(server):
 
         group_by, required_contributions, required_time = get_new_cntrb_bar_chart_query_params()
 
+        return_data = request.args.get('return_data', "false").lower()
+
         input_df = new_contributor_data_collection(repo_id=repo_id, required_contributions=required_contributions)
         months_df = months_data_collection(start_date=start_date, end_date=end_date)
-
+        
         # TODO remove full_name from data for all charts since it is not needed in vis generation
         not_null_columns = ['cntrb_id', 'created_at', 'month', 'year', 'repo_id', 'repo_name', 'login', 'action',
                             'rank', 'yearmonth', 'new_contributors', 'quarter']
@@ -622,6 +624,11 @@ def create_routes(server):
 
         drive_by_df, repeats_df = compute_fly_by_and_returning_contributors_dfs(input_df, required_contributions,
                                                                                 required_time, start_date)
+
+        raw_data = {}
+        raw_data["group_by"] = group_by
+        raw_data["required_time"] = required_time
+        raw_data["required_contributions"] = required_contributions
 
         for rank in ranks:
             for contributor_type in contributor_types:
@@ -708,44 +715,67 @@ def create_routes(server):
                     data['new_contributor_counts'] = driver_df.groupby([date_column]).sum().reset_index()[
                         'new_contributors']
 
-                # if the data set is large enough it will dynamically assign the width, if the data set is
-                # too small it will by default set to 870 pixel so the title fits
-                if len(data['new_contributor_counts']) >= 15:
-                    plot_width = 46 * len(data['new_contributor_counts'])
+
+                if return_data == 'true':
+                    json_key = str(rank) + "_" + contributor_type
+
+                    dates = list(data['dates'])
+                    new_contributor_counts = list(data['new_contributor_counts'])
+
+                    list_of_data = []
+                    for i in range(len(dates)):
+
+                        data_piece = {
+                            "date": dates[i],
+                            "count": new_contributor_counts[i]
+                        }
+                        list_of_data.append(data_piece)
+
+
+                    raw_data[json_key] = list_of_data
+
                 else:
-                    plot_width = 870
 
-                    # create a dict convert an integer number into a word
-                # used to turn the rank into a word, so it is nicely displayed in the title
-                numbers = ['Zero', 'First', 'Second']
-                num_conversion_dict = {}
-                for i in range(1, len(numbers)):
-                    num_conversion_dict[i] = numbers[i]
-                number = '{}'.format(num_conversion_dict[rank])
+                    # if the data set is large enough it will dynamically assign the width, if the data set is
+                    # too small it will by default set to 870 pixel so the title fits
+                    if len(data['new_contributor_counts']) >= 15:
+                        plot_width = 46 * len(data['new_contributor_counts'])
+                    else:
+                        plot_width = 870
 
-                # define pot for bar chart
-                p = figure(x_range=data['dates'], plot_height=400, plot_width=plot_width,
-                           title="{}: {} {} Time Contributors Per {}".format(repo_dict[repo_id],
-                                                                             contributor_type.capitalize(), number,
-                                                                             group_by_format_string),
-                           y_range=(0, max(data['new_contributor_counts']) * 1.15), margin=(0, 0, 10, 0))
+                        # create a dict convert an integer number into a word
+                    # used to turn the rank into a word, so it is nicely displayed in the title
+                    numbers = ['Zero', 'First', 'Second']
+                    num_conversion_dict = {}
+                    for i in range(1, len(numbers)):
+                        num_conversion_dict[i] = numbers[i]
+                    number = '{}'.format(num_conversion_dict[rank])
 
-                p.vbar(x=data['dates'], top=data['new_contributor_counts'], width=0.8)
+                    # define pot for bar chart
+                    p = figure(x_range=data['dates'], plot_height=400, plot_width=plot_width,
+                            title="{}: {} {} Time Contributors Per {}".format(repo_dict[repo_id],
+                                                                                contributor_type.capitalize(), number,
+                                                                                group_by_format_string),
+                            y_range=(0, max(data['new_contributor_counts']) * 1.15), margin=(0, 0, 10, 0))
 
-                source = ColumnDataSource(
-                    data=dict(dates=data['dates'], new_contributor_counts=data['new_contributor_counts']))
+                    p.vbar(x=data['dates'], top=data['new_contributor_counts'], width=0.8)
 
-                # add contributor_count labels to chart
-                p.add_layout(LabelSet(x='dates', y='new_contributor_counts', text='new_contributor_counts', y_offset=4,
-                                      text_font_size="13pt", text_color="black",
-                                      source=source, text_align='center'))
+                    source = ColumnDataSource(
+                        data=dict(dates=data['dates'], new_contributor_counts=data['new_contributor_counts']))
 
-                plot = format_new_cntrb_bar_charts(p, rank, group_by_format_string)
+                    # add contributor_count labels to chart
+                    p.add_layout(LabelSet(x='dates', y='new_contributor_counts', text='new_contributor_counts', y_offset=4,
+                                        text_font_size="13pt", text_color="black",
+                                        source=source, text_align='center'))
 
-                caption_plot = add_caption_to_visualizations(caption, required_contributions, required_time, plot_width)
+                    plot = format_new_cntrb_bar_charts(p, rank, group_by_format_string)
 
-                add_charts_and_captions_to_correct_positions(plot, caption_plot, rank, contributor_type, row_1,
-                                                             row_2, row_3, row_4)
+                    caption_plot = add_caption_to_visualizations(caption, required_contributions, required_time, plot_width)
+
+                    add_charts_and_captions_to_correct_positions(plot, caption_plot, rank, contributor_type, row_1,
+                                                                row_2, row_3, row_4)
+
+        return raw_data
 
         # puts plots together into a grid
         grid = gridplot([row_1, row_2, row_3, row_4])
