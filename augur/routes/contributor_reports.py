@@ -1009,9 +1009,14 @@ def create_routes(server):
              'Repeat': int(repeat_contributors)}
 
         if return_data == "true":
-            raw_data = {"repo_name": repo_dict[repo_id], "start_date": start_date, "end_date": end_date, "required_contributions": required_contributions, "required_time": required_time, "data": x}
-            print("Returning")
-            print(raw_data)
+            raw_data = {
+                "repo_name": repo_dict[repo_id], 
+                "start_date": start_date, 
+                "end_date": end_date, 
+                "required_contributions": required_contributions, 
+                "required_time": required_time, 
+                "data": x
+            }
             return raw_data
 
         # turn dict 'x' into a dataframe with columns 'contributor_type', and 'counts'
@@ -1115,6 +1120,8 @@ def create_routes(server):
         required_contributions = int(request.args.get('required_contributions', 4))
         required_time = int(request.args.get('required_time', 365))
 
+        return_data = request.args.get('return_data', "false").lower()
+
         input_df = new_contributor_data_collection(repo_id=repo_id, required_contributions=required_contributions)
         months_df = months_data_collection(start_date=start_date, end_date=end_date)
 
@@ -1195,6 +1202,28 @@ def create_routes(server):
                        'Fly By': data['drive_by_counts'],
                        'Repeat': data['repeat_counts'],
                        'All': data['total_counts']}
+
+        if return_data == 'true':
+
+            dates = list(data_source['Dates'])
+            fly_by_contribs = list(data_source['Fly By'])
+            repeat_contribs = list(data_source['Repeat'])
+
+            list_of_data = []
+            for i in range(len(dates)):
+                data_piece = {"date": dates[i], "fly_by": fly_by_contribs[i], "repeat": repeat_contribs[i]}
+                list_of_data.append(data_piece)
+                
+            raw_data = {
+                "group_by": group_by, 
+                "repo_name": repo_dict[repo_id],
+                "required_contributions": required_contributions, 
+                "required_time": required_time,
+                "data": list_of_data
+            }
+
+            return raw_data
+        
 
         groups = ["Fly By", "Repeat"]
 
