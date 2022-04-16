@@ -11,5 +11,5 @@ services:
     #   - ./path/to/your/repos.csv:/repos.csv
     restart: unless-stopped
     ports:
-      - 5000:5000
+      - "5000:5000"
     env_file: docker_env.txt
