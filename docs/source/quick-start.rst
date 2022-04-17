@@ -57,7 +57,7 @@ Two of Augur's workers use the Go programming language, which needs to be instal
 	sudo snap install go --classic
 
 Python Virtual Environment Configuration
-~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 - Set up a Python virtual environment (Python 3.8 and above are now required. Python 3.9 and python 3.10 work as well, though we have tested Python 3.9 on more platforms.) 
 - Clone and install Augur as a regular user. 
 

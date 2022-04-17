@@ -22,8 +22,10 @@ Happy hacking!
 .. toctree::
    :maxdepth: 1
 
-   database
-   installation
+   guide-ubuntu-augur/toc
+   guide-amazon-linux-augur/toc
+   guide-fedora-augur/toc
+   guide-mac-os-x-augur/toc
    collecting-data
    frontend
    command-line-interface/toc
