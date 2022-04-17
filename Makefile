@@ -27,7 +27,7 @@ default:
 #
 #  Installation
 #
-.PHONY: install install-dev
+.PHONY: install install-dev install-dependencies-only
 .PHONY: install-spdx install-spdx-sudo install-augur-sbom
 .PHONY: clean rebuild
 install:
@@ -35,6 +35,9 @@ install:
 
 install-dev:
 	@ ./scripts/install/install.sh dev
+
+install-dependencies-only:
+	@ ./scripts/install/install-deps-only.sh dev
 
 install-spdx:
 	@ ./scripts/install/install-spdx.sh
