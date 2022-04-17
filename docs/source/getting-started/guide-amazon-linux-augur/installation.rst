@@ -73,6 +73,42 @@ For Fedora You Can Use
 .. note::
   *This has not been tested for Amazon Linux.*
 
+===================
+Prior to Installing
+===================
+
+.. note::
+  Redo this section - check to make sure this simple_ formatting doesn't work. This may have been overcomplicated.
+
+Augur requires a language called GO to fully install. There's a guide here_ for CentOS that can be adapted for the current version of GO and Amazon Linux without much difficulty. We recommend getting the latest version of GO from their website_ and following steps 2 and 3 from the guide (also listed below).
+
+.. _here: https://www.digitalocean.com/community/tutorials/how-to-install-go-1-7-on-centos-7
+.. _simple: https://medium.com/cloud-security/go-get-go-download-install-8b48a0425717
+.. _website: https://go.dev/dl/
+
+.. code-block:: bash
+
+	$ sudo tar -C /usr/local -xvzf [the GO file you just downloaded]
+	$ mkdir -p ~/projects/{bin, pkg, src}
+
+Then set up your PATH so those folders are included. Append onto */etc/profile.d/path.sh* this:
+
+.. code-block:: 
+	
+	export PATH=$PATH:/usr/local/go/bin
+
+Set up environmental variables so GO can be used - onto your *~/.bash_profile* , append these:
+
+.. code-block::
+	
+	export GOBIN="$HOME/projects/bin"
+	export GOPATH="$HOME/projects/src"
+	
+Don't forget to reload the profiles so the session updates!
+
+.. code-block:: bash
+	
+	$ source /etc/profile && source ~/.bash_profile
 
 =================
 Installing Augur
