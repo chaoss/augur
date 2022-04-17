@@ -23,10 +23,10 @@ Happy hacking!
 .. toctree::
    :maxdepth: 1
 
-   guide-ubuntu-augur/toc
    guide-amazon-linux-augur/toc
    guide-fedora-augur/toc
    guide-mac-os-x-augur/toc
+   guide-ubuntu-augur/toc
    collecting-data
    frontend
    command-line-interface/toc
