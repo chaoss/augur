@@ -15,7 +15,7 @@ Please note that if you open a bug report and your issue does not follow our tem
 ```bash
 $ git clone github.com:your-username/augur.git
 $ cd augur/
-$ git remote add upstream https://github.com/<your-username>/augur.git
+$ git remote add upstream https://github.com/chaoss/augur.git
 ```
 
 2. Follow the [development installation instructions](https://oss-augur.readthedocs.io/en/main/development-guide/installation.html).
@@ -37,7 +37,43 @@ $ git push -u origin my-new-branch
 At this point, you're waiting on us. We like to at least comment on pull requests
 within three business days (and, typically, one business day). Once one of our maintainers has had a chance to review your PR, we will either mark it as "needs review" and provide specific feedback on your changes, or we will go ahead and complete the pull request.
 
-We require all commits to be signed off with a [Developer Certificate of Origin](https://developercertificate.org/) by the [CHAOSS charter](https://chaoss.community/about/charter/#user-content-8-intellectual-property-policy). This can be easily done by using the `-s` flag when using `git commit`. For example: `git commit -s -m "Update README.md"`. **Any pull requests containing commits that are not signed off will not be eligible for merge until the commits have been signed off.** 
+## Signing-off on Commits
+To contribute to this project, you must agree to the [Developer Certificate of Origin](https://developercertificate.org/) by the [CHAOSS charter](https://chaoss.community/about/charter/#user-content-8-intellectual-property-policy) for each commit you make. The DCO is a simple statement that you, as a contributor, have the legal right to make the contribution.
+To signify that you agree to the DCO for contributions, you simply add a line to each of your
+git commit messages:
+
+  ```
+  Signed-off-by: Jane Smith <jane.smith@example.com>
+  ```
+This can be easily done by using the `-s` flag when using `git commit`. For example:
+
+```
+$ git commit -s -m “my commit message w/signoff”
+```
+To ensure all your commits are signed, you may choose to [configure git](https://gist.github.com/xavierfoucrier/c156027fcc6ae23bcee1204199f177da) properly by editing your global ```.gitconfig```
+
+**Any pull requests containing commits that are not signed off will not be eligible for merge until the commits have been signed off.** 
+
+## Keeping in sync with the Augur Repository
+
+Remeber to sync your fork with the main branch regularly.
+To do this:
+
+Go to github and copy the url of the main Augur repo
+   ```   
+   https://github.com/chaoss/augur.git
+   ```
+   make sure to be in the rootfolder of the project and the branch should be master branch and type
+   ```
+   git remote add upstream https://github.com/chaoss/augur.git
+   ```
+   Now you have your upstream setup in your local machine,whenever you need to make a new branch for making changes make sure your main branch is in sync with the main repository, to do this,make sure to be in the main branch and type
+
+   ```
+   git pull upstream master
+   git push origin master
+   ```
+
 
 ## Community Resources
 
@@ -74,7 +110,7 @@ We require all commits to be signed off with a [Developer Certificate of Origin]
 
 ### PostgreSQL guides
 - [PostgreSQL installation guide](https://www.postgresql.org/docs/12/tutorial-install.html)
-- [PostgreSQL official tutotial](https://www.postgresql.org/docs/)
+- [PostgreSQL official tutorial](https://www.postgresql.org/docs/)
 - [PostgreSQL docker official image](https://hub.docker.com/_/postgres)
 - [SQL style guide](https://docs.telemetry.mozilla.org/concepts/sql_style.html)
 
