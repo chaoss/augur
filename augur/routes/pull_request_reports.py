@@ -524,6 +524,7 @@ def create_routes(server):
                                                                                        as_index=False).mean().round(1)[
                 'commit_count'])
 
+
         # Setup data in format for grouped bar chart
         data = {
             'years': x_groups,
@@ -532,12 +533,25 @@ def create_routes(server):
         }
 
         if return_data == "true":
-            print(x_groups)
-            print(merged_avg_values)
-            print(not_merged_avg_values)
-            var = "test"
+            return_data = {}
+            raw_data_list = []
+            for i in range(len(data['years'])):
+                data_piece = {}
+                data_piece["years"] = x_groups[i]
+                try:
+                    data_piece["Merged / Accepted"] = merged_avg_values[i]
+                except IndexError:
+                    data_piece["Merged / Accepted"] = None
 
-            return var
+                try:
+                    data_piece["Not Merged / Accepted"] = not_merged_avg_values[i]
+                except IndexError:
+                    data_piece["Not Merged / Accepted"] = None
+
+                raw_data_list.append(data_piece)
+
+            return_data["data"] = raw_data_list
+            return return_data
 
         x = [(year, pr_state) for year in x_groups for pr_state in groups]
         counts = sum(zip(data['Merged / Accepted'], data['Not Merged / Rejected']), ())
