@@ -1,6 +1,8 @@
 Database setup
 ===============
 
+This database setup is specific to an Amazon Linux 2 instance. It should also work for Amazon Linux.
+
 One of the reasons that Augur is so powerful is because of its `unified data model <../schema/data-model.html>`_.
 To ensure this data model remains performant with large amounts of data, we use PostgreSQL as our database engine. 
 We'll need to set up a PostgreSQL instance and create a database, after which Augur can take care of the rest.
@@ -15,7 +17,7 @@ Before you can install our schema, you will need to make sure you have **write a
 
     If you want to collect data over the long term, we strongly advise against `using a Docker container for your database <https://vsupalov.com/database-in-docker/>`_.
 
-If you're a newcomer to PostgreSQL, you can follow their excellent instructions `here <https://www.postgresql.org/docs/12/tutorial-install.html>`_ to set it up for your machine of choice. We recommend using ``Postgres.app`` if you're on macOS, but if you're running UNIX or are looking for an alternative to ``Postgres.app`` then pgAdmin is a great open-source alternative.
+If you're a newcomer to PostgreSQL, you can follow their excellent instructions `here <https://www.postgresql.org/docs/12/tutorial-install.html>`_ to set it up for your machine of choice.
 
 PostgreSQL Quick Installation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
