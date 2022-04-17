@@ -468,6 +468,7 @@ def create_routes(server):
 
         group_by = str(request.args.get('group_by', "month"))
         return_json = request.args.get('return_json', "false")
+        return_data = request.args.get('return_data', "false")
 
         df_type = get_df_tuple_locations()
 
@@ -530,8 +531,17 @@ def create_routes(server):
             'Not Merged / Rejected': not_merged_avg_values,
         }
 
+        if return_data == "true":
+            print(x_groups)
+            print(merged_avg_values)
+            print(not_merged_avg_values)
+            var = "test"
+
+            return var
+
         x = [(year, pr_state) for year in x_groups for pr_state in groups]
         counts = sum(zip(data['Merged / Accepted'], data['Not Merged / Rejected']), ())
+        print(counts)
 
         source = ColumnDataSource(data=dict(x=x, counts=counts))
 
