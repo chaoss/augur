@@ -4,7 +4,7 @@ Amazon Linux Installation
 
 .. note::
 
-   Hello world! This is great!
+   Hello world! This is great and cool! 
 
 .. toctree::
    :maxdepth: 1
