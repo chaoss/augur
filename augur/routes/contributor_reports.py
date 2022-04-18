@@ -1241,7 +1241,11 @@ def create_routes(server):
 
             list_of_data = []
             for i in range(len(dates)):
-                data_piece = {"date": dates[i], "fly_by": fly_by_contribs[i], "repeat": repeat_contribs[i]}
+                data_piece = {
+                    "date": dates[i],
+                    "fly_by": fly_by_contribs[i], 
+                    "repeat": repeat_contribs[i]
+                }
                 list_of_data.append(data_piece)
                 
             raw_data = {
