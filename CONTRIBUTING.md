@@ -5,7 +5,7 @@ We love to pull requests from everyone! We follow the standard Git workflow of `
 Before getting started, please make sure you've read the [README](README.md) to get a primer on our project. Augur's documentation can be found at: https://oss-augur.readthedocs.io/en/master
 
 ## Opening an issue
-If you're experiencing an issue with Augur or have a question you'd like help answering, please feel free to open an [issue](https://github.com/chaoss/augur/issues). To help us prevent duplicates, we kindly ask that you briefly search for your problem or question in our issues before opening a new one.
+If you're experiencing an issue with Augur or have a question you'd like help answering, please feel free to open an [issue](https://github.com/chaoss/augur/issues). To help us prevent duplicates, we kindly ask that you briefly search for your problem or question in our [issues](https://github.com/chaoss/augur/issues) before opening a new one.
 
 Please note that if you open a bug report and your issue does not follow our template, we cannot help you until you have provided us all the relevant information in that format. Respectfully, we do not have the time to try and recreate an error given with minimal or no context, so by providing this information you are helping us help you! You will see this template when you open an issue; click on "Bug Report" and it will be populated with descriptions of what to put in each section. Replace the descriptions with your comments to the best of your ability, and please include screenshots and error logs if applicable.
 
@@ -43,7 +43,7 @@ We require all commits to be signed off with a [Developer Certificate of Origin]
 
 ### Augur
 - [Stable documentation (`master` branch)](https://oss-augur.readthedocs.io/en/master/)
-- [Nightly/developer build documentation (`dev` branch)](https://oss-augur.readthedocs.io/en/dev/) (warning: this is should be considered an unstable branch and should not be used for production)
+- [Nightly/developer build documentation (`dev` branch)](https://oss-augur.readthedocs.io/en/dev/) (warning: this should be considered as an unstable branch and should not be used for production)
 - [Live Augur demo](http://zephyr.osshealth.io/)
 
 ### CHAOSS
