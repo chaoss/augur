@@ -1,0 +1,5 @@
+curl https://0.0.0.0:443/wsman --insecure --user eee:try --retry 1 --connect-timeout 180 -H 'Content-Type: application/soap+xml;charset=utf-8'  -d @./request-1.xml -o ./response-1.xml
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+curl: (7) Failed to connect to 0.0.0.0 port 443: Connection refused

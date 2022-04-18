@@ -33,8 +33,8 @@ Don't forget to activate and start the service!
 
 .. code-block:: bash
 	
-	$sudo service postgresql initdb
-	$sudo service postgresql start
+	$ sudo service postgresql initdb
+	$ sudo service postgresql start
 
 Creating a Database
 ~~~~~~~~~~~~~~~~~~~~~

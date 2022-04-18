@@ -8,10 +8,46 @@ This section of the documentation details how to install Augur's Python library 
 
   1. The absence of a `gcc` or `fortran` compiler, required by numpy and nltk python libraries. Look up how to install these compilers for your local operating system. Many times they simply need to be updated to a more current version.
 
-  2. Conflicting versions of Python: The fix is platform specific. On Mac OS X, more often than not multiple versions of python have been installed by the OS, brew, Anaconda, or a combination of both. The result is some python commands are drawn from different paths because of how they are linked in `/usr/local/bin`
+  2. Conflicting versions of Python: The fix is platform specific. Some Python commands may be drawn from different paths because of how they are linked in `/usr/local/bin`. A clean install of Python from the terminal should be able to fix any issues.
 
   3. Multiple, or conflicting versions of postgresql, sometimes due to the absence of a functional `psql` function at the command line.
-   
+
+
+Prior to Installing
+~~~~~~~~~~~~~~~~~~~
+
+.. note::
+  Redo this section - check to make sure this simple_ formatting doesn't work. This may have been over complicated.
+
+Augur requires a language called GO to fully install. There's a guide here_ for CentOS that can be adapted for the current version of GO and Amazon Linux without much difficulty. We recommend getting the latest version of GO from their website_ and following steps 2 and 3 from the guide (also listed below).
+
+.. _here: https://www.digitalocean.com/community/tutorials/how-to-install-go-1-7-on-centos-7
+.. _simple: https://medium.com/cloud-security/go-get-go-download-install-8b48a0425717
+.. _website: https://go.dev/dl/
+
+.. code-block:: bash
+
+	$ sudo tar -C /usr/local -xvzf [the GO file you just downloaded]
+	$ mkdir -p ~/projects/{bin, pkg, src}
+
+Then set up your PATH so those folders are included. Append onto */etc/profile.d/path.sh* this:
+
+.. code-block:: 
+	
+	export PATH=$PATH:/usr/local/go/bin
+
+Set up environmental variables so GO can be used - onto your *~/.bash_profile* , append these:
+
+.. code-block::
+	
+	export GOBIN="$HOME/projects/bin"
+	export GOPATH="$HOME/projects/src"
+	
+Don't forget to reload the profiles so the session updates!
+
+.. code-block:: bash
+	
+	$ source /etc/profile && source ~/.bash_profile
 
 
 Dependencies
@@ -28,6 +64,9 @@ Required:
 **Python 3.10 is the latest version supported. If your machine workers (which work with TensorFlow) do not work, then try downgrading your version of Python.**
 
 Our REST API & data collection workers are written in Python 3.6. We query the GitHub & GitLab API to collect data about issues, pull requests, contributors, and other information about a repository, so GitLab and GitHub access tokens are **required** for data collection.
+
+.. note::
+  If you are just trying Augur out, no GitLab token is necessary.
 
 Optional:
 
@@ -73,52 +112,12 @@ For Fedora You Can Use
 .. note::
   *This has not been tested for Amazon Linux.*
 
-===================
-Prior to Installing
-===================
 
-.. note::
-  Redo this section - check to make sure this simple_ formatting doesn't work. This may have been overcomplicated.
-
-Augur requires a language called GO to fully install. There's a guide here_ for CentOS that can be adapted for the current version of GO and Amazon Linux without much difficulty. We recommend getting the latest version of GO from their website_ and following steps 2 and 3 from the guide (also listed below).
-
-.. _here: https://www.digitalocean.com/community/tutorials/how-to-install-go-1-7-on-centos-7
-.. _simple: https://medium.com/cloud-security/go-get-go-download-install-8b48a0425717
-.. _website: https://go.dev/dl/
-
-.. code-block:: bash
-
-	$ sudo tar -C /usr/local -xvzf [the GO file you just downloaded]
-	$ mkdir -p ~/projects/{bin, pkg, src}
-
-Then set up your PATH so those folders are included. Append onto */etc/profile.d/path.sh* this:
-
-.. code-block:: 
-	
-	export PATH=$PATH:/usr/local/go/bin
-
-Set up environmental variables so GO can be used - onto your *~/.bash_profile* , append these:
-
-.. code-block::
-	
-	export GOBIN="$HOME/projects/bin"
-	export GOPATH="$HOME/projects/src"
-	
-Don't forget to reload the profiles so the session updates!
-
-.. code-block:: bash
-	
-	$ source /etc/profile && source ~/.bash_profile
-
-=================
 Installing Augur
-=================
+~~~~~~~~~~~~~~~~
 
 Now you're ready to build! The steps below outline how to create a virtual environment (**required**) and start the installation process,
 after which you'll move on to the next section to configure the workers.
-
-.. note::
-  Lines that start with a ``$`` denote a command to be run in an interactive terminal.
 
 .. warning::
   Do **NOT** install or run Augur using ``sudo``. It is not required, and using it will inevitably cause some permissions trouble. Don't say we didn't warn you!
