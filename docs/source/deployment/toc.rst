@@ -9,6 +9,7 @@ This section details describes production deployment of Augur.
 
    server-deployment
    nginx-configuration
+   hello-world
 
 
 **THIS SECTION IS UNDER CONSTRUCTION.**
