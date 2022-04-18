@@ -6,7 +6,6 @@ import pandas as pd
 import sqlalchemy as s
 from workers.worker_base import Worker
 
-import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -16,7 +15,6 @@ import sklearn_crfsuite
 from sklearn_crfsuite import scorers
 from sklearn_crfsuite import metrics
 from sklearn.metrics import make_scorer
-from sklearn.model_selection import cross_val_score
 from sklearn.model_selection import RandomizedSearchCV
 import pickle
 import re
@@ -26,7 +24,6 @@ from nltk.stem.snowball import SnowballStemmer
 stemmer = SnowballStemmer("english")
 
 from textblob import TextBlob
-from collections import Counter
 
 from os import path
 

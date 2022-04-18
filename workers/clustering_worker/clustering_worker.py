@@ -8,7 +8,6 @@ import sqlalchemy as s
 from sqlalchemy.schema import Sequence
 from workers.worker_base import Worker
 import seaborn as sns
-import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.feature_extraction.text import CountVectorizer
 import nltk

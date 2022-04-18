@@ -1,5 +1,4 @@
 import psycopg2
-import psycopg2
 import sqlalchemy as salc
 import numpy as np
 import warnings
