@@ -2,6 +2,6 @@ This project’s goal is to give users a frontend platform to easily submit GitH
 
 Sprint 2 updates:
 
-Requirements document updated
-Design Document created
-Hello World version of project created
+Requirements document updated / 
+Design Document created / 
+Hello World version of project created 
