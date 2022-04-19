@@ -468,7 +468,7 @@ def create_routes(server):
 
         group_by = str(request.args.get('group_by', "month"))
         return_json = request.args.get('return_json', "false")
-        return_data = request.args.get('return_data', "false")
+        return_data = request.args.get('return_data', "false").lower()
 
         df_type = get_df_tuple_locations()
 
@@ -537,20 +537,21 @@ def create_routes(server):
             raw_data_list = []
             for i in range(len(data['years'])):
                 data_piece = {}
-                data_piece["years"] = x_groups[i]
+                data_piece["year"] = x_groups[i]
                 try:
                     data_piece["Merged / Accepted"] = merged_avg_values[i]
                 except IndexError:
                     data_piece["Merged / Accepted"] = None
 
                 try:
-                    data_piece["Not Merged / Accepted"] = not_merged_avg_values[i]
+                    data_piece["Not Merged / Rejected"] = not_merged_avg_values[i]
                 except IndexError:
-                    data_piece["Not Merged / Accepted"] = None
+                    data_piece["Not Merged / Rejected"] = None
 
                 raw_data_list.append(data_piece)
 
             return_data["data"] = raw_data_list
+            return_data["repo_name"] = repo_dict[repo_id]
             return return_data
 
         x = [(year, pr_state) for year in x_groups for pr_state in groups]
@@ -818,6 +819,7 @@ def create_routes(server):
                             status=error["status_code"])
 
         return_json = request.args.get('return_json', "false")
+        return_data = request.args.get('return_data', "false").lower()
 
         x_axis = 'closed_year'
         description = 'All Closed'
@@ -855,6 +857,7 @@ def create_routes(server):
         repo_dict = {repo_id: pr_closed.loc[pr_closed['repo_id'] == repo_id].iloc[0]['repo_name']}
 
         data_dict = {'All': pr_closed, 'Slowest 20%': pr_slow20_not_merged.append(pr_slow20_merged, ignore_index=True)}
+
 
         colors = mpl['Plasma'][6]
 
@@ -912,6 +915,18 @@ def create_routes(server):
             data['len_not_merged'] = len_not_merged
             data['totals'] = totals
             data['zeros'] = zeros
+
+            if return_data == "true":
+                return_data = {}
+                return_data["repo_name"] = repo_dict[repo_id]
+                data_piece = {}
+                for x_group in x_groups:
+                    data_piece[x_group] = {}
+                    for group in groups:
+                        data_piece[x_group][group] = [len(driver_df.loc[(driver_df['merged_flag'] == group) & (driver_df[x_axis] == x_group)])]
+
+                return_data["data"] = data_piece
+                return return_data
 
             if data_desc == "All":
                 all_totals = totals
