@@ -880,6 +880,8 @@ def create_routes(server):
         x_offset = 60
 
         all_totals = []
+        #   key, value
+        return_data_dict = {}
         for data_desc, input_df in data_dict.items():
             driver_df = input_df.copy()
 
@@ -916,20 +918,10 @@ def create_routes(server):
             data['totals'] = totals
             data['zeros'] = zeros
 
-            if return_data == "true":
-                return_data = {}
-                return_data["repo_name"] = repo_dict[repo_id]
-                data_piece = {}
-                for x_group in x_groups:
-                    data_piece[x_group] = {}
-                    for group in groups:
-                        data_piece[x_group][group] = [len(driver_df.loc[(driver_df['merged_flag'] == group) & (driver_df[x_axis] == x_group)])]
-
-                return_data["data"] = data_piece
-                return return_data
-
             if data_desc == "All":
                 all_totals = totals
+
+            return_data_dict[data_desc] = data
 
             source = ColumnDataSource(data)
 
@@ -963,6 +955,10 @@ def create_routes(server):
             dodge_amount *= -1
             colors = colors[::-1]
             x_offset *= -1
+
+
+        if(return_data == "true"):
+            return return_data_dict
 
         p.y_range = Range1d(0, max(all_totals) * 1.4)
 
