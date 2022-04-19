@@ -57,6 +57,8 @@ Augur is free software: you can redistribute it and/or modify it under the terms
 
 This work has been funded through the Alfred P. Sloan Foundation, Mozilla, The Reynolds Journalism Institute, contributions from VMWare, Red Hat Software, Grace Hopper's Open Source Day, GitHub, Microsoft, Twitter, Adobe, the Gluster Project, Open Source Summit (NA/Europe), and the Linux Foundation Compliance Summit. Significant design contributors include Kate Stewart, Dawn Foster, Duane O'Brien, Remy Decausemaker, others omitted due to the  memory limitations of project maintainers, and 12 Google Summer of Code Students.
 
-
+## Tigers changes
 
 So far, team Tigers has added a requirements document, a use case document, and an installation visualization.
+
+This branch is intended to consolidate the information about setting up Augur. Currently the documentation is split into two different setup locations named Quickstart and Getting Started which is confusing for new users. To streamline this process, we plan to move all information to the Quickstart tab and remove any information that is outdated.
