@@ -46,7 +46,7 @@ Current maintainers
 Former maintainers
 --------------------
 - `Christian Cmehil-Warn <https://github.com/christiancme>`_
-- `Jonah Zukosky <https://github.com/jonahz5222>`_
+- `Jonah Zukosky <https://github.com/jzukosky>`_
 - `Carolyn Perniciaro <https://github.com/CMPerniciaro>`_
 - `Elita Nelson <https://github.com/ElitaNelson>`_
 - `Michael Woodruff <https://github.com/michaelwoodruffdev/>`_
