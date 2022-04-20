@@ -620,6 +620,8 @@ def create_routes(server):
 
         return_json = request.args.get('return_json', "false")
 
+        return_data = request.args.get('return_data', "false").lower()
+
         df_type = get_df_tuple_locations()
 
         pr_query = salc.sql.text(f"""
@@ -712,8 +714,10 @@ def create_routes(server):
                    toolbar_location=None)
 
         json_response = {
-            "repo_name": repo_name
+            "repo_name": repo_name,
+            "data": []
         }
+        
         possible_maximums = []
         for y_value in y_groups:
 
@@ -750,93 +754,112 @@ def create_routes(server):
             else:
                 y_not_merged_data[x_axis + '_mean'] = 0
 
-            not_merged_source = ColumnDataSource(y_not_merged_data)
-            merged_source = ColumnDataSource(y_merged_data)
+            not_merged_mean = y_not_merged_data.iloc[0]["comment_count_mean"]
+            merged_mean = y_merged_data.iloc[0]["comment_count_mean"]
 
-            possible_maximums.append(max(y_not_merged_data[x_axis + '_mean']))
-            possible_maximums.append(max(y_merged_data[x_axis + '_mean']))
+            if return_data == "true": 
 
-            # mean comment count for merged
-            merged_comment_count_glyph = p.hbar(y=dodge(y_axis, -0.1, range=p.y_range), left=0, right=x_axis + '_mean',
-                                                height=0.04 * len(driver_df[y_axis].unique()),
-                                                source=merged_source,
-                                                fill_color="black")  # ,legend_label="Mean Days to Close",
-            # Data label 
-            labels = LabelSet(x=x_axis + '_mean', y=dodge(y_axis, -0.1, range=p.y_range), text=x_axis + '_mean',
-                              y_offset=-8, x_offset=34,
-                              text_font_size="12pt", text_color="black",
-                              source=merged_source, text_align='center')
-            p.add_layout(labels)
-            # mean comment count For nonmerged
-            not_merged_comment_count_glyph = p.hbar(y=dodge(y_axis, 0.1, range=p.y_range), left=0,
-                                                    right=x_axis + '_mean',
+                data_piece = {
+                    "year": y_value,
+                    "not_merged_comment_mean": not_merged_mean,
+                    "merged_comment_mean": merged_mean
+                }
+
+                json_response["data"].append(data_piece)
+
+            else: 
+
+                not_merged_source = ColumnDataSource(y_not_merged_data)
+                merged_source = ColumnDataSource(y_merged_data)
+
+                possible_maximums.append(max(y_not_merged_data[x_axis + '_mean']))
+                possible_maximums.append(max(y_merged_data[x_axis + '_mean']))
+
+                # mean comment count for merged
+                merged_comment_count_glyph = p.hbar(y=dodge(y_axis, -0.1, range=p.y_range), left=0, right=x_axis + '_mean',
                                                     height=0.04 * len(driver_df[y_axis].unique()),
-                                                    source=not_merged_source,
-                                                    fill_color="#e84d60")  # legend_label="Mean Days to Close",
-            # Data label 
-            labels = LabelSet(x=x_axis + '_mean', y=dodge(y_axis, 0.1, range=p.y_range), text=x_axis + '_mean',
-                              y_offset=-8, x_offset=34,
-                              text_font_size="12pt", text_color="#e84d60",
-                              source=not_merged_source, text_align='center')
-            p.add_layout(labels)
+                                                    source=merged_source,
+                                                    fill_color="black")  # ,legend_label="Mean Days to Close",
+                # Data label 
+                labels = LabelSet(x=x_axis + '_mean', y=dodge(y_axis, -0.1, range=p.y_range), text=x_axis + '_mean',
+                                y_offset=-8, x_offset=34,
+                                text_font_size="12pt", text_color="black",
+                                source=merged_source, text_align='center')
+                p.add_layout(labels)
+                # mean comment count For nonmerged
+                not_merged_comment_count_glyph = p.hbar(y=dodge(y_axis, 0.1, range=p.y_range), left=0,
+                                                        right=x_axis + '_mean',
+                                                        height=0.04 * len(driver_df[y_axis].unique()),
+                                                        source=not_merged_source,
+                                                        fill_color="#e84d60")  # legend_label="Mean Days to Close",
+                # Data label 
+                labels = LabelSet(x=x_axis + '_mean', y=dodge(y_axis, 0.1, range=p.y_range), text=x_axis + '_mean',
+                                y_offset=-8, x_offset=34,
+                                text_font_size="12pt", text_color="#e84d60",
+                                source=not_merged_source, text_align='center')
+                p.add_layout(labels)
 
-        #         p.y_range.range_padding = 0.1
-        p.ygrid.grid_line_color = None
-        p.legend.location = "bottom_right"
-        p.axis.minor_tick_line_color = None
-        p.outline_line_color = None
-        p.xaxis.axis_label = 'Average Comments / Pull Request'
-        p.yaxis.axis_label = 'Repository' if y_axis == 'repo_name' else 'Year Closed' if y_axis == 'closed_year' else ''
+        if return_data == 'true':
+            return json_response
+        else:
 
-        legend = Legend(
-            items=[
-                ("Merged Pull Request Mean Comment Count", [merged_comment_count_glyph]),
-                ("Rejected Pull Request Mean Comment Count", [not_merged_comment_count_glyph])
-            ],
+            #         p.y_range.range_padding = 0.1
+            p.ygrid.grid_line_color = None
+            p.legend.location = "bottom_right"
+            p.axis.minor_tick_line_color = None
+            p.outline_line_color = None
+            p.xaxis.axis_label = 'Average Comments / Pull Request'
+            p.yaxis.axis_label = 'Repository' if y_axis == 'repo_name' else 'Year Closed' if y_axis == 'closed_year' else ''
 
-            location='center',
-            orientation='vertical',
-            border_line_color="black"
-        )
-        p.add_layout(legend, "below")
+            legend = Legend(
+                items=[
+                    ("Merged Pull Request Mean Comment Count", [merged_comment_count_glyph]),
+                    ("Rejected Pull Request Mean Comment Count", [not_merged_comment_count_glyph])
+                ],
 
-        p.title.text_font_size = "16px"
-        p.title.align = "center"
+                location='center',
+                orientation='vertical',
+                border_line_color="black"
+            )
+            p.add_layout(legend, "below")
 
-        p.xaxis.axis_label_text_font_size = "16px"
-        p.xaxis.major_label_text_font_size = "16px"
+            p.title.text_font_size = "16px"
+            p.title.align = "center"
 
-        p.yaxis.axis_label_text_font_size = "16px"
-        p.yaxis.major_label_text_font_size = "16px"
+            p.xaxis.axis_label_text_font_size = "16px"
+            p.xaxis.major_label_text_font_size = "16px"
 
-        p.x_range = Range1d(0, max(possible_maximums) * 1.15)
+            p.yaxis.axis_label_text_font_size = "16px"
+            p.yaxis.major_label_text_font_size = "16px"
 
-        plot = p
+            p.x_range = Range1d(0, max(possible_maximums) * 1.15)
 
-        p = figure(width=plot_width, height=200, margin=(0, 0, 0, 0))
-        caption = "This graph shows the average number of comments per merged or not merged pull request."
+            plot = p
 
-        p = add_caption_to_plot(p, caption)
+            p = figure(width=plot_width, height=200, margin=(0, 0, 0, 0))
+            caption = "This graph shows the average number of comments per merged or not merged pull request."
 
-        caption_plot = p
+            p = add_caption_to_plot(p, caption)
 
-        grid = gridplot([[plot], [caption_plot]])
+            caption_plot = p
 
-        if return_json == "true":
-            var = Response(response=json.dumps(json_item(grid, "average_comments_per_PR")),
-                           mimetype='application/json',
-                           status=200)
+            grid = gridplot([[plot], [caption_plot]])
 
-            var.headers["Access-Control-Allow-Orgin"] = "*"
+            # if return_json == "true":
+            #     var = Response(response=json.dumps(json_item(grid, "average_comments_per_PR")),
+            #                 mimetype='application/json',
+            #                 status=200)
 
-            return var
+            #     var.headers["Access-Control-Allow-Orgin"] = "*"
 
-            # opts = FirefoxOptions()
-        # opts.add_argument("--headless")
-        # driver = webdriver.Firefox(firefox_options=opts)
-        filename = export_png(grid, timeout=180)
+            #     return var
 
-        return send_file(filename)
+                # opts = FirefoxOptions()
+            # opts.add_argument("--headless")
+            # driver = webdriver.Firefox(firefox_options=opts)
+            filename = export_png(grid, timeout=180)
+
+            return send_file(filename)
 
     @server.app.route('/{}/pull_request_reports/PR_counts_by_merged_status/'.format(server.api_version),
                       methods=["GET"])
