@@ -456,6 +456,13 @@ def create_routes(server):
             }
             return None, None, None, error
 
+    def get_repo_name(repo_id):
+
+        repo_name_query = salc.sql.text(f""" SELECT repo_name FROM augur_data.repo WHERE augur_data.repo.repo_id = {repo_id} """)
+        repo_name = pd.read_sql(repo_name_query, server.augur_app.database)["repo_name"][0]
+
+        return str(repo_name)
+
     @server.app.route('/{}/pull_request_reports/average_commits_per_PR/'.format(server.api_version), methods=["GET"])
     def average_commits_per_PR():
 
@@ -615,7 +622,46 @@ def create_routes(server):
 
         df_type = get_df_tuple_locations()
 
-        df_tuple = pull_request_data_collection(repo_id=repo_id, start_date=start_date, end_date=end_date)
+        pr_query = salc.sql.text(f"""
+            SELECT
+				augur_data.pull_requests.pr_merged_at,
+				augur_data.pull_requests.pr_closed_at,
+				date_part( 'year', pr_closed_at :: DATE ) AS CLOSED_YEAR,
+				date_part( 'month', pr_closed_at :: DATE ) AS CLOSED_MONTH,
+				comment_count
+	        FROM
+			augur_data.pull_requests JOIN (
+            SELECT pull_requests.pull_request_id,
+                    MIN(message.msg_timestamp) AS first_response_time,
+                    COUNT(DISTINCT message.msg_timestamp) AS comment_count,
+                    MAX(message.msg_timestamp) AS last_response_time,
+                    (MAX(message.msg_timestamp) - MIN(message.msg_timestamp)) / COUNT(DISTINCT message.msg_timestamp) AS average_time_between_responses
+                    FROM augur_data.pull_requests, augur_data.repo, augur_data.pull_request_message_ref, augur_data.message
+                    WHERE repo.repo_id = 34278
+                            AND repo.repo_id = pull_requests.repo_id
+                            AND pull_requests.pull_request_id = pull_request_message_ref.pull_request_id
+                            AND pull_request_message_ref.msg_id = message.msg_id
+                    GROUP BY pull_requests.pull_request_id
+            ) response_times
+			ON pull_requests.pull_request_id = response_times.pull_request_id
+            WHERE augur_data.pull_requests.pr_src_state = 'closed'
+                        """)
+        closed_prs = pd.read_sql(pr_query, server.augur_app.database)
+
+        closed_prs['pr_merged_at'] = closed_prs['pr_merged_at'].fillna(0)
+        closed_prs['merged_flag'] = 'Not Merged / Rejected'
+        closed_prs['merged_flag'].loc[closed_prs['pr_merged_at'] != 0] = 'Merged / Accepted'
+        del closed_prs['pr_merged_at']
+
+        closed_prs[['closed_year', 'closed_month']] = closed_prs[['closed_year', 'closed_month']].fillna(-1).astype(int).astype(
+            str)
+
+        repo_name = get_repo_name(repo_id)
+
+        print(closed_prs.to_string())
+
+
+        # df_tuple = pull_request_data_collection(repo_id=repo_id, start_date=start_date, end_date=end_date)
 
         group_by = 'merged_flag'
         x_axis = 'comment_count'
@@ -625,17 +671,21 @@ def create_routes(server):
         # gets pr_closed data
         # selects only need columns (pr_closed_needed_columns)
         # removes columns that cannot be NULL (pr_closed_not_null_columns)
-        input_df = df_tuple[df_type["pr_closed"]]
-        needed_columns = ['repo_id', 'repo_name', y_axis, group_by, x_axis]
-        not_null_columns = needed_columns
-        input_df = filter_data(input_df, needed_columns)
+        input_df = closed_prs
+        # needed_columns = ['repo_id', 'repo_name', y_axis, group_by, x_axis]
+        not_null_columns = [x_axis, group_by, y_axis]
+        input_df = remove_rows_with_null_values(input_df, not_null_columns)
+        # input_df = filter_data(input_df, needed_columns)
+
+        
+
 
         if len(input_df) == 0:
             return Response(response="There is no data for this repo, in the database you are accessing",
                             mimetype='application/json',
                             status=200)
 
-        repo_dict = {repo_id: input_df.loc[input_df['repo_id'] == repo_id].iloc[0]['repo_name']}
+        # repo_dict = {repo_id: input_df.loc[input_df['repo_id'] == repo_id].iloc[0]['repo_name']}
 
         driver_df = input_df.copy()
 
@@ -653,15 +703,21 @@ def create_routes(server):
         len_not_merged = len(driver_df.loc[driver_df['merged_flag'] == 'Not Merged / Rejected'])
         len_merged = len(driver_df.loc[driver_df['merged_flag'] == 'Merged / Accepted'])
 
-        title_beginning = '{}: '.format(repo_dict[repo_id])
+
+        title_beginning = '{}: '.format(repo_name)
         plot_width = 650
         p = figure(y_range=y_groups, plot_height=450, plot_width=plot_width,
                    # y_range=y_groups,#(pr_all[y_axis].min(),pr_all[y_axis].max()) #y_axis_type="datetime",
                    title='{} {}'.format(title_beginning, "Mean Comments for {} Pull Requests".format(description)),
                    toolbar_location=None)
 
+        json_response = {
+            "repo_name": repo_name
+        }
         possible_maximums = []
         for y_value in y_groups:
+
+            print(y_value)
 
             y_merged_data = driver_df.loc[
                 (driver_df[y_axis] == y_value) & (driver_df['merged_flag'] == 'Merged / Accepted')]
@@ -852,8 +908,22 @@ def create_routes(server):
         color_index = 0
         x_offset = 60
 
+
+        json_response = {
+            "repo_name": repo_dict[repo_id], 
+            "data": {
+                "All": {
+
+                },
+                "Slow": {
+
+                }
+            }
+        }
         all_totals = []
         for data_desc, input_df in data_dict.items():
+            print(data_desc)
+
             driver_df = input_df.copy()
 
             driver_df[x_axis] = driver_df[x_axis].astype(str)
@@ -888,6 +958,8 @@ def create_routes(server):
             data['len_not_merged'] = len_not_merged
             data['totals'] = totals
             data['zeros'] = zeros
+
+            print(data)
 
             if data_desc == "All":
                 all_totals = totals
