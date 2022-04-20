@@ -17,6 +17,14 @@ def directory(logs_dir):
     """
     print(logs_dir)
 
+
+@cli.command("log_query")
+@click.argument("tags", default=None)
+@pass_logs_dir
+def log_query(logs_dir, tags):
+    return
+
+
 @cli.command("errors")
 @click.argument("worker", default="all")
 @pass_logs_dir
