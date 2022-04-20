@@ -13,7 +13,7 @@ These commands are used to manage your local installation of Augur.
 
 ``make install``
 -----------------
-Installs the project dependencies, sets up default configuration file, and gathers database credentials.
+Install the project dependencies, set-up default configuration file, and gather database credentials.
 
 Example\:
 
