@@ -1389,6 +1389,8 @@ def create_routes(server):
                             status=error["status_code"])
 
         return_json = request.args.get('return_json', "false")
+        return_data = request.args.get('return_data', "false").lower()
+
 
         pr_query = salc.sql.text(f"""
             SELECT
@@ -1512,35 +1514,34 @@ def create_routes(server):
 
         data_dict = {'All': pr_closed, 'Slowest 20%': pr_slow20_not_merged.append(pr_slow20_merged, ignore_index=True)}
 
-        plot_width = 950
-        p1 = figure(x_axis_type="datetime",
-                    title="{}: Mean {} Between Comments by Month Closed for {} Pull Requests".format(repo_name,
-                                                                                                     time_unit,
-                                                                                                     description),
-                    plot_width=plot_width, x_range=(pr_all[x_axis].min(), pr_all[x_axis].max()), plot_height=500,
-                    toolbar_location=None)
+        if return_data == "false":
+
+            plot_width = 950
+            p1 = figure(x_axis_type="datetime",
+                        title="{}: Mean {} Between Comments by Month Closed for {} Pull Requests".format(repo_name,
+                                                                                                        time_unit,
+                                                                                                        description),
+                        plot_width=plot_width, x_range=(pr_all[x_axis].min(), pr_all[x_axis].max()), plot_height=500,
+                        toolbar_location=None)
         colors = Category20[10][6:]
         color_index = 0
 
         json_response = {
             "data": {}
         }
+        date_json = {}
 
         glyphs = []
 
-        all_dates = list(data_dict['All'].append(data_dict['Slowest 20%'], ignore_index=True)[x_axis].unique())
+        if return_data == "true":
+            all_dates = list(data_dict['All'].append(data_dict['Slowest 20%'], ignore_index=True)[x_axis].unique())
 
+            for i in range(len(all_dates)):
 
-        date_json = {}
-        for i in range(len(all_dates)):
-
-            date_value = np.datetime_as_string(all_dates[i], unit='D')
-            date_json[date_value] = []
-
-        print(date_json)
+                date_value = np.datetime_as_string(all_dates[i], unit='D')
+                date_json[date_value] = []
 
         data_count = 1
-
         possible_maximums = []
         for data_desc, input_df in data_dict.items():
 
@@ -1559,70 +1560,65 @@ def create_routes(server):
 
             for group_num, line_group_value in enumerate(driver_df[line_group].unique(), color_index):
 
-                data_name = f"{data_desc} {line_group_value}"
-                print(f"Adding {data_name}")
+                if return_data == "true": 
 
+                    data_name = f"{data_desc} {line_group_value}"
 
+                    data = driver_df_mean.loc[driver_df_mean[line_group] == line_group_value]
 
-                data = driver_df_mean.loc[driver_df_mean[line_group] == line_group_value]
+                    dates_timestamps = list(data[x_axis])
+                    dates = [timestamp.strftime("%Y-%m-%d") for timestamp in dates_timestamps]
 
-                def convert_timestamp_to_string(timestamp):
-                    return timestamp.strftime("%Y-%m-%d")
+                    values = list(data[y_axis])
 
+                    for i in range(len(dates)):
+                        date = dates[i]
+                        value = values[i]
+
+                        date_json[date].append(value)
+
+                    # adds None to any dates that didn't have values for that group
+                    date_keys = list(date_json.keys())
+                    for i in range(len(date_keys)):
+
+                        # compares the amount of data that should be in each list (data_count) to the acutal length of the list
+                        # and adds None if there isn't enough data
+                        # None is added because we need to have a value for every single group
+                        if data_count > len(date_json[date_keys[i]]):
+                            date_json[date_keys[i]].append(None)
+                    
+                    data_count+=1
                 
-                dates_timestamps = list(data[x_axis])
-                dates = [convert_timestamp_to_string(i) for i in dates_timestamps]
-                values = list(data[y_axis])
-
-
-                for i in range(len(dates)):
-                    date = dates[i]
-                    value = values[i]
-
-                    # print(date)
-
-                    date_json[date].append(value)
-
-
-                date_keys = list(date_json.keys())
-                for i in range(len(date_keys)):
-
-                    data_list = date_json[date_keys[i]]
-                    if data_count > len(data_list):
-                        date_json[date_keys[i]].append(None)
+                else:
                 
-                data_count+=1
-                
-                glyphs.append(p1.line(driver_df_mean.loc[driver_df_mean[line_group] == line_group_value][x_axis],
-                                      driver_df_mean.loc[driver_df_mean[line_group] == line_group_value][y_axis],
-                                      color=colors[group_num], line_width=3))
-                color_index += 1
-                possible_maximums.append(
-                    max(driver_df_mean.loc[driver_df_mean[line_group] == line_group_value][y_axis].dropna()))
+                    glyphs.append(p1.line(driver_df_mean.loc[driver_df_mean[line_group] == line_group_value][x_axis],
+                                        driver_df_mean.loc[driver_df_mean[line_group] == line_group_value][y_axis],
+                                        color=colors[group_num], line_width=3))
+                    color_index += 1
+                    possible_maximums.append(
+                        max(driver_df_mean.loc[driver_df_mean[line_group] == line_group_value][y_axis].dropna()))
 
-        print(date_json)
-        count_failed = 0
-        # failed = False
-        json_response = {
-            "data": []
-        }
-        for key, value in date_json.items():
-
-            data_piece = {}
-            data_piece["date"] = key
-
-            data_piece = {
-                "date": key,
-                "All Not Merged / Rejected": value[0],
-                "All Merged / Accepted": value[1],
-                "Slowest 20% Not Merged / Rejected": value[2],
-                "Slowest 20% Merged / Accepted": value[3]
+        if return_data == "true": 
+            json_response = {
+                "data": []
             }
+            for key, value in date_json.items():
 
-            json_response["data"].append(data_piece)
+                data_piece = {}
+                data_piece["date"] = key
+
+                data_piece = {
+                    "date": key,
+                    "All Not Merged / Rejected": value[0],
+                    "All Merged / Accepted": value[1],
+                    "Slowest 20% Not Merged / Rejected": value[2],
+                    "Slowest 20% Merged / Accepted": value[3]
+                }
+
+                json_response["data"].append(data_piece)
 
 
-        return json_response
+            return json_response
 
         for repo, num_outliers in num_outliers_repo_map.items():
             # FIXME repo_name is not defined
