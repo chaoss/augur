@@ -1522,7 +1522,24 @@ def create_routes(server):
         colors = Category20[10][6:]
         color_index = 0
 
+        json_response = {
+            "data": {}
+        }
+
         glyphs = []
+
+        all_dates = list(data_dict['All'].append(data_dict['Slowest 20%'], ignore_index=True)[x_axis].unique())
+
+
+        date_json = {}
+        for i in range(len(all_dates)):
+
+            date_value = np.datetime_as_string(all_dates[i], unit='D')
+            date_json[date_value] = []
+
+        print(date_json)
+
+        data_count = 1
 
         possible_maximums = []
         for data_desc, input_df in data_dict.items():
@@ -1536,17 +1553,77 @@ def create_routes(server):
 
             driver_df_mean = driver_df.groupby(['repo_id', line_group, x_axis], as_index=False).mean()
 
+
             title_ending = ''
             title_ending += ' for Repo: {}'.format(repo_name)
 
             for group_num, line_group_value in enumerate(driver_df[line_group].unique(), color_index):
-                print(f"Adding {group_num} to {line_group_value}")
+
+                data_name = f"{data_desc} {line_group_value}"
+                print(f"Adding {data_name}")
+
+
+
+                data = driver_df_mean.loc[driver_df_mean[line_group] == line_group_value]
+
+                def convert_timestamp_to_string(timestamp):
+                    return timestamp.strftime("%Y-%m-%d")
+
+                
+                dates_timestamps = list(data[x_axis])
+                dates = [convert_timestamp_to_string(i) for i in dates_timestamps]
+                values = list(data[y_axis])
+
+
+                for i in range(len(dates)):
+                    date = dates[i]
+                    value = values[i]
+
+                    # print(date)
+
+                    date_json[date].append(value)
+
+
+                date_keys = list(date_json.keys())
+                for i in range(len(date_keys)):
+
+                    data_list = date_json[date_keys[i]]
+                    if data_count > len(data_list):
+                        date_json[date_keys[i]].append(None)
+                
+                data_count+=1
+                
                 glyphs.append(p1.line(driver_df_mean.loc[driver_df_mean[line_group] == line_group_value][x_axis],
                                       driver_df_mean.loc[driver_df_mean[line_group] == line_group_value][y_axis],
                                       color=colors[group_num], line_width=3))
                 color_index += 1
                 possible_maximums.append(
                     max(driver_df_mean.loc[driver_df_mean[line_group] == line_group_value][y_axis].dropna()))
+
+        print(date_json)
+        count_failed = 0
+        # failed = False
+        json_response = {
+            "data": []
+        }
+        for key, value in date_json.items():
+
+            data_piece = {}
+            data_piece["date"] = key
+
+            data_piece = {
+                "date": key,
+                "All Not Merged / Rejected": value[0],
+                "All Merged / Accepted": value[1],
+                "Slowest 20% Not Merged / Rejected": value[2],
+                "Slowest 20% Merged / Accepted": value[3]
+            }
+
+            json_response["data"].append(data_piece)
+
+
+        return json_response
+
         for repo, num_outliers in num_outliers_repo_map.items():
             # FIXME repo_name is not defined
             if repo_name == repo:
