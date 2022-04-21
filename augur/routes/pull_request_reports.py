@@ -1699,6 +1699,7 @@ def create_routes(server):
 
         return_json = request.args.get('return_json', "false")
         remove_outliers = str(request.args.get('remove_outliers', "true"))
+        return_data = request.args.get('return_data', "false").lower()
 
         x_axis = 'pr_closed_at'
         y_axis = 'days_to_first_response'
@@ -1739,23 +1740,51 @@ def create_routes(server):
 
         title_beginning = '{}: '.format(repo_dict[repo_id])
         plot_width = 180 * 5
-        p = figure(x_range=(
-        driver_df[x_axis].min() - datetime.timedelta(days=30), driver_df[x_axis].max() + datetime.timedelta(days=25)),
-                   # (driver_df[y_axis].min(), driver_df[y_axis].max()),
-                   toolbar_location=None,
-                   title='{}Days to First Response for {} Closed Pull Requests'.format(title_beginning, description),
-                   plot_width=plot_width,
-                   plot_height=400, x_axis_type='datetime')
 
+        if return_data == "false":
+
+            p = figure(x_range=(
+            driver_df[x_axis].min() - datetime.timedelta(days=30), driver_df[x_axis].max() + datetime.timedelta(days=25)),
+                    # (driver_df[y_axis].min(), driver_df[y_axis].max()),
+                    toolbar_location=None,
+                    title='{}Days to First Response for {} Closed Pull Requests'.format(title_beginning, description),
+                    plot_width=plot_width,
+                    plot_height=400, x_axis_type='datetime')
+
+        json_response = {
+            "data": {}
+        }
+        merged_values = []
+        not_merged_values = []
         for index, group_by_group in enumerate(group_by_groups):
-            p.scatter(x_axis, y_axis, color=colors[index], marker="square",
-                      source=driver_df.loc[driver_df[group_by] == group_by_group], legend_label=group_by_group)
 
-            if group_by_group == "Merged / Accepted":
-                merged_values = driver_df.loc[driver_df[group_by] == group_by_group][y_axis].dropna().values.tolist()
+            if return_data == "true":
+            
+                data = driver_df.loc[driver_df[group_by] == group_by_group]
+                needed_columns = [x_axis, y_axis]
+                data = get_needed_columns(data, needed_columns)
+
+                def convert_to_string(timestamp):
+                    return timestamp.strftime("%Y-%m-%d")
+
+                data[x_axis] = data[x_axis].apply(convert_to_string)
+                data_list = data.to_dict(orient='records')
+
+                json_response[group_by_group] = data_list
+
             else:
-                not_merged_values = driver_df.loc[driver_df[group_by] == group_by_group][
-                    y_axis].dropna().values.tolist()
+
+                p.scatter(x_axis, y_axis, color=colors[index], marker="square",
+                        source=driver_df.loc[driver_df[group_by] == group_by_group], legend_label=group_by_group)
+
+                if group_by_group == "Merged / Accepted":
+                    merged_values = driver_df.loc[driver_df[group_by] == group_by_group][y_axis].dropna().values.tolist()
+                else:
+                    not_merged_values = driver_df.loc[driver_df[group_by] == group_by_group][
+                        y_axis].dropna().values.tolist()
+
+        if return_data == "true":
+            return json_response
 
         values = not_merged_values + merged_values
 
