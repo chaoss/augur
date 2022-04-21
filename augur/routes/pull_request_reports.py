@@ -882,6 +882,7 @@ def create_routes(server):
         all_totals = []
         #   key, value
         return_data_dict = {}
+        return_data_dict["data"] = {}
         for data_desc, input_df in data_dict.items():
             driver_df = input_df.copy()
 
@@ -913,6 +914,8 @@ def create_routes(server):
                     data[group] += [
                         len(driver_df.loc[(driver_df['merged_flag'] == group) & (driver_df[x_axis] == x_group)])]
 
+            return_data_dict["data"][data_desc] = data.copy()
+
             data['len_merged'] = len_merged
             data['len_not_merged'] = len_not_merged
             data['totals'] = totals
@@ -920,8 +923,6 @@ def create_routes(server):
 
             if data_desc == "All":
                 all_totals = totals
-
-            return_data_dict[data_desc] = data
 
             source = ColumnDataSource(data)
 
@@ -958,7 +959,20 @@ def create_routes(server):
 
 
         if(return_data == "true"):
-            return return_data_dict
+            new_dict = {}
+            new_dict["repo_name"] = repo_dict[repo_id]
+            new_dict["data"] = {}
+            for desc, dict in return_data_dict["data"].items():
+                new_dict["data"][desc] = []
+                for index, year in enumerate(dict["X"]):
+                    data_piece = {}
+                    data_piece["year"] = year
+                    for group in groups:
+                        data_piece[group] = dict[group][index]
+
+                    new_dict["data"][desc].append(data_piece)
+
+            return new_dict
 
         p.y_range = Range1d(0, max(all_totals) * 1.4)
 
