@@ -1701,28 +1701,76 @@ def create_routes(server):
         remove_outliers = str(request.args.get('remove_outliers', "true"))
         return_data = request.args.get('return_data', "false").lower()
 
+
+
+        pr_query = salc.sql.text(f"""
+            SELECT
+                augur_data.pull_requests.repo_id,
+                augur_data.pull_requests.pr_src_state,
+				augur_data.pull_requests.pr_merged_at,
+				augur_data.pull_requests.pr_closed_at,
+				date_part( 'year', pr_closed_at :: DATE ) AS CLOSED_YEAR,
+				date_part( 'month', pr_closed_at :: DATE ) AS CLOSED_MONTH,
+                ( EXTRACT ( EPOCH FROM first_response_time ) - EXTRACT ( EPOCH FROM pull_requests.pr_created_at ) ) / 86400 AS days_to_first_response,
+		        average_time_between_responses
+	        FROM
+			augur_data.pull_requests JOIN (
+            SELECT pull_requests.pull_request_id,
+                    MIN(message.msg_timestamp) AS first_response_time,
+                    COUNT(DISTINCT message.msg_timestamp) AS comment_count,
+                    MAX(message.msg_timestamp) AS last_response_time,
+                    (MAX(message.msg_timestamp) - MIN(message.msg_timestamp)) / COUNT(DISTINCT message.msg_timestamp) AS average_time_between_responses
+                    FROM augur_data.pull_requests, augur_data.repo, augur_data.pull_request_message_ref, augur_data.message
+                    WHERE repo.repo_id = {repo_id}
+                            AND repo.repo_id = pull_requests.repo_id
+                            AND pull_requests.pull_request_id = pull_request_message_ref.pull_request_id
+                            AND pull_request_message_ref.msg_id = message.msg_id
+                    GROUP BY pull_requests.pull_request_id
+            ) response_times
+			ON pull_requests.pull_request_id = response_times.pull_request_id
+            WHERE augur_data.pull_requests.pr_src_state = 'closed'
+                        """)
+
+        # get list of all prs                        
+        closed_prs = pd.read_sql(pr_query, server.augur_app.database)
+
+        # format closed_year and closed_month
+        closed_prs[['closed_year', 'closed_month']] = closed_prs[['closed_year', 'closed_month']].fillna(-1).astype(int).astype(str)
+          
+        # add merged_flag column
+        closed_prs['pr_merged_at'] = closed_prs['pr_merged_at'].fillna(0)
+        closed_prs['merged_flag'] = 'Not Merged / Rejected'
+        closed_prs['merged_flag'].loc[closed_prs['pr_merged_at'] != 0] = 'Merged / Accepted'
+        del closed_prs['pr_merged_at']
+
+        repo_name = get_repo_name(repo_id)
+
+
         x_axis = 'pr_closed_at'
         y_axis = 'days_to_first_response'
         description = 'All'
         group_by = 'merged_flag'
         legend_position = 'top_right'
 
-        df_type = get_df_tuple_locations()
+        # df_type = get_df_tuple_locations()
 
-        df_tuple = pull_request_data_collection(repo_id=repo_id, start_date=start_date, end_date=end_date)
+        # df_tuple = pull_request_data_collection(repo_id=repo_id, start_date=start_date, end_date=end_date)
 
-        pr_closed = df_tuple[df_type["pr_closed"]]
-        needed_columns = ['repo_id', 'repo_name', x_axis, group_by, y_axis]
-        pr_closed = filter_data(pr_closed, needed_columns)
+        # pr_closed = df_tuple[df_type["pr_closed"]]
+        # needed_columns = ['repo_id', 'repo_name', x_axis, group_by, y_axis]
 
-        if len(pr_closed) == 0:
+        not_null_columns = [x_axis, group_by, y_axis]
+        closed_prs = remove_rows_with_null_values(closed_prs, not_null_columns)
+        # pr_closed = filter_data(pr_closed, needed_columns)
+
+        if len(closed_prs) == 0:
             return Response(response="There is no data for this repo, in the database you are accessing",
                             mimetype='application/json',
                             status=200)
 
-        repo_dict = {repo_id: pr_closed.loc[pr_closed['repo_id'] == repo_id].iloc[0]['repo_name']}
+        # repo_dict = {repo_id: pr_closed.loc[pr_closed['repo_id'] == repo_id].iloc[0]['repo_name']}
 
-        driver_df = pr_closed.copy()
+        driver_df = closed_prs.copy()
 
         outliers_removed = 0
 
@@ -1738,7 +1786,7 @@ def create_routes(server):
         except:
             colors = Colorblind[3]
 
-        title_beginning = '{}: '.format(repo_dict[repo_id])
+        title_beginning = '{}: '.format(repo_name)
         plot_width = 180 * 5
 
         if return_data == "false":
@@ -1751,9 +1799,36 @@ def create_routes(server):
                     plot_width=plot_width,
                     plot_height=400, x_axis_type='datetime')
 
+        # print(driver_df.to_string())
+
         json_response = {
-            "data": {}
+            "data": [],
+            "outliers_removed": outliers_removed,
+            "outlier_cutoff": outlier_cutoff
         }
+
+        def return_data_point(date, data_value, field):
+
+            fields = group_by_groups
+
+            if field not in fields:
+                print(f"{field} is not a valid field. FIX THIS")
+                return None
+            
+            data_point = {
+                "date": date,
+            }
+
+            data_point[field + " first response time"] = data_value
+
+            for key in fields:
+
+                if key != field:
+                    data_point[key + " first response time"] = None
+
+            return data_point
+
+
         merged_values = []
         not_merged_values = []
         for index, group_by_group in enumerate(group_by_groups):
@@ -1770,7 +1845,14 @@ def create_routes(server):
                 data[x_axis] = data[x_axis].apply(convert_to_string)
                 data_list = data.to_dict(orient='records')
 
-                json_response[group_by_group] = data_list
+                for data in data_list:
+
+                    date = data["pr_closed_at"]
+                    value = data["days_to_first_response"]
+
+                    data_point = return_data_point(date, value, group_by_group)
+
+                    json_response["data"].append(data_point)
 
             else:
 
@@ -1793,8 +1875,7 @@ def create_routes(server):
                 p.add_layout(Title(
                     text="** Outliers cut off at {} days: {} outlier(s) for {} were removed **".format(outlier_cutoff,
                                                                                                        outliers_removed,
-                                                                                                       repo_dict[
-                                                                                                           repo_id]),
+                                                                                                       repo_name),
                     align="center"), "below")
             else:
                 p.add_layout(Title(
