@@ -1944,7 +1944,67 @@ def create_routes(server):
                             status=error["status_code"])
 
         return_json = request.args.get('return_json', "false")
-        include_comments = str(request.args.get('include_comments', True))
+        include_comments = str(request.args.get('include_comments', "false"))
+        return_data = request.args.get('return_data', "false").lower()
+
+
+        pr_query = salc.sql.text(f"""
+            SELECT
+                    augur_data.pull_requests.repo_id,
+                    augur_data.pull_requests.pr_src_state,
+                    augur_data.pull_requests.pr_merged_at,
+                    augur_data.pull_requests.pr_closed_at,
+                    date_part( 'year', pr_closed_at :: DATE ) AS CLOSED_YEAR,
+                    date_part( 'month', pr_closed_at :: DATE ) AS CLOSED_MONTH,
+                    assigned_count,
+                    review_requested_count,
+                    labeled_count,
+                    subscribed_count,
+                    mentioned_count,
+                    referenced_count,
+                    closed_count,
+                    head_ref_force_pushed_count,
+                    merged_count,
+                    milestoned_count,
+                    unlabeled_count,
+                    head_ref_deleted_count
+	        FROM augur_data.pull_requests 
+            JOIN (
+                    SELECT pull_requests.pull_request_id,
+                            count(*) FILTER (WHERE action = 'assigned') AS assigned_count,
+                            count(*) FILTER (WHERE action = 'review_requested') AS review_requested_count,
+                            count(*) FILTER (WHERE action = 'labeled') AS labeled_count,
+                            count(*) FILTER (WHERE action = 'unlabeled') AS unlabeled_count,
+                            count(*) FILTER (WHERE action = 'subscribed') AS subscribed_count,
+                            count(*) FILTER (WHERE action = 'mentioned') AS mentioned_count,
+                            count(*) FILTER (WHERE action = 'referenced') AS referenced_count,
+                            count(*) FILTER (WHERE action = 'closed') AS closed_count,
+                            count(*) FILTER (WHERE action = 'head_ref_force_pushed') AS head_ref_force_pushed_count,
+                            count(*) FILTER (WHERE action = 'head_ref_deleted') AS head_ref_deleted_count,
+                            count(*) FILTER (WHERE action = 'milestoned') AS milestoned_count,
+                            count(*) FILTER (WHERE action = 'merged') AS merged_count
+                    FROM pull_request_events, pull_requests
+                    WHERE pull_requests.repo_id = {repo_id}
+                            AND pull_requests.pull_request_id = pull_request_events.pull_request_id
+                    GROUP BY pull_requests.pull_request_id
+            ) response_times
+            ON pull_requests.pull_request_id = response_times.pull_request_id
+            WHERE augur_data.pull_requests.pr_src_state = 'closed'
+                        """)
+
+        # get list of all prs                        
+        closed_prs = pd.read_sql(pr_query, server.augur_app.database)
+
+        # format closed_year and closed_month
+        closed_prs[['closed_year', 'closed_month']] = closed_prs[['closed_year', 'closed_month']].fillna(-1).astype(int).astype(str)
+          
+        # add merged_flag column
+        closed_prs['pr_merged_at'] = closed_prs['pr_merged_at'].fillna(0)
+        closed_prs['merged_flag'] = 'Not Merged / Rejected'
+        closed_prs['merged_flag'].loc[closed_prs['pr_merged_at'] != 0] = 'Merged / Accepted'
+        del closed_prs['pr_merged_at']
+
+        repo_name = get_repo_name(repo_id)
 
         x_axis = 'closed_year'
         facet = 'merged_flag'
@@ -1952,14 +2012,37 @@ def create_routes(server):
         x_max = 1100
         y_axis = 'repo_name'
         description = 'All Closed'
-        optional_comments = ['comment_count'] if include_comments else []
 
-        df_type = get_df_tuple_locations()
+        optional_comments = []
+        if include_comments == "true":
+            print("Made it")
+            optional_comments.append('comment_count')
 
-        df_tuple = pull_request_data_collection(repo_id=repo_id, start_date=start_date, end_date=end_date)
+        print(include_comments)
 
-        pr_closed = df_tuple[df_type["pr_closed"]]
-        needed_columns = ['repo_id', 'repo_name', x_axis, 'assigned_count',
+        print(optional_comments)
+
+        # df_type = get_df_tuple_locations()
+
+        # df_tuple = pull_request_data_collection(repo_id=repo_id, start_date=start_date, end_date=end_date)
+
+        # pr_closed = df_tuple[df_type["pr_closed"]]
+        # needed_columns = ['repo_id', 'repo_name', x_axis, 'assigned_count',
+        #                   'review_requested_count',
+        #                   'labeled_count',
+        #                   'subscribed_count',
+        #                   'mentioned_count',
+        #                   'referenced_count',
+        #                   'closed_count',
+        #                   'head_ref_force_pushed_count',
+        #                   'merged_count',
+        #                   'milestoned_count',
+        #                   'unlabeled_count',
+        #                   'head_ref_deleted_count', facet] + optional_comments
+
+        # pr_closed = filter_data(pr_closed, needed_columns)
+
+        not_null_columns = [x_axis, 'assigned_count',
                           'review_requested_count',
                           'labeled_count',
                           'subscribed_count',
@@ -1970,19 +2053,20 @@ def create_routes(server):
                           'merged_count',
                           'milestoned_count',
                           'unlabeled_count',
-                          'head_ref_deleted_count', facet] + optional_comments
-        pr_closed = filter_data(pr_closed, needed_columns)
+                          'head_ref_deleted_count', facet]
 
-        if len(pr_closed) == 0:
+        closed_prs = remove_rows_with_null_values(closed_prs, not_null_columns)
+
+        if len(closed_prs) == 0:
             return Response(response="There is no data for this repo, in the database you are accessing",
                             mimetype='application/json',
                             status=200)
 
-        repo_dict = {repo_id: pr_closed.loc[pr_closed['repo_id'] == repo_id].iloc[0]['repo_name']}
+        # repo_dict = {repo_id: pr_closed.loc[pr_closed['repo_id'] == repo_id].iloc[0]['repo_name']}
 
         colors = linear_gradient('#f5f5dc', '#fff44f', 150)['hex']
 
-        driver_df = pr_closed.copy()
+        driver_df = closed_prs.copy()
         driver_df[x_axis] = driver_df[x_axis].astype(str)
 
         if facet == 'closed_year' or y_axis == 'closed_year':
@@ -2009,24 +2093,28 @@ def create_routes(server):
 
         for index, facet_group in enumerate(sorted(driver_df[facet].unique())):
 
+            print(facet_group)
+
             facet_data = driver_df.loc[driver_df[facet] == facet_group]
             #         display(facet_data.sort_values('merged_count', ascending=False).head(50))
-            driver_df_mean = facet_data.groupby(['repo_id', 'repo_name', x_axis], as_index=False).mean().round(1)
+            driver_df_mean = facet_data.groupby(['repo_id', x_axis], as_index=False).mean().round(1)
+
+            print(driver_df_mean.to_string())
 
             # if a record is field in a record is Nan then it is not counted by count() so when it is not
             # 2 meaning both rows have a value, there is not enough data
-            if (driver_df_mean['assigned_count'].count() != 2 or driver_df_mean[
-                'review_requested_count'].count() != 2 or driver_df_mean['labeled_count'].count() != 2 or
-                    driver_df_mean['subscribed_count'].count() != 2 or driver_df_mean['mentioned_count'].count() != 2 or
-                    driver_df_mean['referenced_count'].count() != 2 or
-                    driver_df_mean['closed_count'].count() != 2 or driver_df_mean[
-                        'head_ref_force_pushed_count'].count() != 2 or driver_df_mean['merged_count'].count() != 2 or
-                    driver_df_mean['milestoned_count'].count() != 2 or driver_df_mean['unlabeled_count'].count() != 2 or
-                    driver_df_mean['head_ref_deleted_count'].count() != 2 or
-                    driver_df_mean['comment_count'].count() != 2):
-                return Response(response="There is not enough data for this repo, in the database you are accessing",
-                                mimetype='application/json',
-                                status=200)
+            # if (driver_df_mean['assigned_count'].count() != 2 or driver_df_mean[
+            #     'review_requested_count'].count() != 2 or driver_df_mean['labeled_count'].count() != 2 or
+            #         driver_df_mean['subscribed_count'].count() != 2 or driver_df_mean['mentioned_count'].count() != 2 or
+            #         driver_df_mean['referenced_count'].count() != 2 or
+            #         driver_df_mean['closed_count'].count() != 2 or driver_df_mean[
+            #             'head_ref_force_pushed_count'].count() != 2 or driver_df_mean['merged_count'].count() != 2 or
+            #         driver_df_mean['milestoned_count'].count() != 2 or driver_df_mean['unlabeled_count'].count() != 2 or
+            #         driver_df_mean['head_ref_deleted_count'].count() != 2 or
+            #         driver_df_mean['comment_count'].count() != 2):
+            #     return Response(response="There is not enough data for this repo, in the database you are accessing",
+            #                     mimetype='application/json',
+            #                     status=200)
 
             # print(driver_df_mean.to_string())
             #         data = {'Y' : y_groups}
@@ -2037,6 +2125,7 @@ def create_routes(server):
                        title='{}'.format(format(facet_group)))
 
             for y_group in y_groups:
+                print(y_group)
                 driver_df_mean['field'] = y_group
                 source = ColumnDataSource(driver_df_mean)
                 mapper = LinearColorMapper(palette=colors, low=driver_df_mean[y_group].min(),
@@ -2094,7 +2183,7 @@ def create_routes(server):
 
         # create title plot
         title_plot = figure(width=plot_width, height=50, margin=(0, 0, 0, 0))
-        title = '{}: Average Pull Request Event Types for {} Pull Requests'.format(repo_dict[repo_id], description)
+        title = '{}: Average Pull Request Event Types for {} Pull Requests'.format(repo_name, description)
 
         title_plot.add_layout(Label(x=550, y=0, x_units='screen', y_units='screen', text='{}'.format(title),
                                     text_font='times', text_font_size='17px',
