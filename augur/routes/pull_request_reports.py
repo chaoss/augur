@@ -2018,9 +2018,6 @@ def create_routes(server):
             print("Made it")
             optional_comments.append('comment_count')
 
-        print(include_comments)
-
-        print(optional_comments)
 
         # df_type = get_df_tuple_locations()
 
@@ -2081,6 +2078,10 @@ def create_routes(server):
                        #           'milestoned_count',
                    ] + optional_comments
 
+        needed_columns = [x_axis, facet, "repo_id"] + y_groups
+
+        driver_df = get_needed_columns(driver_df, needed_columns)
+
         optional_group_comments = ['comment'] if include_comments else []
         #     y_groups = ['subscribed', 'mentioned', 'labeled', 'review_requested', 'head_ref_force_pushed',
         #     'referenced', 'closed', 'merged', 'unlabeled', 'head_ref_deleted', 'milestoned', 'assigned']
@@ -2088,18 +2089,54 @@ def create_routes(server):
 
         x_groups = sorted(list(driver_df[x_axis].unique()))
 
+        facets = sorted(driver_df[facet].unique())
+
         grid_array = []
         grid_row = []
 
-        for index, facet_group in enumerate(sorted(driver_df[facet].unique())):
+        json_response = {
+            "data": []
+        }
 
-            print(facet_group)
+
+        def return_data_point(date, data_value, field, facet):
+
+            fields = y_groups
+
+            group_facets = facets
+
+            if field not in fields:
+                print(f"{field} is not a valid field. FIX THIS")
+                return None
+
+            if facet not in group_facets:
+                print(f"{field} is not a valid facet. FIX THIS")
+                return None
+            
+            data_point = {
+                "date": date,
+            }
+
+            data_point[facet + " " + field] = data_value
+
+            print(data_point)
+
+            for key in fields:
+
+                for facet_key in group_facets:
+
+                    if key != field:
+                        data_point[facet_key + " " + key] = None
+
+            print(data_point)
+
+            return data_point
+
+        for index, facet_group in enumerate(facets):
 
             facet_data = driver_df.loc[driver_df[facet] == facet_group]
             #         display(facet_data.sort_values('merged_count', ascending=False).head(50))
             driver_df_mean = facet_data.groupby(['repo_id', x_axis], as_index=False).mean().round(1)
-
-            print(driver_df_mean.to_string())
 
             # if a record is field in a record is Nan then it is not counted by count() so when it is not
             # 2 meaning both rows have a value, there is not enough data
@@ -2124,49 +2161,67 @@ def create_routes(server):
             p = figure(y_range=y_groups, plot_height=500, plot_width=plot_width, x_range=x_groups,
                        title='{}'.format(format(facet_group)))
 
-            for y_group in y_groups:
-                print(y_group)
-                driver_df_mean['field'] = y_group
-                source = ColumnDataSource(driver_df_mean)
-                mapper = LinearColorMapper(palette=colors, low=driver_df_mean[y_group].min(),
-                                           high=driver_df_mean[y_group].max())
+            if return_data == "true":
 
-                p.rect(y='field', x=x_axis, width=1, height=1, source=source,
-                       line_color=None, fill_color=transform(y_group, mapper))
-                # Data label 
-                labels = LabelSet(x=x_axis, y='field', text=y_group, y_offset=-8,
-                                  text_font_size="12pt", text_color='black',
-                                  source=source, text_align='center')
-                p.add_layout(labels)
+                for index, row in driver_df_mean.iterrows():
 
-                color_bar = ColorBar(color_mapper=mapper, location=(0, 0),
-                                     ticker=BasicTicker(desired_num_ticks=9),
-                                     formatter=PrintfTickFormatter(format="%d"))
-            #         p.add_layout(color_bar, 'right')
+                    for y_group in y_groups:
 
-            p.y_range.range_padding = 0.1
-            p.ygrid.grid_line_color = None
+                        data_point = return_data_point(row["closed_year"], row[y_group], y_group, facet_group)
 
-            p.legend.location = "bottom_right"
-            p.axis.minor_tick_line_color = None
-            p.outline_line_color = None
+                        json_response["data"].append(data_point)
 
-            p.xaxis.axis_label = 'Year Closed'
-            p.yaxis.axis_label = 'Event Type'
+            else:
 
-            p.title.align = "center"
-            p.title.text_font_size = "15px"
+                for y_group in y_groups:
 
-            p.xaxis.axis_label_text_font_size = "16px"
-            p.xaxis.major_label_text_font_size = "16px"
+                        driver_df_mean['field'] = y_group
+                        source = ColumnDataSource(driver_df_mean)
+                        mapper = LinearColorMapper(palette=colors, low=driver_df_mean[y_group].min(),
+                                                high=driver_df_mean[y_group].max())
 
-            p.yaxis.axis_label_text_font_size = "16px"
-            p.yaxis.major_label_text_font_size = "16px"
+                        p.rect(y='field', x=x_axis, width=1, height=1, source=source,
+                            line_color=None, fill_color=transform(y_group, mapper))
+                        # Data label 
+                        labels = LabelSet(x=x_axis, y='field', text=y_group, y_offset=-8,
+                                        text_font_size="12pt", text_color='black',
+                                        source=source, text_align='center')
+                        p.add_layout(labels)
 
-            grid_row.append(p)
-            if index % columns == columns - 1:
-                grid_array.append(grid_row)
-                grid_row = []
+                        color_bar = ColorBar(color_mapper=mapper, location=(0, 0),
+                                            ticker=BasicTicker(desired_num_ticks=9),
+                                            formatter=PrintfTickFormatter(format="%d"))
+                    #         p.add_layout(color_bar, 'right')
+
+            if return_data != "true":
+               
+                p.y_range.range_padding = 0.1
+                p.ygrid.grid_line_color = None
+
+                p.legend.location = "bottom_right"
+                p.axis.minor_tick_line_color = None
+                p.outline_line_color = None
+
+                p.xaxis.axis_label = 'Year Closed'
+                p.yaxis.axis_label = 'Event Type'
+
+                p.title.align = "center"
+                p.title.text_font_size = "15px"
+
+                p.xaxis.axis_label_text_font_size = "16px"
+                p.xaxis.major_label_text_font_size = "16px"
+
+                p.yaxis.axis_label_text_font_size = "16px"
+                p.yaxis.major_label_text_font_size = "16px"
+
+                grid_row.append(p)
+                if index % columns == columns - 1:
+                    grid_array.append(grid_row)
+                    grid_row = []
+
+        if return_data == "true":
+            return json_response
+
         grid = gridplot(grid_array)
 
         # create caption plot
