@@ -125,7 +125,6 @@ Two of Augur's workers use the Go programming language, which needs to be instal
 
 .. code-block:: bash
 
-	sudo service postgresql start
 	sudo apt update
 	sudo apt install snapd
 	sudo snap install go --classic
