@@ -12,7 +12,7 @@ Now that you've installed Augur's application server, it's time to configure you
    augur backend stop
    augur backend kill
 
-Now, here's a ton of brain splitting detail about workers, and their configuration. There are 2 pieces to data collection with Augur: the housekeeper, and the data collection workers. The housekeeper creates long-running "jobs" that specify what kind of data to collect for what set of repositories. The data collection workers can then accept these jobs, after which it will use the information provided in the job to find the repositories in question and collect the requested data.
+Now, here's a ton of brain-splitting detail about workers, and their configuration. There are 2 pieces to data collection with Augur: the housekeeper, and the data collection workers. The housekeeper creates long-running "jobs" that specify what kind of data to collect for what set of repositories. The data collection workers can then accept these jobs, after which they will use the information provided in the job to find the repositories in question and collect the requested data.
 
 Since the default housekeeper setup will work for most use cases, we'll first cover how to configure the workers and then briefly touch on the housekeeper configuration options, after which we'll cover how to add repos and repo groups to the database.
 
@@ -30,7 +30,7 @@ There are a few workers that ship ready to collect out of the box:
 - ``linux_badge_worker`` (collects `CII badging <https://bestpractices.coreinfrastructure.org/en>`_ data from the CII API)
 - ``insight_worker`` (queries Augur's metrics API to find interesting anomalies in the collected data)
 
-All worker configuration options are found in the ``Workers`` block of the ``augur.config.json`` file (which was generated for you at the end of the previous section). This file is located at ``$HOME/.augur/augur.config.json``. Each worker has its own subsection with same title as the the worker's name. We recommend leaving the defaults and only changing them when explicitly necessary, as the default parameters will work for most use cases. Read on for more on how to make sure your workers are properly configured.
+All worker configuration options are found in the ``Workers`` block of the ``augur.config.json`` file (which was generated for you at the end of the previous section). This file is located at ``$HOME/.augur/augur.config.json``. Each worker has its subsection with the same title as the worker's name. We recommend leaving the defaults and only changing them when explicitly necessary, as the default parameters will work for most use cases. Read on for more on how to make sure your workers are properly configured.
 
 Standard configuration options
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -43,7 +43,7 @@ The standard options are:
 - ``workers``, the number of instances of this worker that Augur should spawn if ``switch`` is set to ``1``. Defaults to ``1`` for all workers except the ``value_worker`` and ``insight_worker``.
 - ``port``, which is the base TCP port the worker will use the communicate with Augur's broker. The default is different for each worker, but the lowest is ``50100`` and each worker increments the default starting port by 100. If the ``workers`` parameter is > 1, then workers will bind to ``port`` + ``i`` for the ``i``'th worker spawned
 
-Keeping ``workers`` at 1 should be fine for small collection sets, but if you have a lot of repositories to collect data for, you can raise it. We also suggest double checking that the default  worker ports are free on your machine.
+Keeping ``workers`` at 1 should be fine for small collection sets, but if you have a lot of repositories to collect data for, you can raise it. We also suggest double-checking that the default  worker ports are free on your machine.
 
 Worker-specific configuration options
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -67,7 +67,6 @@ We recommend leaving the defaults in place for the insight worker unless you are
 - ``contamination``, which is the "sensitivity" parameter for detecting anomalies. Acts as an estimated percentage of the training_days that are expected to be anomalous. The default is ``0.041`` for the default training days of 365: 4.1% of 365 days means that about 15 data points of the 365 days are expected to be anomalous.
 
 - ``metrics``, which specifies which metrics the ``insight_worker`` should run the anomaly detection algorithm on. This is structured like so::
-
     {
         'endpoint_name_1': 'field_1_of_endpoint',
         'endpoint_name_1': 'field_2_of_endpoint',
@@ -108,20 +107,20 @@ The housekeeper is responsible for generating the tasks that will tell the worke
         ... //other task-specific parameters
     }
 
-- the ``delay`` parameter is the amount of time the housekeeper should wait before scheduling a new update task
-- the ``given`` parameter is used in conjunction with the ``model`` parameter to determine which workers can accept a data collection task. Each worker can collect data if it is "given" data in a certain format, for example a ``github_url`` (in the case of the ``github_worker`` and ``pull_request_worker``) or perhaps just any valid ``git_url`` (as in the case of the ``facade_worker``)
-- the ``model`` parameter is the other parameter used to determine which workers can accept a given task. It represents the part of the conceptual data model that the worker can fulfill; for example, the ``facade_worker`` fills out the ``commits`` model since it primarly gathers data about commits, and the ``github_worker`` fills out both the ``issues`` and ``contributors`` model.
-- the ``repo_group_id`` parameter specifies which group of repos the housekeeper should collect data for; use the default of ``0`` to specify ALL repo groups in the database.
+- The ``delay`` parameter is the amount of time the housekeeper should wait before scheduling a new update task.
+- The ``given`` parameter is used in conjunction with the ``model`` parameter to determine which workers can accept a data collection task. Each worker can collect data if it is "given" data in a certain format, for example, a ``github_url`` (in the case of the ``github_worker`` and ``pull_request_worker``) or perhaps just any valid ``git_url`` (as in the case of the ``facade_worker``).
+- The ``model`` parameter is the other parameter used to determine which workers can accept a given task. It represents the part of the conceptual data model that the worker can fulfill; for example, the ``facade_worker`` fills out the ``commits`` model since it primarly gathers data about commits, and the ``github_worker`` fills out both the ``issues`` and ``contributors`` model.
+- The ``repo_group_id`` parameter specifies which group of repos the housekeeper should collect data for; use the default of ``0`` to specify ALL repo groups in the database.
 
 Adding repos for collection
 -----------------------------
 
-If you're using the Docker container, you can use the `provided UI <../docker/usage.html>`_ to load your repositories. Otherwise, you'll need to use the `Augur CLI <command-line-interface/db.html>`_ to load your repositories. Please reference the respective sections of the documenation for detailed instructions on how to accomplish both of these steps.
+If you're using the Docker container, you can use the `provided UI <../docker/usage.html>`_ to load your repositories. Otherwise, you'll need to use the `Augur CLI <command-line-interface/db.html>`_ to load your repositories. Please reference the respective sections of the documentation for detailed instructions on how to accomplish both of these steps.
 
 Running collections
 --------------------
 
-Congratuations! At this point you (hopefully) have a fully functioning and configured Augur instance.
+Congratulations! At this point you (hopefully) have a fully functioning and configured Augur instance.
 
 After you've loaded your repos, you're ready for your first collection run. We recommend running only the default workers first to gather the initial data. If you're collecting data for a lot of repositories, or repositories with a lot of data, we recommend increasing the number of ``github_workers`` and ``pull_request_workers``.
 
