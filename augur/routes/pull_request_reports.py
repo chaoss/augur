@@ -477,6 +477,7 @@ def create_routes(server):
 
         group_by = str(request.args.get('group_by', "month"))
         return_json = request.args.get('return_json', "false")
+        return_data = request.args.get('return_data', "false").lower()
 
         df_type = get_df_tuple_locations()
 
@@ -532,6 +533,7 @@ def create_routes(server):
                                                                                        as_index=False).mean().round(1)[
                 'commit_count'])
 
+
         # Setup data in format for grouped bar chart
         data = {
             'years': x_groups,
@@ -539,8 +541,31 @@ def create_routes(server):
             'Not Merged / Rejected': not_merged_avg_values,
         }
 
+        if return_data == "true":
+            return_data = {}
+            raw_data_list = []
+            for i in range(len(data['years'])):
+                data_piece = {}
+                data_piece["year"] = x_groups[i]
+                try:
+                    data_piece["Merged / Accepted"] = merged_avg_values[i]
+                except IndexError:
+                    data_piece["Merged / Accepted"] = None
+
+                try:
+                    data_piece["Not Merged / Rejected"] = not_merged_avg_values[i]
+                except IndexError:
+                    data_piece["Not Merged / Rejected"] = None
+
+                raw_data_list.append(data_piece)
+
+            return_data["data"] = raw_data_list
+            return_data["repo_name"] = repo_dict[repo_id]
+            return return_data
+
         x = [(year, pr_state) for year in x_groups for pr_state in groups]
         counts = sum(zip(data['Merged / Accepted'], data['Not Merged / Rejected']), ())
+        print(counts)
 
         source = ColumnDataSource(data=dict(x=x, counts=counts))
 
@@ -875,6 +900,7 @@ def create_routes(server):
                             status=error["status_code"])
 
         return_json = request.args.get('return_json', "false")
+        return_data = request.args.get('return_data', "false").lower()
 
         x_axis = 'closed_year'
         description = 'All Closed'
@@ -913,6 +939,7 @@ def create_routes(server):
 
         data_dict = {'All': pr_closed, 'Slowest 20%': pr_slow20_not_merged.append(pr_slow20_merged, ignore_index=True)}
 
+
         colors = mpl['Plasma'][6]
 
         for data_desc, input_df in data_dict.items():
@@ -946,6 +973,8 @@ def create_routes(server):
             }
         }
         all_totals = []
+        #   key, value
+        return_data_dict = {}
         for data_desc, input_df in data_dict.items():
             print(data_desc)
 
@@ -989,6 +1018,8 @@ def create_routes(server):
             if data_desc == "All":
                 all_totals = totals
 
+            return_data_dict[data_desc] = data
+
             source = ColumnDataSource(data)
 
             stacked_bar = p.vbar_stack(groups, x=dodge('X', dodge_amount, range=p.x_range), width=0.2, source=source,
@@ -1021,6 +1052,10 @@ def create_routes(server):
             dodge_amount *= -1
             colors = colors[::-1]
             x_offset *= -1
+
+
+        if(return_data == "true"):
+            return return_data_dict
 
         p.y_range = Range1d(0, max(all_totals) * 1.4)
 
