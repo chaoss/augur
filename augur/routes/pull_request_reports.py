@@ -1035,6 +1035,7 @@ def create_routes(server):
                             status=error["status_code"])
 
         return_json = request.args.get('return_json', "false")
+        return_data = request.args.get('return_data', "false").lower()
 
         df_type = get_df_tuple_locations()
 
