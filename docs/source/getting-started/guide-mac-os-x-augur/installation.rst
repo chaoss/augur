@@ -8,14 +8,14 @@ This section of the documentation details how to install Augur's Python library 
 
   1. The absence of a `GCC` or `Fortran` compiler, required by numpy and NLTK Python libraries. Look up how to install these compilers for your local operating system. Many times they simply need to be updated to a more current version.
 
-  2. Conflicting versions of Python: The fix is platform specific. On Mac OS X, more often than not multiple versions of Python have been installed by the OS, brew, Anaconda, or a combination of both. The result is some python commands are drawn from different paths because of how they are linked in `/usr/local/bin`
+  2. Conflicting versions of Python: On Mac OS X, more often than not multiple versions of Python have been installed by the OS, brew, Anaconda, or a combination of both. The result is some python commands are drawn from different paths because of how they are linked in `/usr/local/bin`
 
   3. Multiple, or conflicting versions of PostgreSQL, sometimes due to the absence of a functional `psql` function at the command line.
    
 
 macOS Errata
 ~~~~~~~~~~~~~
-If you’re running Augur on macOS, we strongly suggest updating your shell’s initialization script as follows.
+On macOS, we strongly suggest updating your shell’s initialization script as follows.
 
 In a terminal, open the script::
 
@@ -51,9 +51,9 @@ Required:
 
 -  `GitHub Access Token <https://github.com/settings/tokens>`__ (``repo`` and all ``read`` scopes except ``enterprise``)
 -  `GitLab Access Token <https://gitlab.com/profile/personal_access_tokens>`__
--  `Python 3.6 - 3.8 <https://www.python.org/downloads/>`__
+-  `Python 3.6 - 3.10 <https://www.python.org/downloads/>`__
 
-**Python 3.9 is not yet supported because TensorFlow, which we use in our machine learning workers, does not yet support Python 3.9.**
+**Python 3.10 is the latest version supported. If your machine workers (which work with TensorFlow) do not work, then try downgrading your version of Python.**
 
 Our REST API & data collection workers are written in Python 3.6. We query the GitHub & GitLab API to collect data about issues, pull requests, contributors, and other information about a repository, so GitLab and GitHub access tokens are **required** for data collection.
 
@@ -83,23 +83,7 @@ We use Vue.js as our frontend web framework, and ``npm`` as our package manager.
 Visualization API calls
 ---------------------------
 
-On Ubuntu and other Linux flavors: if you want to use the new Augur API Calls that generate downloadable graphics developed in the `https://github.com/chaoss/augur-community-reports` repository, you need to install the `firefox-geckodriver` (on Ubuntu or Red Hat Fedora) or `geckodriver` on Mac OSX, at the system level. This dependency exists because the Bokeh libraries we use for these APIs require a web browser engine. 
-
-For Ubuntu you can use: 
-
-.. code-block:: bash
-
-    - which firefox-geckodriver
-    - if nothing returned, then: 
-    - sudo apt install firefox-geckodriver
-
-For Fedora You Can Use
-
-.. code-block:: bash
-
-    - which firefox-geckodriver
-    - if nothing returned, then: 
-    - sudo dnf install firefox-geckodriver
+If you want to use the new Augur API Calls that generate downloadable graphics developed in the `https://github.com/chaoss/augur-community-reports` repository, you need to install the `geckodriver` on Mac OSX, at the system level. This dependency exists because the Bokeh libraries we use for these APIs require a web browser engine. 
 
 For Mac OSX you can use: 
 
