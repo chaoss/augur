@@ -666,7 +666,7 @@ def create_routes(server):
                     MAX(message.msg_timestamp) AS last_response_time,
                     (MAX(message.msg_timestamp) - MIN(message.msg_timestamp)) / COUNT(DISTINCT message.msg_timestamp) AS average_time_between_responses
                     FROM augur_data.pull_requests, augur_data.repo, augur_data.pull_request_message_ref, augur_data.message
-                    WHERE repo.repo_id = 34278
+                    WHERE repo.repo_id = {repo_id}
                             AND repo.repo_id = pull_requests.repo_id
                             AND pull_requests.pull_request_id = pull_request_message_ref.pull_request_id
                             AND pull_request_message_ref.msg_id = message.msg_id
@@ -781,9 +781,22 @@ def create_routes(server):
             else:
                 y_not_merged_data[x_axis + '_mean'] = 0
 
-            not_merged_mean = y_not_merged_data.iloc[0]["comment_count_mean"]
-            merged_mean = y_merged_data.iloc[0]["comment_count_mean"]
+            print("not merged data")
+            print(y_not_merged_data.to_string())
 
+            print("merged data")
+            print(y_merged_data.to_string())
+
+            not_merged_mean = None
+            merged_mean = None
+
+            if len(y_not_merged_data) > 0:
+                not_merged_mean = y_not_merged_data.iloc[0]["comment_count_mean"]
+
+            if len(y_merged_data) > 0:
+                 merged_mean = y_merged_data.iloc[0]["comment_count_mean"]
+
+            
             if return_data == "true": 
 
                 data_piece = {
