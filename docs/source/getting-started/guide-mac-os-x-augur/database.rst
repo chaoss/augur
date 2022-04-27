@@ -17,14 +17,20 @@ Before you can install our schema, you will need to make sure you have write acc
 
 If you're a newcomer to PostgreSQL, you can follow their excellent instructions `here <https://www.postgresql.org/download/macosx/>`_ to set it up for macOS. We recommend using ``Postgres.app`` on macOS which can be installed `with this link <https://postgresapp.com/>`_. Alternatively, if `homebrew <https://brew.sh/>`_ is installed, the following command can be used to install PostgreSQL.
 
-.. code-block:: postgresql 
+.. code-block:: bash 
     
-    brew install postgres
+    $ brew install postgres
 
 Creating a Database
 ~~~~~~~~~~~~~~~~~~~~~
 
-After you've setup your PostgreSQL instance, you'll need to create a database and user with the correct permissions. You can do this with the SQL commands below, but be sure to change the password!
+Once PostgreSQL is installed on your machine you can set up an instance by using the command below.
+
+.. code-block:: bash 
+    
+    $ psql postgres
+
+Once inside the instance you'll need to create a database and user with the correct permissions. You can do this with the SQL commands below, but be sure to change the password!
 
 .. code-block:: postgresql 
     

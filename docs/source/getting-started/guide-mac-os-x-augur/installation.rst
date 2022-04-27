@@ -53,13 +53,26 @@ Required:
 -  `GitLab Access Token <https://gitlab.com/profile/personal_access_tokens>`__
 -  `Python 3.6 - 3.10 <https://www.python.org/downloads/>`__
 
-**Python 3.10 is the latest version supported. If your machine workers (which work with TensorFlow) do not work, then try downgrading your version of Python.**
+**Although Mac comes with a preinstalled version of Python, it is outdated and needs to be replaced with any version between Python 3.6 and 3.10, with 3.10 being the latest version supported. If your machine workers (which work with TensorFlow) do not work, then try downgrading your version of Python. If you wish to download python on your machine or view your current version of Python run the commmands below**
+
+.. code-block:: bash
+
+  $ brew install python  
+  $ python --version
+
 
 Our REST API & data collection workers are written in Python 3.6. We query the GitHub & GitLab API to collect data about issues, pull requests, contributors, and other information about a repository, so GitLab and GitHub access tokens are **required** for data collection.
 
 Optional:
 
 -  `Go 1.12 or later <https://golang.org/doc/install>`__
+
+.. note::
+  Go can be installed using homebrew with the following command
+
+.. code-block:: bash
+
+  $ brew install golang
 
 The ``value_worker`` uses a Go package called `scc <https://github.com/boyter/scc>`_ to run COCOMO calculations.
 Once you've installed Go, follow the appropriate steps for your system to install the ``scc`` package.
