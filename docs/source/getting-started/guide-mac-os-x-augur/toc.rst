@@ -1,10 +1,10 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~
-Mac OS X Installation
+MacOS Installation
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. note::
 
-   Hello world!
+   Database setup and installation documentation specifically tested using macOS.  
 
 .. toctree::
    :maxdepth: 1

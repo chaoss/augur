@@ -8,7 +8,7 @@ This section of the documentation details how to install Augur's Python library 
 
   1. The absence of a `GCC` or `Fortran` compiler, required by numpy and NLTK Python libraries. Look up how to install these compilers for your local operating system. Many times they simply need to be updated to a more current version.
 
-  2. Conflicting versions of Python: On Mac OS X, more often than not multiple versions of Python have been installed by the OS, brew, Anaconda, or a combination of both. The result is some python commands are drawn from different paths because of how they are linked in `/usr/local/bin`
+  2. Conflicting versions of Python: On macOS, more often than not multiple versions of Python have been installed by the OS, brew, Anaconda, or a combination of both. The result is some python commands are drawn from different paths because of how they are linked in `/usr/local/bin`
 
   3. Multiple, or conflicting versions of PostgreSQL, sometimes due to the absence of a functional `psql` function at the command line.
    
@@ -64,7 +64,10 @@ Optional:
 The ``value_worker`` uses a Go package called `scc <https://github.com/boyter/scc>`_ to run COCOMO calculations.
 Once you've installed Go, follow the appropriate steps for your system to install the ``scc`` package.
 
--  Install gcc OpenMP Support: `sudo apt-get install libgomp1` -- Ubuntu 
+-  Install gcc OpenMP Support on mac: `brew install gcc` 
+
+.. note::
+  GCC provides support for OpenMP starting from its version 4.2.
 
 The ``message_insights_worker`` uses a system level package called OpenMP. You will need this installed at the system level for that worker to "work". 
 
