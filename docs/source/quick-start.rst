@@ -93,9 +93,9 @@ PostgreSQL Installation
 
 .. code-block:: bash
    
-   $ sudo service postgresql start (starts the postgresql service)
-   $ sudo service postgresql status (Returns the port number and status of the server)
-   $ sudo service postgresql stop (stops the currently running postgresql service)
+   $ sudo service postgresql start {starts the postgresql service}
+   $ sudo service postgresql status {Returns the port number and status of the server}
+   $ sudo service postgresql stop {stops the currently running postgresql service}
 
 
 
@@ -118,8 +118,8 @@ Then, once you've connected to your PostgreSQL instance\:
 
     Few handy commands
 
-    postgres=# /conninfo (Returns the Databasename,Username,Socketpath and Routenumber);
-    postgres=# /q (To exit the PostgreSQL Instance)
+    postgres=# /conninfo {Returns the Databasename,Username,Socketpath and Routenumber};
+    postgres=# /q {To exit the PostgreSQL Instance}
 
     
 
