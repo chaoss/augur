@@ -15,7 +15,11 @@ Before you can install our schema, you will need to make sure you have write acc
 
     If you want to collect data over the long term, we strongly advise against `using a Docker container for your database <https://vsupalov.com/database-in-docker/>`_.
 
-If you're a newcomer to to PostgreSQL, you can follow their excellent instructions `here <https://www.postgresql.org/download/macosx/>`_ to set it up for macOS. We recommend using ``Postgres.app`` on macOS which can be installed `with this link <https://postgresapp.com/>`_. 
+If you're a newcomer to PostgreSQL, you can follow their excellent instructions `here <https://www.postgresql.org/download/macosx/>`_ to set it up for macOS. We recommend using ``Postgres.app`` on macOS which can be installed `with this link <https://postgresapp.com/>`_. Alternatively, if `homebrew <https://brew.sh/>`_ is installed, the following command can be used to install PostgreSQL.
+
+.. code-block:: postgresql 
+    
+    brew install postgres
 
 Creating a Database
 ~~~~~~~~~~~~~~~~~~~~~

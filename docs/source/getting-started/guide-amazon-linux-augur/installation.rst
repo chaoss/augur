@@ -23,6 +23,7 @@ Installing GO
 Augur requires a language called GO to fully install. This `simple method of installing`_ (shown directly below) works best, but a workaround is also listed in the event that it does not.
 
 .. code-block:: bash
+  
 	$ sudo yum install golang -y
 
 .. _simple method of installing: https://medium.com/cloud-security/go-get-go-download-install-8b48a0425717
