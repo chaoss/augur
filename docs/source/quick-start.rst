@@ -82,29 +82,46 @@ PostgreSQL Installation
 
 .. code-block:: bash
 
-	sudo apt update
-	sudo apt upgrade
-	sudo apt install software-properties-common
-	sudo apt install python3-dev
-	sudo apt install postgresql postgresql-contrib postgresql-client
-	sudo apt install build-essential
+  $	sudo apt update
+  $	sudo apt upgrade
+  $	sudo apt install software-properties-common
+  $	sudo apt install python3-dev
+  $	sudo apt install postgresql postgresql-contrib postgresql-client
+  $	sudo apt install build-essential
+
+- Running the PostgreSQL database server
+
+.. code-block:: bash
+   
+   $ sudo service postgresql start (starts the postgresql service)
+   $ sudo service postgresql status (Returns the port number and status of the server)
+   $ sudo service postgresql stop (stops the currently running postgresql service)
+
+
+
 
 
 - Create a PostgreSQL database for Augur to use
 
 .. code-block:: bash
 
-    $ sudo su -
-    $ su - postgres
+    $ sudo su - postgres
     $ psql
 
 Then, once you've connected to your PostgreSQL instance\:
 
 .. code-block:: postgresql
-
+    
     postgres=# CREATE DATABASE augur;
     postgres=# CREATE USER augur WITH ENCRYPTED PASSWORD 'password';
     postgres=# GRANT ALL PRIVILEGES ON DATABASE augur TO augur;
+
+    Few handy commands
+
+    postgres=# /conninfo (Returns the Databasename,Username,Socketpath and Routenumber);
+    postgres=# /q (To exit the PostgreSQL Instance)
+
+    
 
 Git Configuration
 ~~~~~~~~~~~~~~~~~~~~~~~~
