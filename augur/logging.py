@@ -16,13 +16,16 @@ from augur import ROOT_AUGUR_DIRECTORY
 
 logger = logging.getLogger(__name__)
 
-class AugurLogging():
 
-    simple_format_string = "[%(process)d] %(name)s [%(levelname)s] %(message)s"
-    verbose_format_string = "%(asctime)s,%(msecs)dms [PID: %(process)d] %(name)s [%(levelname)s] %(message)s"
-    cli_format_string = "CLI: [%(module)s.%(funcName)s] [%(levelname)s] %(message)s"
-    config_format_string = "[%(levelname)s] %(message)s"
-    error_format_string = "%(asctime)s [PID: %(process)d] %(name)s [%(funcName)s() in %(filename)s:L%(lineno)d] [%(levelname)s]: %(message)s"
+class AugurLogConfigurer:
+
+    simple_format_string = "[%(process)d] %(name)s [%(levelname)s] | {handler_tags} %(ExtraTags)s | %(message)s"
+    verbose_format_string = "%(asctime)s,%(msecs)dms [PID: %(process)d] %(name)s [%(levelname)s] | {handler_tags} %(" \
+                            "ExtraTags)s | %(message)s "
+    cli_format_string = "CLI: [%(module)s.%(funcName)s] [%(levelname)s] | {handler_tags} %(ExtraTags)s | %(message)s"
+    config_format_string = "[%(levelname)s] | {handler_tags} %(ExtraTags)s | %(message)s"
+    error_format_string = "%(asctime)s [PID: %(process)d] %(name)s [%(funcName)s() in %(filename)s:L%(lineno)d] [%(" \
+                          "levelname)s]: | {handler_tags} %(ExtraTags)s | %(message)s "
 
     @staticmethod
     def get_log_directories(augur_config, reset_logfiles=True):
@@ -61,23 +64,23 @@ class AugurLogging():
         self.formatters = {
             "simple": {
                 "class": "logging.Formatter",
-                "format": AugurLogging.simple_format_string
+                "format": AugurLogConfigurer.simple_format_string
             },
             "verbose": {
                 "class": "logging.Formatter",
-                "format": AugurLogging.verbose_format_string
+                "format": AugurLogConfigurer.verbose_format_string
             },
             "cli": {
                 "class": "logging.Formatter",
-                "format": AugurLogging.cli_format_string
+                "format": AugurLogConfigurer.cli_format_string
             },
             "config": {
                 "class": "logging.Formatter",
-                "format": AugurLogging.config_format_string
+                "format": AugurLogConfigurer.config_format_string
             },
             "error": {
                 "class": "logging.Formatter",
-                "format": AugurLogging.error_format_string
+                "format": AugurLogConfigurer.error_format_string
             }
         }
 
@@ -85,7 +88,7 @@ class AugurLogging():
 
         level = logging.INFO
         config_handler = StreamHandler()
-        config_handler.setFormatter(Formatter(fmt=AugurLogging.config_format_string))
+        config_handler.setFormatter(Formatter(fmt=AugurLogConfigurer.config_format_string))
         config_handler.setLevel(level)
 
         config_initialization_logger = logging.getLogger("augur.config")
@@ -94,7 +97,7 @@ class AugurLogging():
         config_initialization_logger.addHandler(config_handler)
         config_initialization_logger.propagate = False
 
-        coloredlogs.install(level=level, logger=config_initialization_logger, fmt=AugurLogging.config_format_string)
+        coloredlogs.install(level=level, logger=config_initialization_logger, fmt=AugurLogConfigurer.config_format_string)
 
         if disable_logs:
             self._disable_all_logging()
@@ -114,10 +117,10 @@ class AugurLogging():
         cli_logger.addHandler(cli_handler)
         cli_logger.propagate = False
 
-        coloredlogs.install(level=logging.INFO, logger=cli_logger, fmt=AugurLogging.cli_format_string)
+        coloredlogs.install(level=logging.INFO, logger=cli_logger, fmt=AugurLogConfigurer.cli_format_string)
 
     def _set_config(self, augur_config):
-        self.LOGS_DIRECTORY = AugurLogging.get_log_directories(augur_config, self._reset_logfiles)
+        self.LOGS_DIRECTORY = AugurLogConfigurer.get_log_directories(augur_config, self._reset_logfiles)
         self.LOG_LEVEL = augur_config.get_value("Logging", "log_level")
         self.QUIET = int(augur_config.get_value("Logging", "quiet"))
         self.DEBUG = int(augur_config.get_value("Logging", "debug"))
