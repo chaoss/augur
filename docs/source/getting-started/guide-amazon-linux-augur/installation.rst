@@ -6,7 +6,7 @@ This section of the documentation details how to install Augur's Python library 
 .. note::
   There are 3 main issues new developers encounter when first installing Augur: 
 
-  1. The absence of a `gcc` or `fortran` compiler, required by numpy and nltk python libraries. Look up how to install these compilers for your local operating system. Many times they simply need to be updated to a more current version.
+  1. The absence of a `gcc` or `fortran` compiler, required by numpy and nltk Python libraries. Look up how to install these compilers for your local operating system. Many times they simply need to be updated to a more current version.
 
   2. Conflicting versions of Python: The fix is platform specific. Some Python commands may be drawn from different paths because of how they are linked in `/usr/local/bin`. A clean install of Python from the terminal should be able to fix any issues.
 
@@ -14,15 +14,26 @@ This section of the documentation details how to install Augur's Python library 
 
 
 Prior to Installing
-~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
 
-.. note::
-  Redo this section - check to make sure this simple_ formatting doesn't work. This may have been over complicated.
+=============
+Installing GO
+=============
 
-Augur requires a language called GO to fully install. There's a guide here_ for CentOS that can be adapted for the current version of GO and Amazon Linux without much difficulty. We recommend getting the latest version of GO from their website_ and following steps 2 and 3 from the guide (also listed below).
+Augur requires a language called GO to fully install. This `simple method of installing`_ (shown directly below) works best, but a workaround is also listed in the event that it does not.
+
+.. code-block:: bash
+	$ sudo yum install golang -y
+
+.. _simple method of installing: https://medium.com/cloud-security/go-get-go-download-install-8b48a0425717
+
+==============
+The Workaround
+==============
+
+There's a guide here_ for CentOS that can be adapted for the current version of GO and Amazon Linux without much difficulty. We recommend getting the latest version of GO from their website_ and following steps 2 and 3 from the guide (also listed below).
 
 .. _here: https://www.digitalocean.com/community/tutorials/how-to-install-go-1-7-on-centos-7
-.. _simple: https://medium.com/cloud-security/go-get-go-download-install-8b48a0425717
 .. _website: https://go.dev/dl/
 
 .. code-block:: bash
@@ -61,12 +72,12 @@ Required:
 -  `GitLab Access Token <https://gitlab.com/profile/personal_access_tokens>`__
 -  `Python 3.6 - 3.10 <https://www.python.org/downloads/>`__
 
-**Python 3.10 is the latest version supported. If your machine workers (which work with TensorFlow) do not work, then try downgrading your version of Python.**
+**Python 3.10 is the latest version supported. If your machine workers (which work with TensorFlow) do not work, then try downgrading your version of Python. [Older versions of Augur support Python 3.6]**
 
 Our REST API & data collection workers are written in Python 3.6. We query the GitHub & GitLab API to collect data about issues, pull requests, contributors, and other information about a repository, so GitLab and GitHub access tokens are **required** for data collection.
 
 .. note::
-  If you are just trying Augur out, no GitLab token is necessary.
+  If you are simply trying Augur out, no GitLab token is necessary.
 
 Optional:
 
@@ -96,21 +107,18 @@ We use Vue.js as our frontend web framework, and ``npm`` as our package manager.
 Visualization API calls
 ---------------------------
 
-On Ubuntu and other Linux flavors: if you want to use the new Augur API Calls that generate downloadable graphics developed in the `https://github.com/chaoss/augur-community-reports` repository, you need to install the `firefox-geckodriver` (on Ubuntu or Red Hat Fedora) or `geckodriver` on Mac OSX, at the system level. This dependency exists because the Bokeh libraries we use for these APIs require a web browser engine. 
-
-For Fedora You Can Use
+On Amazon Linux flavors: if you want to use the new Augur API Calls that generate downloadable graphics developed in the `https://github.com/chaoss/augur-community-reports` repository, you need to install the `chromedriver`.
 
 .. code-block:: bash
 
-    - which firefox-geckodriver
-    - if nothing returned, then: 
-    - sudo dnf install firefox-geckodriver
-
-.. note::
-  If you have BOTH firefox-geckodriver AND chromedriver installed the visualization API will not work. 
+    $ sudo amazon-linux-extras install epel -y
+    $ sudo yum install chromium
   
 .. note::
-  *This has not been tested for Amazon Linux.*
+  A possibly better solution is instead installing `firefox-geckodriver`; however, this does not appear to be built-in and requires far more configuration. We have hence chosen not to include it.
+  
+.. note::
+  If you have BOTH firefox-geckodriver AND chromedriver installed the visualization API will not work. 
 
 
 Installing Augur

@@ -4,7 +4,7 @@ Amazon Linux Installation
 
 .. note::
 
-   Hello world! This is great and cool! 
+   This has been tested on Amazon Linux 2. It should work for Amazon Linux as well.
 
 .. toctree::
    :maxdepth: 1
