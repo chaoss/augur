@@ -12,3 +12,15 @@ The Quickstart will be largely left alone, except for troubleshooting that we pl
 During this Sprint we have updated installation.rst within the Detailed Installation section, previously Getting Started, in order to make it flow in parallel with the Quickstart. We have changed the name of the section to add clarity for users. We have also made the macOS section into a link so that the flow for non-mac users is better. This makes the detailed insttallation more parallel with the quickstart, making it easier for users to switch back and forth between the installation guides, using the detailed installation to understand what the commands are doing in-depth. In the fourth Sprint we plan to add troubleshooting for common problems we ran into while testing to this section as well. The Collecting data, Augur's Frontend, and Command Line interface will be left as they were before as we did not feel these were within the scope of our project.
 
 All of these changes can be seen within the .rst files within the augur/Sprint3/docs/source section of this branch. We have also added images from the site in the augur/Sprint3 section of this branch which shows the main changes that we have updated this site with. This is for ease of grading since some of the changes are more subtle. 
+
+Explanation of each image:
+
+The tableOfContents.png shows the updates we have made to the overall flow of the site, following the details and reasons made in our Design Document. This includes section name changes and the moving of sections in order to make it flow better with how a user would go about installation. These updates are in the toc tree within the index.rst file.
+
+The augurHomeIndex.png shows the updates we have made to the index.rst which is the landing page for Augur. We have updated the flow so that the user has an understanding of what Augur is before they beginning looking any further into the project.
+
+The navigationSection.png show the Navigation section that we have added to the index.rst, the landing home page for the site. This is to help guide users that do not know much about the installation of the project or the contents of the site so that they can choose the installation method that is preferred. 
+
+The macLink.png shows the changes made in the installation.rst in the Detailed Installation section of the site. This change takes out a section that is only for Mac users and changes it to a link so that other users do not have to scroll all the way through instructions that might not be for them. This helps with making the flow more parallel with the Quickstart’s flow. 
+
+The macSection.png shows the section that the link within the installation.rst in the Detailed Installation section of the site will send you. This is an additional .rst file, mac.rst, that also includes a link back to the installation page so that the user can continue on with the installation after doing the necessary updates, also helping with the flow of the site. 
