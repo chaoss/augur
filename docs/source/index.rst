@@ -1,28 +1,11 @@
-Welcome to the Augur Documentation!
+Augur Home
 ==================================
 
-Welcome Augur's documentation is split into Seven parts,if you’re new to the project, we recommend giving it a once-over as a gentle introduction. Otherwise, feel free to hop right into the docs!
+Augur Documentation
+~~~~~~~~~~~~~~~~~~~
 
-.. toctree::
-   :maxdepth: 2
-
-   quick-start
-   deployment/toc
-   getting-started/toc
-   development-guide/toc
-   rest-api/api
-   docker/toc
-   schema/toc
-.. 
-  library-documentation/toc
-.. 
-  deployment/toc
-.. 
-  schema/toc
-
-.. image:: development-guide/images/augur-architecture.png 
-  :width: 700
-  :alt: Development guide image overview of augur 
+Welcome to the Augur project's official documentation. Below is a brief primer on the project and its goals.
+If you're new to the project, we recommend giving it a once-over as a gentle introduction. Otherwise, feel free to hop right into the docs!
 
 What is Augur?
 ~~~~~~~~~~~~~~~~
@@ -31,9 +14,21 @@ Augur is a software suite for collecting and measuring structured data about fre
 
 Augur’s main focus is to measure the overall health and sustainability of open source projects, as these types of projects are system critical for nearly every software organization or company. We do this by gathering data about project repositories and normalizing that into our data model to provide useful metrics about your project’s health. For example, one of our metrics is Burstiness. Burstiness – how are short timeframes of intense activity, followed by a corresponding return to a typical pattern of activity, observed in a project? This can paint a picture of a project’s focus and gain insight into the potential stability of a project and how its typical cycle of updates occurs. There are many more useful metrics, and you can find a full list of them here.
 
-Augur gathers trace data for a group of repositories, normalize it inot our data model, and provide a variety of metrics about the said data.
-
 This software is developed as part of the CHAOSS (Community Health Analytics Open Source Software) project. Many of our metrics are implementations of the metrics defined by our awesome community. You can find more information about how to get involved on the CHAOSS website. If you want to see augur in action, you can view CHAOSS’s augur instance.
+
+Navigation
+~~~~~~~~~~~
+
+Augur can be installed locally or on a web server. If you plan to install on a web server, please follow the 'Web Server Configuration' link in the table of contents to the left before beginning installation.
+
+Once you have your web server configured, if necessary, there are two options for Augur installation: Quickstart and Detailed Installation. The Quickstart is intended for users that are familiar with setting up DevOps environments and will allow you to get Augur working at quickly as possible. The Detailed Installation is an entry-level walkthrough of the Augur project that will explain the necessary commands step-by-step and allow you to install Augur with more information. Please choose either the 'Quickstart' or 'Detailed Installation' link in the table of contents to the left to begin the installation process.
+
+- :ref: 'Quickstart <quick-start.rst>' _
+- :ref: 'detailed-installation'
+
+.. image:: development-guide/images/augur-architecture.png
+  :width: 700
+  :alt: Development guide image overview of augur
 
 Current maintainers
 --------------------
@@ -75,3 +70,21 @@ GSoC 2019 participants
 GSoC 2018 participants
 -----------------------
 - `Keanu Nichols <https://github.com/kmn5409/>`_
+
+.. toctree::
+   :hidden:
+   :maxdepth: 2
+
+   web-server-config/toc
+   quick-start
+   detailed-installation/toc
+   development-guide/toc
+   rest-api/api
+   docker/toc
+   schema/toc
+..
+  library-documentation/toc
+..
+  deployment/toc
+..
+  schema/toc

@@ -1,5 +1,5 @@
-Deployment 
-================
+Web Server Configuration
+========================
 
 This section details describes production deployment of Augur. 
 
@@ -7,7 +7,6 @@ This section details describes production deployment of Augur.
 .. toctree::
    :maxdepth: 1
 
-   server-deployment
    nginx-configuration
 
 
