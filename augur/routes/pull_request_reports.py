@@ -9,6 +9,8 @@ import json
 from flask import request, send_file, Response
 import math
 
+import plotly.graph_objects as go
+
 from bokeh.palettes import Colorblind, mpl, Category20
 from bokeh.layouts import gridplot, column
 from bokeh.models.annotations import Title
@@ -1909,4 +1911,25 @@ def create_routes(server):
         filename = export_png(grid, timeout=180)
 
         # return sendfile(newt)
+        return send_file(filename)
+
+    
+
+    @server.app.route('/{}/pull_request_reports/Average_PR_duration/'.format(server.api_version), methods=["GET"])
+    def issues_closed_per_week():
+        r = request(url = 'http://augur.chaoss.io/api/unstable/repos/25205/closed-issues-count', method = 'get')
+        e = r.json()
+        df = pd.DataFrame(e)
+
+        reponame = df['repo_name'][0]
+        df['date'] = pd.to_datetime(df.date, format='%Y-%m-%d %H:%M:%S')
+
+        fig = go.Figure([go.Histogram(x=df['date'], y=df['closed_count'])])
+        fig.update_layout(title_text="Issues Closed <br>Count of how many issues closed for repo \"" + reponame + "\"")
+        fig.update_xaxes(title_text="Date")
+        fig.update_yaxes(title_text="Closed Issues Count")
+        #fig.show()
+
+        filename = export_png(fig)
+
         return send_file(filename)
