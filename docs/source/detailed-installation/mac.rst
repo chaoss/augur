@@ -26,3 +26,6 @@ macOS takes "helpful" measures to prevent Python subprocesses (which Augur uses)
 .. warning::
   If you skip this step, you'll likely see all housekeeper jobs randomly exiting for no reason, and the Gunicorn server will not behave nicely either. Skip this step at your own risk!
 
+Please follow this link back to the Detailed Installation guide to continue installation once you have completed this step:
+
+- :ref: 'detailed-installation'
