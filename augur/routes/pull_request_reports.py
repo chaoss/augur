@@ -1915,7 +1915,7 @@ def create_routes(server):
 
     
 
-    @server.app.route('/{}/pull_request_reports/Average_PR_duration/'.format(server.api_version), methods=["GET"])
+    @server.app.route('/{}/pull_request_reports/closed-issues-per-week/'.format(server.api_version), methods=["GET"])
     def issues_closed_per_week():
         r = request(url = 'http://augur.chaoss.io/api/unstable/repos/25205/closed-issues-count', method = 'get')
         e = r.json()
@@ -1932,4 +1932,4 @@ def create_routes(server):
 
         filename = export_png(fig)
 
-        return send_file(filename)
+        return send_file(filename)au
