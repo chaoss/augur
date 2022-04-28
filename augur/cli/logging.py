@@ -22,8 +22,16 @@ def directory(logs_dir):
 @click.argument("tags", default=None)
 @pass_logs_dir
 def log_query(logs_dir, tags):
-    return
-
+    """
+    Query augur logs with tags comma separated
+    """
+    tagset = set(tags.split(','))
+    f = open(logs_dir + "/augur.log")
+    lines = f.readlines()
+    for line in lines:
+        linetags = line.split('|')[1].split(' ')
+        if tagset <= set(linetags):
+            print(line)
 
 @cli.command("errors")
 @click.argument("worker", default="all")
