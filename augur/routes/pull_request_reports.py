@@ -7,6 +7,7 @@ import datetime
 import json
 # from scipy import stats
 from flask import request, send_file, Response, Flask
+from requests import api_request
 import math
 
 import plotly.graph_objects as go
@@ -1921,7 +1922,7 @@ def create_routes(server):
     @server.app.route('/{}/pull_request_reports/closed-issues-per-week/'.format(server.api_version), methods=["GET"])
     def issues_closed_per_week():
         try:
-            r = request(url = 'http://augur.chaoss.io/api/unstable/repos/25205/closed-issues-count', method = 'get')
+            r = api_request(url = 'http://augur.chaoss.io/api/unstable/repos/25205/closed-issues-count', method = 'get')
             e = r.json()
             df = pd.DataFrame(e)
 
