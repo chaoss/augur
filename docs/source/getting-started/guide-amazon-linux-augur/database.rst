@@ -65,15 +65,6 @@ For example, if you were using ``psql`` to connect to an instance on your machin
 
 .. code-block:: bash
 
-    $ psql -h localhost -U postgres -p 5432
-
-Then, once you've connected to your PostgreSQL instance\:
-
-.. code-block:: postgresql
-
-    postgres=# CREATE DATABASE augur;
-    postgres=# CREATE USER augur WITH ENCRYPTED PASSWORD 'password';
-    postgres=# GRANT ALL PRIVILEGES ON DATABASE augur TO augur;
-
+    $ psql -h localhost -U augur -p 5432
 
 Once you've got the database setup, Augur will install the schema for you. You're now ready to `install Augur <installation.html>`_!
