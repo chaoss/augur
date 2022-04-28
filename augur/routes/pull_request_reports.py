@@ -6,7 +6,7 @@ import warnings
 import datetime
 import json
 # from scipy import stats
-from flask import request, send_file, Response
+from flask import request, send_file, Response, Flask
 import math
 
 import plotly.graph_objects as go
@@ -25,6 +25,8 @@ from bokeh.transform import dodge, factor_cmap, transform
 
 warnings.filterwarnings('ignore')
 
+app = Flask(__name__)
+app.debug = True
 
 def create_routes(server):
     def pull_request_data_collection(repo_id, start_date, end_date):
