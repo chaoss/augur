@@ -169,6 +169,10 @@ class Persistant():
         if self.config['quiet']:
             logger.disabled = True
 
+        #Alternative way to create and set up a logger:
+        #LoggerFactory.create_logger(...)
+        #how to provide relevant tags to this?
+
         self.logger = logger
 
     #database interface, the git interfaceable adds additional function to the super method.
@@ -255,7 +259,7 @@ class Persistant():
             try:
                 source_index = source_columns[index]
                 type_dict[subject_columns[index]] = type(source[source_index].values[0])
-                
+
                 #self.logger.info(f"Source data column is {source[source_index].values[0]}")
                 #self.logger.info(f"Type dict at {subject_columns[index]} is : {type(source[source_index].values[0])}")
             except Exception as e:
@@ -824,7 +828,7 @@ class Persistant():
                         table_name = table.name
 
                     sql = 'COPY {} ({}) FROM STDIN WITH (FORMAT CSV, encoding "UTF-8")'.format(
-                        table_name, columns)                        
+                        table_name, columns)
 
                     #(FORMAT CSV, FORCE_NULL(column_name))
 
@@ -845,14 +849,14 @@ class Persistant():
                         #self.logger.info("message committed")
                         dbapi_conn.commit()
                         # self.logger.debug("good dog. record committed! Watson, come quick!!!")
-                    except psycopg2.errors.UniqueViolation as e: 
+                    except psycopg2.errors.UniqueViolation as e:
                         self.logger.info(f"{e}")
-                        dbapi_conn.rollback()                        
+                        dbapi_conn.rollback()
                     except Exception as e:
                         self.print_traceback("Bulk insert error", e, True)
                         dbapi_conn.rollback()
 
-            try: 
+            try:
                 df = pd.DataFrame(insert)
                 if convert_float_int:
                     df = self._convert_float_nan_to_int(df)
@@ -874,7 +878,7 @@ class Persistant():
                     f"Inserted {len(insert)} rows in {time.time() - insert_start_time} seconds "
                     "thanks to postgresql's COPY FROM CSV! :)"
                 )
-            except Exception as e: 
+            except Exception as e:
                 self.logger.info(f"Bulk insert error 2: {e}. exception registered.")
 
         return insert_result, update_result
@@ -954,7 +958,7 @@ class Persistant():
             self.logger.debug('\n')
             self.logger.debug('\n')
             self.logger.debug('\n')
-            
+
             if column not in expanded_column.columns:
                 expanded_column[column] = None
             try:
@@ -967,7 +971,7 @@ class Persistant():
             except Exception as e:
                 self.print_traceback("_add_nested_columns", e, True)
 
-            finally: 
+            finally:
                 self.logger.debug(f"finished _add_nested_columns.")
 
         return df
@@ -1088,7 +1092,7 @@ class Persistant():
 
             #                 list(source_df[gh_merge_fields].itertuples(index=False))
             #             ))).fetchall()
-            # except psycopg2.errors.UniqueViolation as e: 
+            # except psycopg2.errors.UniqueViolation as e:
             # except psycopg2.errors.StatementTooComplex as e:
             self.logger.info("Retrieve pk statement too complex, querying all instead " +
                 "and performing partitioned merge.\n")
@@ -1313,14 +1317,14 @@ class Persistant():
 
     """
     Prints the traceback when an exception occurs
-    
+
     Params
         exception_message: String - Explain the location that the exception occurred
         exception: String - Exception object that python returns during an Exception
         debug_log: Boolean - Determines whether the message is printed to the debug log or info log
-        
+
     Notes
-        To print the location of the exception to the info log and the traceback to the debug log, 
+        To print the location of the exception to the info log and the traceback to the debug log,
         add a self.logger.info call then call self.print_traceback("", e) to print the traceback to only the debug log
     """
     def print_traceback(self, exception_message, exception, debug_log=True):
