@@ -12,7 +12,7 @@ import sqlalchemy as s
 import pandas as pd
 from sqlalchemy import MetaData
 
-from augur.logging import AugurLogging
+from augur.logging import AugurLogConfigurer
 from urllib.parse import urlparse
 
 import warnings

@@ -308,20 +308,20 @@ class ContributorInterfaceable(WorkerGitInterfaceable):
             self.config['log_level'] = 'DEBUG'
 
         if self.config['verbose']:
-            format_string = AugurLogging.verbose_format_string
+            format_string = AugurLogConfigurer.verbose_format_string
         else:
-            format_string = AugurLogging.simple_format_string
+            format_string = AugurLogConfigurer.simple_format_string
 
-        format_string = AugurLogging.verbose_format_string
+        format_string = AugurLogConfigurer.verbose_format_string
 
         # log_port = self.facade_com
 
         # Use stock python formatter for stdout
         formatter = Formatter(fmt=format_string)
         # User custom for stderr, Gives more info than verbose_format_string
-        error_formatter = Formatter(fmt=AugurLogging.error_format_string)
+        error_formatter = Formatter(fmt=AugurLogConfigurer.error_format_string)
         worker_type = "contributor_interface"
-        worker_dir = AugurLogging.get_log_directories(
+        worker_dir = AugurLogConfigurer.get_log_directories(
             self.augur_config, reset_logfiles=False) + "/workers/"
         Path(worker_dir).mkdir(exist_ok=True)
         logfile_dir = worker_dir + f"/{worker_type}/"

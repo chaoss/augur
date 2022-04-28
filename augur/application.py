@@ -17,7 +17,7 @@ import psycopg2
 from augur import ROOT_AUGUR_DIRECTORY
 from augur.metrics import Metrics
 from augur.config import AugurConfig
-from augur.logging import AugurLogging
+from augur.logging import AugurLogConfigurer
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +28,7 @@ class Application():
         """
         Reads config, creates DB session, and initializes cache
         """
-        self.logging = AugurLogging(disable_logs=disable_logs)
+        self.logging = AugurLogConfigurer(disable_logs=disable_logs)
         self.root_augur_dir = ROOT_AUGUR_DIRECTORY
         self.config = AugurConfig(self.root_augur_dir, given_config)
 

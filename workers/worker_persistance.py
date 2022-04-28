@@ -26,7 +26,7 @@ from pathlib import Path
 from urllib.parse import urlparse, quote
 from sqlalchemy.ext.automap import automap_base
 from augur.config import AugurConfig
-from augur.logging import AugurLogging
+from augur.logging import AugurLogConfigurer
 from sqlalchemy.sql.expression import bindparam
 from concurrent import futures
 import dask.dataframe as dd
@@ -119,16 +119,16 @@ class Persistant():
             self.config['log_level'] = 'DEBUG'
 
         if self.config['verbose']:
-            format_string = AugurLogging.verbose_format_string
+            format_string = AugurLogConfigurer.verbose_format_string
         else:
-            format_string = AugurLogging.simple_format_string
+            format_string = AugurLogConfigurer.simple_format_string
 
         #Use stock python formatter for stdout
         formatter = Formatter(fmt=format_string)
         #User custom for stderr, Gives more info than verbose_format_string
-        error_formatter = Formatter(fmt=AugurLogging.error_format_string)
+        error_formatter = Formatter(fmt=AugurLogConfigurer.error_format_string)
 
-        worker_dir = AugurLogging.get_log_directories(self.augur_config, reset_logfiles=False) + "/workers/"
+        worker_dir = AugurLogConfigurer.get_log_directories(self.augur_config, reset_logfiles=False) + "/workers/"
         Path(worker_dir).mkdir(exist_ok=True)
         logfile_dir = worker_dir + f"/{self.worker_type}/"
         Path(logfile_dir).mkdir(exist_ok=True)
