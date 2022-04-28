@@ -1329,7 +1329,9 @@ def create_routes(server):
 
         print(json_response["data"])
 
-        return json_response
+        if return_data == "true":
+
+            return json_response["data"]
 
 
         # loop through data and add it to the plot
