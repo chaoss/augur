@@ -12,9 +12,8 @@ This section of the documentation details how to install Augur's Python library 
 
   3. Multiple, or conflicting versions of PostgreSQL, sometimes due to the absence of a functional `psql` function at the command line.
 
-If you’re running Augur on macOS, follow the link to update your shell’s initialization script or your housekeeper jobs will not run correclty.
-
-- :ref: 'macOs Errata'
+.. warning::
+   If you’re running Augur on macOS, please follow the 'macOs Errata' link in the table of contents to the left to update your shell’s initialization script or your housekeeper jobs will not run correclty. Then return to the installation page.
 
 Dependencies
 ~~~~~~~~~~~~~
