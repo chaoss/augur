@@ -1919,27 +1919,53 @@ def create_routes(server):
 
     
 
-    @server.app.route('/{}/pull_request_reports/closed-issues-per-week/'.format(server.api_version), methods=["GET"])
-    def issues_closed_per_week():
+    @server.app.route('/{}/pull_request_reports/closed-issues-per-month/'.format(server.api_version), methods=["GET"])
+    def issues_closed_per_month():
         try:
-            r = api_req.request(url = 'http://project4320.eastus.cloudapp.azure.com:5000/api/unstable/repos/25205/closed-issues-count', method = 'get')
+            # Get the data from the API
+            r = api_req.request(url = 'http://augur.chaoss.io/api/unstable/repos/25205/issues-closed', method = 'get')
             e = r.json()
             df = pd.DataFrame(e)
 
             reponame = df['repo_name'][0]
-            df['date'] = pd.to_datetime(df.date, format='%Y-%m-%d %H:%M:%S')
+            df['date'] = pd.to_datetime(df.date)
+            df['month'] = df['date'].dt.month.astype(str) + "/" + df['date'].dt.year.astype(str)
 
-            fig = go.Figure([go.Histogram(x=df['date'], y=df['closed_count'])])
-            fig.update_layout(title_text="Issues Closed <br>Count of how many issues closed for repo \"" + reponame + "\"")
-            fig.update_xaxes(title_text="Date")
-            fig.update_yaxes(title_text="Closed Issues Count")
+            fig = go.Figure([go.Histogram(x=df['month'], y=df['issues'])])
+            fig.update_layout(title_text="Number of closed issues per month for repo \"" + reponame + "\"")
+            fig.update_xaxes(title_text="Month/Year")
+            fig.update_yaxes(title_text="Number of closed issues")
             #fig.show()
 
             filename = "output.png"
             pio.write_image(fig, filename)
 
-            return send_file("/home/azureuser/augur/" + filename)
+            return send_file("/home/azureuser/augur" + filename)
         except Exception as e:
-            return Response(response=str(e),
-                mimetype='application/json',
-                status=200)
+            return Response(response = str(e), mimetype = 'application/json', status = 200)
+
+    @server.app.route('/{}/pull_request_reports/new-issues-per-month/'.format(server.api_version), methods=["GET"])
+    def new_issues_per_week():
+        try:
+            # Get the data from the API
+            r = api_req.request(url = 'http://augur.chaoss.io/api/unstable/repos/25205/issues-new', method = 'get')
+            e = r.json()
+            df = pd.DataFrame(e)
+
+            reponame = df['repo_name'][0]
+            df['date'] = pd.to_datetime(df.date)
+            df['month'] = df['date'].dt.month.astype(str) + "/" + df['date'].dt.year.astype(str)
+
+            # Create the graph
+            fig = go.Figure([go.Histogram(x=df['month'], y=df['issues'])])
+            fig.update_layout(title_text="Number of new issues per month for repo \"" + reponame + "\"")
+            fig.update_xaxes(title_text="Month/Year")
+            fig.update_yaxes(title_text="Number of new issues")
+            #fig.show()
+
+            filename = "output.png"
+            pio.write_image(fig, filename)
+
+            return send_file("/home/azureuser/augur" + filename)
+        except Exception as e:
+            return Response(response = str(e), mimetype = 'application/json', status = 200)
