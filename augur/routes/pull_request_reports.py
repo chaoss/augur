@@ -1920,20 +1920,25 @@ def create_routes(server):
 
     @server.app.route('/{}/pull_request_reports/closed-issues-per-week/'.format(server.api_version), methods=["GET"])
     def issues_closed_per_week():
-        r = request(url = 'http://augur.chaoss.io/api/unstable/repos/25205/closed-issues-count', method = 'get')
-        e = r.json()
-        df = pd.DataFrame(e)
+        try:
+            r = request(url = 'http://augur.chaoss.io/api/unstable/repos/25205/closed-issues-count', method = 'get')
+            e = r.json()
+            df = pd.DataFrame(e)
 
-        reponame = df['repo_name'][0]
-        df['date'] = pd.to_datetime(df.date, format='%Y-%m-%d %H:%M:%S')
+            reponame = df['repo_name'][0]
+            df['date'] = pd.to_datetime(df.date, format='%Y-%m-%d %H:%M:%S')
 
-        fig = go.Figure([go.Histogram(x=df['date'], y=df['closed_count'])])
-        fig.update_layout(title_text="Issues Closed <br>Count of how many issues closed for repo \"" + reponame + "\"")
-        fig.update_xaxes(title_text="Date")
-        fig.update_yaxes(title_text="Closed Issues Count")
-        #fig.show()
+            fig = go.Figure([go.Histogram(x=df['date'], y=df['closed_count'])])
+            fig.update_layout(title_text="Issues Closed <br>Count of how many issues closed for repo \"" + reponame + "\"")
+            fig.update_xaxes(title_text="Date")
+            fig.update_yaxes(title_text="Closed Issues Count")
+            #fig.show()
 
-        filename = "test.png"
-        pio.write_image(fig, filename)
+            filename = "test.png"
+            pio.write_image(fig, filename)
 
-        return send_file(filename)
+            return send_file(filename)
+        except Exception as e:
+            return Response(response=str(e),
+                mimetype='application/json',
+                status=200)
