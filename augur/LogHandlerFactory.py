@@ -6,7 +6,7 @@ Author = namedtuple("Author", "worker_type port")
 
 
 class LogHandlerFactory:
-    def __int__(self, log_tags: str, logfile_dir: str, author: Author, verbose: bool = False):
+    def __init__(self, log_tags: str, logfile_dir: str, author: Author, verbose: bool = False):
         self.log_tags = log_tags
         self.logfile_dir = logfile_dir
         self.author = author
