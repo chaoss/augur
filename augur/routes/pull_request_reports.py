@@ -1964,7 +1964,7 @@ def create_routes(server):
             fields = group_by_groups
 
             if "Not Merged / Rejected" not in fields:
-                fileds.append("Not Merged / Rejected")
+                fields.append("Not Merged / Rejected")
 
             if field not in fields:
                 print(f"{field} is not a valid field. FIX THIS")
