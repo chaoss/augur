@@ -1,6 +1,5 @@
 import click
 import os
-from os import walk
 import json
 import pandas as pd
 import tempfile
@@ -30,9 +29,9 @@ config_path = os.path.join(temp_dir, "test.config.json")
 def test_handler_exists():
 	try:
 		test_handler = create_handler("test", 1, ("first", "last"))
-		test_handler
+		test_handler != None
 	except:
-		print("Handler not created")
+		print("Handler not created, value is NULL")
 
 def test_handler_args():	
 	tag = "test"
@@ -43,4 +42,50 @@ def test_handler_args():
 	assert level.is_integer()
 	assert type(author) is tuple
 
-	test_handler1 = create_handler(tag, level, author)	
+	test_handler1 = create_handler(tag, level, author)
+
+def test_LHF_exists():
+	Author = namedtuple("Author", "worker_type port")
+	
+	try:
+		LHF = LogHandlerFactory.__init__("tags", "dir",Author, False)
+		LHF != None
+	except:
+		print("LogHandlerFactory was not initialized")
+
+def test_create_handler():
+	
+	try:
+		result = LogHandlerFactory.create_handler("tags",1)
+		result != None
+	except:
+		"Factory creation failed, result is NULL"
+
+def test_create_debug():
+	try:
+		result = LogHandlerFactory._create_debug_handler	
+		result != None
+	except:
+		"Debug Handler failed, value is NULL"
+
+def test_create_info():
+        try:
+                result = LogHandlerFactory._create_info_handler
+                result != None
+        except:
+                "Info Handler failed, value is NULL"
+
+def test_create_error():
+        try:
+                result = LogHandlerFactory._create_error_handler
+                result != None
+        except:
+                "Error Handler failed, value is NULL"
+
+##def test_log_query():
+
+##def test_log_format():
+
+##def log_location():
+
+##def test_workers_log():
