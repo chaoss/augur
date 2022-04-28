@@ -10,6 +10,7 @@ from flask import request, send_file, Response, Flask
 import math
 
 import plotly.graph_objects as go
+import plotly.io as pio
 
 from bokeh.palettes import Colorblind, mpl, Category20
 from bokeh.layouts import gridplot, column
@@ -1932,6 +1933,7 @@ def create_routes(server):
         fig.update_yaxes(title_text="Closed Issues Count")
         #fig.show()
 
-        filename = export_png(fig)
+        filename = "test.png"
+        pio.write_image(fig, filename)
 
         return send_file(filename)
