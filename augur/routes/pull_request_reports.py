@@ -1305,33 +1305,43 @@ def create_routes(server):
             maximum = max(possible_maximums) * 1.15
             ideal_difference = maximum * 0.064
 
-            merged_data_piece = {
+            data_piece = {
                 "year": y_value,
-                "mean_days_to_first_response": y_merged_data.iloc[0]["days_to_first_response_mean"] if len(y_merged_data) > 0 else None,
-                "mean_days_to_last_response": y_merged_data.iloc[0]["days_to_last_response_mean"] if len(y_merged_data) > 0 else None,
-                "merged_mean_days_to_close": y_merged_data.iloc[0][time_unit + '_to_close_mean'] if len(y_merged_data) > 0 else None,
-                "not_merged_mean_days_to_close": None
+                "merged_data": {
+                    "mean_days_to_first_response": y_merged_data.iloc[0]["days_to_first_response_mean"] if len(y_merged_data) > 0 else None,
+                    "mean_days_to_last_response": y_merged_data.iloc[0]["days_to_last_response_mean"] if len(y_merged_data) > 0 else None,
+                    "mean_days_to_close": y_merged_data.iloc[0][time_unit + '_to_close_mean'] if len(y_merged_data) > 0 else None,
+                },
+                "not_merged_data": {
+                    "mean_days_to_first_response": y_not_merged_data.iloc[0]["days_to_first_response_mean"] if len(y_not_merged_data) > 0 else None,
+                    "mean_days_to_last_response": y_merged_data.iloc[0]["days_to_last_response_mean"] if len(y_merged_data) > 0 else None,
+                    "mean_days_to_close": y_not_merged_data.iloc[0][time_unit + '_to_close_mean'] if len(y_not_merged_data) > 0 else None
+                }
             }
 
-            not_merged_data_piece = {
-                "year": y_value,
-                "mean_days_to_first_response": y_not_merged_data.iloc[0]["days_to_first_response_mean"] if len(y_not_merged_data) > 0 else None,
-                "mean_days_to_last_response": y_not_merged_data.iloc[0]["days_to_last_response_mean"] if len(y_not_merged_data) > 0 else None,
-                "merged_mean_days_to_close": None,
-                "not_merged_mean_days_to_close": y_not_merged_data.iloc[0][time_unit + '_to_close_mean'] if len(y_not_merged_data) > 0 else None
-            }
-
-            json_response["data"].append(merged_data_piece)
-            json_response["data"].append(not_merged_data_piece)
+            json_response["data"].append(data_piece)
 
             y_merged_data_list.append(y_merged_data)
             y_not_merged_data_list.append(y_not_merged_data)
 
-        print(json_response["data"])
+        print("Made it")
+        print(return_data)
+
+        {'data': [
+            {'year': '2015', 
+            'merged_data': {'mean_days_to_first_response': 1.0, 'mean_days_to_last_response': 9.1, 'mean_days_to_close': 1.6}, 
+            'not_merged_data': {'mean_days_to_first_response': 1.8, 'mean_days_to_last_response': 9.1, 'mean_days_to_close': 6.3}}, {'year': '2016', 'merged_data': {'mean_days_to_first_response': 1.8, 'mean_days_to_last_response': 11.8, 'mean_days_to_close': 5.9}, 'not_merged_data': {'mean_days_to_first_response': 3.5, 'mean_days_to_last_response': 11.8, 'mean_days_to_close': 33.5}}, {'year': '2020', 'merged_data': {'mean_days_to_first_response': None, 'mean_days_to_last_response': None, 'mean_days_to_close': None}, 'not_merged_data': {'mean_days_to_first_response': 10.9, 'mean_days_to_last_response': None, 'mean_days_to_close': 957.1}}, {'year': '2017', 'merged_data': {'mean_days_to_first_response': 2.4, 'mean_days_to_last_response': 9.5, 'mean_days_to_close': 7.1}, 'not_merged_data': {'mean_days_to_first_response': 7.1, 'mean_days_to_last_response': 9.5, 'mean_days_to_close': 38.1}}, {'year': '2018', 'merged_data': {'mean_days_to_first_response': 1.6, 'mean_days_to_last_response': 9.1, 'mean_days_to_close': 8.7}, 'not_merged_data': {'mean_days_to_first_response': 2.8, 'mean_days_to_last_response': 9.1, 'mean_days_to_close': 82.4}}, {'year': '2019', 'merged_data': {'mean_days_to_first_response': 16.4, 'mean_days_to_last_response': 61.2, 'mean_days_to_close': 257.7}, 'not_merged_data': {'mean_days_to_first_response': 4.9, 'mean_days_to_last_response': 61.2, 'mean_days_to_close': 477.7}}, {'year': '2021', 'merged_data': {'mean_days_to_first_response': 0.1, 'mean_days_to_last_response': 34.0, 'mean_days_to_close': 883.8}, 'not_merged_data': {'mean_days_to_first_response': 1.8, 'mean_days_to_last_response': 34.0, 'mean_days_to_close': 1059.0}}
+            ]
+        }
+
 
         if return_data == "true":
 
-            return json_response["data"]
+            print(json_response)
+
+            print("return json")
+
+            return json_response
 
 
         # loop through data and add it to the plot
@@ -1952,6 +1962,9 @@ def create_routes(server):
         def return_data_point(date, data_value, field):
 
             fields = group_by_groups
+
+            if "Not Merged / Rejected" not in fields:
+                fileds.append("Not Merged / Rejected")
 
             if field not in fields:
                 print(f"{field} is not a valid field. FIX THIS")
