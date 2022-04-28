@@ -72,6 +72,7 @@ We recommend leaving the defaults in place for the insight worker unless you are
         'endpoint_name_1': 'field_2_of_endpoint',
         'endpoint_name_2': 'field_1_of_endpoint',
         ...
+        
     }
 
     # defaults to the following
@@ -82,6 +83,7 @@ We recommend leaving the defaults in place for the insight worker unless you are
         "code-changes-lines": "added",
         "reviews": "pull_requests",
         "contributors-new": "new_contributors"
+        
     }
 
 ``value_worker``

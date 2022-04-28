@@ -14,11 +14,11 @@ This section of the documentation details how to install Augur's Python library 
 
 
 Prior to Installing
-~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~
 
-=============
+
 Installing GO
-=============
+-------------
 
 Augur requires a language called GO to fully install. This `simple method of installing`_ (shown directly below) works best, but a workaround is also listed in the event that it does not.
 
@@ -28,9 +28,8 @@ Augur requires a language called GO to fully install. This `simple method of ins
 
 .. _simple method of installing: https://medium.com/cloud-security/go-get-go-download-install-8b48a0425717
 
-==============
 The Workaround
-==============
+---------------
 
 There's a guide here_ for CentOS that can be adapted for the current version of GO and Amazon Linux without much difficulty. We recommend getting the latest version of GO from their website_ and following steps 2 and 3 from the guide (also listed below).
 

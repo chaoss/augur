@@ -1,5 +1,5 @@
 Welcome to the Augur Documentation!
-==================================
+====================================
 
 Welcome Augur's documentation is split into Seven parts,if you’re new to the project, we recommend giving it a once-over as a gentle introduction. Otherwise, feel free to hop right into the docs!
 
