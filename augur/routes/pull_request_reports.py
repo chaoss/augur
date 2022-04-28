@@ -1146,10 +1146,51 @@ def create_routes(server):
 
         return_json = request.args.get('return_json', "false")
         return_data = request.args.get('return_data', "false").lower()
+        pr_query = salc.sql.text(f"""
+            SELECT
+				augur_data.pull_requests.pr_merged_at,
+				augur_data.pull_requests.pr_closed_at,
+				date_part( 'year', pr_closed_at :: DATE ) AS CLOSED_YEAR,
+				date_part( 'month', pr_closed_at :: DATE ) AS CLOSED_MONTH,
+                ( EXTRACT ( EPOCH FROM first_response_time ) - EXTRACT ( EPOCH FROM pull_requests.pr_created_at ) ) / 86400 AS days_to_first_response,                        
+                ( EXTRACT ( EPOCH FROM last_response_time ) - EXTRACT ( EPOCH FROM pull_requests.pr_created_at ) ) / 86400 AS days_to_last_response,
+                ( EXTRACT ( EPOCH FROM pull_requests.pr_closed_at ) - EXTRACT ( EPOCH FROM pull_requests.pr_created_at ) ) / 86400 AS days_to_close
+	        FROM
+			augur_data.pull_requests JOIN (
+            SELECT pull_requests.pull_request_id,
+                    MIN(message.msg_timestamp) AS first_response_time,
+                    COUNT(DISTINCT message.msg_timestamp) AS comment_count,
+                    MAX(message.msg_timestamp) AS last_response_time,
+                    (MAX(message.msg_timestamp) - MIN(message.msg_timestamp)) / COUNT(DISTINCT message.msg_timestamp) AS average_time_between_responses
+                    FROM augur_data.pull_requests, augur_data.repo, augur_data.pull_request_message_ref, augur_data.message
+                    WHERE repo.repo_id = {repo_id}
+                            AND repo.repo_id = pull_requests.repo_id
+                            AND pull_requests.pull_request_id = pull_request_message_ref.pull_request_id
+                            AND pull_request_message_ref.msg_id = message.msg_id
+                    GROUP BY pull_requests.pull_request_id
+            ) response_times
+			ON pull_requests.pull_request_id = response_times.pull_request_id
+            WHERE augur_data.pull_requests.pr_src_state = 'closed'
+                        """)
+        closed_prs = pd.read_sql(pr_query, server.augur_app.database)
 
-        df_type = get_df_tuple_locations()
+        closed_prs['pr_merged_at'] = closed_prs['pr_merged_at'].fillna(0)
+        closed_prs['merged_flag'] = 'Not Merged / Rejected'
+        closed_prs['merged_flag'].loc[closed_prs['pr_merged_at'] != 0] = 'Merged / Accepted'
+        del closed_prs['pr_merged_at']
 
-        df_tuple = pull_request_data_collection(repo_id=repo_id, start_date=start_date, end_date=end_date)
+        closed_prs[['closed_year', 'closed_month']] = closed_prs[['closed_year', 'closed_month']].fillna(-1).astype(int).astype(
+            str)
+
+        repo_name = get_repo_name(repo_id)
+        
+        # get repo_name 
+        repo_name = get_repo_name(repo_id)
+
+
+        # df_type = get_df_tuple_locations()
+
+        # df_tuple = pull_request_data_collection(repo_id=repo_id, start_date=start_date, end_date=end_date)
 
         time_unit = 'days'
         x_max = 95
@@ -1160,21 +1201,25 @@ def create_routes(server):
         # gets pr_closed data
         # selects only need columns (pr_closed_needed_columns)
         # removes columns that cannot be NULL (pr_closed_not_null_columns)
-        input_df = df_tuple[df_type["pr_closed"]]
-        needed_columns = ['repo_id', 'repo_name', y_axis, 'merged_flag', time_unit + '_to_first_response',
-                          time_unit + '_to_last_response', time_unit + '_to_close']
-        input_df = filter_data(input_df, needed_columns)
+        # input_df = df_tuple[df_type["pr_closed"]]
+        # needed_columns = ['repo_id', 'repo_name', y_axis, 'merged_flag', time_unit + '_to_first_response',
+        #                   time_unit + '_to_last_response', time_unit + '_to_close']
+        # input_df = filter_data(input_df, needed_columns)
+
+
+        not_null_columns = [y_axis, 'merged_flag', time_unit + '_to_first_response']
+        input_df = remove_rows_with_null_values(closed_prs, not_null_columns)
 
         if len(input_df) == 0:
             return Response(response="There is no data for this repo, in the database you are accessing",
                             mimetype='application/json',
                             status=200)
 
-        repo_dict = {repo_id: input_df.loc[input_df['repo_id'] == repo_id].iloc[0]['repo_name']}
+        # repo_dict = {repo_id: input_df.loc[input_df['repo_id'] == repo_id].iloc[0]['repo_name']}
 
         driver_df = input_df.copy()  # deep copy input data so we do not alter the external dataframe
 
-        title_beginning = '{}: '.format(repo_dict[repo_id])
+        title_beginning = '{}: '.format(repo_name)
         plot_width = 950
         p = figure(toolbar_location=None, y_range=sorted(driver_df[y_axis].unique()), plot_width=plot_width,
                    plot_height=450,  # 75*len(driver_df[y_axis].unique()),
@@ -1196,6 +1241,10 @@ def create_routes(server):
 
         y_merged_data_list = []
         y_not_merged_data_list = []
+
+        json_response = {
+            "data": []
+        }
 
         # calculate data frist time to obtain the maximum and make sure there is message data
         for y_value in driver_df[y_axis].unique():
@@ -1247,14 +1296,41 @@ def create_routes(server):
                 y_not_merged_data[time_unit + '_to_last_response_mean'] = 0.00
                 y_not_merged_data[time_unit + '_to_close_mean'] = 0.00
 
-            possible_maximums.append(max(y_merged_data[time_unit + '_to_close_mean']))
-            possible_maximums.append(max(y_not_merged_data[time_unit + '_to_close_mean']))
+            if len(y_merged_data[time_unit + '_to_close_mean']) > 0:
+                possible_maximums.append(max(y_merged_data[time_unit + '_to_close_mean']))
+
+            if len(y_not_merged_data[time_unit + '_to_close_mean']) > 0:
+                possible_maximums.append(max(y_not_merged_data[time_unit + '_to_close_mean']))
 
             maximum = max(possible_maximums) * 1.15
             ideal_difference = maximum * 0.064
 
+            merged_data_piece = {
+                "year": y_value,
+                "mean_days_to_first_response": y_merged_data.iloc[0]["days_to_first_response_mean"] if len(y_merged_data) > 0 else None,
+                "mean_days_to_last_response": y_merged_data.iloc[0]["days_to_last_response_mean"] if len(y_merged_data) > 0 else None,
+                "merged_mean_days_to_close": y_merged_data.iloc[0][time_unit + '_to_close_mean'] if len(y_merged_data) > 0 else None,
+                "not_merged_mean_days_to_close": None
+            }
+
+            not_merged_data_piece = {
+                "year": y_value,
+                "mean_days_to_first_response": y_not_merged_data.iloc[0]["days_to_first_response_mean"] if len(y_not_merged_data) > 0 else None,
+                "mean_days_to_last_response": y_not_merged_data.iloc[0]["days_to_last_response_mean"] if len(y_not_merged_data) > 0 else None,
+                "merged_mean_days_to_close": None,
+                "not_merged_mean_days_to_close": y_not_merged_data.iloc[0][time_unit + '_to_close_mean'] if len(y_not_merged_data) > 0 else None
+            }
+
+            json_response["data"].append(merged_data_piece)
+            json_response["data"].append(not_merged_data_piece)
+
             y_merged_data_list.append(y_merged_data)
             y_not_merged_data_list.append(y_not_merged_data)
+
+        print(json_response["data"])
+
+        return json_response
+
 
         # loop through data and add it to the plot
         for index in range(0, len(y_merged_data_list)):
@@ -1294,18 +1370,19 @@ def create_routes(server):
             p.add_layout(labels)
 
             # if the difference between two values is less than 6.4 percent move the second one to the right 30 pixels
-            if (max(y_merged_data[time_unit + '_to_last_response_mean']) - max(
-                    y_merged_data[time_unit + '_to_first_response_mean'])) < ideal_difference:
-                merged_x_offset = 30
-            else:
-                merged_x_offset = 0
-
+            merged_x_offset = 30
+            # if (max(y_merged_data[time_unit + '_to_last_response_mean']) - max(
+            #         y_merged_data[time_unit + '_to_first_response_mean'])) < ideal_difference:
+            #     merged_x_offset = 30
+            # else:
+                
+            not_merged_x_offset = 30
             # if the difference between two values is less than 6.4 percent move the second one to the right 30 pixels
-            if (max(y_not_merged_data[time_unit + '_to_last_response_mean']) - max(
-                    y_not_merged_data[time_unit + '_to_first_response_mean'])) < ideal_difference:
-                not_merged_x_offset = 30
-            else:
-                not_merged_x_offset = 0
+            # if (max(y_not_merged_data[time_unit + '_to_last_response_mean']) - max(
+            #         y_not_merged_data[time_unit + '_to_first_response_mean'])) < ideal_difference:
+            #     not_merged_x_offset = 30
+            # else:
+            #     not_merged_x_offset = 0
 
             # if there is only one bar set the y_offsets so the labels will not overlap the bars
             if len(driver_df[y_axis].unique()) == 1:
