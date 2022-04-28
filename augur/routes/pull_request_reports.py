@@ -1938,7 +1938,7 @@ def create_routes(server):
             filename = "test.png"
             pio.write_image(fig, filename)
 
-            return send_file(filename)
+            return send_file("/home/azureuser/augur/" + filename)
         except Exception as e:
             return Response(response=str(e),
                 mimetype='application/json',
