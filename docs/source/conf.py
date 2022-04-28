@@ -48,7 +48,8 @@ extensions = ['sphinx.ext.autodoc',
     'sphinx.ext.githubpages',
     'sphinx_rtd_theme',
     'sphinxcontrib.openapi',
-    'sphinxcontrib.redoc'
+    'sphinxcontrib.redoc',
+    'sphinx_copybutton'
 ]
 
 redoc = [

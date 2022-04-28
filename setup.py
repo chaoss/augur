@@ -87,5 +87,6 @@ setup(
         "console_scripts": [
             "augur=augur.cli._multicommand:run"
         ],
+    
     }
 )
