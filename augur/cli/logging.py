@@ -23,10 +23,9 @@ def directory(logs_dir):
 @pass_logs_dir
 def log_query(logs_dir, tags):
     """
-    Query augur logs with tags
+    Query augur logs with tags comma separated
     """
     tagset = set(tags.split(','))
-    tagcount = len(tagset)
     f = open(logs_dir + "/augur.log")
     lines = f.readlines()
     for line in lines:
