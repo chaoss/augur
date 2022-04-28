@@ -7,7 +7,7 @@ import datetime
 import json
 # from scipy import stats
 from flask import request, send_file, Response, Flask
-from requests import api_request
+import requests.request as api_request
 import math
 
 import plotly.graph_objects as go
