@@ -21,6 +21,6 @@ The augurHomeIndex.png shows the updates we have made to the index.rst which is 
 
 The navigationSection.png show the Navigation section that we have added to the index.rst, the landing home page for the site. This is to help guide users that do not know much about the installation of the project or the contents of the site so that they can choose the installation method that is preferred. 
 
-The macLink.png shows the changes made in the installation.rst in the Detailed Installation section of the site. This change takes out a section that is only for Mac users and changes it to a link so that other users do not have to scroll all the way through instructions that might not be for them. This helps with making the flow more parallel with the Quickstart’s flow. 
+The macWarning.png shows the changes made in the installation.rst in the Detailed Installation section of the site. This change takes out a section that is only for Mac users and changes it to a warning so that other users do not have to scroll all the way through instructions that might not be for them. This helps with making the flow more parallel with the Quickstart’s flow. 
 
 The macSection.png shows the section that the link within the installation.rst in the Detailed Installation section of the site will send you. This is an additional .rst file, mac.rst, that also includes a link back to the installation page so that the user can continue on with the installation after doing the necessary updates, also helping with the flow of the site. 
