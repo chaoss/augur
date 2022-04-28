@@ -19,11 +19,9 @@ This software is developed as part of the CHAOSS (Community Health Analytics Ope
 Navigation
 ~~~~~~~~~~~
 
-Augur can be installed locally or on a web server. If you plan to install on a web server, please follow the link below before beginning installation.
+Augur can be installed locally or on a web server. If you plan to install on a web server, please follow the 'Web Server Configuration' link in the table of contents to the left before beginning installation.
 
-- :ref: web-server-config
-
-Once you have your web server configured, if necessary, there are two options for Augur installation: Quickstart and Detailed Installation. The Quickstart is intended for users that are familiar with setting up DevOps environments and will allow you to get Augur working at quickly as possible. The Detailed Installation is an entry-level walkthrough of the Augur project that will explain the necessary commands step-by-step and allow you to install Augur with more information. Please choose one of the following options in order to start your Augur installation.
+Once you have your web server configured, if necessary, there are two options for Augur installation: Quickstart and Detailed Installation. The Quickstart is intended for users that are familiar with setting up DevOps environments and will allow you to get Augur working at quickly as possible. The Detailed Installation is an entry-level walkthrough of the Augur project that will explain the necessary commands step-by-step and allow you to install Augur with more information. Please choose either the 'Quickstart' or 'Detailed Installation' link in the table of contents to the left to begin the installation process.
 
 - :ref: 'Quickstart <quick-start.rst>' _
 - :ref: 'detailed-installation'
