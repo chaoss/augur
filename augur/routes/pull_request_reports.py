@@ -1922,7 +1922,7 @@ def create_routes(server):
     @server.app.route('/{}/pull_request_reports/closed-issues-per-week/'.format(server.api_version), methods=["GET"])
     def issues_closed_per_week():
         try:
-            r = api_req.request(url = 'http://augur.chaoss.io/api/unstable/repos/25205/closed-issues-count', method = 'get')
+            r = api_req.request(url = 'http://project4320.eastus.cloudapp.azure.com:5000/api/unstable/repos/25205/closed-issues-count', method = 'get')
             e = r.json()
             df = pd.DataFrame(e)
 
@@ -1935,7 +1935,7 @@ def create_routes(server):
             fig.update_yaxes(title_text="Closed Issues Count")
             #fig.show()
 
-            filename = "test.png"
+            filename = "output.png"
             pio.write_image(fig, filename)
 
             return send_file("/home/azureuser/augur/" + filename)
