@@ -25,24 +25,13 @@ def log_query(logs_dir, tags):
     """
     Query augur logs with tags
     """
-    tagarray = tags.split(',')
-    #print(tagarray)
-    tagcount = len(tagarray)
-    #print(tagcount)
-    logfile = logs_dir + "/augur.log"
-    f = open(logfile)
+    tagset = set(tags.split(','))
+    tagcount = len(tagset)
+    f = open(logs_dir + "/augur.log")
     lines = f.readlines()
     for line in lines:
-        #print(line)
-        currenttagcount = 0
-        splitline = line.split('|')
-        #print(splitline)
-        linetags = splitline[1].split(' ')
-        #print(linetags)
-        for tag in tagarray:
-            if tag in linetags:
-                currenttagcount += 1
-        if tagcount == currenttagcount:
+        linetags = line.split('|')[1].split(' ')
+        if tagset <= set(linetags):
             print(line)
 
 @cli.command("errors")
