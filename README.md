@@ -21,7 +21,10 @@ CS4320 Software Engineering – Section 01 with Dr. Sean Goggins, Spring Semeste
 Our team decided to work with Augur's GitHub issue [“GSoC Idea: Machine Learning based Community Health and Communication #1637”](https://github.com/chaoss/augur/issues/1637).
 
 ### Deliverables
-Some deliverables files (including sprint Progress Report(s)) are stored in the folder for their respective sprint in the `deliverables` folder.
+Some deliverables files (including sprint Progress Report(s)) are stored in the folder for their respective sprint in the `Terrapins/deliverables` folder.
+
+### Visualizations
+As of Sprint 3, the visualizations may be viewed by opening the index.html files in a web browser.
 
 
 ## What is Augur?
