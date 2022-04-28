@@ -54,7 +54,7 @@ class AugurLogConfigurer:
         self.LOG_LEVEL = None
         self.VERBOSE = None
         self.QUIET = None
-        self.DEGBUG = None
+        self.DEBUG = None
 
         self.logfile_config = None
         self.housekeeper_job_config = None
