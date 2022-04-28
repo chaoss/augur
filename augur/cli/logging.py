@@ -22,8 +22,28 @@ def directory(logs_dir):
 @click.argument("tags", default=None)
 @pass_logs_dir
 def log_query(logs_dir, tags):
-    return
-
+    """
+    Query augur logs with tags
+    """
+    tagarray = tags.split(',')
+    #print(tagarray)
+    tagcount = len(tagarray)
+    #print(tagcount)
+    logfile = logs_dir + "/augur.log"
+    f = open(logfile)
+    lines = f.readlines()
+    for line in lines:
+        #print(line)
+        currenttagcount = 0
+        splitline = line.split('|')
+        #print(splitline)
+        linetags = splitline[1].split(' ')
+        #print(linetags)
+        for tag in tagarray:
+            if tag in linetags:
+                currenttagcount += 1
+        if tagcount == currenttagcount:
+            print(line)
 
 @cli.command("errors")
 @click.argument("worker", default="all")
