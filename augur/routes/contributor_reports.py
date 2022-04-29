@@ -597,9 +597,11 @@ def create_routes(server):
 
         group_by, required_contributions, required_time = get_new_cntrb_bar_chart_query_params()
 
+        return_data = request.args.get('return_data', "false").lower()
+
         input_df = new_contributor_data_collection(repo_id=repo_id, required_contributions=required_contributions)
         months_df = months_data_collection(start_date=start_date, end_date=end_date)
-
+        
         # TODO remove full_name from data for all charts since it is not needed in vis generation
         not_null_columns = ['cntrb_id', 'created_at', 'month', 'year', 'repo_id', 'repo_name', 'login', 'action',
                             'rank', 'yearmonth', 'new_contributors', 'quarter']
@@ -622,6 +624,11 @@ def create_routes(server):
 
         drive_by_df, repeats_df = compute_fly_by_and_returning_contributors_dfs(input_df, required_contributions,
                                                                                 required_time, start_date)
+
+        raw_data = {}
+        raw_data["group_by"] = group_by
+        raw_data["required_time"] = required_time
+        raw_data["required_contributions"] = required_contributions
 
         for rank in ranks:
             for contributor_type in contributor_types:
@@ -708,44 +715,67 @@ def create_routes(server):
                     data['new_contributor_counts'] = driver_df.groupby([date_column]).sum().reset_index()[
                         'new_contributors']
 
-                # if the data set is large enough it will dynamically assign the width, if the data set is
-                # too small it will by default set to 870 pixel so the title fits
-                if len(data['new_contributor_counts']) >= 15:
-                    plot_width = 46 * len(data['new_contributor_counts'])
+
+                if return_data == 'true':
+                    json_key = str(rank) + "_" + contributor_type
+
+                    dates = list(data['dates'])
+                    new_contributor_counts = list(data['new_contributor_counts'])
+
+                    list_of_data = []
+                    for i in range(len(dates)):
+
+                        data_piece = {
+                            "date": dates[i],
+                            "count": new_contributor_counts[i]
+                        }
+                        list_of_data.append(data_piece)
+
+
+                    raw_data[json_key] = list_of_data
+
                 else:
-                    plot_width = 870
 
-                    # create a dict convert an integer number into a word
-                # used to turn the rank into a word, so it is nicely displayed in the title
-                numbers = ['Zero', 'First', 'Second']
-                num_conversion_dict = {}
-                for i in range(1, len(numbers)):
-                    num_conversion_dict[i] = numbers[i]
-                number = '{}'.format(num_conversion_dict[rank])
+                    # if the data set is large enough it will dynamically assign the width, if the data set is
+                    # too small it will by default set to 870 pixel so the title fits
+                    if len(data['new_contributor_counts']) >= 15:
+                        plot_width = 46 * len(data['new_contributor_counts'])
+                    else:
+                        plot_width = 870
 
-                # define pot for bar chart
-                p = figure(x_range=data['dates'], plot_height=400, plot_width=plot_width,
-                           title="{}: {} {} Time Contributors Per {}".format(repo_dict[repo_id],
-                                                                             contributor_type.capitalize(), number,
-                                                                             group_by_format_string),
-                           y_range=(0, max(data['new_contributor_counts']) * 1.15), margin=(0, 0, 10, 0))
+                        # create a dict convert an integer number into a word
+                    # used to turn the rank into a word, so it is nicely displayed in the title
+                    numbers = ['Zero', 'First', 'Second']
+                    num_conversion_dict = {}
+                    for i in range(1, len(numbers)):
+                        num_conversion_dict[i] = numbers[i]
+                    number = '{}'.format(num_conversion_dict[rank])
 
-                p.vbar(x=data['dates'], top=data['new_contributor_counts'], width=0.8)
+                    # define pot for bar chart
+                    p = figure(x_range=data['dates'], plot_height=400, plot_width=plot_width,
+                            title="{}: {} {} Time Contributors Per {}".format(repo_dict[repo_id],
+                                                                                contributor_type.capitalize(), number,
+                                                                                group_by_format_string),
+                            y_range=(0, max(data['new_contributor_counts']) * 1.15), margin=(0, 0, 10, 0))
 
-                source = ColumnDataSource(
-                    data=dict(dates=data['dates'], new_contributor_counts=data['new_contributor_counts']))
+                    p.vbar(x=data['dates'], top=data['new_contributor_counts'], width=0.8)
 
-                # add contributor_count labels to chart
-                p.add_layout(LabelSet(x='dates', y='new_contributor_counts', text='new_contributor_counts', y_offset=4,
-                                      text_font_size="13pt", text_color="black",
-                                      source=source, text_align='center'))
+                    source = ColumnDataSource(
+                        data=dict(dates=data['dates'], new_contributor_counts=data['new_contributor_counts']))
 
-                plot = format_new_cntrb_bar_charts(p, rank, group_by_format_string)
+                    # add contributor_count labels to chart
+                    p.add_layout(LabelSet(x='dates', y='new_contributor_counts', text='new_contributor_counts', y_offset=4,
+                                        text_font_size="13pt", text_color="black",
+                                        source=source, text_align='center'))
 
-                caption_plot = add_caption_to_visualizations(caption, required_contributions, required_time, plot_width)
+                    plot = format_new_cntrb_bar_charts(p, rank, group_by_format_string)
 
-                add_charts_and_captions_to_correct_positions(plot, caption_plot, rank, contributor_type, row_1,
-                                                             row_2, row_3, row_4)
+                    caption_plot = add_caption_to_visualizations(caption, required_contributions, required_time, plot_width)
+
+                    add_charts_and_captions_to_correct_positions(plot, caption_plot, rank, contributor_type, row_1,
+                                                                row_2, row_3, row_4)
+
+        return raw_data
 
         # puts plots together into a grid
         grid = gridplot([row_1, row_2, row_3, row_4])
@@ -760,12 +790,16 @@ def create_routes(server):
 
         repo_id, start_date, end_date, error = get_repo_id_start_date_and_end_date()
 
+        print("Getting data for" + str(repo_id))
+
         if error:
             return Response(response=error["message"],
                             mimetype='application/json',
                             status=error["status_code"])
 
         group_by, required_contributions, required_time = get_new_cntrb_bar_chart_query_params()
+
+        return_data = request.args.get('return_data', "false").lower()
 
         input_df = new_contributor_data_collection(repo_id=repo_id, required_contributions=required_contributions)
         months_df = months_data_collection(start_date=start_date, end_date=end_date)
@@ -792,6 +826,13 @@ def create_routes(server):
         drive_by_df, repeats_df = compute_fly_by_and_returning_contributors_dfs(input_df, required_contributions,
                                                                                 required_time, start_date)
 
+
+        raw_data = {
+            "repo_name": repo_dict[repo_id],
+            "group_by": group_by, 
+            "required_time": required_time,
+            "required_contributions": required_contributions
+        }
         for rank in ranks:
             for contributor_type in contributor_types:
                 # do not display these visualizations since drive-by's do not have second contributions,
@@ -888,80 +929,117 @@ def create_routes(server):
                             pd.concat([driver_df.loc[driver_df['action'] == contribution_type], months_df]).groupby(
                                 date_column).sum().reset_index()['new_contributors']
 
-                    print(data.to_string())
 
                     # new contributor counts for all actions
                     data['new_contributor_counts'] = driver_df.groupby([date_column]).sum().reset_index()[
                         'new_contributors']
 
-                # if the data set is large enough it will dynamically assign the width, if the data set is too small it
-                # will by default set to 870 pixel so the title fits
-                if len(data['new_contributor_counts']) >= 15:
-                    plot_width = 46 * len(data['new_contributor_counts']) + 200
+                if return_data == 'true':
+                    json_key = str(rank) + "_" + contributor_type
+
+                    dates = list(data['dates'])
+                    open_pull_request_counts = list(data['open_pull_request'])
+                    pull_request_comment_counts = list(data['pull_request_comment'])
+                    commit_counts = list(data['commit'])
+                    issue_closed_counts = list(data['issue_closed'])
+                    issue_opened_counts = list(data['issue_opened'])
+                    issue_comment_counts = list(data['issue_comment'])
+
+                    list_of_data = []
+                    for i in range(len(dates)):
+
+                        data_piece = {
+                            "date": dates[i],
+                            "open_pull_request_count": int(open_pull_request_counts[i]),
+                            "pull_request_comment_count": int(pull_request_comment_counts[i]),
+                            "commit_count": int(commit_counts[i]),
+                            "issue_closed_count": int(issue_closed_counts[i]),
+                            "issue_opened_count": int(issue_opened_counts[i]),
+                            "issue_comment_count": int(issue_comment_counts[i])
+                        }
+                        list_of_data.append(data_piece)
+
+
+                    raw_data[json_key] = list_of_data
+                
                 else:
-                    plot_width = 870
+                    
+                    # if the data set is large enough it will dynamically assign the width, if the data set is too small it
+                    # will by default set to 870 pixel so the title fits
+                    if len(data['new_contributor_counts']) >= 15:
+                        plot_width = 46 * len(data['new_contributor_counts']) + 200
+                    else:
+                        plot_width = 870
 
-                # create list of values for data source dict
-                actions_df_references = []
-                for action in actions:
-                    actions_df_references.append(data[action])
+                    # create list of values for data source dict
+                    actions_df_references = []
+                    for action in actions:
+                        actions_df_references.append(data[action])
 
-                # created dict with the actions as the keys, and the values as the values from the df
-                data_source = {actions[i]: actions_df_references[i] for i in range(len(actions))}
-                data_source.update({'dates': data['dates'], 'New Contributor Counts': data['new_contributor_counts']})
+                    # created dict with the actions as the keys, and the values as the values from the df
+                    data_source = {actions[i]: actions_df_references[i] for i in range(len(actions))}
+                    data_source.update({'dates': data['dates'], 'New Contributor Counts': data['new_contributor_counts']})
 
-                colors = Colorblind[len(actions)]
+                    colors = Colorblind[len(actions)]
 
-                source = ColumnDataSource(data=data_source)
+                    source = ColumnDataSource(data=data_source)
 
-                # create a dict convert an integer number into a word
-                # used to turn the rank into a word, so it is nicely displayed in the title
-                numbers = ['Zero', 'First', 'Second']
-                num_conversion_dict = {}
-                for i in range(1, len(numbers)):
-                    num_conversion_dict[i] = numbers[i]
-                number = '{}'.format(num_conversion_dict[rank])
+                    # create a dict convert an integer number into a word
+                    # used to turn the rank into a word, so it is nicely displayed in the title
+                    numbers = ['Zero', 'First', 'Second']
+                    num_conversion_dict = {}
+                    for i in range(1, len(numbers)):
+                        num_conversion_dict[i] = numbers[i]
+                    number = '{}'.format(num_conversion_dict[rank])
 
-                # y_max = 20
-                # creates plot to hold chart
-                p = figure(x_range=data['dates'], plot_height=400, plot_width=plot_width,
-                           title='{}: {} {} Time Contributors Per {}'.format(repo_dict[repo_id],
-                                                                             contributor_type.capitalize(), number,
-                                                                             group_by_format_string),
-                           toolbar_location=None, y_range=(0, max(data['new_contributor_counts']) * 1.15))
-                # max(data['new_contributor_counts'])* 1.15), margin = (0, 0, 0, 0))
+                    # y_max = 20
+                    # creates plot to hold chart
+                    p = figure(x_range=data['dates'], plot_height=400, plot_width=plot_width,
+                            title='{}: {} {} Time Contributors Per {}'.format(repo_dict[repo_id],
+                                                                                contributor_type.capitalize(), number,
+                                                                                group_by_format_string),
+                            toolbar_location=None, y_range=(0, max(data['new_contributor_counts']) * 1.15))
+                    # max(data['new_contributor_counts'])* 1.15), margin = (0, 0, 0, 0))
 
-                vbar = p.vbar_stack(actions, x='dates', width=0.8, color=colors, source=source)
+                    vbar = p.vbar_stack(actions, x='dates', width=0.8, color=colors, source=source)
 
-                # add total count labels
-                p.add_layout(LabelSet(x='dates', y='New Contributor Counts', text='New Contributor Counts', y_offset=4,
-                                      text_font_size="14pt",
-                                      text_color="black", source=source, text_align='center'))
+                    # add total count labels
+                    p.add_layout(LabelSet(x='dates', y='New Contributor Counts', text='New Contributor Counts', y_offset=4,
+                                        text_font_size="14pt",
+                                        text_color="black", source=source, text_align='center'))
 
-                # add legend
-                legend = Legend(items=[(date, [action]) for (date, action) in zip(actions, vbar)], location=(0, 120),
-                                label_text_font_size="16px")
-                p.add_layout(legend, 'right')
+                    # add legend
+                    legend = Legend(items=[(date, [action]) for (date, action) in zip(actions, vbar)], location=(0, 120),
+                                    label_text_font_size="16px")
+                    p.add_layout(legend, 'right')
 
-                plot = format_new_cntrb_bar_charts(p, rank, group_by_format_string)
+                    plot = format_new_cntrb_bar_charts(p, rank, group_by_format_string)
 
-                caption_plot = add_caption_to_visualizations(caption, required_contributions, required_time, plot_width)
+                    caption_plot = add_caption_to_visualizations(caption, required_contributions, required_time, plot_width)
 
-                add_charts_and_captions_to_correct_positions(plot, caption_plot, rank, contributor_type, row_1,
-                                                             row_2, row_3, row_4)
+                    add_charts_and_captions_to_correct_positions(plot, caption_plot, rank, contributor_type, row_1,
+                                                                row_2, row_3, row_4)
 
-        # puts plots together into a grid
-        grid = gridplot([row_1, row_2, row_3, row_4])
+        if return_data == "true":
+            return raw_data
 
-        filename = export_png(grid)
+        else:
+            # puts plots together into a grid
+            grid = gridplot([row_1, row_2, row_3, row_4])
 
-        return send_file(filename)
+            filename = export_png(grid)
+
+            return send_file(filename)
 
     @server.app.route('/{}/contributor_reports/returning_contributors_pie_chart/'.format(server.api_version),
                       methods=["GET"])
     def returning_contributors_pie_chart():
 
         repo_id, start_date, end_date, error = get_repo_id_start_date_and_end_date()
+
+        return_data = request.args.get('return_data', "false").lower()
+
+        print(f"Hitting returning_contributors_pie_chart with repo_id {repo_id} and returning data: {return_data}")
 
         if error:
             return Response(response=error["message"],
@@ -1001,12 +1079,24 @@ def create_routes(server):
         repeat_contributors = driver_df.loc[driver_df['type'] == 'repeat'].count()['new_contributors']
 
         # create a dict with the # of drive-by and repeat contributors
-        x = {'Drive_By': drive_by_contributors,
-             'Repeat': repeat_contributors}
+        x = {'Drive_By': int(drive_by_contributors),
+             'Repeat': int(repeat_contributors)}
+
+        if return_data == "true":
+            raw_data = {
+                "repo_name": repo_dict[repo_id], 
+                "start_date": start_date, 
+                "end_date": end_date, 
+                "required_contributions": required_contributions, 
+                "required_time": required_time, 
+                "data": x
+            }
+            return raw_data
 
         # turn dict 'x' into a dataframe with columns 'contributor_type', and 'counts'
         data = pd.Series(x).reset_index(name='counts').rename(columns={'index': 'contributor_type'})
 
+        # data modifications so it works with bokeh (not acutally the raw data)
         data['angle'] = data['counts'] / data['counts'].sum() * 2 * pi
         data['color'] = ('#0072B2', '#E69F00')
         data['percentage'] = ((data['angle'] / (2 * pi)) * 100).round(2)
@@ -1104,6 +1194,8 @@ def create_routes(server):
         required_contributions = int(request.args.get('required_contributions', 4))
         required_time = int(request.args.get('required_time', 365))
 
+        return_data = request.args.get('return_data', "false").lower()
+
         input_df = new_contributor_data_collection(repo_id=repo_id, required_contributions=required_contributions)
         months_df = months_data_collection(start_date=start_date, end_date=end_date)
 
@@ -1184,6 +1276,32 @@ def create_routes(server):
                        'Fly By': data['drive_by_counts'],
                        'Repeat': data['repeat_counts'],
                        'All': data['total_counts']}
+
+        if return_data == 'true':
+
+            dates = list(data_source['Dates'])
+            fly_by_contribs = list(data_source['Fly By'])
+            repeat_contribs = list(data_source['Repeat'])
+
+            list_of_data = []
+            for i in range(len(dates)):
+                data_piece = {
+                    "date": dates[i],
+                    "fly_by": int(fly_by_contribs[i]), 
+                    "repeat": int(repeat_contribs[i])
+                }
+                list_of_data.append(data_piece)
+                
+            raw_data = {
+                "group_by": group_by, 
+                "repo_name": repo_dict[repo_id],
+                "required_contributions": required_contributions, 
+                "required_time": required_time,
+                "data": list_of_data
+            }
+
+            return raw_data
+        
 
         groups = ["Fly By", "Repeat"]
 
