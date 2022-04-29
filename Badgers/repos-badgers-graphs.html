@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>Graphs - Augur View</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device.width, initial-scale=1">
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+	</head>
+	<body>
+		<div id="chart1Container">
+			<div id="chart1">... LOADING CHART 1 ...</div>
+			<div id="chart1Error"></div>
+			<div id="chart1Form">
+				<label for="repoNum">Repo ID:</label>
+				<input type="text" id="repoNum">
+				<button id="chart1ChangeRepoButton">Change Repo</button>
+				<label for="yearly">Yearly:</label><input type="radio" id="yearly" name="timePeriod" value="year" checked="checked">
+				<label for="weekly">Weekly:</label><input type="radio" id="weekly" name="timePeriod" value="week">
+				<select id="yearSelection"></select>
+				<button id="chart1UpdateGraphButton">Update Graph</button>
+			</div>
+		</div>
+		<div id="chart2">... LOADING CHART 2 ...</div>
+		<div id="chart3">... LOADING CHART 3 ...</div>
+		<div id="chart4">... LOADING CHART 4 ...</div>
+		<div id="chart5">... LOADING CHART 5 ...</div>
+
+		<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+
+		<script type="text/javascript">
+			google.charts.load('current', {'packages':['corechart']});
+			google.charts.setOnLoadCallback(drawChart);
+	
+			function drawChart() {
+				var chart1 = new google.visualization.LineChart(document.getElementById('chart1'));
+				var chart2 = new google.visualization.BarChart(document.getElementById('chart2'));
+				var chart3 = new google.visualization.BarChart(document.getElementById('chart3'));
+				var chart4 = new google.visualization.BarChart(document.getElementById('chart4'));
+				var chart5 = new google.visualization.BarChart(document.getElementById('chart5'));
+
+				// Help:
+				//
+				//	$.getJSON('<url>', function(repos){...});
+				//		Where url is the destination you want to extract a JSON object from.
+				//		You can find urls and the data they have here:
+				//			https://oss-augur.readthedocs.io/en/main/rest-api/api.html#
+				//
+				//	options: Change title of chart, width of chart, height of chart
+				//
+				//	reposArray: Change headers
+				//
+				//	repos.forEach((repo) => {<code here>});
+				//		Splits the JSON into individual lines (repos for this instance)
+				//		Logic goes in <code here>; push the data you want onto the reposArray like this:
+				//			reposArray.push([repo.<descriptor>, repo.<value>]);
+				//		Where descriptor is usually the name or id, and value is the data you want to graph.
+				//
+
+				// Chart 1: Commits Over Time
+				var JSONcache;
+				var tempRepoNum = 25440;
+				$("#repoNum").val(25440);
+				$("#yearSelection").hide();
+				$("#chart1ChangeRepoButton").on("click", chart1ChangeRepo);
+				$("#chart1UpdateGraphButton").on( "click", chart1UpdateGraph);
+				$('input[name="timePeriod"]').on("click", function() {
+					if($("#weekly").prop("checked")) {
+						$("#yearSelection").show();
+					}
+					else {
+						$("#yearSelection").hide();
+					}
+				});
+				function drawChart1() {
+					var url = 'http://augur.chaoss.io/api/unstable/repos/' + $("#repoNum").val() + '/code-changes';
+					$.getJSON(url, function(repos){
+						if(!(Object.keys(repos).length == 0)) {
+							$("#chart1Error").empty();
+							tempRepoNum = $("#repoNum").val();
+							var title = 'Commits per Year: ' + repos[0].repo_name;
+							var options = {'title':title, 'width':1000, 'height':600, 'hAxis':{'title':'Year'}, 'vAxis':{'title':'Commits'}, 'legend':{position:'none'}};
+							var reposArray = [['Year', 'Commits']];
+							var reposDict = {};
+							JSONcache = repos;
+
+							repos.forEach((repo) => {
+								if(repo.year in reposDict) {
+									reposDict[repo.year] += repo.commit_count;
+								}
+								else {
+									reposDict[repo.year] = repo.commit_count;
+								}
+							});
+							for(var key in reposDict) {
+								reposArray.push([key, reposDict[key]]);
+							}
+
+							$("#yearSelection").empty();
+							for(var key in reposDict) {
+								$("#yearSelection").append("<option>" + key + "</option>");
+							}
+
+							data = google.visualization.arrayToDataTable(reposArray);
+							chart1.draw(data, options);
+						}
+						else {
+							$("#chart1Error").html("Repo ID not found in database.");
+						}
+					});
+				}
+				drawChart1();
+				function chart1UpdateGraph() {
+					var repos = JSONcache;
+					var repoName = repos[0].repo_name;
+					var title = "";
+					var hAxis = {};
+					var reposArray = [];
+					var reposDict = {};
+					var weeks = [];
+					var yearToFind = $("#yearSelection").val();
+
+					$("#repoNum").val(tempRepoNum);
+					$("#chart1Error").empty();
+
+					if($("#weekly").prop("checked")) {
+						title = 'Commits per Week in Year ' + yearToFind + ': ' + repoName;
+						hAxis = {title: 'Week'};
+						reposArray.push(['Week', 'Commits']);
+					}
+					else {
+						title = 'Commits per Year: ' + repoName;
+						hAxis = {'title':'Year'};
+						reposArray.push(['Year', 'Commits']);
+					}
+
+					var options = {'title':title, 'width':1000, 'height':600, 'hAxis':hAxis, 'vAxis':{'title':'Commits'}, 'legend':{position:'none'}};
+
+					if($("#weekly").prop("checked")) {
+						repos.forEach((repo) => {
+							if(repo.year == yearToFind) {
+								if(repo.week+1 in reposDict) {
+									reposDict[repo.week+1] += repo.commit_count;
+								}
+								else {
+									reposDict[repo.week+1] = repo.commit_count;
+								}
+							}
+						});
+						var keys = Object.keys(reposDict);
+						for (var i = 0; i < keys.length; i++) {
+							keys[i] = parseInt(keys[i], 10);
+						}
+						var max = Math.max(...keys);
+						var min = Math.min(...keys);
+						for (var i = min+1; i < max; i++) {
+							if(!(i in reposDict)) {
+								reposDict[i] = 0;
+							}
+						}
+					}
+					else {
+						repos.forEach((repo) => {
+							if(repo.year in reposDict) {
+								reposDict[repo.year] += repo.commit_count;
+							}
+							else {
+								reposDict[repo.year] = repo.commit_count;
+							}
+						});
+					}
+
+					for(var key in reposDict) {
+						reposArray.push([key, reposDict[key]]);
+					}
+
+					$().val();
+
+					data = google.visualization.arrayToDataTable(reposArray);
+					chart1.draw(data, options);
+				}
+				function chart1ChangeRepo() {
+					drawChart1();
+					$("#yearly").trigger("click");
+					$("#yearSelection").hide();
+				}
+
+				// Chart 2
+				$.getJSON('http://augur.chaoss.io/api/unstable/repos', function(repos){
+					var options = {'title':'Commits per Repo', 'width':1000, 'height':600};
+					var reposArray = [['Repo', 'Commits']];
+
+					repos.forEach((repo) => {
+						reposArray.push([repo.repo_name, repo.commits_all_time]);
+					});
+					data = google.visualization.arrayToDataTable(reposArray);
+
+					$("#chart2").empty();
+					chart2.draw(data, options);
+				});
+
+				// Chart 3
+				$.getJSON('http://augur.chaoss.io/api/unstable/repos', function(repos){
+					var options = {'title':'Commits per Repo', 'width':1000, 'height':600};
+					var reposArray = [['Repo', 'Commits']];
+
+					repos.forEach((repo) => {
+						reposArray.push([repo.repo_name, repo.commits_all_time]);
+					});
+					data = google.visualization.arrayToDataTable(reposArray);
+					
+					$("#chart3").empty();
+					chart3.draw(data, options);
+				});
+
+				// Chart 4
+				$.getJSON('http://augur.chaoss.io/api/unstable/repos', function(repos){
+					var options = {'title':'Commits per Repo', 'width':1000, 'height':600};
+					var reposArray = [['Repo', 'Commits']];
+
+					repos.forEach((repo) => {
+						reposArray.push([repo.repo_name, repo.commits_all_time]);
+					});
+					data = google.visualization.arrayToDataTable(reposArray);
+					
+					$("#chart4").empty();
+					chart4.draw(data, options);
+				});
+
+				// Chart 5
+				$.getJSON('http://augur.chaoss.io/api/unstable/repos', function(repos){
+					var options = {'title':'Commits per Repo', 'width':1000, 'height':600};
+					var reposArray = [['Repo', 'Commits']];
+
+					repos.forEach((repo) => {
+						reposArray.push([repo.repo_name, repo.commits_all_time]);
+					});
+					data = google.visualization.arrayToDataTable(reposArray);
+					
+					$("#chart5").empty();
+					chart5.draw(data, options);
+				});
+			}
+		</script>
+	</body>
+</html>
