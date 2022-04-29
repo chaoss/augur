@@ -230,15 +230,7 @@ def create_routes(server):
         pr_merged = pr_all.loc[pr_all['merged_flag'] == 'Merged / Accepted']
         pr_not_merged = pr_all.loc[pr_all['merged_flag'] == 'Not Merged / Rejected']
 
-        # Filtering the 80th percentile slowest PRs
-        def filter_20_per_slowest(input_df):
-            pr_slow20_filtered = pd.DataFrame()
-            pr_slow20_x = pd.DataFrame()
-            pr_slow20_filtered = input_df.copy()
-            pr_slow20_filtered['percentile_rank_local'] = pr_slow20_filtered.days_to_close.rank(pct=True)
-            pr_slow20_filtered = pr_slow20_filtered.query('percentile_rank_local >= .8', )
 
-            return pr_slow20_filtered
 
         pr_slow20_open = filter_20_per_slowest(pr_open)
         pr_slow20_closed = filter_20_per_slowest(pr_closed)
@@ -247,6 +239,16 @@ def create_routes(server):
         pr_slow20_all = filter_20_per_slowest(pr_all)
 
         return pr_all, pr_open, pr_closed, pr_merged, pr_not_merged, pr_slow20_all, pr_slow20_open, pr_slow20_closed, pr_slow20_merged, pr_slow20_not_merged
+
+        # Filtering the 80th percentile slowest PRs
+    def filter_20_per_slowest(input_df):
+        pr_slow20_filtered = pd.DataFrame()
+        pr_slow20_x = pd.DataFrame()
+        pr_slow20_filtered = input_df.copy()
+        pr_slow20_filtered['percentile_rank_local'] = pr_slow20_filtered.days_to_close.rank(pct=True)
+        pr_slow20_filtered = pr_slow20_filtered.query('percentile_rank_local >= .8', )
+
+        return pr_slow20_filtered
 
     def remove_outliers(input_df, field, num_outliers_repo_map):
         df_no_outliers = input_df.copy()
@@ -456,6 +458,13 @@ def create_routes(server):
             }
             return None, None, None, error
 
+    def get_repo_name(repo_id):
+
+        repo_name_query = salc.sql.text(f""" SELECT repo_name FROM augur_data.repo WHERE augur_data.repo.repo_id = {repo_id} """)
+        repo_name = pd.read_sql(repo_name_query, server.augur_app.database)["repo_name"][0]
+
+        return str(repo_name)
+
     @server.app.route('/{}/pull_request_reports/average_commits_per_PR/'.format(server.api_version), methods=["GET"])
     def average_commits_per_PR():
 
@@ -468,6 +477,7 @@ def create_routes(server):
 
         group_by = str(request.args.get('group_by', "month"))
         return_json = request.args.get('return_json', "false")
+        return_data = request.args.get('return_data', "false").lower()
 
         df_type = get_df_tuple_locations()
 
@@ -523,6 +533,7 @@ def create_routes(server):
                                                                                        as_index=False).mean().round(1)[
                 'commit_count'])
 
+
         # Setup data in format for grouped bar chart
         data = {
             'years': x_groups,
@@ -530,8 +541,31 @@ def create_routes(server):
             'Not Merged / Rejected': not_merged_avg_values,
         }
 
+        if return_data == "true":
+            return_data = {}
+            raw_data_list = []
+            for i in range(len(data['years'])):
+                data_piece = {}
+                data_piece["year"] = x_groups[i]
+                try:
+                    data_piece["Merged / Accepted"] = merged_avg_values[i]
+                except IndexError:
+                    data_piece["Merged / Accepted"] = None
+
+                try:
+                    data_piece["Not Merged / Rejected"] = not_merged_avg_values[i]
+                except IndexError:
+                    data_piece["Not Merged / Rejected"] = None
+
+                raw_data_list.append(data_piece)
+
+            return_data["data"] = raw_data_list
+            return_data["repo_name"] = repo_dict[repo_id]
+            return return_data
+
         x = [(year, pr_state) for year in x_groups for pr_state in groups]
         counts = sum(zip(data['Merged / Accepted'], data['Not Merged / Rejected']), ())
+        print(counts)
 
         source = ColumnDataSource(data=dict(x=x, counts=counts))
 
@@ -613,9 +647,50 @@ def create_routes(server):
 
         return_json = request.args.get('return_json', "false")
 
+        return_data = request.args.get('return_data', "false").lower()
+
         df_type = get_df_tuple_locations()
 
-        df_tuple = pull_request_data_collection(repo_id=repo_id, start_date=start_date, end_date=end_date)
+        pr_query = salc.sql.text(f"""
+            SELECT
+				augur_data.pull_requests.pr_merged_at,
+				augur_data.pull_requests.pr_closed_at,
+				date_part( 'year', pr_closed_at :: DATE ) AS CLOSED_YEAR,
+				date_part( 'month', pr_closed_at :: DATE ) AS CLOSED_MONTH,
+				comment_count
+	        FROM
+			augur_data.pull_requests JOIN (
+            SELECT pull_requests.pull_request_id,
+                    MIN(message.msg_timestamp) AS first_response_time,
+                    COUNT(DISTINCT message.msg_timestamp) AS comment_count,
+                    MAX(message.msg_timestamp) AS last_response_time,
+                    (MAX(message.msg_timestamp) - MIN(message.msg_timestamp)) / COUNT(DISTINCT message.msg_timestamp) AS average_time_between_responses
+                    FROM augur_data.pull_requests, augur_data.repo, augur_data.pull_request_message_ref, augur_data.message
+                    WHERE repo.repo_id = {repo_id}
+                            AND repo.repo_id = pull_requests.repo_id
+                            AND pull_requests.pull_request_id = pull_request_message_ref.pull_request_id
+                            AND pull_request_message_ref.msg_id = message.msg_id
+                    GROUP BY pull_requests.pull_request_id
+            ) response_times
+			ON pull_requests.pull_request_id = response_times.pull_request_id
+            WHERE augur_data.pull_requests.pr_src_state = 'closed'
+                        """)
+        closed_prs = pd.read_sql(pr_query, server.augur_app.database)
+
+        closed_prs['pr_merged_at'] = closed_prs['pr_merged_at'].fillna(0)
+        closed_prs['merged_flag'] = 'Not Merged / Rejected'
+        closed_prs['merged_flag'].loc[closed_prs['pr_merged_at'] != 0] = 'Merged / Accepted'
+        del closed_prs['pr_merged_at']
+
+        closed_prs[['closed_year', 'closed_month']] = closed_prs[['closed_year', 'closed_month']].fillna(-1).astype(int).astype(
+            str)
+
+        repo_name = get_repo_name(repo_id)
+
+        print(closed_prs.to_string())
+
+
+        # df_tuple = pull_request_data_collection(repo_id=repo_id, start_date=start_date, end_date=end_date)
 
         group_by = 'merged_flag'
         x_axis = 'comment_count'
@@ -625,17 +700,21 @@ def create_routes(server):
         # gets pr_closed data
         # selects only need columns (pr_closed_needed_columns)
         # removes columns that cannot be NULL (pr_closed_not_null_columns)
-        input_df = df_tuple[df_type["pr_closed"]]
-        needed_columns = ['repo_id', 'repo_name', y_axis, group_by, x_axis]
-        not_null_columns = needed_columns
-        input_df = filter_data(input_df, needed_columns)
+        input_df = closed_prs
+        # needed_columns = ['repo_id', 'repo_name', y_axis, group_by, x_axis]
+        not_null_columns = [x_axis, group_by, y_axis]
+        input_df = remove_rows_with_null_values(input_df, not_null_columns)
+        # input_df = filter_data(input_df, needed_columns)
+
+        
+
 
         if len(input_df) == 0:
             return Response(response="There is no data for this repo, in the database you are accessing",
                             mimetype='application/json',
                             status=200)
 
-        repo_dict = {repo_id: input_df.loc[input_df['repo_id'] == repo_id].iloc[0]['repo_name']}
+        # repo_dict = {repo_id: input_df.loc[input_df['repo_id'] == repo_id].iloc[0]['repo_name']}
 
         driver_df = input_df.copy()
 
@@ -653,15 +732,23 @@ def create_routes(server):
         len_not_merged = len(driver_df.loc[driver_df['merged_flag'] == 'Not Merged / Rejected'])
         len_merged = len(driver_df.loc[driver_df['merged_flag'] == 'Merged / Accepted'])
 
-        title_beginning = '{}: '.format(repo_dict[repo_id])
+
+        title_beginning = '{}: '.format(repo_name)
         plot_width = 650
         p = figure(y_range=y_groups, plot_height=450, plot_width=plot_width,
                    # y_range=y_groups,#(pr_all[y_axis].min(),pr_all[y_axis].max()) #y_axis_type="datetime",
                    title='{} {}'.format(title_beginning, "Mean Comments for {} Pull Requests".format(description)),
                    toolbar_location=None)
 
+        json_response = {
+            "repo_name": repo_name,
+            "data": []
+        }
+        
         possible_maximums = []
         for y_value in y_groups:
+
+            print(y_value)
 
             y_merged_data = driver_df.loc[
                 (driver_df[y_axis] == y_value) & (driver_df['merged_flag'] == 'Merged / Accepted')]
@@ -694,93 +781,125 @@ def create_routes(server):
             else:
                 y_not_merged_data[x_axis + '_mean'] = 0
 
-            not_merged_source = ColumnDataSource(y_not_merged_data)
-            merged_source = ColumnDataSource(y_merged_data)
+            print("not merged data")
+            print(y_not_merged_data.to_string())
 
-            possible_maximums.append(max(y_not_merged_data[x_axis + '_mean']))
-            possible_maximums.append(max(y_merged_data[x_axis + '_mean']))
+            print("merged data")
+            print(y_merged_data.to_string())
 
-            # mean comment count for merged
-            merged_comment_count_glyph = p.hbar(y=dodge(y_axis, -0.1, range=p.y_range), left=0, right=x_axis + '_mean',
-                                                height=0.04 * len(driver_df[y_axis].unique()),
-                                                source=merged_source,
-                                                fill_color="black")  # ,legend_label="Mean Days to Close",
-            # Data label 
-            labels = LabelSet(x=x_axis + '_mean', y=dodge(y_axis, -0.1, range=p.y_range), text=x_axis + '_mean',
-                              y_offset=-8, x_offset=34,
-                              text_font_size="12pt", text_color="black",
-                              source=merged_source, text_align='center')
-            p.add_layout(labels)
-            # mean comment count For nonmerged
-            not_merged_comment_count_glyph = p.hbar(y=dodge(y_axis, 0.1, range=p.y_range), left=0,
-                                                    right=x_axis + '_mean',
+            not_merged_mean = None
+            merged_mean = None
+
+            if len(y_not_merged_data) > 0:
+                not_merged_mean = y_not_merged_data.iloc[0]["comment_count_mean"]
+
+            if len(y_merged_data) > 0:
+                 merged_mean = y_merged_data.iloc[0]["comment_count_mean"]
+
+            
+            if return_data == "true": 
+
+                data_piece = {
+                    "year": y_value,
+                    "not_merged_comment_mean": not_merged_mean,
+                    "merged_comment_mean": merged_mean
+                }
+
+                json_response["data"].append(data_piece)
+
+            else: 
+
+                not_merged_source = ColumnDataSource(y_not_merged_data)
+                merged_source = ColumnDataSource(y_merged_data)
+
+                possible_maximums.append(max(y_not_merged_data[x_axis + '_mean']))
+                possible_maximums.append(max(y_merged_data[x_axis + '_mean']))
+
+                # mean comment count for merged
+                merged_comment_count_glyph = p.hbar(y=dodge(y_axis, -0.1, range=p.y_range), left=0, right=x_axis + '_mean',
                                                     height=0.04 * len(driver_df[y_axis].unique()),
-                                                    source=not_merged_source,
-                                                    fill_color="#e84d60")  # legend_label="Mean Days to Close",
-            # Data label 
-            labels = LabelSet(x=x_axis + '_mean', y=dodge(y_axis, 0.1, range=p.y_range), text=x_axis + '_mean',
-                              y_offset=-8, x_offset=34,
-                              text_font_size="12pt", text_color="#e84d60",
-                              source=not_merged_source, text_align='center')
-            p.add_layout(labels)
+                                                    source=merged_source,
+                                                    fill_color="black")  # ,legend_label="Mean Days to Close",
+                # Data label 
+                labels = LabelSet(x=x_axis + '_mean', y=dodge(y_axis, -0.1, range=p.y_range), text=x_axis + '_mean',
+                                y_offset=-8, x_offset=34,
+                                text_font_size="12pt", text_color="black",
+                                source=merged_source, text_align='center')
+                p.add_layout(labels)
+                # mean comment count For nonmerged
+                not_merged_comment_count_glyph = p.hbar(y=dodge(y_axis, 0.1, range=p.y_range), left=0,
+                                                        right=x_axis + '_mean',
+                                                        height=0.04 * len(driver_df[y_axis].unique()),
+                                                        source=not_merged_source,
+                                                        fill_color="#e84d60")  # legend_label="Mean Days to Close",
+                # Data label 
+                labels = LabelSet(x=x_axis + '_mean', y=dodge(y_axis, 0.1, range=p.y_range), text=x_axis + '_mean',
+                                y_offset=-8, x_offset=34,
+                                text_font_size="12pt", text_color="#e84d60",
+                                source=not_merged_source, text_align='center')
+                p.add_layout(labels)
 
-        #         p.y_range.range_padding = 0.1
-        p.ygrid.grid_line_color = None
-        p.legend.location = "bottom_right"
-        p.axis.minor_tick_line_color = None
-        p.outline_line_color = None
-        p.xaxis.axis_label = 'Average Comments / Pull Request'
-        p.yaxis.axis_label = 'Repository' if y_axis == 'repo_name' else 'Year Closed' if y_axis == 'closed_year' else ''
+        if return_data == 'true':
+            return json_response
+        else:
 
-        legend = Legend(
-            items=[
-                ("Merged Pull Request Mean Comment Count", [merged_comment_count_glyph]),
-                ("Rejected Pull Request Mean Comment Count", [not_merged_comment_count_glyph])
-            ],
+            #         p.y_range.range_padding = 0.1
+            p.ygrid.grid_line_color = None
+            p.legend.location = "bottom_right"
+            p.axis.minor_tick_line_color = None
+            p.outline_line_color = None
+            p.xaxis.axis_label = 'Average Comments / Pull Request'
+            p.yaxis.axis_label = 'Repository' if y_axis == 'repo_name' else 'Year Closed' if y_axis == 'closed_year' else ''
 
-            location='center',
-            orientation='vertical',
-            border_line_color="black"
-        )
-        p.add_layout(legend, "below")
+            legend = Legend(
+                items=[
+                    ("Merged Pull Request Mean Comment Count", [merged_comment_count_glyph]),
+                    ("Rejected Pull Request Mean Comment Count", [not_merged_comment_count_glyph])
+                ],
 
-        p.title.text_font_size = "16px"
-        p.title.align = "center"
+                location='center',
+                orientation='vertical',
+                border_line_color="black"
+            )
+            p.add_layout(legend, "below")
 
-        p.xaxis.axis_label_text_font_size = "16px"
-        p.xaxis.major_label_text_font_size = "16px"
+            p.title.text_font_size = "16px"
+            p.title.align = "center"
 
-        p.yaxis.axis_label_text_font_size = "16px"
-        p.yaxis.major_label_text_font_size = "16px"
+            p.xaxis.axis_label_text_font_size = "16px"
+            p.xaxis.major_label_text_font_size = "16px"
 
-        p.x_range = Range1d(0, max(possible_maximums) * 1.15)
+            p.yaxis.axis_label_text_font_size = "16px"
+            p.yaxis.major_label_text_font_size = "16px"
 
-        plot = p
+            p.x_range = Range1d(0, max(possible_maximums) * 1.15)
 
-        p = figure(width=plot_width, height=200, margin=(0, 0, 0, 0))
-        caption = "This graph shows the average number of comments per merged or not merged pull request."
+            plot = p
 
-        p = add_caption_to_plot(p, caption)
+            p = figure(width=plot_width, height=200, margin=(0, 0, 0, 0))
+            caption = "This graph shows the average number of comments per merged or not merged pull request."
 
-        caption_plot = p
+            p = add_caption_to_plot(p, caption)
 
-        grid = gridplot([[plot], [caption_plot]])
+            caption_plot = p
 
-        if return_json == "true":
-            var = Response(response=json.dumps(json_item(grid, "average_comments_per_PR")),
-                           mimetype='application/json',
-                           status=200)
+            grid = gridplot([[plot], [caption_plot]])
 
-            var.headers["Access-Control-Allow-Orgin"] = "*"
+            # if return_json == "true":
+            #     var = Response(response=json.dumps(json_item(grid, "average_comments_per_PR")),
+            #                 mimetype='application/json',
+            #                 status=200)
 
-            return var
+            #     var.headers["Access-Control-Allow-Orgin"] = "*"
 
-            # opts = FirefoxOptions()
-        # opts.add_argument("--headless")
-        # driver = webdriver.Firefox(firefox_options=opts)
-        filename = export_png(grid, timeout=180)
+            #     return var
 
-        return send_file(filename)
+                # opts = FirefoxOptions()
+            # opts.add_argument("--headless")
+            # driver = webdriver.Firefox(firefox_options=opts)
+            filename = export_png(grid, timeout=180)
+
+            return send_file(filename)
 
     @server.app.route('/{}/pull_request_reports/PR_counts_by_merged_status/'.format(server.api_version),
                       methods=["GET"])
@@ -794,6 +913,7 @@ def create_routes(server):
                             status=error["status_code"])
 
         return_json = request.args.get('return_json', "false")
+        return_data = request.args.get('return_data', "false").lower()
 
         x_axis = 'closed_year'
         description = 'All Closed'
@@ -832,6 +952,7 @@ def create_routes(server):
 
         data_dict = {'All': pr_closed, 'Slowest 20%': pr_slow20_not_merged.append(pr_slow20_merged, ignore_index=True)}
 
+
         colors = mpl['Plasma'][6]
 
         for data_desc, input_df in data_dict.items():
@@ -852,8 +973,25 @@ def create_routes(server):
         color_index = 0
         x_offset = 60
 
+
+        json_response = {
+            "repo_name": repo_dict[repo_id], 
+            "data": {
+                "All": {
+
+                },
+                "Slow": {
+
+                }
+            }
+        }
         all_totals = []
+        #   key, value
+        return_data_dict = {}
+        return_data_dict["data"] = {}
         for data_desc, input_df in data_dict.items():
+            print(data_desc)
+
             driver_df = input_df.copy()
 
             driver_df[x_axis] = driver_df[x_axis].astype(str)
@@ -884,10 +1022,14 @@ def create_routes(server):
                     data[group] += [
                         len(driver_df.loc[(driver_df['merged_flag'] == group) & (driver_df[x_axis] == x_group)])]
 
+            return_data_dict["data"][data_desc] = data.copy()
+
             data['len_merged'] = len_merged
             data['len_not_merged'] = len_not_merged
             data['totals'] = totals
             data['zeros'] = zeros
+
+            print(data)
 
             if data_desc == "All":
                 all_totals = totals
@@ -924,6 +1066,23 @@ def create_routes(server):
             dodge_amount *= -1
             colors = colors[::-1]
             x_offset *= -1
+
+
+        if(return_data == "true"):
+            new_dict = {}
+            new_dict["repo_name"] = repo_dict[repo_id]
+            new_dict["data"] = {}
+            for desc, dict in return_data_dict["data"].items():
+                new_dict["data"][desc] = []
+                for index, year in enumerate(dict["X"]):
+                    data_piece = {}
+                    data_piece["year"] = year
+                    for group in groups:
+                        data_piece[group] = dict[group][index]
+
+                    new_dict["data"][desc].append(data_piece)
+
+            return new_dict
 
         p.y_range = Range1d(0, max(all_totals) * 1.4)
 
@@ -986,10 +1145,52 @@ def create_routes(server):
                             status=error["status_code"])
 
         return_json = request.args.get('return_json', "false")
+        return_data = request.args.get('return_data', "false").lower()
+        pr_query = salc.sql.text(f"""
+            SELECT
+				augur_data.pull_requests.pr_merged_at,
+				augur_data.pull_requests.pr_closed_at,
+				date_part( 'year', pr_closed_at :: DATE ) AS CLOSED_YEAR,
+				date_part( 'month', pr_closed_at :: DATE ) AS CLOSED_MONTH,
+                ( EXTRACT ( EPOCH FROM first_response_time ) - EXTRACT ( EPOCH FROM pull_requests.pr_created_at ) ) / 86400 AS days_to_first_response,                        
+                ( EXTRACT ( EPOCH FROM last_response_time ) - EXTRACT ( EPOCH FROM pull_requests.pr_created_at ) ) / 86400 AS days_to_last_response,
+                ( EXTRACT ( EPOCH FROM pull_requests.pr_closed_at ) - EXTRACT ( EPOCH FROM pull_requests.pr_created_at ) ) / 86400 AS days_to_close
+	        FROM
+			augur_data.pull_requests JOIN (
+            SELECT pull_requests.pull_request_id,
+                    MIN(message.msg_timestamp) AS first_response_time,
+                    COUNT(DISTINCT message.msg_timestamp) AS comment_count,
+                    MAX(message.msg_timestamp) AS last_response_time,
+                    (MAX(message.msg_timestamp) - MIN(message.msg_timestamp)) / COUNT(DISTINCT message.msg_timestamp) AS average_time_between_responses
+                    FROM augur_data.pull_requests, augur_data.repo, augur_data.pull_request_message_ref, augur_data.message
+                    WHERE repo.repo_id = {repo_id}
+                            AND repo.repo_id = pull_requests.repo_id
+                            AND pull_requests.pull_request_id = pull_request_message_ref.pull_request_id
+                            AND pull_request_message_ref.msg_id = message.msg_id
+                    GROUP BY pull_requests.pull_request_id
+            ) response_times
+			ON pull_requests.pull_request_id = response_times.pull_request_id
+            WHERE augur_data.pull_requests.pr_src_state = 'closed'
+                        """)
+        closed_prs = pd.read_sql(pr_query, server.augur_app.database)
 
-        df_type = get_df_tuple_locations()
+        closed_prs['pr_merged_at'] = closed_prs['pr_merged_at'].fillna(0)
+        closed_prs['merged_flag'] = 'Not Merged / Rejected'
+        closed_prs['merged_flag'].loc[closed_prs['pr_merged_at'] != 0] = 'Merged / Accepted'
+        del closed_prs['pr_merged_at']
 
-        df_tuple = pull_request_data_collection(repo_id=repo_id, start_date=start_date, end_date=end_date)
+        closed_prs[['closed_year', 'closed_month']] = closed_prs[['closed_year', 'closed_month']].fillna(-1).astype(int).astype(
+            str)
+
+        repo_name = get_repo_name(repo_id)
+        
+        # get repo_name 
+        repo_name = get_repo_name(repo_id)
+
+
+        # df_type = get_df_tuple_locations()
+
+        # df_tuple = pull_request_data_collection(repo_id=repo_id, start_date=start_date, end_date=end_date)
 
         time_unit = 'days'
         x_max = 95
@@ -1000,21 +1201,25 @@ def create_routes(server):
         # gets pr_closed data
         # selects only need columns (pr_closed_needed_columns)
         # removes columns that cannot be NULL (pr_closed_not_null_columns)
-        input_df = df_tuple[df_type["pr_closed"]]
-        needed_columns = ['repo_id', 'repo_name', y_axis, 'merged_flag', time_unit + '_to_first_response',
-                          time_unit + '_to_last_response', time_unit + '_to_close']
-        input_df = filter_data(input_df, needed_columns)
+        # input_df = df_tuple[df_type["pr_closed"]]
+        # needed_columns = ['repo_id', 'repo_name', y_axis, 'merged_flag', time_unit + '_to_first_response',
+        #                   time_unit + '_to_last_response', time_unit + '_to_close']
+        # input_df = filter_data(input_df, needed_columns)
+
+
+        not_null_columns = [y_axis, 'merged_flag', time_unit + '_to_first_response']
+        input_df = remove_rows_with_null_values(closed_prs, not_null_columns)
 
         if len(input_df) == 0:
             return Response(response="There is no data for this repo, in the database you are accessing",
                             mimetype='application/json',
                             status=200)
 
-        repo_dict = {repo_id: input_df.loc[input_df['repo_id'] == repo_id].iloc[0]['repo_name']}
+        # repo_dict = {repo_id: input_df.loc[input_df['repo_id'] == repo_id].iloc[0]['repo_name']}
 
         driver_df = input_df.copy()  # deep copy input data so we do not alter the external dataframe
 
-        title_beginning = '{}: '.format(repo_dict[repo_id])
+        title_beginning = '{}: '.format(repo_name)
         plot_width = 950
         p = figure(toolbar_location=None, y_range=sorted(driver_df[y_axis].unique()), plot_width=plot_width,
                    plot_height=450,  # 75*len(driver_df[y_axis].unique()),
@@ -1036,6 +1241,10 @@ def create_routes(server):
 
         y_merged_data_list = []
         y_not_merged_data_list = []
+
+        json_response = {
+            "data": []
+        }
 
         # calculate data frist time to obtain the maximum and make sure there is message data
         for y_value in driver_df[y_axis].unique():
@@ -1087,14 +1296,53 @@ def create_routes(server):
                 y_not_merged_data[time_unit + '_to_last_response_mean'] = 0.00
                 y_not_merged_data[time_unit + '_to_close_mean'] = 0.00
 
-            possible_maximums.append(max(y_merged_data[time_unit + '_to_close_mean']))
-            possible_maximums.append(max(y_not_merged_data[time_unit + '_to_close_mean']))
+            if len(y_merged_data[time_unit + '_to_close_mean']) > 0:
+                possible_maximums.append(max(y_merged_data[time_unit + '_to_close_mean']))
+
+            if len(y_not_merged_data[time_unit + '_to_close_mean']) > 0:
+                possible_maximums.append(max(y_not_merged_data[time_unit + '_to_close_mean']))
 
             maximum = max(possible_maximums) * 1.15
             ideal_difference = maximum * 0.064
 
+            data_piece = {
+                "year": y_value,
+                "merged_data": {
+                    "mean_days_to_first_response": y_merged_data.iloc[0]["days_to_first_response_mean"] if len(y_merged_data) > 0 else None,
+                    "mean_days_to_last_response": y_merged_data.iloc[0]["days_to_last_response_mean"] if len(y_merged_data) > 0 else None,
+                    "mean_days_to_close": y_merged_data.iloc[0][time_unit + '_to_close_mean'] if len(y_merged_data) > 0 else None,
+                },
+                "not_merged_data": {
+                    "mean_days_to_first_response": y_not_merged_data.iloc[0]["days_to_first_response_mean"] if len(y_not_merged_data) > 0 else None,
+                    "mean_days_to_last_response": y_merged_data.iloc[0]["days_to_last_response_mean"] if len(y_merged_data) > 0 else None,
+                    "mean_days_to_close": y_not_merged_data.iloc[0][time_unit + '_to_close_mean'] if len(y_not_merged_data) > 0 else None
+                }
+            }
+
+            json_response["data"].append(data_piece)
+
             y_merged_data_list.append(y_merged_data)
             y_not_merged_data_list.append(y_not_merged_data)
+
+        print("Made it")
+        print(return_data)
+
+        {'data': [
+            {'year': '2015', 
+            'merged_data': {'mean_days_to_first_response': 1.0, 'mean_days_to_last_response': 9.1, 'mean_days_to_close': 1.6}, 
+            'not_merged_data': {'mean_days_to_first_response': 1.8, 'mean_days_to_last_response': 9.1, 'mean_days_to_close': 6.3}}, {'year': '2016', 'merged_data': {'mean_days_to_first_response': 1.8, 'mean_days_to_last_response': 11.8, 'mean_days_to_close': 5.9}, 'not_merged_data': {'mean_days_to_first_response': 3.5, 'mean_days_to_last_response': 11.8, 'mean_days_to_close': 33.5}}, {'year': '2020', 'merged_data': {'mean_days_to_first_response': None, 'mean_days_to_last_response': None, 'mean_days_to_close': None}, 'not_merged_data': {'mean_days_to_first_response': 10.9, 'mean_days_to_last_response': None, 'mean_days_to_close': 957.1}}, {'year': '2017', 'merged_data': {'mean_days_to_first_response': 2.4, 'mean_days_to_last_response': 9.5, 'mean_days_to_close': 7.1}, 'not_merged_data': {'mean_days_to_first_response': 7.1, 'mean_days_to_last_response': 9.5, 'mean_days_to_close': 38.1}}, {'year': '2018', 'merged_data': {'mean_days_to_first_response': 1.6, 'mean_days_to_last_response': 9.1, 'mean_days_to_close': 8.7}, 'not_merged_data': {'mean_days_to_first_response': 2.8, 'mean_days_to_last_response': 9.1, 'mean_days_to_close': 82.4}}, {'year': '2019', 'merged_data': {'mean_days_to_first_response': 16.4, 'mean_days_to_last_response': 61.2, 'mean_days_to_close': 257.7}, 'not_merged_data': {'mean_days_to_first_response': 4.9, 'mean_days_to_last_response': 61.2, 'mean_days_to_close': 477.7}}, {'year': '2021', 'merged_data': {'mean_days_to_first_response': 0.1, 'mean_days_to_last_response': 34.0, 'mean_days_to_close': 883.8}, 'not_merged_data': {'mean_days_to_first_response': 1.8, 'mean_days_to_last_response': 34.0, 'mean_days_to_close': 1059.0}}
+            ]
+        }
+
+
+        if return_data == "true":
+
+            print(json_response)
+
+            print("return json")
+
+            return json_response
+
 
         # loop through data and add it to the plot
         for index in range(0, len(y_merged_data_list)):
@@ -1134,18 +1382,19 @@ def create_routes(server):
             p.add_layout(labels)
 
             # if the difference between two values is less than 6.4 percent move the second one to the right 30 pixels
-            if (max(y_merged_data[time_unit + '_to_last_response_mean']) - max(
-                    y_merged_data[time_unit + '_to_first_response_mean'])) < ideal_difference:
-                merged_x_offset = 30
-            else:
-                merged_x_offset = 0
-
+            merged_x_offset = 30
+            # if (max(y_merged_data[time_unit + '_to_last_response_mean']) - max(
+            #         y_merged_data[time_unit + '_to_first_response_mean'])) < ideal_difference:
+            #     merged_x_offset = 30
+            # else:
+                
+            not_merged_x_offset = 30
             # if the difference between two values is less than 6.4 percent move the second one to the right 30 pixels
-            if (max(y_not_merged_data[time_unit + '_to_last_response_mean']) - max(
-                    y_not_merged_data[time_unit + '_to_first_response_mean'])) < ideal_difference:
-                not_merged_x_offset = 30
-            else:
-                not_merged_x_offset = 0
+            # if (max(y_not_merged_data[time_unit + '_to_last_response_mean']) - max(
+            #         y_not_merged_data[time_unit + '_to_first_response_mean'])) < ideal_difference:
+            #     not_merged_x_offset = 30
+            # else:
+            #     not_merged_x_offset = 0
 
             # if there is only one bar set the y_offsets so the labels will not overlap the bars
             if len(driver_df[y_axis].unique()) == 1:
@@ -1277,6 +1526,13 @@ def create_routes(server):
                       methods=["GET"])
     def mean_days_between_PR_comments():
 
+        time_unit = 'Days'
+        x_axis = 'closed_yearmonth'
+        y_axis = 'average_days_between_responses'
+        description = "All Closed"
+        line_group = 'merged_flag'
+        num_outliers_repo_map = {}
+
         repo_id, start_date, end_date, error = get_repo_id_start_date_and_end_date()
 
         if error:
@@ -1285,38 +1541,109 @@ def create_routes(server):
                             status=error["status_code"])
 
         return_json = request.args.get('return_json', "false")
+        return_data = request.args.get('return_data', "false").lower()
 
-        time_unit = 'Days'
-        x_axis = 'closed_yearmonth'
-        y_axis = 'average_days_between_responses'
-        description = "All Closed"
-        line_group = 'merged_flag'
-        num_outliers_repo_map = {}
 
-        df_type = get_df_tuple_locations()
+        pr_query = salc.sql.text(f"""
+            SELECT
+                augur_data.pull_requests.repo_id,
+                augur_data.pull_requests.pr_src_state,
+				augur_data.pull_requests.pr_merged_at,
+				augur_data.pull_requests.pr_closed_at,
+				date_part( 'year', pr_closed_at :: DATE ) AS CLOSED_YEAR,
+				date_part( 'month', pr_closed_at :: DATE ) AS CLOSED_MONTH,
+                ( EXTRACT ( EPOCH FROM pull_requests.pr_closed_at ) - EXTRACT ( EPOCH FROM pull_requests.pr_created_at ) ) / 86400 AS days_to_close,
+		        average_time_between_responses
+	        FROM
+			augur_data.pull_requests JOIN (
+            SELECT pull_requests.pull_request_id,
+                    MIN(message.msg_timestamp) AS first_response_time,
+                    COUNT(DISTINCT message.msg_timestamp) AS comment_count,
+                    MAX(message.msg_timestamp) AS last_response_time,
+                    (MAX(message.msg_timestamp) - MIN(message.msg_timestamp)) / COUNT(DISTINCT message.msg_timestamp) AS average_time_between_responses
+                    FROM augur_data.pull_requests, augur_data.repo, augur_data.pull_request_message_ref, augur_data.message
+                    WHERE repo.repo_id = {repo_id}
+                            AND repo.repo_id = pull_requests.repo_id
+                            AND pull_requests.pull_request_id = pull_request_message_ref.pull_request_id
+                            AND pull_request_message_ref.msg_id = message.msg_id
+                    GROUP BY pull_requests.pull_request_id
+            ) response_times
+			ON pull_requests.pull_request_id = response_times.pull_request_id
+                        """)
 
-        df_tuple = pull_request_data_collection(repo_id=repo_id, start_date=start_date, end_date=end_date)
+        # get list of all prs                        
+        pr_all = pd.read_sql(pr_query, server.augur_app.database)
+
+        # format closed_year and closed_month
+        pr_all[['closed_year', 'closed_month']] = pr_all[['closed_year', 'closed_month']].fillna(-1).astype(int).astype(str)
+
+        # add closed_yearmonth and fill with null datetimes
+        pr_all['closed_yearmonth'] = pd.to_datetime(np.nan)
+
+        # add closed_yearmonth values
+        pr_all.loc[pr_all['pr_src_state'] == 'closed'] = pr_all.loc[pr_all['pr_src_state'] == 'closed'].assign(
+            closed_yearmonth=pd.to_datetime(pr_all.loc[pr_all['pr_src_state'] == 'closed']['closed_year'].astype(int
+                                                                                                                 ).map(
+                str) + '-' + pr_all.loc[pr_all['pr_src_state'] == 'closed']['closed_month'].astype(int).map(
+                str) + '-01'))
+                
+
+        # add merged_flag column
+        pr_all['pr_merged_at'] = pr_all['pr_merged_at'].fillna(0)
+        pr_all['merged_flag'] = 'Not Merged / Rejected'
+        pr_all['merged_flag'].loc[pr_all['pr_merged_at'] != 0] = 'Merged / Accepted'
+        del pr_all['pr_merged_at']
+
+        # split into closed, not merged, and merged
+        pr_closed = pr_all.loc[pr_all['pr_src_state'] == 'closed']
+        pr_merged = pr_all.loc[pr_all['merged_flag'] == 'Merged / Accepted']
+        pr_not_merged = pr_all.loc[pr_all['merged_flag'] == 'Not Merged / Rejected']
+
+        # filter merged, and not merged by top 20%
+        pr_slow20_merged = filter_20_per_slowest(pr_merged)
+        pr_slow20_not_merged = filter_20_per_slowest(pr_not_merged)
+
+
+        #filter out rows with null database
+        not_null_columns = [x_axis, 'average_time_between_responses', line_group]
+        
+        pr_closed = remove_rows_with_null_values(pr_closed, not_null_columns)
+        pr_slow20_merged = remove_rows_with_null_values(pr_slow20_merged, not_null_columns)
+        pr_slow20_not_merged = remove_rows_with_null_values(pr_slow20_not_merged, not_null_columns)
+        
+        # get repo_name 
+        repo_name = get_repo_name(repo_id)
+
+
+        # df_type = get_df_tuple_locations()
+
+        # df_tuple = pull_request_data_collection(repo_id=repo_id, start_date=start_date, end_date=end_date)
 
         # gets pr_closed data
         # selects only need columns (pr_closed_needed_columns)
         # removes columns that cannot be NULL (pr_closed_not_null_columns)
-        pr_closed = df_tuple[df_type["pr_closed"]]
-        pr_closed_needed_columns = ['repo_id', 'repo_name', x_axis, 'average_time_between_responses', line_group]
-        pr_closed = filter_data(pr_closed, pr_closed_needed_columns)
+        # pr_closed = df_tuple[df_type["pr_closed"]]
+        # pr_closed_needed_columns = ['repo_id', 'repo_name', x_axis, 'average_time_between_responses', line_group]
+
+        # not_null_columns = [x_axis, 'average_time_between_responses', line_group]
+        # closed_prs = remove_rows_with_null_values(closed_prs, not_null_columns)
+
+        # pr_closed = filter_data(pr_closed, pr_closed_needed_columns)
 
         # gets pr_slow20_not_merged data
         # selects only need columns (pr_slow20_not_merged_needed_columns)
         # removes columns that cannot be NULL (pr_slow20_not_merged_not_null_columns)
-        pr_slow20_not_merged = df_tuple[df_type["pr_slow20_not_merged"]]
-        pr_slow20_not_merged_needed_columns = ['repo_id', 'repo_name', x_axis, 'average_time_between_responses', line_group]
-        pr_slow20_not_merged = filter_data(pr_slow20_not_merged, pr_slow20_not_merged_needed_columns)
+        # pr_slow20_not_merged = df_tuple[df_type["pr_slow20_not_merged"]]
+        # pr_slow20_not_merged_needed_columns = ['repo_id', 'repo_name', x_axis, 'average_time_between_responses', line_group]
+        # pr_slow20_not_merged = filter_data(pr_slow20_not_merged, pr_slow20_not_merged_needed_columns)
 
         # gets pr_slow20_merged data
         # selects only need columns (pr_slow20_not_merged_needed_columns)
         # removes columns that cannot be NULL (pr_slow20_not_merged_not_null_columns)
-        pr_slow20_merged = df_tuple[df_type["pr_slow20_merged"]]
-        pr_slow20_merged_needed_columns = ['repo_id', 'repo_name', x_axis, 'average_time_between_responses', line_group]
-        pr_slow20_merged = filter_data(pr_slow20_merged, pr_slow20_merged_needed_columns)
+        # pr_slow20_merged = df_tuple[df_type["pr_slow20_merged"]]
+        # pr_slow20_merged_needed_columns = ['repo_id', 'repo_name', x_axis, 'average_time_between_responses', line_group]
+        # pr_slow20_merged = filter_data(pr_slow20_merged, pr_slow20_merged_needed_columns)
+
 
         if len(pr_closed) == 0 or len(pr_slow20_not_merged) == 0 or len(pr_slow20_merged) == 0:
             return Response(response="There is no data for this repo, in the database you are accessing",
@@ -1335,22 +1662,38 @@ def create_routes(server):
                             mimetype='application/json',
                             status=200)
 
-        repo_dict = {repo_id: pr_closed.loc[pr_closed['repo_id'] == repo_id].iloc[0]['repo_name']}
+        # repo_dict = {repo_id: pr_closed.loc[pr_closed['repo_id'] == repo_id].iloc[0]['repo_name']}
 
         data_dict = {'All': pr_closed, 'Slowest 20%': pr_slow20_not_merged.append(pr_slow20_merged, ignore_index=True)}
 
-        plot_width = 950
-        p1 = figure(x_axis_type="datetime",
-                    title="{}: Mean {} Between Comments by Month Closed for {} Pull Requests".format(repo_dict[repo_id],
-                                                                                                     time_unit,
-                                                                                                     description),
-                    plot_width=plot_width, x_range=(pr_all[x_axis].min(), pr_all[x_axis].max()), plot_height=500,
-                    toolbar_location=None)
+        if return_data == "false":
+
+            plot_width = 950
+            p1 = figure(x_axis_type="datetime",
+                        title="{}: Mean {} Between Comments by Month Closed for {} Pull Requests".format(repo_name,
+                                                                                                        time_unit,
+                                                                                                        description),
+                        plot_width=plot_width, x_range=(pr_all[x_axis].min(), pr_all[x_axis].max()), plot_height=500,
+                        toolbar_location=None)
         colors = Category20[10][6:]
         color_index = 0
 
+        json_response = {
+            "data": {}
+        }
+        date_json = {}
+
         glyphs = []
 
+        if return_data == "true":
+            all_dates = list(data_dict['All'].append(data_dict['Slowest 20%'], ignore_index=True)[x_axis].unique())
+
+            for i in range(len(all_dates)):
+
+                date_value = np.datetime_as_string(all_dates[i], unit='D')
+                date_json[date_value] = []
+
+        data_count = 1
         possible_maximums = []
         for data_desc, input_df in data_dict.items():
 
@@ -1363,17 +1706,72 @@ def create_routes(server):
 
             driver_df_mean = driver_df.groupby(['repo_id', line_group, x_axis], as_index=False).mean()
 
+
             title_ending = ''
-            if repo_id:
-                title_ending += ' for Repo: {}'.format(repo_id)
+            title_ending += ' for Repo: {}'.format(repo_name)
 
             for group_num, line_group_value in enumerate(driver_df[line_group].unique(), color_index):
-                glyphs.append(p1.line(driver_df_mean.loc[driver_df_mean[line_group] == line_group_value][x_axis],
-                                      driver_df_mean.loc[driver_df_mean[line_group] == line_group_value][y_axis],
-                                      color=colors[group_num], line_width=3))
-                color_index += 1
-                possible_maximums.append(
-                    max(driver_df_mean.loc[driver_df_mean[line_group] == line_group_value][y_axis].dropna()))
+
+                if return_data == "true": 
+
+                    data_name = f"{data_desc} {line_group_value}"
+
+                    data = driver_df_mean.loc[driver_df_mean[line_group] == line_group_value]
+
+                    dates_timestamps = list(data[x_axis])
+                    dates = [timestamp.strftime("%Y-%m-%d") for timestamp in dates_timestamps]
+
+                    values = list(data[y_axis])
+
+                    for i in range(len(dates)):
+                        date = dates[i]
+                        value = values[i]
+
+                        date_json[date].append(value)
+
+                    # adds None to any dates that didn't have values for that group
+                    date_keys = list(date_json.keys())
+                    for i in range(len(date_keys)):
+
+                        # compares the amount of data that should be in each list (data_count) to the acutal length of the list
+                        # and adds None if there isn't enough data
+                        # None is added because we need to have a value for every single group
+                        if data_count > len(date_json[date_keys[i]]):
+                            date_json[date_keys[i]].append(None)
+                    
+                    data_count+=1
+                
+                else:
+                
+                    glyphs.append(p1.line(driver_df_mean.loc[driver_df_mean[line_group] == line_group_value][x_axis],
+                                        driver_df_mean.loc[driver_df_mean[line_group] == line_group_value][y_axis],
+                                        color=colors[group_num], line_width=3))
+                    color_index += 1
+                    possible_maximums.append(
+                        max(driver_df_mean.loc[driver_df_mean[line_group] == line_group_value][y_axis].dropna()))
+
+        if return_data == "true": 
+            json_response = {
+                "data": []
+            }
+            for key, value in date_json.items():
+
+                data_piece = {}
+                data_piece["date"] = key
+
+                data_piece = {
+                    "date": key,
+                    "All Not Merged / Rejected": value[0],
+                    "All Merged / Accepted": value[1],
+                    "Slowest 20% Not Merged / Rejected": value[2],
+                    "Slowest 20% Merged / Accepted": value[3]
+                }
+
+                json_response["data"].append(data_piece)
+
+
+            return json_response
+
         for repo, num_outliers in num_outliers_repo_map.items():
             # FIXME repo_name is not defined
             if repo_name == repo:
@@ -1453,6 +1851,52 @@ def create_routes(server):
 
         return_json = request.args.get('return_json', "false")
         remove_outliers = str(request.args.get('remove_outliers', "true"))
+        return_data = request.args.get('return_data', "false").lower()
+
+
+
+        pr_query = salc.sql.text(f"""
+            SELECT
+                augur_data.pull_requests.repo_id,
+                augur_data.pull_requests.pr_src_state,
+				augur_data.pull_requests.pr_merged_at,
+				augur_data.pull_requests.pr_closed_at,
+				date_part( 'year', pr_closed_at :: DATE ) AS CLOSED_YEAR,
+				date_part( 'month', pr_closed_at :: DATE ) AS CLOSED_MONTH,
+                ( EXTRACT ( EPOCH FROM first_response_time ) - EXTRACT ( EPOCH FROM pull_requests.pr_created_at ) ) / 86400 AS days_to_first_response,
+		        average_time_between_responses
+	        FROM
+			augur_data.pull_requests JOIN (
+            SELECT pull_requests.pull_request_id,
+                    MIN(message.msg_timestamp) AS first_response_time,
+                    COUNT(DISTINCT message.msg_timestamp) AS comment_count,
+                    MAX(message.msg_timestamp) AS last_response_time,
+                    (MAX(message.msg_timestamp) - MIN(message.msg_timestamp)) / COUNT(DISTINCT message.msg_timestamp) AS average_time_between_responses
+                    FROM augur_data.pull_requests, augur_data.repo, augur_data.pull_request_message_ref, augur_data.message
+                    WHERE repo.repo_id = {repo_id}
+                            AND repo.repo_id = pull_requests.repo_id
+                            AND pull_requests.pull_request_id = pull_request_message_ref.pull_request_id
+                            AND pull_request_message_ref.msg_id = message.msg_id
+                    GROUP BY pull_requests.pull_request_id
+            ) response_times
+			ON pull_requests.pull_request_id = response_times.pull_request_id
+            WHERE augur_data.pull_requests.pr_src_state = 'closed'
+                        """)
+
+        # get list of all prs                        
+        closed_prs = pd.read_sql(pr_query, server.augur_app.database)
+
+        # format closed_year and closed_month
+        closed_prs[['closed_year', 'closed_month']] = closed_prs[['closed_year', 'closed_month']].fillna(-1).astype(int).astype(str)
+          
+        # add merged_flag column
+        closed_prs['pr_merged_at'] = closed_prs['pr_merged_at'].fillna(0)
+        closed_prs['merged_flag'] = 'Not Merged / Rejected'
+        closed_prs['merged_flag'].loc[closed_prs['pr_merged_at'] != 0] = 'Merged / Accepted'
+        del closed_prs['pr_merged_at']
+
+        repo_name = get_repo_name(repo_id)
+
 
         x_axis = 'pr_closed_at'
         y_axis = 'days_to_first_response'
@@ -1460,22 +1904,25 @@ def create_routes(server):
         group_by = 'merged_flag'
         legend_position = 'top_right'
 
-        df_type = get_df_tuple_locations()
+        # df_type = get_df_tuple_locations()
 
-        df_tuple = pull_request_data_collection(repo_id=repo_id, start_date=start_date, end_date=end_date)
+        # df_tuple = pull_request_data_collection(repo_id=repo_id, start_date=start_date, end_date=end_date)
 
-        pr_closed = df_tuple[df_type["pr_closed"]]
-        needed_columns = ['repo_id', 'repo_name', x_axis, group_by, y_axis]
-        pr_closed = filter_data(pr_closed, needed_columns)
+        # pr_closed = df_tuple[df_type["pr_closed"]]
+        # needed_columns = ['repo_id', 'repo_name', x_axis, group_by, y_axis]
 
-        if len(pr_closed) == 0:
+        not_null_columns = [x_axis, group_by, y_axis]
+        closed_prs = remove_rows_with_null_values(closed_prs, not_null_columns)
+        # pr_closed = filter_data(pr_closed, needed_columns)
+
+        if len(closed_prs) == 0:
             return Response(response="There is no data for this repo, in the database you are accessing",
                             mimetype='application/json',
                             status=200)
 
-        repo_dict = {repo_id: pr_closed.loc[pr_closed['repo_id'] == repo_id].iloc[0]['repo_name']}
+        # repo_dict = {repo_id: pr_closed.loc[pr_closed['repo_id'] == repo_id].iloc[0]['repo_name']}
 
-        driver_df = pr_closed.copy()
+        driver_df = closed_prs.copy()
 
         outliers_removed = 0
 
@@ -1491,25 +1938,90 @@ def create_routes(server):
         except:
             colors = Colorblind[3]
 
-        title_beginning = '{}: '.format(repo_dict[repo_id])
+        title_beginning = '{}: '.format(repo_name)
         plot_width = 180 * 5
-        p = figure(x_range=(
-        driver_df[x_axis].min() - datetime.timedelta(days=30), driver_df[x_axis].max() + datetime.timedelta(days=25)),
-                   # (driver_df[y_axis].min(), driver_df[y_axis].max()),
-                   toolbar_location=None,
-                   title='{}Days to First Response for {} Closed Pull Requests'.format(title_beginning, description),
-                   plot_width=plot_width,
-                   plot_height=400, x_axis_type='datetime')
 
+        if return_data == "false":
+
+            p = figure(x_range=(
+            driver_df[x_axis].min() - datetime.timedelta(days=30), driver_df[x_axis].max() + datetime.timedelta(days=25)),
+                    # (driver_df[y_axis].min(), driver_df[y_axis].max()),
+                    toolbar_location=None,
+                    title='{}Days to First Response for {} Closed Pull Requests'.format(title_beginning, description),
+                    plot_width=plot_width,
+                    plot_height=400, x_axis_type='datetime')
+
+        # print(driver_df.to_string())
+
+        json_response = {
+            "data": [],
+            "outliers_removed": outliers_removed,
+            "outlier_cutoff": outlier_cutoff
+        }
+
+        def return_data_point(date, data_value, field):
+
+            fields = group_by_groups
+
+            if "Not Merged / Rejected" not in fields:
+                fields.append("Not Merged / Rejected")
+
+            if field not in fields:
+                print(f"{field} is not a valid field. FIX THIS")
+                return None
+            
+            data_point = {
+                "date": date,
+            }
+
+            data_point[field + " first response time"] = data_value
+
+            for key in fields:
+
+                if key != field:
+                    data_point[key + " first response time"] = None
+
+            return data_point
+
+
+        merged_values = []
+        not_merged_values = []
         for index, group_by_group in enumerate(group_by_groups):
-            p.scatter(x_axis, y_axis, color=colors[index], marker="square",
-                      source=driver_df.loc[driver_df[group_by] == group_by_group], legend_label=group_by_group)
 
-            if group_by_group == "Merged / Accepted":
-                merged_values = driver_df.loc[driver_df[group_by] == group_by_group][y_axis].dropna().values.tolist()
+            if return_data == "true":
+            
+                data = driver_df.loc[driver_df[group_by] == group_by_group]
+                needed_columns = [x_axis, y_axis]
+                data = get_needed_columns(data, needed_columns)
+
+                def convert_to_string(timestamp):
+                    return timestamp.strftime("%Y-%m-%d")
+
+                data[x_axis] = data[x_axis].apply(convert_to_string)
+                data_list = data.to_dict(orient='records')
+
+                for data in data_list:
+
+                    date = data["pr_closed_at"]
+                    value = data["days_to_first_response"]
+
+                    data_point = return_data_point(date, value, group_by_group)
+
+                    json_response["data"].append(data_point)
+
             else:
-                not_merged_values = driver_df.loc[driver_df[group_by] == group_by_group][
-                    y_axis].dropna().values.tolist()
+
+                p.scatter(x_axis, y_axis, color=colors[index], marker="square",
+                        source=driver_df.loc[driver_df[group_by] == group_by_group], legend_label=group_by_group)
+
+                if group_by_group == "Merged / Accepted":
+                    merged_values = driver_df.loc[driver_df[group_by] == group_by_group][y_axis].dropna().values.tolist()
+                else:
+                    not_merged_values = driver_df.loc[driver_df[group_by] == group_by_group][
+                        y_axis].dropna().values.tolist()
+
+        if return_data == "true":
+            return json_response
 
         values = not_merged_values + merged_values
 
@@ -1518,8 +2030,7 @@ def create_routes(server):
                 p.add_layout(Title(
                     text="** Outliers cut off at {} days: {} outlier(s) for {} were removed **".format(outlier_cutoff,
                                                                                                        outliers_removed,
-                                                                                                       repo_dict[
-                                                                                                           repo_id]),
+                                                                                                       repo_name),
                     align="center"), "below")
             else:
                 p.add_layout(Title(
@@ -1588,7 +2099,67 @@ def create_routes(server):
                             status=error["status_code"])
 
         return_json = request.args.get('return_json', "false")
-        include_comments = str(request.args.get('include_comments', True))
+        include_comments = str(request.args.get('include_comments', "false"))
+        return_data = request.args.get('return_data', "false").lower()
+
+
+        pr_query = salc.sql.text(f"""
+            SELECT
+                    augur_data.pull_requests.repo_id,
+                    augur_data.pull_requests.pr_src_state,
+                    augur_data.pull_requests.pr_merged_at,
+                    augur_data.pull_requests.pr_closed_at,
+                    date_part( 'year', pr_closed_at :: DATE ) AS CLOSED_YEAR,
+                    date_part( 'month', pr_closed_at :: DATE ) AS CLOSED_MONTH,
+                    assigned_count,
+                    review_requested_count,
+                    labeled_count,
+                    subscribed_count,
+                    mentioned_count,
+                    referenced_count,
+                    closed_count,
+                    head_ref_force_pushed_count,
+                    merged_count,
+                    milestoned_count,
+                    unlabeled_count,
+                    head_ref_deleted_count
+	        FROM augur_data.pull_requests 
+            JOIN (
+                    SELECT pull_requests.pull_request_id,
+                            count(*) FILTER (WHERE action = 'assigned') AS assigned_count,
+                            count(*) FILTER (WHERE action = 'review_requested') AS review_requested_count,
+                            count(*) FILTER (WHERE action = 'labeled') AS labeled_count,
+                            count(*) FILTER (WHERE action = 'unlabeled') AS unlabeled_count,
+                            count(*) FILTER (WHERE action = 'subscribed') AS subscribed_count,
+                            count(*) FILTER (WHERE action = 'mentioned') AS mentioned_count,
+                            count(*) FILTER (WHERE action = 'referenced') AS referenced_count,
+                            count(*) FILTER (WHERE action = 'closed') AS closed_count,
+                            count(*) FILTER (WHERE action = 'head_ref_force_pushed') AS head_ref_force_pushed_count,
+                            count(*) FILTER (WHERE action = 'head_ref_deleted') AS head_ref_deleted_count,
+                            count(*) FILTER (WHERE action = 'milestoned') AS milestoned_count,
+                            count(*) FILTER (WHERE action = 'merged') AS merged_count
+                    FROM pull_request_events, pull_requests
+                    WHERE pull_requests.repo_id = {repo_id}
+                            AND pull_requests.pull_request_id = pull_request_events.pull_request_id
+                    GROUP BY pull_requests.pull_request_id
+            ) response_times
+            ON pull_requests.pull_request_id = response_times.pull_request_id
+            WHERE augur_data.pull_requests.pr_src_state = 'closed'
+                        """)
+
+        # get list of all prs                        
+        closed_prs = pd.read_sql(pr_query, server.augur_app.database)
+
+        # format closed_year and closed_month
+        closed_prs[['closed_year', 'closed_month']] = closed_prs[['closed_year', 'closed_month']].fillna(-1).astype(int).astype(str)
+          
+        # add merged_flag column
+        closed_prs['pr_merged_at'] = closed_prs['pr_merged_at'].fillna(0)
+        closed_prs['merged_flag'] = 'Not Merged / Rejected'
+        closed_prs['merged_flag'].loc[closed_prs['pr_merged_at'] != 0] = 'Merged / Accepted'
+        del closed_prs['pr_merged_at']
+
+        repo_name = get_repo_name(repo_id)
 
         x_axis = 'closed_year'
         facet = 'merged_flag'
@@ -1596,14 +2167,34 @@ def create_routes(server):
         x_max = 1100
         y_axis = 'repo_name'
         description = 'All Closed'
-        optional_comments = ['comment_count'] if include_comments else []
 
-        df_type = get_df_tuple_locations()
+        optional_comments = []
+        if include_comments == "true":
+            print("Made it")
+            optional_comments.append('comment_count')
 
-        df_tuple = pull_request_data_collection(repo_id=repo_id, start_date=start_date, end_date=end_date)
 
-        pr_closed = df_tuple[df_type["pr_closed"]]
-        needed_columns = ['repo_id', 'repo_name', x_axis, 'assigned_count',
+        # df_type = get_df_tuple_locations()
+
+        # df_tuple = pull_request_data_collection(repo_id=repo_id, start_date=start_date, end_date=end_date)
+
+        # pr_closed = df_tuple[df_type["pr_closed"]]
+        # needed_columns = ['repo_id', 'repo_name', x_axis, 'assigned_count',
+        #                   'review_requested_count',
+        #                   'labeled_count',
+        #                   'subscribed_count',
+        #                   'mentioned_count',
+        #                   'referenced_count',
+        #                   'closed_count',
+        #                   'head_ref_force_pushed_count',
+        #                   'merged_count',
+        #                   'milestoned_count',
+        #                   'unlabeled_count',
+        #                   'head_ref_deleted_count', facet] + optional_comments
+
+        # pr_closed = filter_data(pr_closed, needed_columns)
+
+        not_null_columns = [x_axis, 'assigned_count',
                           'review_requested_count',
                           'labeled_count',
                           'subscribed_count',
@@ -1614,19 +2205,20 @@ def create_routes(server):
                           'merged_count',
                           'milestoned_count',
                           'unlabeled_count',
-                          'head_ref_deleted_count', facet] + optional_comments
-        pr_closed = filter_data(pr_closed, needed_columns)
+                          'head_ref_deleted_count', facet]
 
-        if len(pr_closed) == 0:
+        closed_prs = remove_rows_with_null_values(closed_prs, not_null_columns)
+
+        if len(closed_prs) == 0:
             return Response(response="There is no data for this repo, in the database you are accessing",
                             mimetype='application/json',
                             status=200)
 
-        repo_dict = {repo_id: pr_closed.loc[pr_closed['repo_id'] == repo_id].iloc[0]['repo_name']}
+        # repo_dict = {repo_id: pr_closed.loc[pr_closed['repo_id'] == repo_id].iloc[0]['repo_name']}
 
         colors = linear_gradient('#f5f5dc', '#fff44f', 150)['hex']
 
-        driver_df = pr_closed.copy()
+        driver_df = closed_prs.copy()
         driver_df[x_axis] = driver_df[x_axis].astype(str)
 
         if facet == 'closed_year' or y_axis == 'closed_year':
@@ -1641,6 +2233,10 @@ def create_routes(server):
                        #           'milestoned_count',
                    ] + optional_comments
 
+        needed_columns = [x_axis, facet, "repo_id"] + y_groups
+
+        driver_df = get_needed_columns(driver_df, needed_columns)
+
         optional_group_comments = ['comment'] if include_comments else []
         #     y_groups = ['subscribed', 'mentioned', 'labeled', 'review_requested', 'head_ref_force_pushed',
         #     'referenced', 'closed', 'merged', 'unlabeled', 'head_ref_deleted', 'milestoned', 'assigned']
@@ -1648,29 +2244,69 @@ def create_routes(server):
 
         x_groups = sorted(list(driver_df[x_axis].unique()))
 
+        facets = sorted(driver_df[facet].unique())
+
         grid_array = []
         grid_row = []
 
-        for index, facet_group in enumerate(sorted(driver_df[facet].unique())):
+        json_response = {
+            "data": []
+        }
+
+
+        def return_data_point(date, data_value, field, facet):
+
+            fields = y_groups
+
+            group_facets = facets
+
+            if field not in fields:
+                print(f"{field} is not a valid field. FIX THIS")
+                return None
+
+            if facet not in group_facets:
+                print(f"{field} is not a valid facet. FIX THIS")
+                return None
+            
+            data_point = {
+                "date": date,
+            }
+
+            data_point[facet + " " + field] = data_value
+
+            print(data_point)
+
+            for key in fields:
+
+                for facet_key in group_facets:
+
+                    if key != field:
+                        data_point[facet_key + " " + key] = None
+
+            print(data_point)
+
+            return data_point
+
+        for index, facet_group in enumerate(facets):
 
             facet_data = driver_df.loc[driver_df[facet] == facet_group]
             #         display(facet_data.sort_values('merged_count', ascending=False).head(50))
-            driver_df_mean = facet_data.groupby(['repo_id', 'repo_name', x_axis], as_index=False).mean().round(1)
+            driver_df_mean = facet_data.groupby(['repo_id', x_axis], as_index=False).mean().round(1)
 
             # if a record is field in a record is Nan then it is not counted by count() so when it is not
             # 2 meaning both rows have a value, there is not enough data
-            if (driver_df_mean['assigned_count'].count() != 2 or driver_df_mean[
-                'review_requested_count'].count() != 2 or driver_df_mean['labeled_count'].count() != 2 or
-                    driver_df_mean['subscribed_count'].count() != 2 or driver_df_mean['mentioned_count'].count() != 2 or
-                    driver_df_mean['referenced_count'].count() != 2 or
-                    driver_df_mean['closed_count'].count() != 2 or driver_df_mean[
-                        'head_ref_force_pushed_count'].count() != 2 or driver_df_mean['merged_count'].count() != 2 or
-                    driver_df_mean['milestoned_count'].count() != 2 or driver_df_mean['unlabeled_count'].count() != 2 or
-                    driver_df_mean['head_ref_deleted_count'].count() != 2 or
-                    driver_df_mean['comment_count'].count() != 2):
-                return Response(response="There is not enough data for this repo, in the database you are accessing",
-                                mimetype='application/json',
-                                status=200)
+            # if (driver_df_mean['assigned_count'].count() != 2 or driver_df_mean[
+            #     'review_requested_count'].count() != 2 or driver_df_mean['labeled_count'].count() != 2 or
+            #         driver_df_mean['subscribed_count'].count() != 2 or driver_df_mean['mentioned_count'].count() != 2 or
+            #         driver_df_mean['referenced_count'].count() != 2 or
+            #         driver_df_mean['closed_count'].count() != 2 or driver_df_mean[
+            #             'head_ref_force_pushed_count'].count() != 2 or driver_df_mean['merged_count'].count() != 2 or
+            #         driver_df_mean['milestoned_count'].count() != 2 or driver_df_mean['unlabeled_count'].count() != 2 or
+            #         driver_df_mean['head_ref_deleted_count'].count() != 2 or
+            #         driver_df_mean['comment_count'].count() != 2):
+            #     return Response(response="There is not enough data for this repo, in the database you are accessing",
+            #                     mimetype='application/json',
+            #                     status=200)
 
             # print(driver_df_mean.to_string())
             #         data = {'Y' : y_groups}
@@ -1680,48 +2316,67 @@ def create_routes(server):
             p = figure(y_range=y_groups, plot_height=500, plot_width=plot_width, x_range=x_groups,
                        title='{}'.format(format(facet_group)))
 
-            for y_group in y_groups:
-                driver_df_mean['field'] = y_group
-                source = ColumnDataSource(driver_df_mean)
-                mapper = LinearColorMapper(palette=colors, low=driver_df_mean[y_group].min(),
-                                           high=driver_df_mean[y_group].max())
+            if return_data == "true":
 
-                p.rect(y='field', x=x_axis, width=1, height=1, source=source,
-                       line_color=None, fill_color=transform(y_group, mapper))
-                # Data label 
-                labels = LabelSet(x=x_axis, y='field', text=y_group, y_offset=-8,
-                                  text_font_size="12pt", text_color='black',
-                                  source=source, text_align='center')
-                p.add_layout(labels)
+                for index, row in driver_df_mean.iterrows():
 
-                color_bar = ColorBar(color_mapper=mapper, location=(0, 0),
-                                     ticker=BasicTicker(desired_num_ticks=9),
-                                     formatter=PrintfTickFormatter(format="%d"))
-            #         p.add_layout(color_bar, 'right')
+                    for y_group in y_groups:
 
-            p.y_range.range_padding = 0.1
-            p.ygrid.grid_line_color = None
+                        data_point = return_data_point(row["closed_year"], row[y_group], y_group, facet_group)
 
-            p.legend.location = "bottom_right"
-            p.axis.minor_tick_line_color = None
-            p.outline_line_color = None
+                        json_response["data"].append(data_point)
 
-            p.xaxis.axis_label = 'Year Closed'
-            p.yaxis.axis_label = 'Event Type'
+            else:
 
-            p.title.align = "center"
-            p.title.text_font_size = "15px"
+                for y_group in y_groups:
 
-            p.xaxis.axis_label_text_font_size = "16px"
-            p.xaxis.major_label_text_font_size = "16px"
+                        driver_df_mean['field'] = y_group
+                        source = ColumnDataSource(driver_df_mean)
+                        mapper = LinearColorMapper(palette=colors, low=driver_df_mean[y_group].min(),
+                                                high=driver_df_mean[y_group].max())
 
-            p.yaxis.axis_label_text_font_size = "16px"
-            p.yaxis.major_label_text_font_size = "16px"
+                        p.rect(y='field', x=x_axis, width=1, height=1, source=source,
+                            line_color=None, fill_color=transform(y_group, mapper))
+                        # Data label 
+                        labels = LabelSet(x=x_axis, y='field', text=y_group, y_offset=-8,
+                                        text_font_size="12pt", text_color='black',
+                                        source=source, text_align='center')
+                        p.add_layout(labels)
 
-            grid_row.append(p)
-            if index % columns == columns - 1:
-                grid_array.append(grid_row)
-                grid_row = []
+                        color_bar = ColorBar(color_mapper=mapper, location=(0, 0),
+                                            ticker=BasicTicker(desired_num_ticks=9),
+                                            formatter=PrintfTickFormatter(format="%d"))
+                    #         p.add_layout(color_bar, 'right')
+
+            if return_data != "true":
+               
+                p.y_range.range_padding = 0.1
+                p.ygrid.grid_line_color = None
+
+                p.legend.location = "bottom_right"
+                p.axis.minor_tick_line_color = None
+                p.outline_line_color = None
+
+                p.xaxis.axis_label = 'Year Closed'
+                p.yaxis.axis_label = 'Event Type'
+
+                p.title.align = "center"
+                p.title.text_font_size = "15px"
+
+                p.xaxis.axis_label_text_font_size = "16px"
+                p.xaxis.major_label_text_font_size = "16px"
+
+                p.yaxis.axis_label_text_font_size = "16px"
+                p.yaxis.major_label_text_font_size = "16px"
+
+                grid_row.append(p)
+                if index % columns == columns - 1:
+                    grid_array.append(grid_row)
+                    grid_row = []
+
+        if return_data == "true":
+            return json_response
+
         grid = gridplot(grid_array)
 
         # create caption plot
@@ -1738,7 +2393,7 @@ def create_routes(server):
 
         # create title plot
         title_plot = figure(width=plot_width, height=50, margin=(0, 0, 0, 0))
-        title = '{}: Average Pull Request Event Types for {} Pull Requests'.format(repo_dict[repo_id], description)
+        title = '{}: Average Pull Request Event Types for {} Pull Requests'.format(repo_name, description)
 
         title_plot.add_layout(Label(x=550, y=0, x_units='screen', y_units='screen', text='{}'.format(title),
                                     text_font='times', text_font_size='17px',
