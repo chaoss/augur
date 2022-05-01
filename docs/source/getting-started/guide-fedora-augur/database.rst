@@ -15,7 +15,15 @@ Before you can install our schema, you will need to make sure you have write acc
 
     If you want to collect data over the long term, we strongly advise against `using a Docker container for your database <https://vsupalov.com/database-in-docker/>`_.
 
-If you're a newcomer to to PostgreSQL, you can follow their excellent instructions `here <https://www.postgresql.org/docs/12/tutorial-install.html>`_ to set it up for your machine of choice.
+If you're a newcomer to to PostgreSQL, the following commands can be used to install PostgreSQL on Fedora.
+
+.. code-block:: bash 
+
+    $ sudo dnf install postgresql postgresql-contrib postgresql-server
+    $ sudo postgresql-setup --initdb --unit postgresql
+    $ sudo systemctl start postgresql
+    $ sudo su - postgres
+    $ psql
 
 Creating a Database
 ~~~~~~~~~~~~~~~~~~~~~

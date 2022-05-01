@@ -43,9 +43,9 @@ After you set up your PostgreSQL instance, you'll need to create a database and 
 
 .. code-block:: postgresql 
     
-    CREATE DATABASE augur;
-    CREATE USER augur WITH ENCRYPTED PASSWORD 'password';
-    GRANT ALL PRIVILEGES ON DATABASE augur TO augur;
+    postgres=# CREATE DATABASE augur;
+    postgres=# CREATE USER augur WITH ENCRYPTED PASSWORD 'password';
+    postgres=# GRANT ALL PRIVILEGES ON DATABASE augur TO augur;
 
 To be able to long into the database, you'll probably have to change some permissions in a configuration file *pg_hba.conf*. This file could be installed in a few different places, so searching for it is probably the best way to find it.
 
