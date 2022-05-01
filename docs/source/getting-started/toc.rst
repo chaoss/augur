@@ -21,13 +21,17 @@ The next section will start with setting up a virtual machine on Windows. You ca
 Happy hacking!
 
 .. toctree::
+   :maxdepth: 1
+
+   setup-ubuntu-windows
+
+.. toctree::
    :maxdepth: 2
    
-   setup-ubuntu-windows
+   guide-ubuntu-augur/toc
    guide-amazon-linux-augur/toc
    guide-fedora-augur/toc
    guide-mac-os-x-augur/toc
-   guide-ubuntu-augur/toc
    collecting-data
    frontend
    command-line-interface/toc
