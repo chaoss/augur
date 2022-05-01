@@ -4,7 +4,7 @@ Fedora Installation
 
 .. note::
 
-   Hello world!
+   Database setup and installation documentation specifically tested using Fedora.
 
 .. toctree::
    :maxdepth: 1
