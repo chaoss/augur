@@ -99,9 +99,9 @@ We use Vue.js as our frontend web framework, and ``npm`` as our package manager.
 Visualization API calls
 ---------------------------
 
-If you want to use the new Augur API Calls that generate downloadable graphics developed in the `https://github.com/chaoss/augur-community-reports` repository, you need to install the `geckodriver` on Mac OSX, at the system level. This dependency exists because the Bokeh libraries we use for these APIs require a web browser engine. 
+If you want to use the new Augur API Calls that generate downloadable graphics developed in the `https://github.com/chaoss/augur-community-reports` repository, you need to install the `geckodriver` on macOS, at the system level. This dependency exists because the Bokeh libraries we use for these APIs require a web browser engine. 
 
-For Mac OSX you can use: 
+For macOS you can use: 
 
 .. code-block:: bash
 
@@ -112,12 +112,11 @@ For Mac OSX you can use:
 .. note::
   If you have BOTH firefox-geckodriver AND chromedriver installed the visualization API will not work. 
 
-  We have fully tested with firefox-gecko driver on Linux platforms, and geckodriver on OSX. If you have ONLY chromedriver installed, it will probably work. Open an issue if you have a functioning chromedriver implementation.  
+  We have fully tested geckodriver on macOS. If you have ONLY chromedriver installed, it will probably work. Open an issue if you have a functioning chromedriver implementation.  
 
 
-=================
 Installing Augur
-=================
+~~~~~~~~~~~~~~~~
 
 Now you're ready to build! The steps below outline how to create a virtual environment (**required**) and start the installation process,
 after which you'll move on to the next section to configure the workers.

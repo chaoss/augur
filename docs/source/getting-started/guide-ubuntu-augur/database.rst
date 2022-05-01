@@ -24,9 +24,9 @@ After you've setup your PostgreSQL instance, you'll need to create a database an
 
 .. code-block:: postgresql 
     
-    CREATE DATABASE augur;
-    CREATE USER augur WITH ENCRYPTED PASSWORD 'password';
-    GRANT ALL PRIVILEGES ON DATABASE augur TO augur;
+    postgres=# CREATE DATABASE augur;
+    postgres=# CREATE USER augur WITH ENCRYPTED PASSWORD 'password';
+    postgres=# GRANT ALL PRIVILEGES ON DATABASE augur TO augur;
 
 For example, if you were using ``psql`` to connect to an instance on your machine ``localhost`` under the default user ``postgres`` on the default PostgreSQL port ``5432``, you might run something like this to connect to the server:
 

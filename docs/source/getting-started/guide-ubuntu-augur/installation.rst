@@ -115,9 +115,8 @@ For Mac OSX you can use:
   We have fully tested with firefox-gecko driver on Linux platforms, and geckodriver on OSX. If you have ONLY chromedriver installed, it will probably work. Open an issue if you have a functioning chromedriver implementation.  
 
 
-=================
 Installing Augur
-=================
+~~~~~~~~~~~~~~~~~
 
 Now you're ready to build! The steps below outline how to create a virtual environment (**required**) and start the installation process,
 after which you'll move on to the next section to configure the workers.
