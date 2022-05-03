@@ -11,6 +11,7 @@ import requests as api_req
 import math
 
 import plotly.graph_objects as go
+import plotly.express as px
 import plotly.io as pio
 
 from bokeh.palettes import Colorblind, mpl, Category20
@@ -1922,8 +1923,9 @@ def create_routes(server):
     @server.app.route('/{}/pull_request_reports/closed-issues-per-month/'.format(server.api_version), methods=["GET"])
     def issues_closed_per_month():
         try:
+            repo_id = request.args.get('repo_id')
             # Get the data from the API
-            r = api_req.request(url = 'project4320.eastus.cloudapp.azure.com:5000/api/unstable/repos/25205/issues-closed', method = 'get')
+            r = api_req.request(url = 'http://project4320.eastus.cloudapp.azure.com:5000/api/unstable/repos/{}/issues-closed'.format(repo_id), method = 'get')
             e = r.json()
             df = pd.DataFrame(e)
 
@@ -1947,8 +1949,9 @@ def create_routes(server):
     @server.app.route('/{}/pull_request_reports/new-issues-per-month/'.format(server.api_version), methods=["GET"])
     def new_issues_per_month():
         try:
+            repo_id = request.args.get('repo_id')
             # Get the data from the API
-            r = api_req.request(url = 'project4320.eastus.cloudapp.azure.com:5000/api/unstable/repos/25205/issues-new', method = 'get')
+            r = api_req.request(url = 'http://project4320.eastus.cloudapp.azure.com:5000/api/unstable/repos/{}/issues-new'.format(repo_id), method = 'get')
             e = r.json()
             df = pd.DataFrame(e)
 
@@ -1967,5 +1970,29 @@ def create_routes(server):
             pio.write_image(fig, filename)
 
             return send_file("/home/azureuser/augur/" + filename)
+        except Exception as e:
+            return Response(response = str(e), mimetype = 'application/json', status = 200)
+
+    @server.app.route('/{}/pull_request_reports/issue-participants-per-month/'.format(server.api_version), methods=["GET"])
+    def issue_participants_per_month():
+        try:
+            repo_id = request.args.get('repo_id')
+            # Get the data from the API
+            r = request(url = 'http://augur.chaoss.io/api/unstable/repos/{}/issue-participants'.format(repo_id), method = 'get')
+            e = r.json()
+            df = pd.DataFrame(e)
+
+            # Create the graph
+            reponame = df['repo_name'][0]
+            df['created_at'] = pd.to_datetime(df.created_at)
+            df['month'] = df['created_at'].dt.month.astype(str) + "/" + df['created_at'].dt.year.astype(str)
+
+            print(df)
+
+            fig = px.line(x=df['created_at'], y=df['participants'])
+            fig.update_layout(title_text="Number of issue participants per month for repo \"" + reponame + "\"")
+            fig.update_xaxes(title_text="Month/Year")
+            fig.update_yaxes(title_text="Number of issue participants")
+            fig.show()
         except Exception as e:
             return Response(response = str(e), mimetype = 'application/json', status = 200)
