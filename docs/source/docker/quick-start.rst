@@ -1,4 +1,4 @@
-Docker Quick Start
+Quick Start
 ==================================
 For the those who want to get started right away: 
 --------------------------------------------------------------------
