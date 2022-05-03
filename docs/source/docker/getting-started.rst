@@ -1,4 +1,4 @@
-Getting Started
+Detailed Start
 ================
 
 For the Docker Savvy Who Want to Understand How the Sausage is Made: 

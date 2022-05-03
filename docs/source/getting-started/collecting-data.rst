@@ -3,14 +3,18 @@ Collecting data
 
 Now that you've installed Augur's application server, it's time to configure your data collection workers. If you just want to run Augur using the single repository in the default database, and default worker settings all you need to do is this: 
 
-.. code-block:: bash
+To Start Augur:
 
-   # To Start Augur: 
+.. code-block:: bash
+ 
    (nohup augur backend start >logs/run.log 2>logs/run.err &)
 
-   # To Stop Augur: 
+To Stop Augur:
+.. code-block:: bash
+
    augur backend stop
    augur backend kill
+
 
 Now, here's a ton of brain-splitting detail about workers, and their configuration. There are 2 pieces to data collection with Augur: the housekeeper, and the data collection workers. The housekeeper creates long-running "jobs" that specify what kind of data to collect for what set of repositories. The data collection workers can then accept these jobs, after which they will use the information provided in the job to find the repositories in question and collect the requested data.
 

@@ -1,62 +1,61 @@
 Quickstart
 ===============
 
-
-Hello world!
-
 Get going fast! Intended for folks familiar with setting up devops environments. These instructions are tested using Ubuntu 20.04 and Ubuntu 18.04. 
 
+For those already running a supported OS, you can skip down to PostgreSQL Installation.
 
+For those running an unsupported OS, we recommend either using the Docker images or setting up a virtual machine, such as VirtualBox with a supported operating system installed. You can follow the guide below to get set up with Ubuntu running on VirtualBox.
 
 Setting up VirtualBox
 ~~~~~~~~~~~~~~~~~~~~~~~
 - Type "Download VirtualBox for windows" in the search bar.
 - Click on the websight by Oracle.
-.. image:: development-guide/images/A1.png
+.. image:: ../development-guide/images/A1.png
   :width: 600  
 - Download VirtualBox for "windows hosts".
-.. image:: development-guide/images/A2.png
+.. image:: ../development-guide/images/A2.png
   :width: 600  
 - Click on the downloaded VirtualBox and continue clicking NEXT with the default options.
-.. image:: development-guide/images/A3.png
+.. image:: ../development-guide/images/A3.png
   :width: 600  
 - Accept the warning for network Interfaces.
-.. image:: development-guide/images/A5.png
+.. image:: ../development-guide/images/A5.png
   :width: 600  
 - Give it all the permissions it wants.
-.. image:: development-guide/images/A4.png
+.. image:: ../development-guide/images/A4.png
   :width: 600  
 - Open the VirtualBox by clicking on the windows desktop icon.
 - Click on "machine" and then on "new".
-.. image:: development-guide/images/A6.png
+.. image:: ../development-guide/images/A6.png
   :width: 600  
 - Name the machine as you wish. In type select "Linux" and in version select "Ubuntu (64-bits)".
-.. image:: development-guide/images/A7.png
+.. image:: ../development-guide/images/A7.png
   :width: 600  
-.. image:: development-guide/images/A8.png
+.. image:: ../development-guide/images/A8.png
   :width: 600  
 - Allot it the memory size you want , then click on NEXT.
-.. image:: development-guide/images/A9.png
+.. image:: ../development-guide/images/A9.png
   :width: 600  
 - Choose "Create a virtual hard disk now" and click on CREATE.
-.. image:: development-guide/images/A10.png
+.. image:: ../development-guide/images/A10.png
   :width: 600  
 - In hard disk file type choose VDI(VirtualBox Disk Image) and click on NEXT.
-.. image:: development-guide/images/A11.png
+.. image:: ../development-guide/images/A11.png
   :width: 600  
 - In storage on physical hard disk choose "Dynamically allocated" and click on NEXT.
-.. image:: development-guide/images/A12.png
+.. image:: ../development-guide/images/A12.png
   :width: 600  
 - Continue with the default options by clicking on next. Your machine will be created.
 - Start the machine.
-.. image:: development-guide/images/A13.png
+.. image:: ../development-guide/images/A13.png
   :width: 600  
 
 Ubuntu download 
 ~~~~~~~~~~~~~~~~~
 - Type "Download ubuntu" in the search bar.
 - Click on download (Prefer LTS version). Ubuntu will be downloaded.
-.. image:: development-guide/images/A14.png
+.. image:: ../development-guide/images/A14.png
   :width: 600  
 
 Installing Ubuntu in VirtualBox
@@ -64,19 +63,19 @@ Installing Ubuntu in VirtualBox
 - Open the machine which we have created earlier.
 - Now in the pop-up, click on the disk image where you have downloaded your ubuntu and click on finish.
 - In the welcome window select Install Ubuntu and move forward with the default options.
-.. image:: development-guide/images/Af.png
+.. image:: ../development-guide/images/Af.png
   :width: 600  
 - Select the keyboard layout you desire.
 - Select installation type as "Erase disk and install Ubuntu".
-.. image:: development-guide/images/Ad.png
+.. image:: ../development-guide/images/Ad.png
   :width: 600  
 - Enter your details and set a password.
-.. image:: development-guide/images/Ac.png
+.. image:: ../development-guide/images/Ac.png
   :width: 600  
-.. image:: development-guide/images/Ab.png
+.. image:: ../development-guide/images/Ab.png
   :width: 600  
 - Your Ubuntu will be ready to use in few minutes.
-.. image:: development-guide/images/Aa.png
+.. image:: ../development-guide/images/Aa.png
   :width: 600  
 
 
@@ -99,17 +98,17 @@ PostgreSQL Installation
 
 .. code-block:: bash
 
-    $ sudo su -
-    $ su - postgres
-    $ psql
+    sudo su -
+    su - postgres
+    psql
 
 Then, once you've connected to your PostgreSQL instance\:
 
 .. code-block:: postgresql
 
-    postgres=# CREATE DATABASE augur;
-    postgres=# CREATE USER augur WITH ENCRYPTED PASSWORD 'password';
-    postgres=# GRANT ALL PRIVILEGES ON DATABASE augur TO augur;
+    CREATE DATABASE augur;
+    CREATE USER augur WITH ENCRYPTED PASSWORD 'password';
+    GRANT ALL PRIVILEGES ON DATABASE augur TO augur;
 
 Git Configuration
 ~~~~~~~~~~~~~~~~~~~~~~~~
