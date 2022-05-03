@@ -38,9 +38,9 @@ Then, once you've connected to your PostgreSQL instance\:
 
 .. code-block:: postgresql
 
-    postgres=# CREATE DATABASE augur;
-    postgres=# CREATE USER augur WITH ENCRYPTED PASSWORD 'password';
-    postgres=# GRANT ALL PRIVILEGES ON DATABASE augur TO augur;
+    CREATE DATABASE augur;
+    CREATE USER augur WITH ENCRYPTED PASSWORD 'password';
+    GRANT ALL PRIVILEGES ON DATABASE augur TO augur;
 
 
 Once you've got the database setup, Augur will install the schema for you. You're now ready to `install Augur <installation.html>`_!

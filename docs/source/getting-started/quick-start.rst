@@ -98,17 +98,17 @@ PostgreSQL Installation
 
 .. code-block:: bash
 
-    $ sudo su -
-    $ su - postgres
-    $ psql
+    sudo su -
+    su - postgres
+    psql
 
 Then, once you've connected to your PostgreSQL instance\:
 
 .. code-block:: postgresql
 
-    postgres=# CREATE DATABASE augur;
-    postgres=# CREATE USER augur WITH ENCRYPTED PASSWORD 'password';
-    postgres=# GRANT ALL PRIVILEGES ON DATABASE augur TO augur;
+    CREATE DATABASE augur;
+    CREATE USER augur WITH ENCRYPTED PASSWORD 'password';
+    GRANT ALL PRIVILEGES ON DATABASE augur TO augur;
 
 Git Configuration
 ~~~~~~~~~~~~~~~~~~~~~~~~

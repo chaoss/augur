@@ -89,25 +89,36 @@ For Ubuntu you can use:
 
 .. code-block:: bash
 
-    - which firefox-geckodriver
-    - if nothing returned, then: 
-    - sudo apt install firefox-geckodriver
+    which firefox-geckodriver
+
+if nothing returned, then:
+.. code-block:: bash
+
+    sudo apt install firefox-geckodriver
 
 For Fedora you can use
 
 .. code-block:: bash
 
-    - which firefox-geckodriver
-    - if nothing returned, then: 
-    - sudo dnf install firefox-geckodriver
+    which firefox-geckodriver
+
+if nothing returned, then: 
+
+.. code-block:: bash
+
+    sudo dnf install firefox-geckodriver
 
 For Mac OSX you can use: 
 
 .. code-block:: bash
 
-    -  which geckodriver
-    -  if nothing returned, then:
-    -  brew install geckodriver
+    which geckodriver
+
+if nothing returned, then:
+
+.. code-block:: bash
+
+    brew install geckodriver
 
 .. note::
   If you have BOTH Firefox-geckodriver AND ChromeDriver installed the visualization API will not work. 
@@ -132,8 +143,8 @@ after which you'll move on to the next section to configure the workers.
 
 .. code-block:: bash
 
-   $ git clone 'https://github.com/chaoss/augur.git'
-   $ cd augur/
+   git clone 'https://github.com/chaoss/augur.git'
+   cd augur/
 
 2. Create a virtual environment in a directory of your choosing. Be sure to use the correct ``python`` command for
 your installation of Python 3: on most systems, this is ``python3``, but yours may differ (you can use ``python -V`` or ``python3 -V`` to check).
@@ -141,10 +152,10 @@ your installation of Python 3: on most systems, this is ``python3``, but yours m
 .. code-block:: bash
 
     # to create the environment
-    $ python3 -m venv $HOME/.virtualenvs/augur_env
+    python3 -m venv $HOME/.virtualenvs/augur_env
 
     # to activate the environment
-    $ source $HOME/.virtualenvs/augur_env/bin/activate
+    source $HOME/.virtualenvs/augur_env/bin/activate
 
 3. Run the install script. This script will:
 
@@ -163,12 +174,12 @@ your installation of Python 3: on most systems, this is ``python3``, but yours m
 .. code-block:: bash
 
    # run the install script
-   $ make install
+   make install
 
 .. code-block:: bash
 
    # If you want to develop with Augur, use this command instead
-   $ make install-dev
+   make install-dev
 
 If you think something went wrong, check the log files in ``logs/``. If you want to try again, you can use ``make clean`` to delete any build files before running ``make install`` again.
 
@@ -178,7 +189,7 @@ If you want to test new code you have written, you can rebuild Augur using:
 
 .. code-block:: bash
 
-   $ make rebuild-dev
+   make rebuild-dev
 
 .. note::
 
