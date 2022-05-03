@@ -1,10 +1,11 @@
 Quickstart
 ===============
 
-
 Get going fast! Intended for folks familiar with setting up devops environments. These instructions are tested using Ubuntu 20.04 and Ubuntu 18.04. 
 
+For those already running a supported OS, you can skip down to PostgreSQL Installation.
 
+For those running an unsupported OS, we recommend either using the Docker images or setting up a virtual machine, such as VirtualBox with a supported operating system installed. You can follow the guide below to get set up with Ubuntu running on VirtualBox.
 
 Setting up VirtualBox
 ~~~~~~~~~~~~~~~~~~~~~~~
