@@ -1,5 +1,7 @@
-Docker Quick Start
+Quick Start
 ==================================
+For the those who want to get started right away: 
+--------------------------------------------------------------------
 Before you get off to such a quick start, go ahead and 
   1. Create a fork from augur starting at https://github.com/chaoss/augur
   2. Clone that fork locally

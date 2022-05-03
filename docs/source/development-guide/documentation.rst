@@ -22,7 +22,7 @@ most commonly used directives.
 Building
 ~~~~~~~~
 
-To see your changes and make sure everything rendered correctly, First activate the python virtual enivroment and run ``make docs`` in the root 
+To see your changes and make sure everything rendered correctly, First activate the python virtual environment and run ``make docs`` in the root 
 ``augur/`` directory, and then open ``docs/build/html/index.html`` in your web browser to view it. 
 
 .. code-block:: bash
@@ -46,6 +46,19 @@ After opening it once, Make your changes in the regular ``docs/source`` folder a
 
     # after opening the documentation
     $ make docs
+
+Working in AWS
+~~~~~~~~~~~~~~
+
+Some developers use an AWS EC2 instance to deploy Augur and test their changes. This makes viewing rendered changes a little different. One way to see the changes is to use the scp command to download them onto your work machine.
+
+For example:
+
+.. code-block:: bash
+    
+    scp -r -i [path to private access key] ubuntu@[server ip]:/home/ubuntu/augur/docs/build/html [source destination]
+
+To view your changes, just navigate to the folder in your machine and open the index.html file contained within.
 
 Hosting
 ~~~~~~~
