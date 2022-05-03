@@ -23,6 +23,7 @@ Happy hacking!
 .. toctree::
    :maxdepth: 1
 
+   quick-start
    database
    installation
    collecting-data
