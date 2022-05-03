@@ -1,1 +1,12 @@
+Project: Our project is updating the documentation, specifically making the Quickstart and Getting Started documentation more cohesive, revising outdated or incorrect commands present in the install documentation, and reorganizing the table of contents for a better flow for the user.
+
+In this Sprint we have updated the Web Server Configuration section with an example of an EC2 instance launch. This will help any user who is not familiar with launching an instance and includes the best AMI, instance type, network settings, and storage that Augur will need to run properly on an EC2 Instance. We felt that this was an important addition as many students in the class struggled with storage, instance type, and network settings during the installation process of Augur in our class.
+
+We have also made changes to the Quickstart. Here we have added troubleshooting tips that we found during multiple executions of the installation process in footnotes, so that if a user runs into a common problem it can be easily remedied. 
+
+We have also added troubleshooting footnotes to the Detailed Installation to make it cohesive with the Quickstart, so that whichever route the user decides to take they will be able to easily find help for common installation issues.
+
+All of these changes can be seen within the .rst files within the augur/Sprint4/docs/source section of this branch. We have also added images from the site in the augur/Sprint4 section of this branch which shows the main changes that we have updated this site with. This is for ease of grading since some of the changes are more subtle.
+
+Explanation of each image:
 
