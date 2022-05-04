@@ -18,13 +18,18 @@ logger = logging.getLogger(__name__)
 
 
 class AugurLogConfigurer:
+    simple_format_string = "[%(process)d] %(name)s [%(levelname)s] %(message)s"
+    verbose_format_string = "%(asctime)s,%(msecs)dms [PID: %(process)d] %(name)s [%(levelname)s] %(message)s"
+    cli_format_string = "CLI: [%(module)s.%(funcName)s] [%(levelname)s] %(message)s"
+    config_format_string = "[%(levelname)s] %(message)s"
+    error_format_string = "%(asctime)s [PID: %(process)d] %(name)s [%(funcName)s() in %(filename)s:L%(lineno)d] [%(levelname)s]: %(message)s"
 
-    simple_format_string = "[%(process)d] %(name)s [%(levelname)s] | {handler_tags} %(ExtraTags)s | %(message)s"
-    verbose_format_string = "%(asctime)s,%(msecs)dms [PID: %(process)d] %(name)s [%(levelname)s] | {handler_tags} %(" \
+    tagged_simple_format_string = "[%(process)d] %(name)s [%(levelname)s] | {handler_tags} %(ExtraTags)s | %(message)s"
+    tagged_verbose_format_string = "%(asctime)s,%(msecs)dms [PID: %(process)d] %(name)s [%(levelname)s] | {handler_tags} %(" \
                             "ExtraTags)s | %(message)s "
-    cli_format_string = "CLI: [%(module)s.%(funcName)s] [%(levelname)s] | {handler_tags} %(ExtraTags)s | %(message)s"
-    config_format_string = "[%(levelname)s] | {handler_tags} %(ExtraTags)s | %(message)s"
-    error_format_string = "%(asctime)s [PID: %(process)d] %(name)s [%(funcName)s() in %(filename)s:L%(lineno)d] [%(" \
+    tagged_cli_format_string = "CLI: [%(module)s.%(funcName)s] [%(levelname)s] | {handler_tags} %(ExtraTags)s | %(message)s"
+    tagged_config_format_string = "[%(levelname)s] | {handler_tags} %(ExtraTags)s | %(message)s"
+    tagged_error_format_string = "%(asctime)s [PID: %(process)d] %(name)s [%(funcName)s() in %(filename)s:L%(lineno)d] [%(" \
                           "levelname)s]: | {handler_tags} %(ExtraTags)s | %(message)s "
 
     @staticmethod
