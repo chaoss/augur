@@ -11,6 +11,12 @@ class AugurLogger(Logger):
         
      def debug_with_tags (self, additional_tags, message, *args, **kwargs): 
         self.debug(message, *args, **(kwargs | {"extra": {"ExtraTags": additional_tags}}))
+
+     def warning_with_tags (self, additional_tags, message, *args, **kwargs): 
+        self.warning(message, *args, **(kwargs | {"extra": {"ExtraTags": additional_tags}}))
+
+     def critical_with_tags (self, additional_tags, message, *args, **kwargs): 
+        self.critical(message, *args, **(kwargs | {"extra": {"ExtraTags": additional_tags}}))
         
 
 
