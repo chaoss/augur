@@ -1978,7 +1978,7 @@ def create_routes(server):
         try:
             repo_id = request.args.get('repo_id')
             # Get the data from the API
-            r = api_req.request(url = 'http://augur.chaoss.io/api/unstable/repos/{}/issue-participants'.format(repo_id), method = 'get')
+            r = api_req.request(url = 'http://project4320.eastus.cloudapp.azure.com:5000/api/unstable/repos/{}/issue-participants'.format(repo_id), method = 'get')
             e = r.json()
             df = pd.DataFrame(e)
 
@@ -2004,7 +2004,7 @@ def create_routes(server):
         try:
             repo_id = request.args.get('repo_id')
             # Get the data from the API
-            r = api_req.request(url = 'http://augur.chaoss.io/api/unstable/repos/{}/issues-open-age'.format(repo_id), method = 'get')
+            r = api_req.request(url = 'http://project4320.eastus.cloudapp.azure.com:5000/api/unstable/repos/{}/issues-open-age'.format(repo_id), method = 'get')
             e = r.json()
             df = pd.DataFrame(e)
 
