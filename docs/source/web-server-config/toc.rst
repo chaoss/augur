@@ -8,6 +8,7 @@ This section details describes production deployment of Augur.
    :maxdepth: 1
 
    nginx-configuration
+   ec2-launch
 
 
 **THIS SECTION IS UNDER CONSTRUCTION.**

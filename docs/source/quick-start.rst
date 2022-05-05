@@ -1,86 +1,13 @@
 Quickstart
-===============
+==========
 
-Get going fast! Intended for folks familiar with setting up DevOps environments. These instructions were tested using Ubuntu 20.04. Ubuntu 18x is no longer supported because the versions of Python3 available on it are not current. 
-
-
-Setting up VirtualBox
-~~~~~~~~~~~~~~~~~~~~~~~
-- Type "Download VirtualBox for windows" in the search bar.
-- Click on the websight by Oracle.
-.. image:: development-guide/images/A1.png
-  :width: 600  
-- Download VirtualBox for "windows hosts".
-.. image:: development-guide/images/A2.png
-  :width: 600  
-- Click on the downloaded VirtualBox and continue clicking NEXT with the default options.
-.. image:: development-guide/images/A3.png
-  :width: 600  
-- Accept the warning for network Interfaces.
-.. image:: development-guide/images/A5.png
-  :width: 600  
-- Give it all the permissions it wants.
-.. image:: development-guide/images/A4.png
-  :width: 600  
-- Open the VirtualBox by clicking on the windows desktop icon.
-- Click on "machine" and then on "new".
-.. image:: development-guide/images/A6.png
-  :width: 600  
-- Name the machine as you wish. In type select "Linux" and in version select "Ubuntu (64-bits)".
-.. image:: development-guide/images/A7.png
-  :width: 600  
-.. image:: development-guide/images/A8.png
-  :width: 600  
-- Allot it the memory size you want , then click on NEXT.
-.. image:: development-guide/images/A9.png
-  :width: 600  
-- Choose "Create a virtual hard disk now" and click on CREATE.
-.. image:: development-guide/images/A10.png
-  :width: 600  
-- In hard disk file type choose VDI(VirtualBox Disk Image) and click on NEXT.
-.. image:: development-guide/images/A11.png
-  :width: 600  
-- In storage on physical hard disk choose "Dynamically allocated" and click on NEXT.
-.. image:: development-guide/images/A12.png
-  :width: 600  
-- Continue with the default options by clicking on next. Your machine will be created.
-- Start the machine.
-.. image:: development-guide/images/A13.png
-  :width: 600  
-
-Ubuntu download 
-~~~~~~~~~~~~~~~~~
-- Type "Download ubuntu" in the search bar.
-- Click on download (Prefer LTS version). Ubuntu will be downloaded.
-.. image:: development-guide/images/A14.png
-  :width: 600  
-
-Installing Ubuntu in VirtualBox
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-- Open the machine which we have created earlier.
-- Now in the pop-up, click on the disk image where you have downloaded your ubuntu and click on finish.
-- In the welcome window select Install Ubuntu and move forward with the default options.
-.. image:: development-guide/images/Af.png
-  :width: 600  
-- Select the keyboard layout you desire.
-- Select installation type as "Erase disk and install Ubuntu".
-.. image:: development-guide/images/Ad.png
-  :width: 600  
-- Enter your details and set a password.
-.. image:: development-guide/images/Ac.png
-  :width: 600  
-.. image:: development-guide/images/Ab.png
-  :width: 600  
-- Your Ubuntu will be ready to use in few minutes.
-.. image:: development-guide/images/Aa.png
-  :width: 600  
-
+Get going fast! Intended for folks familiar with setting up DevOps environments. These instructions were tested using Ubuntu 20.04 and Ubuntu 18.04. 
 
 PostgreSQL Installation
 ~~~~~~~~~~~~~~~~~~~~~~~~
-- Gain access to an Ubuntu 18.04 or later environment and install PostgreSQL. Ubuntu 20.04 is recommended because its long-term support (LTS) window is longer.
+- Gain access to an Ubuntu 18.04 or later environment and install PostgreSQL. Ubuntu 20.04 is recommended because its long-term support (LTS) window is longer. 
 
-.. code-block:: bash
+.. code-block:: bash 
 
 	sudo apt update
 	sudo apt upgrade
@@ -94,9 +21,9 @@ PostgreSQL Installation
 
 .. code-block:: bash
 
-    $ sudo su -
+    $ sudo su - 
     $ su - postgres
-    $ psql
+    $ psql 
 
 Then, once you've connected to your PostgreSQL instance\:
 
@@ -108,7 +35,7 @@ Then, once you've connected to your PostgreSQL instance\:
 
 Git Configuration
 ~~~~~~~~~~~~~~~~~~~~~~~~
-- Configure Git: These instructions assume the potential of large repositories that occasionally perform significant refactoring within a small number of commits. Our experience is that nearly all organizations have at least one project that meets these criteria.
+- Configure Git: These instructions assume the potential of large repositories that occasionally perform significant refactoring within a small number of commits. Our experience is that nearly all organizations have at least one project that meets these criteria. 
 
 .. code-block:: bash
 
@@ -117,7 +44,7 @@ Git Configuration
 	git config --global credential.helper cache
 	git config --global credential.helper 'cache --timeout=9999999999999'
 
-- For each platform, perform a command line login in order to cache Git credentials for the LINUX user who operates Augur. This step is required in order to prevent the Facade Commit Counting Diesel from stalling on a command line prompt when repositories move or disappear.
+- For each platform, perform a command line login in order to cache Git credentials for the LINUX user who operates Augur. This step is required in order to prevent the Facade Commit Counting Diesel from stalling on a command line prompt when repositories move or disappear. 
 
 Install Go
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -130,17 +57,17 @@ Two of Augur's workers use the Go programming language, which needs to be instal
 	sudo snap install go --classic
 
 Python Virtual Environment Configuration
-~~~~~~~~~~~~~~~~~~~~~~~~
-- Set up a Python virtual environment (Python 3.8 and above are now required. Python 3.9 and python 3.10 work as well, though we have tested Python 3.9 on more platforms.)
-- Clone and install Augur as a regular user.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+- Set up a Python virtual environment (Python 3.8 and above are now required. Python 3.9 and python 3.10 work as well, though we have tested Python 3.9 on more platforms.) 
+- Clone and install Augur as a regular user. 
 
 .. code-block:: bash
 
-	# Ensure you are logged in as your own user on Github and change the "<YOUR_GITHUB_USERNAME>" to your Github username (e.g. "sean")
-	git clone https://github.com/<YOUR_GITHUB_USERNAME>/augur.git
+	# make sure you are logged in as your own user (i.e. "sean")
+	git clone https://github.com/chaoss/augur.git
 	cd augur/
 	sudo apt install make
-	sudo apt-get install python3-venv
+	sudo apt-get install python3-venv 
 	python3 -m venv $HOME/.virtualenvs/augur_env
 	source $HOME/.virtualenvs/augur_env/bin/activate
 	sudo apt install python-pip-whl
@@ -149,8 +76,26 @@ Python Virtual Environment Configuration
 	python -m pip install --upgrade pip
 	make install-dev {Follow prompts. You will need database credentials, a file location for cloned repositories, a GitHub Token, and a GitLab token.}
 
-- Seven sample repositories will load by default. You can delete them if you want to use your own repositories by deleting records from the `repo` table first, then deleting the records from the `repo_groups` table.
+The following Note outlines the recommended choices for the questions that will come up during the 'make install-dev' run.
 
+.. Note::
+	- Would you like to...
+		1) initialize a new database AND install the schema?
+		2) connect to an existing empty database and ONLY install the schema?
+		3) connect to a database with the schema already installed?
+		
+		- Since we have already created a database and user with postgres, you will want to choose option 2 when you reach the database credentials question
+	- Please enter the credentials for the database.
+		- If you have followed the steps outlined above for the database creation, the Database you will want to type is 'augur', the user is 'augur', and the password is 'password'. For the host and port, please put 'localhost' for the host and '5432' for the port, as this corresponds with postgres.
+	- Please provide a valid GitHub API key.
+		- When asked to create and enter a Github API Key, please use this link if you do not understand how to do so: https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token
+	- The Facade data collection worker will clone repositories to this machine to run its analysis.Would you like to clone to an existing directory, or create a new one?
+		1) Use an existing directory
+		2) Create a new directory
+
+		- When asked where to store, hit 2 to create a new direictory and give the full path
+
+- Seven sample repositories will load by default. You can delete them if you want to use your own repositories by deleting records from the `repo` table first, then deleting the records from the `repo_groups` table. 
 
 .. code-block:: bash
 
@@ -160,7 +105,7 @@ Python Virtual Environment Configuration
 
 Loading Repositories
 ~~~~~~~~~~~~~~~~~~~~~~~~
-The commands for loading repos are:
+The commands for loading repos are: 
 
 .. code-block:: bash
 
@@ -169,4 +114,3 @@ The commands for loading repos are:
 	augur db add-repos
 
 We recommend that you test your instance using 50 or fewer repositories before undertaking a more substantial data collection. When you do take on more collection, you can "collect data faster" by adding additional tokens to the `worker_oauth` table in the `augur_operations` schema and increasing the number of workers for the pull request and GitHub worker blocks in the `augur.config.json` file that generates at install.
-

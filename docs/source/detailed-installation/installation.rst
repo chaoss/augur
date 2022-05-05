@@ -142,6 +142,25 @@ your installation of Python 3: on most systems, this is ``python3``, but yours m
    # If you want to develop with Augur, use this command instead
    $ make install-dev
 
+The following Note outlines the recommended choices for the questions that will come up during the ‘make install-dev’ run.
+
+.. Note::
+        - Would you like to...
+                1) initialize a new database AND install the schema?
+                2) connect to an existing empty database and ONLY install the schema?
+                3) connect to a database with the schema already installed?
+
+                - Since we have already created a database and user with postgres, you will want to choose option 2 when you reach the database credentials question
+        - Please enter the credentials for the database.
+                - If you have followed the steps outlined above for the database creation, the Database you will want to type is 'augur', the user is 'augur', and the password is 'password'. For the host and port, please put 'localhost' for the host and '5432' for the port, as this corresponds with postgres.
+        - Please provide a valid GitHub API key.
+                - When asked to create and enter a Github API Key, please use this link if you do not understand how to do so: https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token
+        - The Facade data collection worker will clone repositories to this machine to run its analysis.Would you like to clone to an existing directory, or create a new one?
+                1) Use an existing directory
+                2) Create a new directory
+
+                - When asked where to store, hit 2 to create a new direictory and give the full path
+
 If you think something went wrong, check the log files in ``logs/``. If you want to try again, you can use ``make clean`` to delete any build files before running ``make install`` again.
 
 MacOS users: if your build fails and in gunicorn.log you see this error: ``Connection in use: ('0.0.0.0', 5000)``, that means port 5000 is being used by another process. To solve this issue, go to System Preferences -> Sharing -> Disable Airplay Receiver.
