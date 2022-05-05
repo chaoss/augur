@@ -1,0 +1,477 @@
+06:32:12: An exception occurred reading from [config.yml], default settings kept:
+06:32:12: [Errno 2] No such file or directory: 'config.yml'
+06:32:12: Attempting to generate default config.yml
+06:32:12: Default settings file successfully generated.
+06:32:12: An exception occurred reading reports endpoints from [reports.yml]:
+06:32:12: [Errno 2] No such file or directory: 'reports.yml'
+06:32:12: Attempting to generate default reports.yml
+06:32:12: Default reports file successfully generated.
+06:32:37: requesting json
+06:32:40: requesting json
+06:32:41: requesting json
+06:33:14: requesting json
+06:33:18: requesting json
+06:36:34: requesting json
+06:38:31: requesting json
+06:38:33: requesting json
+06:39:49: requesting json
+06:41:38: requesting json
+06:43:08: requesting json
+06:43:08: An exception occurred while fulfilling a json request
+06:43:08: HTTP Error 308: PERMANENT REDIRECT
+06:43:10: requesting json
+06:43:11: requesting json
+06:43:11: An exception occurred while fulfilling a json request
+06:43:11: HTTP Error 308: PERMANENT REDIRECT
+06:43:14: requesting json
+06:43:16: requesting json
+06:43:18: requesting json
+06:43:18: requesting json
+06:43:18: An exception occurred while fulfilling a json request
+06:43:18: HTTP Error 308: PERMANENT REDIRECT
+06:44:03: requesting json
+06:44:03: An exception occurred while fulfilling a json request
+06:44:03: HTTP Error 308: PERMANENT REDIRECT
+06:44:03: Exception on /groups [GET]
+Traceback (most recent call last):
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/app.py", line 2073, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/app.py", line 1518, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/app.py", line 1516, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/app.py", line 1502, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**req.view_args)
+  File "/home/ubuntu/augur_view/augur_view.py", line 100, in repo_groups_view
+    return render_template('index.html', body="groups-table", title="Groups", groups=groups, query_key=query, api_url=getSetting('serving'))
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/templating.py", line 147, in render_template
+    return _render(
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/templating.py", line 128, in _render
+    rv = template.render(context)
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/jinja2/environment.py", line 1304, in render
+    self.environment.handle_exception()
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/jinja2/environment.py", line 925, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "/home/ubuntu/augur_view/templates/index.html", line 34, in top-level template code
+    {% include 'navbar.html' %}
+  File "/home/ubuntu/augur_view/templates/navbar.html", line 36, in top-level template code
+    <a class="nav-link {% if title == 'Graphs' %} active {% endif %}" aria-current="page" href="{{ url_for('badgers_graphs') }}">Graphs</a>
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/helpers.py", line 338, in url_for
+    return appctx.app.handle_url_build_error(error, endpoint, values)
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/helpers.py", line 325, in url_for
+    rv = url_adapter.build(
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/werkzeug/routing.py", line 2314, in build
+    raise BuildError(endpoint, values, method, self)
+werkzeug.routing.BuildError: Could not build url for endpoint 'badgers_graphs'. Did you mean 'repo_groups_view' instead?
+06:44:06: requesting json
+06:44:06: Exception on / [GET]
+Traceback (most recent call last):
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/app.py", line 2073, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/app.py", line 1518, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/app.py", line 1516, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/app.py", line 1502, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**req.view_args)
+  File "/home/ubuntu/augur_view/augur_view.py", line 66, in repo_table_view
+    return renderRepos("table", query, requestJson("repos"), sorting, rev, page, True)
+  File "/home/ubuntu/augur_view/utils.py", line 308, in renderRepos
+    return render_template('index.html', body="repos-" + view, title="Repos", repos=data, query_key=query, activePage=page, pages=pages, offset=pagination_offset, PS=pageSource, api_url=getSetting('serving'), reverse = rev, sorting = sorting)
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/templating.py", line 147, in render_template
+    return _render(
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/templating.py", line 128, in _render
+    rv = template.render(context)
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/jinja2/environment.py", line 1304, in render
+    self.environment.handle_exception()
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/jinja2/environment.py", line 925, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "/home/ubuntu/augur_view/templates/index.html", line 34, in top-level template code
+    {% include 'navbar.html' %}
+  File "/home/ubuntu/augur_view/templates/navbar.html", line 36, in top-level template code
+    <a class="nav-link {% if title == 'Graphs' %} active {% endif %}" aria-current="page" href="{{ url_for('badgers_graphs') }}">Graphs</a>
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/helpers.py", line 338, in url_for
+    return appctx.app.handle_url_build_error(error, endpoint, values)
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/helpers.py", line 325, in url_for
+    rv = url_adapter.build(
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/werkzeug/routing.py", line 2314, in build
+    raise BuildError(endpoint, values, method, self)
+werkzeug.routing.BuildError: Could not build url for endpoint 'badgers_graphs'. Did you mean 'repo_groups_view' instead?
+06:44:24: requesting json
+06:44:24: Exception on / [GET]
+Traceback (most recent call last):
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/app.py", line 2073, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/app.py", line 1518, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/app.py", line 1516, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/app.py", line 1502, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**req.view_args)
+  File "/home/ubuntu/augur_view/augur_view.py", line 65, in repo_table_view
+    return renderRepos("table", query, requestJson("repos"), sorting, rev, page, True)
+  File "/home/ubuntu/augur_view/utils.py", line 308, in renderRepos
+    return render_template('index.html', body="repos-" + view, title="Repos", repos=data, query_key=query, activePage=page, pages=pages, offset=pagination_offset, PS=pageSource, api_url=getSetting('serving'), reverse = rev, sorting = sorting)
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/templating.py", line 147, in render_template
+    return _render(
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/templating.py", line 128, in _render
+    rv = template.render(context)
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/jinja2/environment.py", line 1304, in render
+    self.environment.handle_exception()
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/jinja2/environment.py", line 925, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "/home/ubuntu/augur_view/templates/index.html", line 34, in top-level template code
+    {% include 'navbar.html' %}
+  File "/home/ubuntu/augur_view/templates/navbar.html", line 36, in top-level template code
+    <a class="nav-link {% if title == 'Graphs' %} active {% endif %}" aria-current="page" href="{{ url_for('badgers_graphs') }}">Graphs</a>
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/helpers.py", line 338, in url_for
+    return appctx.app.handle_url_build_error(error, endpoint, values)
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/helpers.py", line 325, in url_for
+    rv = url_adapter.build(
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/werkzeug/routing.py", line 2314, in build
+    raise BuildError(endpoint, values, method, self)
+werkzeug.routing.BuildError: Could not build url for endpoint 'badgers_graphs'. Did you mean 'repo_groups_view' instead?
+06:44:25: requesting json
+06:44:25: Exception on / [GET]
+Traceback (most recent call last):
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/app.py", line 2073, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/app.py", line 1518, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/app.py", line 1516, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/app.py", line 1502, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**req.view_args)
+  File "/home/ubuntu/augur_view/augur_view.py", line 65, in repo_table_view
+    return renderRepos("table", query, requestJson("repos"), sorting, rev, page, True)
+  File "/home/ubuntu/augur_view/utils.py", line 308, in renderRepos
+    return render_template('index.html', body="repos-" + view, title="Repos", repos=data, query_key=query, activePage=page, pages=pages, offset=pagination_offset, PS=pageSource, api_url=getSetting('serving'), reverse = rev, sorting = sorting)
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/templating.py", line 147, in render_template
+    return _render(
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/templating.py", line 128, in _render
+    rv = template.render(context)
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/jinja2/environment.py", line 1304, in render
+    self.environment.handle_exception()
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/jinja2/environment.py", line 925, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "/home/ubuntu/augur_view/templates/index.html", line 34, in top-level template code
+    {% include 'navbar.html' %}
+  File "/home/ubuntu/augur_view/templates/navbar.html", line 36, in top-level template code
+    <a class="nav-link {% if title == 'Graphs' %} active {% endif %}" aria-current="page" href="{{ url_for('badgers_graphs') }}">Graphs</a>
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/helpers.py", line 338, in url_for
+    return appctx.app.handle_url_build_error(error, endpoint, values)
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/helpers.py", line 325, in url_for
+    rv = url_adapter.build(
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/werkzeug/routing.py", line 2314, in build
+    raise BuildError(endpoint, values, method, self)
+werkzeug.routing.BuildError: Could not build url for endpoint 'badgers_graphs'. Did you mean 'repo_groups_view' instead?
+06:44:26: requesting json
+06:44:26: Exception on / [GET]
+Traceback (most recent call last):
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/app.py", line 2073, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/app.py", line 1518, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/app.py", line 1516, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/app.py", line 1502, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**req.view_args)
+  File "/home/ubuntu/augur_view/augur_view.py", line 65, in repo_table_view
+    return renderRepos("table", query, requestJson("repos"), sorting, rev, page, True)
+  File "/home/ubuntu/augur_view/utils.py", line 308, in renderRepos
+    return render_template('index.html', body="repos-" + view, title="Repos", repos=data, query_key=query, activePage=page, pages=pages, offset=pagination_offset, PS=pageSource, api_url=getSetting('serving'), reverse = rev, sorting = sorting)
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/templating.py", line 147, in render_template
+    return _render(
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/templating.py", line 128, in _render
+    rv = template.render(context)
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/jinja2/environment.py", line 1304, in render
+    self.environment.handle_exception()
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/jinja2/environment.py", line 925, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "/home/ubuntu/augur_view/templates/index.html", line 34, in top-level template code
+    {% include 'navbar.html' %}
+  File "/home/ubuntu/augur_view/templates/navbar.html", line 36, in top-level template code
+    <a class="nav-link {% if title == 'Graphs' %} active {% endif %}" aria-current="page" href="{{ url_for('badgers_graphs') }}">Graphs</a>
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/helpers.py", line 338, in url_for
+    return appctx.app.handle_url_build_error(error, endpoint, values)
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/helpers.py", line 325, in url_for
+    rv = url_adapter.build(
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/werkzeug/routing.py", line 2314, in build
+    raise BuildError(endpoint, values, method, self)
+werkzeug.routing.BuildError: Could not build url for endpoint 'badgers_graphs'. Did you mean 'repo_groups_view' instead?
+06:44:26: requesting json
+06:44:26: Exception on / [GET]
+Traceback (most recent call last):
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/app.py", line 2073, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/app.py", line 1518, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/app.py", line 1516, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/app.py", line 1502, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**req.view_args)
+  File "/home/ubuntu/augur_view/augur_view.py", line 65, in repo_table_view
+    return renderRepos("table", query, requestJson("repos"), sorting, rev, page, True)
+  File "/home/ubuntu/augur_view/utils.py", line 308, in renderRepos
+    return render_template('index.html', body="repos-" + view, title="Repos", repos=data, query_key=query, activePage=page, pages=pages, offset=pagination_offset, PS=pageSource, api_url=getSetting('serving'), reverse = rev, sorting = sorting)
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/templating.py", line 147, in render_template
+    return _render(
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/templating.py", line 128, in _render
+    rv = template.render(context)
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/jinja2/environment.py", line 1304, in render
+    self.environment.handle_exception()
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/jinja2/environment.py", line 925, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "/home/ubuntu/augur_view/templates/index.html", line 34, in top-level template code
+    {% include 'navbar.html' %}
+  File "/home/ubuntu/augur_view/templates/navbar.html", line 36, in top-level template code
+    <a class="nav-link {% if title == 'Graphs' %} active {% endif %}" aria-current="page" href="{{ url_for('badgers_graphs') }}">Graphs</a>
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/helpers.py", line 338, in url_for
+    return appctx.app.handle_url_build_error(error, endpoint, values)
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/helpers.py", line 325, in url_for
+    rv = url_adapter.build(
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/werkzeug/routing.py", line 2314, in build
+    raise BuildError(endpoint, values, method, self)
+werkzeug.routing.BuildError: Could not build url for endpoint 'badgers_graphs'. Did you mean 'repo_groups_view' instead?
+06:44:26: requesting json
+06:44:26: Exception on / [GET]
+Traceback (most recent call last):
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/app.py", line 2073, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/app.py", line 1518, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/app.py", line 1516, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/app.py", line 1502, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**req.view_args)
+  File "/home/ubuntu/augur_view/augur_view.py", line 65, in repo_table_view
+    return renderRepos("table", query, requestJson("repos"), sorting, rev, page, True)
+  File "/home/ubuntu/augur_view/utils.py", line 308, in renderRepos
+    return render_template('index.html', body="repos-" + view, title="Repos", repos=data, query_key=query, activePage=page, pages=pages, offset=pagination_offset, PS=pageSource, api_url=getSetting('serving'), reverse = rev, sorting = sorting)
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/templating.py", line 147, in render_template
+    return _render(
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/templating.py", line 128, in _render
+    rv = template.render(context)
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/jinja2/environment.py", line 1304, in render
+    self.environment.handle_exception()
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/jinja2/environment.py", line 925, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "/home/ubuntu/augur_view/templates/index.html", line 34, in top-level template code
+    {% include 'navbar.html' %}
+  File "/home/ubuntu/augur_view/templates/navbar.html", line 36, in top-level template code
+    <a class="nav-link {% if title == 'Graphs' %} active {% endif %}" aria-current="page" href="{{ url_for('badgers_graphs') }}">Graphs</a>
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/helpers.py", line 338, in url_for
+    return appctx.app.handle_url_build_error(error, endpoint, values)
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/helpers.py", line 325, in url_for
+    rv = url_adapter.build(
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/werkzeug/routing.py", line 2314, in build
+    raise BuildError(endpoint, values, method, self)
+werkzeug.routing.BuildError: Could not build url for endpoint 'badgers_graphs'. Did you mean 'repo_groups_view' instead?
+06:44:26: requesting json
+06:44:26: Exception on / [GET]
+Traceback (most recent call last):
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/app.py", line 2073, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/app.py", line 1518, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/app.py", line 1516, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/app.py", line 1502, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**req.view_args)
+  File "/home/ubuntu/augur_view/augur_view.py", line 65, in repo_table_view
+    return renderRepos("table", query, requestJson("repos"), sorting, rev, page, True)
+  File "/home/ubuntu/augur_view/utils.py", line 308, in renderRepos
+    return render_template('index.html', body="repos-" + view, title="Repos", repos=data, query_key=query, activePage=page, pages=pages, offset=pagination_offset, PS=pageSource, api_url=getSetting('serving'), reverse = rev, sorting = sorting)
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/templating.py", line 147, in render_template
+    return _render(
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/templating.py", line 128, in _render
+    rv = template.render(context)
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/jinja2/environment.py", line 1304, in render
+    self.environment.handle_exception()
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/jinja2/environment.py", line 925, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "/home/ubuntu/augur_view/templates/index.html", line 34, in top-level template code
+    {% include 'navbar.html' %}
+  File "/home/ubuntu/augur_view/templates/navbar.html", line 36, in top-level template code
+    <a class="nav-link {% if title == 'Graphs' %} active {% endif %}" aria-current="page" href="{{ url_for('badgers_graphs') }}">Graphs</a>
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/helpers.py", line 338, in url_for
+    return appctx.app.handle_url_build_error(error, endpoint, values)
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/helpers.py", line 325, in url_for
+    rv = url_adapter.build(
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/werkzeug/routing.py", line 2314, in build
+    raise BuildError(endpoint, values, method, self)
+werkzeug.routing.BuildError: Could not build url for endpoint 'badgers_graphs'. Did you mean 'repo_groups_view' instead?
+06:44:26: requesting json
+06:44:26: Exception on / [GET]
+Traceback (most recent call last):
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/app.py", line 2073, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/app.py", line 1518, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/app.py", line 1516, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/app.py", line 1502, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**req.view_args)
+  File "/home/ubuntu/augur_view/augur_view.py", line 65, in repo_table_view
+    return renderRepos("table", query, requestJson("repos"), sorting, rev, page, True)
+  File "/home/ubuntu/augur_view/utils.py", line 308, in renderRepos
+    return render_template('index.html', body="repos-" + view, title="Repos", repos=data, query_key=query, activePage=page, pages=pages, offset=pagination_offset, PS=pageSource, api_url=getSetting('serving'), reverse = rev, sorting = sorting)
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/templating.py", line 147, in render_template
+    return _render(
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/templating.py", line 128, in _render
+    rv = template.render(context)
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/jinja2/environment.py", line 1304, in render
+    self.environment.handle_exception()
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/jinja2/environment.py", line 925, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "/home/ubuntu/augur_view/templates/index.html", line 34, in top-level template code
+    {% include 'navbar.html' %}
+  File "/home/ubuntu/augur_view/templates/navbar.html", line 36, in top-level template code
+    <a class="nav-link {% if title == 'Graphs' %} active {% endif %}" aria-current="page" href="{{ url_for('badgers_graphs') }}">Graphs</a>
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/helpers.py", line 338, in url_for
+    return appctx.app.handle_url_build_error(error, endpoint, values)
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/helpers.py", line 325, in url_for
+    rv = url_adapter.build(
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/werkzeug/routing.py", line 2314, in build
+    raise BuildError(endpoint, values, method, self)
+werkzeug.routing.BuildError: Could not build url for endpoint 'badgers_graphs'. Did you mean 'repo_groups_view' instead?
+06:44:27: requesting json
+06:44:27: Exception on / [GET]
+Traceback (most recent call last):
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/app.py", line 2073, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/app.py", line 1518, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/app.py", line 1516, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/app.py", line 1502, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**req.view_args)
+  File "/home/ubuntu/augur_view/augur_view.py", line 65, in repo_table_view
+    return renderRepos("table", query, requestJson("repos"), sorting, rev, page, True)
+  File "/home/ubuntu/augur_view/utils.py", line 308, in renderRepos
+    return render_template('index.html', body="repos-" + view, title="Repos", repos=data, query_key=query, activePage=page, pages=pages, offset=pagination_offset, PS=pageSource, api_url=getSetting('serving'), reverse = rev, sorting = sorting)
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/templating.py", line 147, in render_template
+    return _render(
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/templating.py", line 128, in _render
+    rv = template.render(context)
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/jinja2/environment.py", line 1304, in render
+    self.environment.handle_exception()
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/jinja2/environment.py", line 925, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "/home/ubuntu/augur_view/templates/index.html", line 34, in top-level template code
+    {% include 'navbar.html' %}
+  File "/home/ubuntu/augur_view/templates/navbar.html", line 36, in top-level template code
+    <a class="nav-link {% if title == 'Graphs' %} active {% endif %}" aria-current="page" href="{{ url_for('badgers_graphs') }}">Graphs</a>
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/helpers.py", line 338, in url_for
+    return appctx.app.handle_url_build_error(error, endpoint, values)
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/helpers.py", line 325, in url_for
+    rv = url_adapter.build(
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/werkzeug/routing.py", line 2314, in build
+    raise BuildError(endpoint, values, method, self)
+werkzeug.routing.BuildError: Could not build url for endpoint 'badgers_graphs'. Did you mean 'repo_groups_view' instead?
+06:44:27: requesting json
+06:44:27: Exception on / [GET]
+Traceback (most recent call last):
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/app.py", line 2073, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/app.py", line 1518, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/app.py", line 1516, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/app.py", line 1502, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**req.view_args)
+  File "/home/ubuntu/augur_view/augur_view.py", line 65, in repo_table_view
+    return renderRepos("table", query, requestJson("repos"), sorting, rev, page, True)
+  File "/home/ubuntu/augur_view/utils.py", line 308, in renderRepos
+    return render_template('index.html', body="repos-" + view, title="Repos", repos=data, query_key=query, activePage=page, pages=pages, offset=pagination_offset, PS=pageSource, api_url=getSetting('serving'), reverse = rev, sorting = sorting)
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/templating.py", line 147, in render_template
+    return _render(
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/templating.py", line 128, in _render
+    rv = template.render(context)
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/jinja2/environment.py", line 1304, in render
+    self.environment.handle_exception()
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/jinja2/environment.py", line 925, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "/home/ubuntu/augur_view/templates/index.html", line 34, in top-level template code
+    {% include 'navbar.html' %}
+  File "/home/ubuntu/augur_view/templates/navbar.html", line 36, in top-level template code
+    <a class="nav-link {% if title == 'Graphs' %} active {% endif %}" aria-current="page" href="{{ url_for('badgers_graphs') }}">Graphs</a>
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/helpers.py", line 338, in url_for
+    return appctx.app.handle_url_build_error(error, endpoint, values)
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/helpers.py", line 325, in url_for
+    rv = url_adapter.build(
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/werkzeug/routing.py", line 2314, in build
+    raise BuildError(endpoint, values, method, self)
+werkzeug.routing.BuildError: Could not build url for endpoint 'badgers_graphs'. Did you mean 'repo_groups_view' instead?
+06:44:27: requesting json
+06:44:27: Exception on / [GET]
+Traceback (most recent call last):
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/app.py", line 2073, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/app.py", line 1518, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/app.py", line 1516, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/app.py", line 1502, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**req.view_args)
+  File "/home/ubuntu/augur_view/augur_view.py", line 65, in repo_table_view
+    return renderRepos("table", query, requestJson("repos"), sorting, rev, page, True)
+  File "/home/ubuntu/augur_view/utils.py", line 308, in renderRepos
+    return render_template('index.html', body="repos-" + view, title="Repos", repos=data, query_key=query, activePage=page, pages=pages, offset=pagination_offset, PS=pageSource, api_url=getSetting('serving'), reverse = rev, sorting = sorting)
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/templating.py", line 147, in render_template
+    return _render(
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/templating.py", line 128, in _render
+    rv = template.render(context)
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/jinja2/environment.py", line 1304, in render
+    self.environment.handle_exception()
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/jinja2/environment.py", line 925, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "/home/ubuntu/augur_view/templates/index.html", line 34, in top-level template code
+    {% include 'navbar.html' %}
+  File "/home/ubuntu/augur_view/templates/navbar.html", line 36, in top-level template code
+    <a class="nav-link {% if title == 'Graphs' %} active {% endif %}" aria-current="page" href="{{ url_for('badgers_graphs') }}">Graphs</a>
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/helpers.py", line 338, in url_for
+    return appctx.app.handle_url_build_error(error, endpoint, values)
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/helpers.py", line 325, in url_for
+    rv = url_adapter.build(
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/werkzeug/routing.py", line 2314, in build
+    raise BuildError(endpoint, values, method, self)
+werkzeug.routing.BuildError: Could not build url for endpoint 'badgers_graphs'. Did you mean 'repo_groups_view' instead?
+06:44:27: requesting json
+06:44:27: Exception on / [GET]
+Traceback (most recent call last):
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/app.py", line 2073, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/app.py", line 1518, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/app.py", line 1516, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/app.py", line 1502, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**req.view_args)
+  File "/home/ubuntu/augur_view/augur_view.py", line 65, in repo_table_view
+    return renderRepos("table", query, requestJson("repos"), sorting, rev, page, True)
+  File "/home/ubuntu/augur_view/utils.py", line 308, in renderRepos
+    return render_template('index.html', body="repos-" + view, title="Repos", repos=data, query_key=query, activePage=page, pages=pages, offset=pagination_offset, PS=pageSource, api_url=getSetting('serving'), reverse = rev, sorting = sorting)
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/templating.py", line 147, in render_template
+    return _render(
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/templating.py", line 128, in _render
+    rv = template.render(context)
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/jinja2/environment.py", line 1304, in render
+    self.environment.handle_exception()
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/jinja2/environment.py", line 925, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "/home/ubuntu/augur_view/templates/index.html", line 34, in top-level template code
+    {% include 'navbar.html' %}
+  File "/home/ubuntu/augur_view/templates/navbar.html", line 36, in top-level template code
+    <a class="nav-link {% if title == 'Graphs' %} active {% endif %}" aria-current="page" href="{{ url_for('badgers_graphs') }}">Graphs</a>
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/helpers.py", line 338, in url_for
+    return appctx.app.handle_url_build_error(error, endpoint, values)
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/flask/helpers.py", line 325, in url_for
+    rv = url_adapter.build(
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/werkzeug/routing.py", line 2314, in build
+    raise BuildError(endpoint, values, method, self)
+werkzeug.routing.BuildError: Could not build url for endpoint 'badgers_graphs'. Did you mean 'repo_groups_view' instead?
+06:46:36: requesting json
+06:46:37: requesting json
+06:46:37: An exception occurred while fulfilling a json request
+06:46:37: HTTP Error 308: PERMANENT REDIRECT

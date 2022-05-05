@@ -1,0 +1,6 @@
+approot: /
+cache_expiry: 604800
+caching: static/cache/
+pagination_offset: 25
+reports: reports.yml
+serving: http://augur.chaoss.io/api/unstable/

@@ -1,0 +1,406 @@
+[2022-05-05 06:32:12 +0000] [442834] [INFO] Starting gunicorn 20.1.0
+[2022-05-05 06:32:12 +0000] [442834] [INFO] Listening at: http://0.0.0.0:8000 (442834)
+[2022-05-05 06:32:12 +0000] [442834] [INFO] Using worker: sync
+[2022-05-05 06:32:12 +0000] [442836] [INFO] Booting worker with pid: 442836
+[2022-05-05 06:32:12 +0000] [442837] [INFO] Booting worker with pid: 442837
+[2022-05-05 06:32:12 +0000] [442838] [INFO] Booting worker with pid: 442838
+[2022-05-05 06:32:12 +0000] [442839] [INFO] Booting worker with pid: 442839
+[2022-05-05 06:32:12 +0000] [442840] [INFO] Booting worker with pid: 442840
+[2022-05-05 06:32:12 +0000] [442841] [INFO] Booting worker with pid: 442841
+[2022-05-05 06:32:12 +0000] [442839] [ERROR] Exception in worker process
+Traceback (most recent call last):
+  File "/home/ubuntu/augur_view/utils.py", line 48, in loadReports
+    with open(getSetting("reports")) as file:
+  File "/home/ubuntu/augur_view/utils.py", line 39, in getSetting
+    return settings[key]
+TypeError: 'NoneType' object is not subscriptable
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/gunicorn/arbiter.py", line 589, in spawn_worker
+    worker.init_process()
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/gunicorn/workers/base.py", line 134, in init_process
+    self.load_wsgi()
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/gunicorn/workers/base.py", line 146, in load_wsgi
+    self.wsgi = self.app.wsgi()
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/gunicorn/app/base.py", line 67, in wsgi
+    self.callable = self.load()
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/gunicorn/app/wsgiapp.py", line 58, in load
+    return self.load_wsgiapp()
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/gunicorn/app/wsgiapp.py", line 48, in load_wsgiapp
+    return util.import_app(self.app_uri)
+  File "/home/ubuntu/augur_view/env/lib/python3.8/site-packages/gunicorn/util.py", line 359, in import_app
+    mod = importlib.import_module(module)
+  File "/usr/lib/python3.8/importlib/__init__.py", line 127, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "<frozen importlib._bootstrap>", line 1014, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 991, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 975, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 671, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 848, in exec_module
+  File "<frozen importlib._bootstrap>", line 219, in _call_with_frames_removed
+  File "/home/ubuntu/augur_view/wsgi.py", line 1, in <module>
+    from augur_view import app
+  File "/home/ubuntu/augur_view/augur_view.py", line 2, in <module>
+    from utils import *
+  File "/home/ubuntu/augur_view/utils.py", line 71, in <module>
+    if not loadReports():
+  File "/home/ubuntu/augur_view/utils.py", line 56, in loadReports
+    logging.error(f"An exception occurred reading reports endpoints from [{getSetting('reports')}]:")
+  File "/home/ubuntu/augur_view/utils.py", line 39, in getSetting
+    return settings[key]
+TypeError: 'NoneType' object is not subscriptable
+[2022-05-05 06:32:12 +0000] [442839] [INFO] Worker exiting (pid: 442839)
+[2022-05-05 06:32:12 +0000] [442842] [INFO] Booting worker with pid: 442842
+[2022-05-05 06:32:12 +0000] [442836] [INFO] Worker exiting (pid: 442836)
+[2022-05-05 06:32:12 +0000] [442838] [INFO] Worker exiting (pid: 442838)
+[2022-05-05 06:32:12 +0000] [442837] [INFO] Worker exiting (pid: 442837)
+[2022-05-05 06:32:12 +0000] [442842] [INFO] Worker exiting (pid: 442842)
+[2022-05-05 06:32:12 +0000] [442841] [INFO] Worker exiting (pid: 442841)
+[2022-05-05 06:32:12 +0000] [442840] [INFO] Worker exiting (pid: 442840)
+[2022-05-05 06:32:13 +0000] [442834] [INFO] Shutting down: Master
+[2022-05-05 06:32:13 +0000] [442834] [INFO] Reason: Worker failed to boot.
+[2022-05-05 06:32:30 +0000] [444106] [INFO] Starting gunicorn 20.1.0
+[2022-05-05 06:32:30 +0000] [444106] [INFO] Listening at: http://0.0.0.0:8000 (444106)
+[2022-05-05 06:32:30 +0000] [444106] [INFO] Using worker: sync
+[2022-05-05 06:32:30 +0000] [444108] [INFO] Booting worker with pid: 444108
+[2022-05-05 06:32:30 +0000] [444109] [INFO] Booting worker with pid: 444109
+[2022-05-05 06:32:30 +0000] [444110] [INFO] Booting worker with pid: 444110
+[2022-05-05 06:32:30 +0000] [444112] [INFO] Booting worker with pid: 444112
+[2022-05-05 06:32:30 +0000] [444114] [INFO] Booting worker with pid: 444114
+[2022-05-05 06:32:30 +0000] [444116] [INFO] Booting worker with pid: 444116
+[2022-05-05 06:32:30 +0000] [444119] [INFO] Booting worker with pid: 444119
+[2022-05-05 06:32:30 +0000] [444120] [INFO] Booting worker with pid: 444120
+[2022-05-05 06:32:30 +0000] [444121] [INFO] Booting worker with pid: 444121
+[2022-05-05 06:33:09 +0000] [444106] [INFO] Handling signal: term
+[2022-05-05 06:33:09 +0000] [444112] [INFO] Worker exiting (pid: 444112)
+[2022-05-05 06:33:09 +0000] [444108] [INFO] Worker exiting (pid: 444108)
+[2022-05-05 06:33:09 +0000] [444116] [INFO] Worker exiting (pid: 444116)
+[2022-05-05 06:33:09 +0000] [444120] [INFO] Worker exiting (pid: 444120)
+[2022-05-05 06:33:09 +0000] [444114] [INFO] Worker exiting (pid: 444114)
+[2022-05-05 06:33:09 +0000] [444119] [INFO] Worker exiting (pid: 444119)
+[2022-05-05 06:33:09 +0000] [444121] [INFO] Worker exiting (pid: 444121)
+[2022-05-05 06:33:09 +0000] [444110] [INFO] Worker exiting (pid: 444110)
+[2022-05-05 06:33:09 +0000] [444109] [INFO] Worker exiting (pid: 444109)
+[2022-05-05 06:33:10 +0000] [444106] [INFO] Shutting down: Master
+[2022-05-05 06:33:10 +0000] [446900] [INFO] Starting gunicorn 20.1.0
+[2022-05-05 06:33:10 +0000] [446900] [INFO] Listening at: http://0.0.0.0:8000 (446900)
+[2022-05-05 06:33:10 +0000] [446900] [INFO] Using worker: sync
+[2022-05-05 06:33:10 +0000] [446903] [INFO] Booting worker with pid: 446903
+[2022-05-05 06:33:10 +0000] [446904] [INFO] Booting worker with pid: 446904
+[2022-05-05 06:33:10 +0000] [446905] [INFO] Booting worker with pid: 446905
+[2022-05-05 06:33:10 +0000] [446907] [INFO] Booting worker with pid: 446907
+[2022-05-05 06:33:10 +0000] [446908] [INFO] Booting worker with pid: 446908
+[2022-05-05 06:33:10 +0000] [446910] [INFO] Booting worker with pid: 446910
+[2022-05-05 06:33:10 +0000] [446913] [INFO] Booting worker with pid: 446913
+[2022-05-05 06:33:10 +0000] [446915] [INFO] Booting worker with pid: 446915
+[2022-05-05 06:33:10 +0000] [446917] [INFO] Booting worker with pid: 446917
+[2022-05-05 06:36:24 +0000] [446903] [INFO] Worker reloading: /home/ubuntu/augur_view/augur_view.py modified
+[2022-05-05 06:36:24 +0000] [446903] [INFO] Worker exiting (pid: 446903)
+[2022-05-05 06:36:24 +0000] [459875] [INFO] Booting worker with pid: 459875
+[2022-05-05 06:36:24 +0000] [446904] [INFO] Worker reloading: /home/ubuntu/augur_view/augur_view.py modified
+[2022-05-05 06:36:24 +0000] [446904] [INFO] Worker exiting (pid: 446904)
+[2022-05-05 06:36:25 +0000] [459876] [INFO] Booting worker with pid: 459876
+[2022-05-05 06:36:25 +0000] [446905] [INFO] Worker reloading: /home/ubuntu/augur_view/augur_view.py modified
+[2022-05-05 06:36:25 +0000] [446907] [INFO] Worker reloading: /home/ubuntu/augur_view/augur_view.py modified
+[2022-05-05 06:36:25 +0000] [446905] [INFO] Worker exiting (pid: 446905)
+[2022-05-05 06:36:25 +0000] [446907] [INFO] Worker exiting (pid: 446907)
+[2022-05-05 06:36:25 +0000] [446908] [INFO] Worker reloading: /home/ubuntu/augur_view/augur_view.py modified
+[2022-05-05 06:36:25 +0000] [446908] [INFO] Worker exiting (pid: 446908)
+[2022-05-05 06:36:25 +0000] [459877] [INFO] Booting worker with pid: 459877
+[2022-05-05 06:36:25 +0000] [446910] [INFO] Worker reloading: /home/ubuntu/augur_view/augur_view.py modified
+[2022-05-05 06:36:25 +0000] [446910] [INFO] Worker exiting (pid: 446910)
+[2022-05-05 06:36:25 +0000] [459880] [INFO] Booting worker with pid: 459880
+[2022-05-05 06:36:25 +0000] [446913] [INFO] Worker reloading: /home/ubuntu/augur_view/augur_view.py modified
+[2022-05-05 06:36:25 +0000] [446913] [INFO] Worker exiting (pid: 446913)
+[2022-05-05 06:36:25 +0000] [459977] [INFO] Booting worker with pid: 459977
+[2022-05-05 06:36:25 +0000] [446915] [INFO] Worker reloading: /home/ubuntu/augur_view/augur_view.py modified
+[2022-05-05 06:36:25 +0000] [446915] [INFO] Worker exiting (pid: 446915)
+[2022-05-05 06:36:25 +0000] [446917] [INFO] Worker reloading: /home/ubuntu/augur_view/augur_view.py modified
+[2022-05-05 06:36:25 +0000] [446917] [INFO] Worker exiting (pid: 446917)
+[2022-05-05 06:36:25 +0000] [459979] [INFO] Booting worker with pid: 459979
+[2022-05-05 06:36:25 +0000] [459980] [INFO] Booting worker with pid: 459980
+[2022-05-05 06:36:25 +0000] [459982] [INFO] Booting worker with pid: 459982
+[2022-05-05 06:36:25 +0000] [459984] [INFO] Booting worker with pid: 459984
+[2022-05-05 06:36:27 +0000] [446900] [INFO] Handling signal: term
+[2022-05-05 06:36:27 +0000] [459880] [INFO] Worker exiting (pid: 459880)
+[2022-05-05 06:36:27 +0000] [459979] [INFO] Worker exiting (pid: 459979)
+[2022-05-05 06:36:27 +0000] [459877] [INFO] Worker exiting (pid: 459877)
+[2022-05-05 06:36:27 +0000] [459977] [INFO] Worker exiting (pid: 459977)
+[2022-05-05 06:36:27 +0000] [459980] [INFO] Worker exiting (pid: 459980)
+[2022-05-05 06:36:27 +0000] [459876] [INFO] Worker exiting (pid: 459876)
+[2022-05-05 06:36:27 +0000] [459984] [INFO] Worker exiting (pid: 459984)
+[2022-05-05 06:36:27 +0000] [459875] [INFO] Worker exiting (pid: 459875)
+[2022-05-05 06:36:27 +0000] [459982] [INFO] Worker exiting (pid: 459982)
+[2022-05-05 06:36:27 +0000] [446900] [INFO] Shutting down: Master
+[2022-05-05 06:36:28 +0000] [460184] [INFO] Starting gunicorn 20.1.0
+[2022-05-05 06:36:28 +0000] [460184] [INFO] Listening at: http://0.0.0.0:8000 (460184)
+[2022-05-05 06:36:28 +0000] [460184] [INFO] Using worker: sync
+[2022-05-05 06:36:28 +0000] [460186] [INFO] Booting worker with pid: 460186
+[2022-05-05 06:36:28 +0000] [460187] [INFO] Booting worker with pid: 460187
+[2022-05-05 06:36:28 +0000] [460188] [INFO] Booting worker with pid: 460188
+[2022-05-05 06:36:28 +0000] [460189] [INFO] Booting worker with pid: 460189
+[2022-05-05 06:36:28 +0000] [460240] [INFO] Booting worker with pid: 460240
+[2022-05-05 06:36:28 +0000] [460242] [INFO] Booting worker with pid: 460242
+[2022-05-05 06:36:28 +0000] [460244] [INFO] Booting worker with pid: 460244
+[2022-05-05 06:36:28 +0000] [460245] [INFO] Booting worker with pid: 460245
+[2022-05-05 06:36:28 +0000] [460248] [INFO] Booting worker with pid: 460248
+[2022-05-05 06:37:45 +0000] [460242] [INFO] Worker reloading: /home/ubuntu/augur_view/augur_view.py modified
+[2022-05-05 06:37:45 +0000] [460242] [INFO] Worker exiting (pid: 460242)
+[2022-05-05 06:37:45 +0000] [465427] [INFO] Booting worker with pid: 465427
+[2022-05-05 06:37:45 +0000] [460244] [INFO] Worker reloading: /home/ubuntu/augur_view/augur_view.py modified
+[2022-05-05 06:37:45 +0000] [460244] [INFO] Worker exiting (pid: 460244)
+[2022-05-05 06:37:45 +0000] [460245] [INFO] Worker reloading: /home/ubuntu/augur_view/augur_view.py modified
+[2022-05-05 06:37:45 +0000] [460245] [INFO] Worker exiting (pid: 460245)
+[2022-05-05 06:37:45 +0000] [465428] [INFO] Booting worker with pid: 465428
+[2022-05-05 06:37:45 +0000] [465429] [INFO] Booting worker with pid: 465429
+[2022-05-05 06:37:45 +0000] [460248] [INFO] Worker reloading: /home/ubuntu/augur_view/augur_view.py modified
+[2022-05-05 06:37:45 +0000] [460248] [INFO] Worker exiting (pid: 460248)
+[2022-05-05 06:37:46 +0000] [465431] [INFO] Booting worker with pid: 465431
+[2022-05-05 06:37:46 +0000] [460186] [INFO] Worker reloading: /home/ubuntu/augur_view/augur_view.py modified
+[2022-05-05 06:37:46 +0000] [460187] [INFO] Worker reloading: /home/ubuntu/augur_view/augur_view.py modified
+[2022-05-05 06:37:46 +0000] [460187] [INFO] Worker exiting (pid: 460187)
+[2022-05-05 06:37:46 +0000] [460186] [INFO] Worker exiting (pid: 460186)
+[2022-05-05 06:37:46 +0000] [465435] [INFO] Booting worker with pid: 465435
+[2022-05-05 06:37:46 +0000] [465436] [INFO] Booting worker with pid: 465436
+[2022-05-05 06:37:46 +0000] [460188] [INFO] Worker reloading: /home/ubuntu/augur_view/augur_view.py modified
+[2022-05-05 06:37:46 +0000] [460188] [INFO] Worker exiting (pid: 460188)
+[2022-05-05 06:37:46 +0000] [465526] [INFO] Booting worker with pid: 465526
+[2022-05-05 06:37:46 +0000] [460189] [INFO] Worker reloading: /home/ubuntu/augur_view/augur_view.py modified
+[2022-05-05 06:37:46 +0000] [460189] [INFO] Worker exiting (pid: 460189)
+[2022-05-05 06:37:46 +0000] [465549] [INFO] Booting worker with pid: 465549
+[2022-05-05 06:37:46 +0000] [460240] [INFO] Worker reloading: /home/ubuntu/augur_view/augur_view.py modified
+[2022-05-05 06:37:46 +0000] [460240] [INFO] Worker exiting (pid: 460240)
+[2022-05-05 06:37:46 +0000] [465578] [INFO] Booting worker with pid: 465578
+[2022-05-05 06:37:49 +0000] [460184] [INFO] Handling signal: term
+[2022-05-05 06:37:49 +0000] [465427] [INFO] Worker exiting (pid: 465427)
+[2022-05-05 06:37:49 +0000] [465436] [INFO] Worker exiting (pid: 465436)
+[2022-05-05 06:37:49 +0000] [465526] [INFO] Worker exiting (pid: 465526)
+[2022-05-05 06:37:49 +0000] [465578] [INFO] Worker exiting (pid: 465578)
+[2022-05-05 06:37:49 +0000] [465435] [INFO] Worker exiting (pid: 465435)
+[2022-05-05 06:37:49 +0000] [465431] [INFO] Worker exiting (pid: 465431)
+[2022-05-05 06:37:49 +0000] [465429] [INFO] Worker exiting (pid: 465429)
+[2022-05-05 06:37:49 +0000] [465428] [INFO] Worker exiting (pid: 465428)
+[2022-05-05 06:37:49 +0000] [465549] [INFO] Worker exiting (pid: 465549)
+[2022-05-05 06:37:49 +0000] [460184] [INFO] Shutting down: Master
+[2022-05-05 06:37:50 +0000] [465688] [INFO] Starting gunicorn 20.1.0
+[2022-05-05 06:37:50 +0000] [465688] [INFO] Listening at: http://0.0.0.0:8000 (465688)
+[2022-05-05 06:37:50 +0000] [465688] [INFO] Using worker: sync
+[2022-05-05 06:37:50 +0000] [465691] [INFO] Booting worker with pid: 465691
+[2022-05-05 06:37:50 +0000] [465692] [INFO] Booting worker with pid: 465692
+[2022-05-05 06:37:50 +0000] [465694] [INFO] Booting worker with pid: 465694
+[2022-05-05 06:37:50 +0000] [465695] [INFO] Booting worker with pid: 465695
+[2022-05-05 06:37:50 +0000] [465696] [INFO] Booting worker with pid: 465696
+[2022-05-05 06:37:50 +0000] [465697] [INFO] Booting worker with pid: 465697
+[2022-05-05 06:37:50 +0000] [465698] [INFO] Booting worker with pid: 465698
+[2022-05-05 06:37:50 +0000] [465700] [INFO] Booting worker with pid: 465700
+[2022-05-05 06:37:50 +0000] [465701] [INFO] Booting worker with pid: 465701
+[2022-05-05 06:39:33 +0000] [465700] [INFO] Worker exiting (pid: 465700)
+[2022-05-05 06:39:33 +0000] [465701] [INFO] Worker exiting (pid: 465701)
+[2022-05-05 06:39:33 +0000] [465688] [INFO] Handling signal: term
+[2022-05-05 06:39:33 +0000] [465696] [INFO] Worker exiting (pid: 465696)
+[2022-05-05 06:39:33 +0000] [465697] [INFO] Worker exiting (pid: 465697)
+[2022-05-05 06:39:33 +0000] [465694] [INFO] Worker exiting (pid: 465694)
+[2022-05-05 06:39:33 +0000] [465688] [WARNING] Worker with pid 465701 was terminated due to signal 15
+[2022-05-05 06:39:33 +0000] [465688] [WARNING] Worker with pid 465700 was terminated due to signal 15
+[2022-05-05 06:39:33 +0000] [465692] [INFO] Worker exiting (pid: 465692)
+[2022-05-05 06:39:33 +0000] [465698] [INFO] Worker exiting (pid: 465698)
+[2022-05-05 06:39:33 +0000] [465691] [INFO] Worker exiting (pid: 465691)
+[2022-05-05 06:39:33 +0000] [465695] [INFO] Worker exiting (pid: 465695)
+[2022-05-05 06:39:33 +0000] [465688] [INFO] Shutting down: Master
+[2022-05-05 06:39:33 +0000] [472646] [INFO] Starting gunicorn 20.1.0
+[2022-05-05 06:39:33 +0000] [472646] [INFO] Listening at: http://0.0.0.0:8000 (472646)
+[2022-05-05 06:39:33 +0000] [472646] [INFO] Using worker: sync
+[2022-05-05 06:39:33 +0000] [472709] [INFO] Booting worker with pid: 472709
+[2022-05-05 06:39:33 +0000] [472746] [INFO] Booting worker with pid: 472746
+[2022-05-05 06:39:33 +0000] [472747] [INFO] Booting worker with pid: 472747
+[2022-05-05 06:39:33 +0000] [472749] [INFO] Booting worker with pid: 472749
+[2022-05-05 06:39:33 +0000] [472752] [INFO] Booting worker with pid: 472752
+[2022-05-05 06:39:33 +0000] [472753] [INFO] Booting worker with pid: 472753
+[2022-05-05 06:39:33 +0000] [472755] [INFO] Booting worker with pid: 472755
+[2022-05-05 06:39:33 +0000] [472756] [INFO] Booting worker with pid: 472756
+[2022-05-05 06:39:33 +0000] [472758] [INFO] Booting worker with pid: 472758
+[2022-05-05 06:41:35 +0000] [472646] [INFO] Handling signal: term
+[2022-05-05 06:41:35 +0000] [472752] [INFO] Worker exiting (pid: 472752)
+[2022-05-05 06:41:35 +0000] [472753] [INFO] Worker exiting (pid: 472753)
+[2022-05-05 06:41:35 +0000] [472746] [INFO] Worker exiting (pid: 472746)
+[2022-05-05 06:41:35 +0000] [472749] [INFO] Worker exiting (pid: 472749)
+[2022-05-05 06:41:35 +0000] [472755] [INFO] Worker exiting (pid: 472755)
+[2022-05-05 06:41:35 +0000] [472709] [INFO] Worker exiting (pid: 472709)
+[2022-05-05 06:41:35 +0000] [472756] [INFO] Worker exiting (pid: 472756)
+[2022-05-05 06:41:35 +0000] [472747] [INFO] Worker exiting (pid: 472747)
+[2022-05-05 06:41:35 +0000] [472758] [INFO] Worker exiting (pid: 472758)
+[2022-05-05 06:41:35 +0000] [472646] [INFO] Shutting down: Master
+[2022-05-05 06:41:35 +0000] [480857] [INFO] Starting gunicorn 20.1.0
+[2022-05-05 06:41:35 +0000] [480857] [INFO] Listening at: http://0.0.0.0:8000 (480857)
+[2022-05-05 06:41:35 +0000] [480857] [INFO] Using worker: sync
+[2022-05-05 06:41:35 +0000] [480907] [INFO] Booting worker with pid: 480907
+[2022-05-05 06:41:35 +0000] [480908] [INFO] Booting worker with pid: 480908
+[2022-05-05 06:41:36 +0000] [480909] [INFO] Booting worker with pid: 480909
+[2022-05-05 06:41:36 +0000] [480911] [INFO] Booting worker with pid: 480911
+[2022-05-05 06:41:36 +0000] [480913] [INFO] Booting worker with pid: 480913
+[2022-05-05 06:41:36 +0000] [480914] [INFO] Booting worker with pid: 480914
+[2022-05-05 06:41:36 +0000] [480916] [INFO] Booting worker with pid: 480916
+[2022-05-05 06:41:36 +0000] [480917] [INFO] Booting worker with pid: 480917
+[2022-05-05 06:41:36 +0000] [480919] [INFO] Booting worker with pid: 480919
+[2022-05-05 06:43:56 +0000] [480911] [INFO] Worker reloading: /home/ubuntu/augur_view/augur_view.py modified
+[2022-05-05 06:43:56 +0000] [480911] [INFO] Worker exiting (pid: 480911)
+[2022-05-05 06:43:56 +0000] [480914] [INFO] Worker reloading: /home/ubuntu/augur_view/augur_view.py modified
+[2022-05-05 06:43:56 +0000] [480913] [INFO] Worker reloading: /home/ubuntu/augur_view/augur_view.py modified
+[2022-05-05 06:43:56 +0000] [480914] [INFO] Worker exiting (pid: 480914)
+[2022-05-05 06:43:56 +0000] [480913] [INFO] Worker exiting (pid: 480913)
+[2022-05-05 06:43:56 +0000] [490364] [INFO] Booting worker with pid: 490364
+[2022-05-05 06:43:56 +0000] [480916] [INFO] Worker reloading: /home/ubuntu/augur_view/augur_view.py modified
+[2022-05-05 06:43:56 +0000] [480916] [INFO] Worker exiting (pid: 480916)
+[2022-05-05 06:43:56 +0000] [480917] [INFO] Worker reloading: /home/ubuntu/augur_view/augur_view.py modified
+[2022-05-05 06:43:56 +0000] [480917] [INFO] Worker exiting (pid: 480917)
+[2022-05-05 06:43:56 +0000] [490365] [INFO] Booting worker with pid: 490365
+[2022-05-05 06:43:56 +0000] [480919] [INFO] Worker reloading: /home/ubuntu/augur_view/augur_view.py modified
+[2022-05-05 06:43:56 +0000] [480919] [INFO] Worker exiting (pid: 480919)
+[2022-05-05 06:43:56 +0000] [490367] [INFO] Booting worker with pid: 490367
+[2022-05-05 06:43:57 +0000] [490368] [INFO] Booting worker with pid: 490368
+[2022-05-05 06:43:57 +0000] [490370] [INFO] Booting worker with pid: 490370
+[2022-05-05 06:43:57 +0000] [490371] [INFO] Booting worker with pid: 490371
+[2022-05-05 06:43:57 +0000] [480907] [INFO] Worker reloading: /home/ubuntu/augur_view/augur_view.py modified
+[2022-05-05 06:43:57 +0000] [480907] [INFO] Worker exiting (pid: 480907)
+[2022-05-05 06:43:57 +0000] [490377] [INFO] Booting worker with pid: 490377
+[2022-05-05 06:43:57 +0000] [480908] [INFO] Worker reloading: /home/ubuntu/augur_view/augur_view.py modified
+[2022-05-05 06:43:57 +0000] [480908] [INFO] Worker exiting (pid: 480908)
+[2022-05-05 06:43:57 +0000] [490378] [INFO] Booting worker with pid: 490378
+[2022-05-05 06:43:57 +0000] [480909] [INFO] Worker reloading: /home/ubuntu/augur_view/augur_view.py modified
+[2022-05-05 06:43:57 +0000] [480909] [INFO] Worker exiting (pid: 480909)
+[2022-05-05 06:43:57 +0000] [490380] [INFO] Booting worker with pid: 490380
+[2022-05-05 06:44:00 +0000] [490364] [INFO] Worker exiting (pid: 490364)
+[2022-05-05 06:44:00 +0000] [490368] [INFO] Worker exiting (pid: 490368)
+[2022-05-05 06:44:00 +0000] [490367] [INFO] Worker exiting (pid: 490367)
+[2022-05-05 06:44:00 +0000] [490371] [INFO] Worker exiting (pid: 490371)
+[2022-05-05 06:44:00 +0000] [480857] [INFO] Handling signal: term
+[2022-05-05 06:44:00 +0000] [490365] [INFO] Worker exiting (pid: 490365)
+[2022-05-05 06:44:00 +0000] [490380] [INFO] Worker exiting (pid: 490380)
+[2022-05-05 06:44:00 +0000] [490377] [INFO] Worker exiting (pid: 490377)
+[2022-05-05 06:44:00 +0000] [490370] [INFO] Worker exiting (pid: 490370)
+[2022-05-05 06:44:00 +0000] [480857] [WARNING] Worker with pid 490367 was terminated due to signal 15
+[2022-05-05 06:44:00 +0000] [480857] [WARNING] Worker with pid 490368 was terminated due to signal 15
+[2022-05-05 06:44:00 +0000] [490378] [INFO] Worker exiting (pid: 490378)
+[2022-05-05 06:44:00 +0000] [480857] [INFO] Shutting down: Master
+[2022-05-05 06:44:00 +0000] [490722] [INFO] Starting gunicorn 20.1.0
+[2022-05-05 06:44:00 +0000] [490722] [INFO] Listening at: http://0.0.0.0:8000 (490722)
+[2022-05-05 06:44:00 +0000] [490722] [INFO] Using worker: sync
+[2022-05-05 06:44:00 +0000] [490725] [INFO] Booting worker with pid: 490725
+[2022-05-05 06:44:00 +0000] [490726] [INFO] Booting worker with pid: 490726
+[2022-05-05 06:44:00 +0000] [490727] [INFO] Booting worker with pid: 490727
+[2022-05-05 06:44:00 +0000] [490728] [INFO] Booting worker with pid: 490728
+[2022-05-05 06:44:00 +0000] [490730] [INFO] Booting worker with pid: 490730
+[2022-05-05 06:44:00 +0000] [490732] [INFO] Booting worker with pid: 490732
+[2022-05-05 06:44:00 +0000] [490733] [INFO] Booting worker with pid: 490733
+[2022-05-05 06:44:00 +0000] [490734] [INFO] Booting worker with pid: 490734
+[2022-05-05 06:44:00 +0000] [490735] [INFO] Booting worker with pid: 490735
+[2022-05-05 06:44:21 +0000] [490726] [INFO] Worker reloading: /home/ubuntu/augur_view/augur_view.py modified
+[2022-05-05 06:44:21 +0000] [490726] [INFO] Worker exiting (pid: 490726)
+[2022-05-05 06:44:21 +0000] [490727] [INFO] Worker reloading: /home/ubuntu/augur_view/augur_view.py modified
+[2022-05-05 06:44:21 +0000] [490727] [INFO] Worker exiting (pid: 490727)
+[2022-05-05 06:44:21 +0000] [492090] [INFO] Booting worker with pid: 492090
+[2022-05-05 06:44:21 +0000] [492091] [INFO] Booting worker with pid: 492091
+[2022-05-05 06:44:21 +0000] [490730] [INFO] Worker reloading: /home/ubuntu/augur_view/augur_view.py modified
+[2022-05-05 06:44:21 +0000] [490730] [INFO] Worker exiting (pid: 490730)
+[2022-05-05 06:44:21 +0000] [490732] [INFO] Worker reloading: /home/ubuntu/augur_view/augur_view.py modified
+[2022-05-05 06:44:21 +0000] [490732] [INFO] Worker exiting (pid: 490732)
+[2022-05-05 06:44:21 +0000] [490728] [INFO] Worker reloading: /home/ubuntu/augur_view/augur_view.py modified
+[2022-05-05 06:44:21 +0000] [490728] [INFO] Worker exiting (pid: 490728)
+[2022-05-05 06:44:22 +0000] [490734] [INFO] Worker reloading: /home/ubuntu/augur_view/augur_view.py modified
+[2022-05-05 06:44:22 +0000] [490734] [INFO] Worker exiting (pid: 490734)
+[2022-05-05 06:44:22 +0000] [490733] [INFO] Worker reloading: /home/ubuntu/augur_view/augur_view.py modified
+[2022-05-05 06:44:22 +0000] [490733] [INFO] Worker exiting (pid: 490733)
+[2022-05-05 06:44:22 +0000] [492092] [INFO] Booting worker with pid: 492092
+[2022-05-05 06:44:22 +0000] [490735] [INFO] Worker reloading: /home/ubuntu/augur_view/augur_view.py modified
+[2022-05-05 06:44:22 +0000] [490735] [INFO] Worker exiting (pid: 490735)
+[2022-05-05 06:44:22 +0000] [492093] [INFO] Booting worker with pid: 492093
+[2022-05-05 06:44:22 +0000] [492094] [INFO] Booting worker with pid: 492094
+[2022-05-05 06:44:22 +0000] [492097] [INFO] Booting worker with pid: 492097
+[2022-05-05 06:44:22 +0000] [492098] [INFO] Booting worker with pid: 492098
+[2022-05-05 06:44:22 +0000] [492102] [INFO] Booting worker with pid: 492102
+[2022-05-05 06:44:22 +0000] [490725] [INFO] Worker reloading: /home/ubuntu/augur_view/augur_view.py modified
+[2022-05-05 06:44:22 +0000] [490725] [INFO] Worker exiting (pid: 490725)
+[2022-05-05 06:44:22 +0000] [492154] [INFO] Booting worker with pid: 492154
+[2022-05-05 06:44:22 +0000] [492090] [INFO] Worker exiting (pid: 492090)
+[2022-05-05 06:44:22 +0000] [492093] [INFO] Worker exiting (pid: 492093)
+[2022-05-05 06:44:22 +0000] [492091] [INFO] Worker exiting (pid: 492091)
+[2022-05-05 06:44:22 +0000] [492092] [INFO] Worker exiting (pid: 492092)
+[2022-05-05 06:44:22 +0000] [492097] [INFO] Worker exiting (pid: 492097)
+[2022-05-05 06:44:22 +0000] [492102] [INFO] Worker exiting (pid: 492102)
+[2022-05-05 06:44:22 +0000] [492094] [INFO] Worker exiting (pid: 492094)
+[2022-05-05 06:44:22 +0000] [492098] [INFO] Worker exiting (pid: 492098)
+[2022-05-05 06:44:22 +0000] [490722] [INFO] Handling signal: term
+[2022-05-05 06:44:22 +0000] [492154] [INFO] Worker exiting (pid: 492154)
+[2022-05-05 06:44:22 +0000] [490722] [WARNING] Worker with pid 492092 was terminated due to signal 15
+[2022-05-05 06:44:22 +0000] [490722] [WARNING] Worker with pid 492093 was terminated due to signal 15
+[2022-05-05 06:44:22 +0000] [490722] [WARNING] Worker with pid 492102 was terminated due to signal 15
+[2022-05-05 06:44:23 +0000] [490722] [WARNING] Worker with pid 492097 was terminated due to signal 15
+[2022-05-05 06:44:23 +0000] [490722] [WARNING] Worker with pid 492094 was terminated due to signal 15
+[2022-05-05 06:44:23 +0000] [490722] [WARNING] Worker with pid 492098 was terminated due to signal 15
+[2022-05-05 06:44:23 +0000] [490722] [WARNING] Worker with pid 492091 was terminated due to signal 15
+[2022-05-05 06:44:23 +0000] [490722] [WARNING] Worker with pid 492090 was terminated due to signal 15
+[2022-05-05 06:44:23 +0000] [490722] [INFO] Shutting down: Master
+[2022-05-05 06:44:23 +0000] [492159] [INFO] Starting gunicorn 20.1.0
+[2022-05-05 06:44:23 +0000] [492159] [INFO] Listening at: http://0.0.0.0:8000 (492159)
+[2022-05-05 06:44:23 +0000] [492159] [INFO] Using worker: sync
+[2022-05-05 06:44:23 +0000] [492162] [INFO] Booting worker with pid: 492162
+[2022-05-05 06:44:23 +0000] [492163] [INFO] Booting worker with pid: 492163
+[2022-05-05 06:44:23 +0000] [492164] [INFO] Booting worker with pid: 492164
+[2022-05-05 06:44:23 +0000] [492165] [INFO] Booting worker with pid: 492165
+[2022-05-05 06:44:23 +0000] [492167] [INFO] Booting worker with pid: 492167
+[2022-05-05 06:44:23 +0000] [492170] [INFO] Booting worker with pid: 492170
+[2022-05-05 06:44:23 +0000] [492172] [INFO] Booting worker with pid: 492172
+[2022-05-05 06:44:23 +0000] [492173] [INFO] Booting worker with pid: 492173
+[2022-05-05 06:44:23 +0000] [492175] [INFO] Booting worker with pid: 492175
+[2022-05-05 06:46:31 +0000] [492162] [INFO] Worker reloading: /home/ubuntu/augur_view/augur_view.py modified
+[2022-05-05 06:46:31 +0000] [492162] [INFO] Worker exiting (pid: 492162)
+[2022-05-05 06:46:31 +0000] [492163] [INFO] Worker reloading: /home/ubuntu/augur_view/augur_view.py modified
+[2022-05-05 06:46:31 +0000] [492163] [INFO] Worker exiting (pid: 492163)
+[2022-05-05 06:46:31 +0000] [500896] [INFO] Booting worker with pid: 500896
+[2022-05-05 06:46:31 +0000] [492164] [INFO] Worker reloading: /home/ubuntu/augur_view/augur_view.py modified
+[2022-05-05 06:46:31 +0000] [492165] [INFO] Worker reloading: /home/ubuntu/augur_view/augur_view.py modified
+[2022-05-05 06:46:31 +0000] [492164] [INFO] Worker exiting (pid: 492164)
+[2022-05-05 06:46:31 +0000] [492165] [INFO] Worker exiting (pid: 492165)
+[2022-05-05 06:46:31 +0000] [500897] [INFO] Booting worker with pid: 500897
+[2022-05-05 06:46:32 +0000] [492167] [INFO] Worker reloading: /home/ubuntu/augur_view/augur_view.py modified
+[2022-05-05 06:46:32 +0000] [492167] [INFO] Worker exiting (pid: 492167)
+[2022-05-05 06:46:32 +0000] [500899] [INFO] Booting worker with pid: 500899
+[2022-05-05 06:46:32 +0000] [492170] [INFO] Worker reloading: /home/ubuntu/augur_view/augur_view.py modified
+[2022-05-05 06:46:32 +0000] [492170] [INFO] Worker exiting (pid: 492170)
+[2022-05-05 06:46:32 +0000] [492172] [INFO] Worker reloading: /home/ubuntu/augur_view/augur_view.py modified
+[2022-05-05 06:46:32 +0000] [492172] [INFO] Worker exiting (pid: 492172)
+[2022-05-05 06:46:32 +0000] [500900] [INFO] Booting worker with pid: 500900
+[2022-05-05 06:46:32 +0000] [500901] [INFO] Booting worker with pid: 500901
+[2022-05-05 06:46:32 +0000] [492173] [INFO] Worker reloading: /home/ubuntu/augur_view/augur_view.py modified
+[2022-05-05 06:46:32 +0000] [492173] [INFO] Worker exiting (pid: 492173)
+[2022-05-05 06:46:32 +0000] [500903] [INFO] Booting worker with pid: 500903
+[2022-05-05 06:46:32 +0000] [492175] [INFO] Worker reloading: /home/ubuntu/augur_view/augur_view.py modified
+[2022-05-05 06:46:32 +0000] [492175] [INFO] Worker exiting (pid: 492175)
+[2022-05-05 06:46:32 +0000] [500904] [INFO] Booting worker with pid: 500904
+[2022-05-05 06:46:32 +0000] [500908] [INFO] Booting worker with pid: 500908
+[2022-05-05 06:46:32 +0000] [500909] [INFO] Booting worker with pid: 500909
+[2022-05-05 06:46:33 +0000] [500896] [INFO] Worker exiting (pid: 500896)
+[2022-05-05 06:46:33 +0000] [500903] [INFO] Worker exiting (pid: 500903)
+[2022-05-05 06:46:33 +0000] [492159] [INFO] Handling signal: term
+[2022-05-05 06:46:33 +0000] [500904] [INFO] Worker exiting (pid: 500904)
+[2022-05-05 06:46:33 +0000] [500901] [INFO] Worker exiting (pid: 500901)
+[2022-05-05 06:46:33 +0000] [500909] [INFO] Worker exiting (pid: 500909)
+[2022-05-05 06:46:33 +0000] [500900] [INFO] Worker exiting (pid: 500900)
+[2022-05-05 06:46:33 +0000] [500899] [INFO] Worker exiting (pid: 500899)
+[2022-05-05 06:46:33 +0000] [500908] [INFO] Worker exiting (pid: 500908)
+[2022-05-05 06:46:33 +0000] [500897] [INFO] Worker exiting (pid: 500897)
+[2022-05-05 06:46:33 +0000] [492159] [INFO] Shutting down: Master
+[2022-05-05 06:46:34 +0000] [500965] [INFO] Starting gunicorn 20.1.0
+[2022-05-05 06:46:34 +0000] [500965] [INFO] Listening at: http://0.0.0.0:8000 (500965)
+[2022-05-05 06:46:34 +0000] [500965] [INFO] Using worker: sync
+[2022-05-05 06:46:34 +0000] [500968] [INFO] Booting worker with pid: 500968
+[2022-05-05 06:46:34 +0000] [500969] [INFO] Booting worker with pid: 500969
+[2022-05-05 06:46:34 +0000] [500970] [INFO] Booting worker with pid: 500970
+[2022-05-05 06:46:34 +0000] [500971] [INFO] Booting worker with pid: 500971
+[2022-05-05 06:46:34 +0000] [500972] [INFO] Booting worker with pid: 500972
+[2022-05-05 06:46:34 +0000] [500973] [INFO] Booting worker with pid: 500973
+[2022-05-05 06:46:34 +0000] [500974] [INFO] Booting worker with pid: 500974
+[2022-05-05 06:46:34 +0000] [500975] [INFO] Booting worker with pid: 500975
+[2022-05-05 06:46:34 +0000] [500980] [INFO] Booting worker with pid: 500980
