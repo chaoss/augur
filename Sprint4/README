@@ -16,4 +16,4 @@ The EC2Page-1.png shows the top of the page that we added within the Web Server 
 
 The EC2Page-2.png shows the bottom of the page that we added within the Web Server Configuration section.
 
-The makeInstall.png show the addtion made to both the Quickstart and the Detailed Installation's Installation section. This serves as a guide to the questions posed during the 'make install-dev' command to help the user understand the correct choices to make, as the installation will not work without them.
+The makeInstall.png shows the addtion made to both the Quickstart and the Detailed Installation's Installation section. This serves as a guide to the questions posed during the 'make install-dev' command to help the user understand the correct choices to make, as the installation will not work without them.
