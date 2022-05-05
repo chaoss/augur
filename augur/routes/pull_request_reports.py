@@ -1921,103 +1921,107 @@ def create_routes(server):
     
     OUTPUT_FILENAME = "output.png" # output filename for pio
 
-    @server.app.route('/{}/pull_request_reports/closed-issues-per-month/'.format(server.api_version), methods=["GET"])
+    @server.app.route('/{}/pull_request_reports/closed-issues-over-time/'.format(server.api_version), methods=["GET"])
     def issues_closed_per_month():
-        try:
-            repo_id = request.args.get('repo_id')
-            # Get the data from the API
-            r = api_req.request(url = 'http://project4320.eastus.cloudapp.azure.com:5000/api/unstable/repos/{}/issues-closed'.format(repo_id), method = 'get')
-            e = r.json()
-            df = pd.DataFrame(e)
+        repo_id = request.args.get('repo_id')
+        # Get the data from the API
+        r = api_req.request(url = 'http://project4320.eastus.cloudapp.azure.com:5000/api/unstable/repos/{}/issues-closed'.format(repo_id), method = 'get')
+        e = r.json()
+        df = pd.DataFrame(e)
 
-            reponame = df['repo_name'][0]
-            df['date'] = pd.to_datetime(df.date)
-            df['month'] = df['date'].dt.month.astype(str) + "/" + df['date'].dt.year.astype(str)
+        reponame = df['repo_name'][0]
+        df['date'] = pd.to_datetime(df.date)
+        df['month'] = df['date'].dt.month.astype(str) + "/" + df['date'].dt.year.astype(str)
 
-            fig = go.Figure([go.Histogram(x=df['month'], y=df['issues'])])
-            fig.update_layout(title_text="Number of closed issues per month for repo \"" + reponame + "\"")
-            fig.update_xaxes(title_text="Month/Year")
-            fig.update_yaxes(title_text="Number of closed issues")
-            #fig.show()
+        fig = go.Figure([go.Histogram(x=df['month'], y=df['issues'])])
+        fig.update_layout(title_text="Number of closed issues per month for repo \"" + reponame + "\"")
+        fig.update_xaxes(title_text="Month/Year")
+        fig.update_yaxes(title_text="Number of closed issues")
 
-            filename = "output.png"
-            pio.write_image(fig, filename)
+        pio.write_image(fig, OUTPUT_FILENAME)
+        return send_file("/home/azureuser/augur/" + OUTPUT_FILENAME)
 
-            return send_file("/home/azureuser/augur/" + filename)
-        except Exception as e:
-            return Response(response = str(e), mimetype = 'application/json', status = 200)
-
-    @server.app.route('/{}/pull_request_reports/new-issues-per-month/'.format(server.api_version), methods=["GET"])
+    @server.app.route('/{}/pull_request_reports/new-issues-over-time/'.format(server.api_version), methods=["GET"])
     def new_issues_per_month():
-        try:
-            repo_id = request.args.get('repo_id')
-            # Get the data from the API
-            r = api_req.request(url = 'http://project4320.eastus.cloudapp.azure.com:5000/api/unstable/repos/{}/issues-new'.format(repo_id), method = 'get')
-            e = r.json()
-            df = pd.DataFrame(e)
+        repo_id = request.args.get('repo_id')
+        # Get the data from the API
+        r = api_req.request(url = 'http://project4320.eastus.cloudapp.azure.com:5000/api/unstable/repos/{}/issues-new'.format(repo_id), method = 'get')
+        e = r.json()
+        df = pd.DataFrame(e)
 
-            reponame = df['repo_name'][0]
-            df['date'] = pd.to_datetime(df.date)
-            df['month'] = df['date'].dt.month.astype(str) + "/" + df['date'].dt.year.astype(str)
+        reponame = df['repo_name'][0]
+        df['date'] = pd.to_datetime(df.date)
+        df['month'] = df['date'].dt.month.astype(str) + "/" + df['date'].dt.year.astype(str)
 
-            # Create the graph
-            fig = go.Figure([go.Histogram(x=df['month'], y=df['issues'])])
-            fig.update_layout(title_text="Number of new issues per month for repo \"" + reponame + "\"")
-            fig.update_xaxes(title_text="Month/Year")
-            fig.update_yaxes(title_text="Number of new issues")
-            #fig.show()
+        # Create the graph
+        fig = go.Figure([go.Histogram(x=df['month'], y=df['issues'])])
+        fig.update_layout(title_text="Number of new issues per month for repo \"" + reponame + "\"")
+        fig.update_xaxes(title_text="Month/Year")
+        fig.update_yaxes(title_text="Number of new issues")
 
-            filename = "output.png"
-            pio.write_image(fig, filename)
-            return send_file("/home/azureuser/augur/" + filename)
-        except Exception as e:
-            return Response(response = str(e), mimetype = 'application/json', status = 200)
+        pio.write_image(fig, OUTPUT_FILENAME)
+        return send_file("/home/azureuser/augur/" + OUTPUT_FILENAME)
 
-    @server.app.route('/{}/pull_request_reports/issue-participants-per-month/'.format(server.api_version), methods=["GET"])
+    @server.app.route('/{}/pull_request_reports/issue-participants-over-time/'.format(server.api_version), methods=["GET"])
     def issue_participants_per_month():
-        try:
-            repo_id = request.args.get('repo_id')
-            # Get the data from the API
-            r = api_req.request(url = 'http://project4320.eastus.cloudapp.azure.com:5000/api/unstable/repos/{}/issue-participants'.format(repo_id), method = 'get')
-            e = r.json()
-            df = pd.DataFrame(e)
+        repo_id = request.args.get('repo_id')
+        # Get the data from the API
+        r = api_req.request(url = 'http://project4320.eastus.cloudapp.azure.com:5000/api/unstable/repos/{}/issue-participants'.format(repo_id), method = 'get')
+        e = r.json()
+        df = pd.DataFrame(e)
 
-            # Create the graph
-            reponame = df['repo_name'][0]
-            df['created_at'] = pd.to_datetime(df.created_at)
-            df['month'] = df['created_at'].dt.month.astype(str) + "/" + df['created_at'].dt.year.astype(str)
+        # Create the graph
+        reponame = df['repo_name'][0]
+        df['created_at'] = pd.to_datetime(df.created_at)
+        df['month'] = df['created_at'].dt.month.astype(str) + "/" + df['created_at'].dt.year.astype(str)
 
-            print(df)
+        print(df)
 
-            fig = px.line(x=df['created_at'], y=df['participants'])
-            fig.update_layout(title_text="Number of issue participants per month for repo \"" + reponame + "\"")
-            fig.update_xaxes(title_text="Month/Year")
-            fig.update_yaxes(title_text="Number of issue participants")
+        fig = px.line(x=df['created_at'], y=df['participants'])
+        fig.update_layout(title_text="Number of issue participants per month for repo \"" + reponame + "\"")
+        fig.update_xaxes(title_text="Month/Year")
+        fig.update_yaxes(title_text="Number of issue participants")
 
-            pio.write_image(fig, OUTPUT_FILENAME)
-            return send_file("/home/azureuser/augur/" + OUTPUT_FILENAME)
-        except Exception as e:
-            return Response(response = str(e), mimetype = 'application/json', status = 200)
+        pio.write_image(fig, OUTPUT_FILENAME)
+        return send_file("/home/azureuser/augur/" + OUTPUT_FILENAME)
 
-    @server.app.route('/{}/pull_request_reports/issue-age-per-month/'.format(server.api_version), methods=["GET"])
+    @server.app.route('/{}/pull_request_reports/issue-age-over-time/'.format(server.api_version), methods=["GET"])
     def average_issue_age():
-        try:
-            repo_id = request.args.get('repo_id')
-            # Get the data from the API
-            r = api_req.request(url = 'http://project4320.eastus.cloudapp.azure.com:5000/api/unstable/repos/{}/issues-open-age'.format(repo_id), method = 'get')
-            e = r.json()
-            df = pd.DataFrame(e)
+        repo_id = request.args.get('repo_id')
+        # Get the data from the API
+        r = api_req.request(url = 'http://project4320.eastus.cloudapp.azure.com:5000/api/unstable/repos/{}/issues-open-age'.format(repo_id), method = 'get')
+        e = r.json()
+        df = pd.DataFrame(e)
 
-            reponame = df['repo_name'][0]
-            df['date'] = pd.to_datetime(df.date)
-            df['month'] = df['date'].dt.month.astype(str) + "/" + df['date'].dt.year.astype(str)
+        reponame = df['repo_name'][0]
+        df['date'] = pd.to_datetime(df.date)
+        df['month'] = df['date'].dt.month.astype(str) + "/" + df['date'].dt.year.astype(str)
 
-            fig = go.Figure([go.Histogram(x=df['month'], y=df['open_date'], histfunc = 'avg')])
-            fig.update_layout(title_text="Average issue age over several months for repo \"" + reponame + "\"")
-            fig.update_xaxes(title_text="Month/Year")
-            fig.update_yaxes(title_text="Average issue age")
+        fig = go.Figure([go.Histogram(x=df['month'], y=df['open_date'], histfunc = 'avg')])
+        fig.update_layout(title_text="Average issue age over several months for repo \"" + reponame + "\"")
+        fig.update_xaxes(title_text="Month/Year")
+        fig.update_yaxes(title_text="Average issue age")
 
-            pio.write_image(fig, OUTPUT_FILENAME)
-            return send_file("/home/azureuser/augur/" + OUTPUT_FILENAME)
-        except Exception as e:
-            return Response(response = str(e), mimetype = 'application/json', status = 200)
+        pio.write_image(fig, OUTPUT_FILENAME)
+        return send_file("/home/azureuser/augur/" + OUTPUT_FILENAME)
+
+    @server.approute('/{}/pull_request_reports/fork-count-over-time/'.format(server.api_version), methods=["GET"])
+    def fork_count():
+        repo_id = request.args.get('repo_id')
+        # Forks over time
+        r = api_req.request(url = 'http://augur.chaoss.io/api/unstable/repos/{}/forks'.format(repo_id), method = 'get')
+        e = r.json()
+        df = pd.DataFrame(e)
+
+        reponame = df['repo_name'][1]
+        df['date'] = pd.to_datetime(df.date)
+        df['month'] = df['date'].dt.month.astype(str) + "/" + df['date'].dt.year.astype(str)
+
+
+        fig = px.line(x=df['date'], y=df['forks'])
+        fig.update_layout(title_text="Number of forks for repo \"" + reponame + "\" over time")
+        fig.update_xaxes(title_text="Month/Year")
+        fig.update_yaxes(title_text="Number of forks")
+
+        pio.write_image(fig, OUTPUT_FILENAME)
+        return send_file("/home/azureuser/augur/" + OUTPUT_FILENAME)
