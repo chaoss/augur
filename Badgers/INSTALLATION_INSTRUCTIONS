@@ -1,0 +1,5 @@
+<h1>How to Deploy Our Code:</h1>
+<h3>1. Pull the augur_view folder from this repo to your server.</h3>
+<h3>2. Follow these instructions on how to setup augur view: https://github.com/augurlabs/augur_view/blob/main/installing.md</h3>
+<h3>3. Visit your deployed augur view instance.</h3>
+<h3>4. Navigate to the "Graphs" tab or enter the url "{augur view instance url}/badgers-graphs" to view our graphs.</h3>
