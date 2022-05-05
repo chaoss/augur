@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>Graphs - Augur View</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device.width, initial-scale=1">
+		<style>
+			.header {
+				border-radius: 25px;
+				box-shadow: 5px 3px 3px black;
+				padding: 25px;
+				background: #1b1e21;
+			}
+
+			.chartContainer {
+				display: flex;
+				justify-content: center;
+				padding: 25px;
+			}
+
+			.chart {
+				display: flex;
+				justify-content: center;
+				min-width: 800px;
+				min-height: 600px;
+				border-radius: 25px;
+				box-shadow: 5px 3px 3px black;
+				overflow: hidden;
+				transition: all 300ms ease-in-out;
+			}
+
+			.chart:hover {
+				box-shadow: 20px 15px 20px black;
+			}
+
+			.info {
+				margin: 25px;
+				box-shadow: 15px 9px 10px black;
+				border-radius: 25px;
+				display: flex;
+				flex-direction: column;
+				justify-content: space-around;
+				align-items: center;
+			}
+
+			.form {
+				width: fit-content;
+				height: fit-content;
+				padding: 25px;
+				margin: 25px;
+				box-shadow: 5px 3px 3px black;
+				border-radius: 25px;
+			}
+
+			.error {
+				color: red;
+				padding: 0 0 15px 0;
+			}
+
+			.desc {
+				margin: 10px 25px;
+				padding: 15px;
+				box-shadow: 5px 3px 3px black;
+				border-radius: 25px;
+			}
+
+			.desc h3 {
+				color: black;
+				background: white;
+				width: fit-content;
+				padding: 5px 20px;
+				border-radius: 25px;
+				box-shadow: 5px 3px 3px black;
+				margin: 20px auto;
+			}
+
+			button {
+				border-radius: 10px;
+			}
+		</style>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+	</head>
+	<body>
+		<div id="repoChartsContainer" class="groupingContainer">
+			<div id="repoChartsHeader" class="header">
+				<h1>Repository Charts</h1>
+				<label for="repoChartsRepoNum">Repo ID:</label>
+				<select id="repoChartsRepoNum"></select>
+				<button id="changeAllReposButton">Change All Repos</button>
+			</div>
+			<div id="chart1Container" class="chartContainer">
+				<div id="chart1" class="chart">... LOADING CHART 1 ...</div>
+				<div id="chart1Info" class="info">
+					<div id="chart1Desc" class="desc">
+						<h3>Code Changes Over Time</h3>
+						<p>This Line Graph depicts the activity of a given repository over time according to the number of commits it sees. The user can also select a time frame to display, yearly or weekly. To display a different repo, enter the repo ID into the "Repo ID" text box and hit the "Change Repo" button. To switch to display yearly changes, select the "Yearly" option. To switch to display weekly changes, select the "Weekly" option and select the desired year from the dropdown.</p>
+					</div>
+					<div id="chart1Form" class="form">
+						<div id="chart1Error" class="error"></div>
+						<label for="chart1RepoNum">Repo ID:</label>
+						<input type="text" id="chart1RepoNum">
+						<button id="chart1ChangeRepoButton">Change Repo</button>
+						<label for="chart1Yearly">Yearly:</label><input type="radio" id="chart1Yearly" name="chart1TimePeriod" value="year" checked="checked">
+						<label for="chart1Weekly">Weekly:</label><input type="radio" id="chart1Weekly" name="chart1TimePeriod" value="week">
+						<select id="chart1YearSelection"></select>
+						<button id="chart1UpdateGraphButton">Update Graph</button>
+					</div>
+				</div>
+			</div>
+			<div id="chart3Container" class="chartContainer">
+				<div id="chart3" class="chart">... LOADING CHART 3 ...</div>
+				<div id="chart3Info" class="info">
+					<div id="chart3Desc" class="desc">
+						<h3>Percent Contribution</h3>
+						<p>This Pie Chart depicts the percent contribution each user has in a specified repo. GitHub user ID's are used. Contribution values are calculated by summing together commits, commit comments, issues, issue comments, pull requests, and pull request comments. To display a different repo, enter the repo ID into the "Repo ID" text box and hit the "Change Repo" button.</p>
+					</div>
+					<div id="chart3Form" class="form">
+						<div id="chart3Error" class="error"></div>
+						<label for="chart3RepoNum">Repo ID:</label>
+						<input type="text" id="chart3RepoNum">
+						<button id="chart3ChangeRepoButton">Change Repo</button>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div id="repoGroupChartsContainer" class="groupingContainer">
+			<div id="repoGroupChartsHeader" class="header">
+				<h1>Repository Group Charts</h1>
+				<label for="repoGroupChartsRepoNum">Repo Group ID:</label>
+				<select id="repoGroupChartsRepoNum"></select>
+				<button id="changeAllRepoGroupsButton">Change All Repos</button>
+			</div>
+			<div id="chart2Container" class="chartContainer">
+				<div id="chart2" class="chart">... LOADING CHART 2 ...</div>
+				<div id="chart2Info" class="info">
+					<div id="chart2Desc" class="desc">
+						<h3>Repository Commits by Repository Group</h3>
+						<p>This Bar Graph separates the repositories of a repository group into columns showing how may commits each one has received. To display a different repo group, enter the repo group ID into the "Repo Group ID" text box and hit the "Change Repo Group" button.</p>
+					</div>
+					<div id="chart2Form" class="form">
+						<div id="chart2Error" class="error"></div>
+						<label for="chart2RepoGroup">Repo Group ID:</label>
+						<input type="text" id="chart2RepoGroup">
+						<button id="chart2ChangeRepoGroupButton">Change Repo Group</button>
+					</div>
+				</div>
+			</div>
+			<div id="chart4Container" class="chartContainer">
+				<div id="chart4" class="chart">... LOADING CHART 4 ...</div>
+				<div id="chart4Info" class="info">
+					<div id="chart4Desc" class="desc">
+						<h3>Activity of Repo Group Over Time</h3>
+						<p>This Line Graph shows the activity of each select repository within a repository group over time according to the number of commits it sees. This allows the user to see which repo from a repo group is worked on more as time progresses. To display a different repo group, enter the repo group ID into the "Repo Group ID" text box and hit the "Change Repo Group" button. To switch to display yearly changes, select the "Yearly" option. To switch to display weekly changes, select the "Weekly" option and select the desired year from the dropdown.</p>
+					</div>
+					<div id="chart4Form" class="form">
+						<div id="chart4Error" class="error"></div>
+						<label for="chart4RepoGroup">Repo Group ID:</label>
+						<input type="text" id="chart4RepoGroup">
+						<button id="chart4ChangeRepoGroupButton">Change Repo Group</button>
+						<label for="chart4Yearly">Yearly:</label><input type="radio" id="chart4Yearly" name="chart4TimePeriod" value="year" checked="checked">
+						<label for="chart4Weekly">Weekly:</label><input type="radio" id="chart4Weekly" name="chart4TimePeriod" value="week">
+						<select id="chart4YearSelection"></select>
+						<button id="chart4UpdateGraphButton">Update Graph</button>
+					</div>
+				</div>
+			</div>
+			<div id="chart5Container" class="chartContainer">
+				<div id="chart5" class="chart">... LOADING CHART 5 ...</div>
+				<div id="chart5Info" class="info">
+					<div id="chart5Desc" class="desc">
+						<h3>Issues Open/Resolved in Repository Group</h3>
+						<p>This Bar Graph compares how many open and closed issues there are within select repositories of a repository group, so that a user may compare how much work is done, or which repository might need more help. To display a different repo group, enter the repo group ID into the "Repo Group ID" text box and hit the "Change Repo Group" button.</p>
+					</div>
+					<div id="chart5Form" class="form">
+						<div id="chart5Error" class="error"></div>
+						<label for="chart5RepoGroup">Repo Group ID:</label>
+						<input type="text" id="chart5RepoGroup">
+						<button id="chart5ChangeRepoGroupButton">Change Repo Group</button>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+		<script type="text/javascript">
+			google.charts.load('current', {'packages':['corechart']});
+			google.charts.setOnLoadCallback(drawChart);
+	
+			function drawChart() {
+				var chart1 = new google.visualization.LineChart(document.getElementById('chart1'));
+				var chart2 = new google.visualization.ColumnChart(document.getElementById('chart2'));
+				var chart3 = new google.visualization.PieChart(document.getElementById('chart3'));
+				var chart4 = new google.visualization.LineChart(document.getElementById('chart4'));
+				var chart5 = new google.visualization.ColumnChart(document.getElementById('chart5'));
+
+				var repoIDs = [];
+				var repoGroupIDs = [];
+
+				function fillIDs() {
+					$.getJSON('{{api_url}}repos/', function(repos){
+						if(!(Object.keys(repos).length === 0)) {
+							repos.forEach((repo) => {
+								if(!(repoIDs.includes(repo.repo_id))) {
+									repoIDs.push([repo.repo_name, repo.repo_id]);
+								}
+							});
+							$.getJSON('{{api_url}}repo-groups/', function(repoGroups){
+								if(!(Object.keys(repoGroups).length === 0)) {
+									repoGroups.forEach((repoGroup) => {
+										if(!(repoGroupIDs.includes(repoGroup.repo_group_id))) {
+											repoGroupIDs.push([repoGroup.rg_name, repoGroup.repo_group_id]);
+										}
+									});
+									repoIDs.forEach((repoID) => {
+										$("#repoChartsRepoNum").append("<option value=\"" + repoID[1] + "\">" + repoID[0] + " - " + repoID[1] + "</option>");
+									});
+									repoGroupIDs.forEach((repoGroupID) => {
+										$("#repoGroupChartsRepoNum").append("<option value=\"" + repoGroupID[1] + "\">" + repoGroupID[0] + " - " + repoGroupID[1] + "</option>");
+									});
+									var defaultRepoID = repoIDs[0][1];
+									var defaultRepoGroupID = repoGroupIDs[0][1];
+									$("#chart1RepoNum").val(defaultRepoID);
+									drawChart1();
+									$("#chart2RepoGroup").val(defaultRepoGroupID);
+									drawChart2();
+									$("#chart3RepoNum").val(defaultRepoID);
+									drawChart3();
+									$("#chart4RepoGroup").val(defaultRepoGroupID);
+									drawChart4();
+									$("#chart5RepoGroup").val(defaultRepoGroupID);
+									drawChart5();
+								}
+							});
+						}
+					});
+				}
+				fillIDs();
+
+				// Help:
+				//
+				//	$.getJSON('<url>', function(repos){...});
+				//		Where url is the destination you want to extract a JSON object from.
+				//		You can find urls and the data they have here:
+				//			https://oss-augur.readthedocs.io/en/main/rest-api/api.html#
+				//
+				//	options: Change title of chart, width of chart, height of chart
+				//
+				//	reposArray: Change headers
+				//
+				//	repos.forEach((repo) => {<code here>});
+				//		Splits the JSON into individual lines (repos for this instance)
+				//		Logic goes in <code here>; push the data you want onto the reposArray like this:
+				//			reposArray.push([repo.<descriptor>, repo.<value>]);
+				//		Where descriptor is usually the name or id, and value is the data you want to graph.
+
+				// Chart 1: Commits Over Time
+				var chart1JSONcache;
+				var chart1TempRepoNum;
+				$("#chart1YearSelection").hide();
+				$("#chart1ChangeRepoButton").on("click", chart1ChangeRepo);
+				$("#chart1UpdateGraphButton").on( "click", chart1UpdateGraph);
+				$('input[name="chart1TimePeriod"]').on("click", function() {
+					if($("#chart1Weekly").prop("checked")) {
+						$("#chart1YearSelection").show();
+					}
+					else {
+						$("#chart1YearSelection").hide();
+					}
+				});
+				function drawChart1() {
+					var url = '{{api_url}}repos/' + $("#chart1RepoNum").val() + '/code-changes';
+					$.getJSON(url, function(repos){
+						if(!(Object.keys(repos).length === 0)) {
+							$("#chart1Error").empty();
+							chart1TempRepoNum = $("#chart1RepoNum").val();
+							var title = 'Commits per Year: ' + repos[0].repo_name;
+							var options = {'title':title, 'hAxis':{'title':'Year'}, 'vAxis':{'title':'Commits'}, 'legend':{position:'none'}};
+							var reposArray = [['Year', 'Commits']];
+							var reposDict = {};
+							chart1JSONcache = repos;
+
+							repos.forEach((repo) => {
+								if(repo.year in reposDict) {
+									reposDict[repo.year] += repo.commit_count;
+								}
+								else {
+									reposDict[repo.year] = repo.commit_count;
+								}
+							});
+							for(var key in reposDict) {
+								reposArray.push([key, reposDict[key]]);
+							}
+
+							$("#chart1YearSelection").empty();
+							for(var key in reposDict) {
+								$("#chart1YearSelection").append("<option>" + key + "</option>");
+							}
+
+							data = google.visualization.arrayToDataTable(reposArray);
+							chart1.draw(data, options);
+						}
+						else {
+							$("#chart1Error").html("Repo ID: " + $("#chart1RepoNum").val().toString()  + " not found in database.");
+							$("#chart1RepoNum").val(chart1TempRepoNum);
+						}
+					});
+				}
+				function chart1UpdateGraph() {
+					var repos = chart1JSONcache;
+					var repoName = repos[0].repo_name;
+					var title = "";
+					var hAxis = {};
+					var reposArray = [];
+					var reposDict = {};
+					var weeks = [];
+					var yearToFind = $("#chart1YearSelection").val();
+
+					$("#chart1RepoNum").val(chart1TempRepoNum);
+					$("#chart1Error").empty();
+
+					if($("#chart1Weekly").prop("checked")) {
+						title = 'Commits per Week in Year ' + yearToFind + ': ' + repoName;
+						hAxis = {title: 'Week'};
+						reposArray.push(['Week', 'Commits']);
+					}
+					else {
+						title = 'Commits per Year: ' + repoName;
+						hAxis = {'title':'Year'};
+						reposArray.push(['Year', 'Commits']);
+					}
+
+					var options = {'title':title, 'hAxis':hAxis, 'vAxis':{'title':'Commits'}, 'legend':{position:'none'}};
+
+					if($("#chart1Weekly").prop("checked")) {
+						repos.forEach((repo) => {
+							if(repo.year == yearToFind) {
+								if(repo.week+1 in reposDict) {
+									reposDict[repo.week+1] += repo.commit_count;
+								}
+								else {
+									reposDict[repo.week+1] = repo.commit_count;
+								}
+							}
+						});
+						var keys = Object.keys(reposDict);
+						for (var i = 0; i < keys.length; i++) {
+							keys[i] = parseInt(keys[i], 10);
+						}
+						var max = Math.max(...keys);
+						var min = Math.min(...keys);
+						for (var i = min+1; i < max; i++) {
+							if(!(i in reposDict)) {
+								reposDict[i] = 0;
+							}
+						}
+					}
+					else {
+						repos.forEach((repo) => {
+							if(repo.year in reposDict) {
+								reposDict[repo.year] += repo.commit_count;
+							}
+							else {
+								reposDict[repo.year] = repo.commit_count;
+							}
+						});
+					}
+
+					for(var key in reposDict) {
+						reposArray.push([key, reposDict[key]]);
+					}
+
+					data = google.visualization.arrayToDataTable(reposArray);
+					chart1.draw(data, options);
+				}
+				function chart1ChangeRepo() {
+					drawChart1();
+					$("#chart1Yearly").trigger("click");
+					$("#chart1YearSelection").hide();
+				}
+
+				// Chart 2: Repository Commits by Repository Group
+				var chart2TempRepoGroup;
+				$("#chart2ChangeRepoGroupButton").on("click", chart2ChangeRepoGroup);
+				function drawChart2() {
+					var url = '{{api_url}}repo-groups/' + $("#chart2RepoGroup").val() + '/code-changes';
+					$.getJSON('{{api_url}}repo-groups/', function(repoGroups){
+						var repoGroupName;
+						var repoGroupExists = false;
+						repoGroups.forEach((repoGroup) => {
+							if(repoGroup.repo_group_id == $("#chart2RepoGroup").val()) {
+								repoGroupName = repoGroup.rg_name;
+								repoGroupExists = true;
+							}
+						});
+						if(repoGroupExists) {
+							$.getJSON(url, function(repos){
+								$("#chart2Error").empty();
+								chart2TempRepoGroup = $("#chart2RepoGroup").val();
+								var title = 'Commits per Repo in Repo Group: ' + repoGroupName;
+								var options = {'title':title, 'legend':{position:'none'}};
+								var reposArray = [['Repo', 'Commits']];
+								var reposDict = {};
+
+								repos.forEach((repo) => {
+									if(repo.repo_name in reposDict) {
+										reposDict[repo.repo_name] += repo.commit_count;
+									}
+									else {
+										reposDict[repo.repo_name] = repo.commit_count;
+									}
+								});
+								for(var key in reposDict) {
+									reposArray.push([key, reposDict[key]]);
+								}
+
+								data = google.visualization.arrayToDataTable(reposArray);
+								chart2.draw(data, options);
+							});
+						}
+						else {
+							$("#chart2Error").html("Repo Group ID: " + $("#chart2RepoGroup").val().toString() + " not found in database.");
+							$("#chart2RepoGroup").val(chart2TempRepoGroup);
+						}
+					});
+				}
+				function chart2ChangeRepoGroup() {
+					drawChart2();
+				}
+
+				// Chart 3: Percent Contribution by User ID
+				var chart3TempRepoNum;
+				$("#chart3ChangeRepoButton").on("click", chart3ChangeRepo);
+				function drawChart3() {
+					var url = '{{api_url}}repos/' + $("#chart3RepoNum").val() + '/contributors';
+					$.getJSON(url, function(repos){
+						if(!(Object.keys(repos).length === 0)) {
+							$("#chart3Error").empty();
+							chart3TempRepoNum = $("#chart3RepoNum").val();
+							var title = 'Percent Contribution by User ID: ' + repos[0].repo_name;
+							var options = {'title':title, 'sliceVisibilityThreshold':0.01};
+							var reposArray = [['User ID', 'Contribution']];
+
+							repos.forEach((repo) => {
+								reposArray.push([repo.user_id.toString(), repo.total]);
+							});
+
+							data = google.visualization.arrayToDataTable(reposArray);
+							chart3.draw(data, options);
+						}
+						else {
+							$("#chart3Error").html("Repo ID: " + $("#chart3RepoNum").val().toString() + " not found in database.");
+							$("#chart3RepoNum").val(chart3TempRepoNum);
+						}
+					});
+				}
+				function chart3ChangeRepo() {
+					drawChart3();
+				}
+
+				// Chart 4: Activity of Repo Group Over Time
+				var chart4JSONcache;
+				var chart4TempRepoGroup;
+				var chart4TempRepoGroupName;
+				$("#chart4YearSelection").hide();
+				$("#chart4ChangeRepoGroupButton").on("click", chart4ChangeRepoGroup);
+				$("#chart4UpdateGraphButton").on( "click", chart4UpdateGraph);
+				$('input[name="chart4TimePeriod"]').on("click", function() {
+					if($("#chart4Weekly").prop("checked")) {
+						$("#chart4YearSelection").show();
+					}
+					else {
+						$("#chart4YearSelection").hide();
+					}
+				});
+				function drawChart4() {
+					var url = '{{api_url}}repo-groups/' + $("#chart4RepoGroup").val() + '/code-changes';
+					$.getJSON('{{api_url}}repo-groups/', function(repoGroups){
+						var repoGroupName;
+						var repoGroupExists = false;
+						repoGroups.forEach((repoGroup) => {
+							if(repoGroup.repo_group_id == $("#chart4RepoGroup").val()) {
+								repoGroupName = repoGroup.rg_name;
+								repoGroupExists = true;
+							}
+						});
+						if(repoGroupExists) {
+							$.getJSON(url, function(repos){
+								$("#chart4Error").empty();
+								chart4TempRepoGroup = $("#chart4RepoGroup").val();
+								chart4TempRepoGroupName = repoGroupName;
+								chart4JSONcache = repos;
+								var title = 'Commits per Repo in Repo Group per Year: ' + repoGroupName;
+								var options = {'title':title, 'hAxis':{'title': 'Year'}, 'vAxis':{'title': 'Commits'}};
+								var reposDict = {};
+								var reposArray = [];
+								var repoNames = [];
+								var years = [];
+
+								var data = new google.visualization.DataTable();
+								data.addColumn('string', 'Year');
+
+								repos.forEach((repo) => {
+									if (!(repoNames.includes(repo.repo_name))) {
+										repoNames.push(repo.repo_name);
+									}
+									if(!(years.includes(repo.year))) {
+										years.push(repo.year);
+									}
+								});
+								repoNames.sort();
+								years.sort(function(a, b) {
+									return a - b;
+								});
+								repoNames.forEach((repoName) => {
+									data.addColumn('number', repoName);
+								});
+								years.forEach((year) => {
+									var tempDict = {}
+									repoNames.forEach((repoName) => {
+										tempDict[repoName] = 0;
+									});
+									reposDict[year] = tempDict;
+								});
+								repos.forEach((repo) => {
+									reposDict[repo.year][repo.repo_name] += repo.commit_count;
+								});
+								var temp = [];
+								for(var year in reposDict) {
+									temp = [year];
+									for(var repo in reposDict[year]) {
+										temp.push(reposDict[year][repo]);
+									}
+									reposArray.push(temp);
+								}
+								data.addRows(reposArray);
+
+								$("#chart4YearSelection").empty();
+								years.forEach((year) => {
+									$("#chart4YearSelection").append("<option>" + year + "</option>");
+								});
+
+								chart4.draw(data, options);
+							});
+						}
+						else {
+							$("#chart4Error").html("Repo Group ID: " + $("#chart4RepoGroup").val().toString() + " not found in database.");
+							$("#chart4RepoGroup").val(chart4TempRepoGroup);
+						}
+					});
+				}
+				function chart4UpdateGraph() {
+					var repos = chart4JSONcache;
+					var title = "";
+					var hAxis = {};
+					var reposArray = [];
+					var reposDict = {};
+					var repoNames = [];
+					var weeks = [];
+					var years = [];
+					var yearToFind = $("#chart4YearSelection").val();
+
+					var data = new google.visualization.DataTable();
+
+
+					$("#chart4RepoGroup").val(chart4TempRepoGroup);
+					$("#chart4Error").empty();
+
+					if($("#chart4Weekly").prop("checked")) {
+						title = 'Commits per Repo in Repo Group per Week in Year ' + yearToFind + ': ' + chart4TempRepoGroupName;
+						hAxis = {'title': 'Week'};
+						data.addColumn('string', 'Week');
+					}
+					else {
+						title = 'Commits per Repo in Repo Group per Year: ' + chart4TempRepoGroupName;
+						hAxis = {'title': 'Year'};
+						data.addColumn('string', 'Year');
+					}
+
+					var options = {'title':title, 'hAxis':hAxis, 'vAxis':{'title':'Commits'}};
+
+					repos.forEach((repo) => {
+						if (!(repoNames.includes(repo.repo_name))) {
+							repoNames.push(repo.repo_name);
+						}
+						if(!(years.includes(repo.year))) {
+							years.push(repo.year);
+						}
+					});
+					repoNames.sort();
+					years.sort(function(a, b) {
+						return a - b;
+					});
+					repoNames.forEach((repoName) => {
+						data.addColumn('number', repoName);
+					});
+
+					if($("#chart4Weekly").prop("checked")) {
+						repos.forEach((repo) => {
+							if(repo.year == yearToFind) {
+								if(!(weeks.includes(repo.week+1))) {
+									weeks.push(repo.week+1);
+								}
+							}
+						});
+						weeks.sort(function(a, b) {
+							return a - b;
+						});
+
+						weeks.forEach((week) => {
+							var tempDict = {};
+							repoNames.forEach((repoName) => {
+								tempDict[repoName] = 0;
+							});
+							reposDict[week] = tempDict;
+						});
+						repos.forEach((repo) => {
+							if(repo.year == yearToFind) {
+								reposDict[repo.week+1][repo.repo_name] += repo.commit_count;
+							}
+						});
+					}
+					else {
+						years.forEach((year) => {
+							var tempDict = {}
+							repoNames.forEach((repoName) => {
+								tempDict[repoName] = 0;
+							});
+							reposDict[year] = tempDict;
+						});
+						repos.forEach((repo) => {
+							reposDict[repo.year][repo.repo_name] += repo.commit_count;
+						});
+					}
+
+					var temp = [];
+					for (var key in reposDict) {
+						temp = [key];
+						for (var repo in reposDict[key]) {
+							temp.push(reposDict[key][repo]);
+						}
+						reposArray.push(temp);
+					}
+					data.addRows(reposArray);
+
+					chart4.draw(data, options);
+				}
+				function chart4ChangeRepoGroup() {
+					drawChart4();
+					$("#chart4Yearly").trigger("click");
+					$("#chart4YearSelection").hide();
+				}
+
+
+				// Chart 5: Issues Open/Resolved in Repository Group
+				var chart5TempRepoGroup;
+				$("#chart5ChangeRepoGroupButton").on("click", chart5ChangeRepoGroup);
+				function drawChart5() {
+					$.getJSON('{{api_url}}repo-groups/', function(repoGroups){
+						var repoGroupName;
+						var repoGroupExists = false;
+						var url = '{{api_url}}repo-groups/' + $("#chart5RepoGroup").val();
+						repoGroups.forEach((repoGroup) => {
+							if(repoGroup.repo_group_id == $("#chart5RepoGroup").val()) {
+								repoGroupName = repoGroup.rg_name;
+								repoGroupExists = true;
+							}
+						});
+						if(repoGroupExists) {
+							$("#chart5Error").empty();
+							chart5TempRepoGroup = $("#chart5RepoGroup").val();
+							var title = 'Issues Open/Closed per Repo in Repo Group: ' + repoGroupName;
+							var options = {'title':title, 'legend':{position:'none'}};
+							var reposArray = [];
+							var openIssues = {};
+							var closedIssues = {};
+							var reposDict = {};
+							var repoNames = [];
+
+							var data = new google.visualization.DataTable();
+							data.addColumn('string', 'Repo');
+							data.addColumn('number', 'Open Issues');
+							data.addColumn('number', 'Closed Issues');
+
+							$.getJSON(url + '/issues-new', function(reposOuter){
+								reposOuter.forEach((repo) => {
+									if(repo.repo_name in openIssues) {
+										openIssues[repo.repo_name] += repo.issues;
+									}
+									else {
+										openIssues[repo.repo_name] = repo.issues;
+										repoNames.push(repo.repo_name);
+									}
+								});
+								$.getJSON(url + '/issues-closed', function(repos){
+									repos.forEach((repo) => {
+										if(repo.repo_name in closedIssues) {
+											closedIssues[repo.repo_name] += repo.issues;
+										}
+										else {
+											closedIssues[repo.repo_name] = repo.issues;
+											repoNames.push(repo.repo_name);
+										}
+									});
+									repoNames.forEach((repoName) => {
+										if(!(repoName in openIssues)) {
+											openIssues[repoName] = 0;
+										}
+										if(!(repoName in closedIssues)) {
+											closedIssues[repoName] = 0;
+										}
+										reposDict[repoName] = [openIssues[repoName], closedIssues[repoName]];
+									});
+									for(var key in reposDict) {
+										reposArray.push([key, reposDict[key][0], reposDict[key][1]]);
+									}
+									data.addRows(reposArray);
+
+									chart5.draw(data, options);
+								});
+							});
+						}
+						else {
+							$("#chart5Error").html("Repo Group ID: " + $("#chart5RepoGroup").val().toString() + " not found in database.");
+							$("#chart5RepoGroup").val(chart5TempRepoGroup);
+						}
+					});
+				}
+				function chart5ChangeRepoGroup() {
+					drawChart5();
+				}
+
+				$("#changeAllReposButton").on("click", changeAllRepos);
+				$("#changeAllRepoGroupsButton").on("click", changeAllRepoGroups);
+
+				function changeAllRepos() {
+					var repoNum = $("#repoChartsRepoNum").val();
+					$("#chart1RepoNum").val(repoNum);
+					chart1ChangeRepo();
+					$("#chart3RepoNum").val(repoNum);
+					chart3ChangeRepo();
+				}
+				function changeAllRepoGroups() {
+					var repoGroupNum = $("#repoGroupChartsRepoNum").val();
+					$("#chart2RepoGroup").val(repoGroupNum);
+					chart2ChangeRepoGroup();
+					$("#chart4RepoGroup").val(repoGroupNum);
+					chart4ChangeRepoGroup();
+					$("#chart5RepoGroup").val(repoGroupNum);
+					chart5ChangeRepoGroup();
+				}
+			}
+		</script>
+	</body>
+</html>
