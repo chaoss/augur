@@ -1919,6 +1919,7 @@ def create_routes(server):
         return send_file(filename)
 
     
+    OUTPUT_FILENAME = "output.png" # output filename for pio
 
     @server.app.route('/{}/pull_request_reports/closed-issues-per-month/'.format(server.api_version), methods=["GET"])
     def issues_closed_per_month():
@@ -1968,7 +1969,6 @@ def create_routes(server):
 
             filename = "output.png"
             pio.write_image(fig, filename)
-
             return send_file("/home/azureuser/augur/" + filename)
         except Exception as e:
             return Response(response = str(e), mimetype = 'application/json', status = 200)
@@ -1978,7 +1978,7 @@ def create_routes(server):
         try:
             repo_id = request.args.get('repo_id')
             # Get the data from the API
-            r = request(url = 'http://augur.chaoss.io/api/unstable/repos/{}/issue-participants'.format(repo_id), method = 'get')
+            r = api_req.request(url = 'http://augur.chaoss.io/api/unstable/repos/{}/issue-participants'.format(repo_id), method = 'get')
             e = r.json()
             df = pd.DataFrame(e)
 
@@ -1993,6 +1993,31 @@ def create_routes(server):
             fig.update_layout(title_text="Number of issue participants per month for repo \"" + reponame + "\"")
             fig.update_xaxes(title_text="Month/Year")
             fig.update_yaxes(title_text="Number of issue participants")
-            fig.show()
+
+            pio.write_image(fig, OUTPUT_FILENAME)
+            return send_file("/home/azureuser/augur/" + OUTPUT_FILENAME)
+        except Exception as e:
+            return Response(response = str(e), mimetype = 'application/json', status = 200)
+
+    @server.app.route('/{}/pull_request_reports/issue-age-per-month/'.format(server.api_version), methods=["GET"])
+    def average_issue_age():
+        try:
+            repo_id = request.args.get('repo_id')
+            # Get the data from the API
+            r = api_req.request(url = 'http://augur.chaoss.io/api/unstable/repos/{}/issues-open-age'.format(repo_id), method = 'get')
+            e = r.json()
+            df = pd.DataFrame(e)
+
+            reponame = df['repo_name'][0]
+            df['date'] = pd.to_datetime(df.date)
+            df['month'] = df['date'].dt.month.astype(str) + "/" + df['date'].dt.year.astype(str)
+
+            fig = go.Figure([go.Histogram(x=df['month'], y=df['open_date'], histfunc = 'avg')])
+            fig.update_layout(title_text="Average issue age over several months for repo \"" + reponame + "\"")
+            fig.update_xaxes(title_text="Month/Year")
+            fig.update_yaxes(title_text="Average issue age")
+
+            pio.write_image(fig, OUTPUT_FILENAME)
+            return send_file("/home/azureuser/augur/" + OUTPUT_FILENAME)
         except Exception as e:
             return Response(response = str(e), mimetype = 'application/json', status = 200)
