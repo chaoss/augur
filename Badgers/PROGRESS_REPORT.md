@@ -15,3 +15,10 @@
 <h3>Added testing plan. See TESTING_PLAN file<h3>
 <h3>Added wireframe model. See WIREFRAME file<h3>
 <h3>Completed around 20-30% of code. See repos-badgers-graphs.html for raw code for augur_view module or see result here: http://ec2-54-221-145-149.compute-1.amazonaws.com/badgers-graphs<h3>
+
+<h1>Completed Sprint 4:<h1>
+<h3>Added augur view files. See augur_view folder.<h3>
+<h3>Updated design documentation. See DESIGN_DOCUMENTATION file.<h3>
+<h3>Completed all code. See badgers-graphs.html for raw code for the augur_view module or see result here: http://ec2-54-221-145-149.compute-1.amazonaws.com/badgers-graphs<h3>
+<h3>Added installation instructions on how to deploy our code. See INSTALLATION_INSTRUCTIONS file.</h3>
+  
