@@ -8,7 +8,7 @@ If you want to get started as fast as possible, we have `Docker images <../docke
 
 .. note::
 
-    We currently officially support local installation of Augur from source on macOS, Ubuntu, and Fedora (but most UNIX-like systems will probably work with a few tweaks). If you are using Windows, we recommend either using the Docker images or setting up a virtual machine with a supported operating system installed.
+    We currently officially support the local installation of Augur from source on macOS, Ubuntu, and Fedora (but most UNIX-like systems will probably work with a few tweaks). If you are using Windows, we recommend either using the Docker images or setting up a virtual machine with a supported operating system installed.
 
 To install from source, we'll need to do a few things:
 
