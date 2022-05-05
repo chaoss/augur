@@ -58,10 +58,3 @@ Copyright © 2022 University of Nebraska at Omaha, University of Missouri and th
 Augur is free software: you can redistribute it and/or modify it under the terms of the MIT License as published by the Open Source Initiative. See the [LICENSE](LICENSE) file for more details.
 
 This work has been funded through the Alfred P. Sloan Foundation, Mozilla, The Reynolds Journalism Institute, contributions from VMWare, Red Hat Software, Grace Hopper's Open Source Day, GitHub, Microsoft, Twitter, Adobe, the Gluster Project, Open Source Summit (NA/Europe), and the Linux Foundation Compliance Summit. Significant design contributors include Kate Stewart, Dawn Foster, Duane O'Brien, Remy Decausemaker, others omitted due to the  memory limitations of project maintainers, and 12 Google Summer of Code Students.
-
-
-## Tigers changes
-
-So far, team Tigers has added a requirements document, a use case document, and an installation visualization.
-
-This branch is intended to be used in order to add documentation about how to do documentation testing. This will make it easier for individuals to update the documentation in the future.
