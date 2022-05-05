@@ -2005,7 +2005,7 @@ def create_routes(server):
         pio.write_image(fig, OUTPUT_FILENAME)
         return send_file("/home/azureuser/augur/" + OUTPUT_FILENAME)
 
-    @server.approute('/{}/pull_request_reports/fork-count-over-time/'.format(server.api_version), methods=["GET"])
+    @server.app.route('/{}/pull_request_reports/fork-count-over-time/'.format(server.api_version), methods=["GET"])
     def fork_count():
         repo_id = request.args.get('repo_id')
         # Forks over time
