@@ -118,20 +118,24 @@ class Persistant():
         if self.config['debug']:
             self.config['log_level'] = 'DEBUG'
 
+        """
         if self.config['verbose']:
             format_string = AugurLogConfigurer.verbose_format_string
         else:
             format_string = AugurLogConfigurer.simple_format_string
-
+        """
+        
+        """
         #Use stock python formatter for stdout
         formatter = Formatter(fmt=format_string)
         #User custom for stderr, Gives more info than verbose_format_string
         error_formatter = Formatter(fmt=AugurLogConfigurer.error_format_string)
+        """
 
         worker_dir = AugurLogConfigurer.get_log_directories(self.augur_config, reset_logfiles=False) + "/workers/"
         Path(worker_dir).mkdir(exist_ok=True)
         logfile_dir = worker_dir + f"/{self.worker_type}/"
-        Path(logfile_dir).mkdir(exist_ok=True)
+        Path(logfile_dir).mkdir(exist_ok=True)        
 
         #Create more complex sublogs in the logfile directory determined by the AugurLogging class
         server_logfile = logfile_dir + '{}_{}_server.log'.format(self.worker_type, self.config["port"])
@@ -144,6 +148,7 @@ class Persistant():
             'collection_errorfile': collection_errorfile
         })
 
+        """
         collection_file_handler = FileHandler(filename=self.config['collection_logfile'], mode="a")
         collection_file_handler.setFormatter(formatter)
         collection_file_handler.setLevel(self.config['log_level'])
@@ -151,29 +156,33 @@ class Persistant():
         collection_errorfile_handler = FileHandler(filename=self.config['collection_errorfile'], mode="a")
         collection_errorfile_handler.setFormatter(error_formatter)
         collection_errorfile_handler.setLevel(logging.WARNING)
-
+        """
+        """
         logger = logging.getLogger(self.config['id'])
         logger.handlers = []
         logger.addHandler(collection_file_handler)
         logger.addHandler(collection_errorfile_handler)
         logger.setLevel(self.config['log_level'])
         logger.propagate = False
-
+        """
+        """
         if self.config['debug']:
             self.config['log_level'] = 'DEBUG'
             console_handler = StreamHandler()
             console_handler.setFormatter(formatter)
             console_handler.setLevel(self.config['log_level'])
             logger.addHandler(console_handler)
+        """
+
+        #Alternative way to create and set up a logger:
+        hTags = HandlerTags('info', 'error', 'debug')
+        auth = Author(self.worker_type, self.config["port"])
+        logger = LoggerFactory.create_logger(self.workerType, hTags, auth, logfile_dir, self.config['verbose'], self.config['debug'])
+        #how to provide relevant tags to this?
 
         if self.config['quiet']:
             logger.disabled = True
-
-        #Alternative way to create and set up a logger:
-        #LoggerFactory.create_logger(...)
-        #how to provide relevant tags to this?
-
-        self.logger = logger
+        #self.logger = logger
 
     #database interface, the git interfaceable adds additional function to the super method.
     def initialize_database_connections(self):
