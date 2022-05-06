@@ -6,106 +6,58 @@ Instructions specifically for Windows - learn how to set up an Ubuntu VirtualBox
 
 Setting up VirtualBox
 ~~~~~~~~~~~~~~~~~~~~~~~
-- Type "Download VirtualBox for Windows" in the search bar.
-- Click on the websight by Oracle.
-
-.. image:: images/A1.png
-   :width: 600
+- Vist the `Virtualbox download page <https://www.virtualbox.org/wiki/Downloads>`__.
   
 - Download VirtualBox for "Windows hosts".
 
-.. image:: images/A2.png
-   :width: 600
+.. image:: images/VB1.png
+   :width: 541
   
-- Click on the downloaded VirtualBox and continue clicking NEXT with the default options.
+- Run the installer with the default options.
 
-.. image:: images/A3.png
+.. image:: images/VB2.png
    :width: 600
   
 - Accept the warning for network interfaces.
 
-.. image:: images/A5.png
+.. image:: images/VB3.png
    :width: 600
   
-- Give it all the permissions it wants.
+- Open Virtualbox, and then click on "Machine" and then on "New".
 
-.. image:: images/A4.png
-   :width: 600
+.. image:: images/VB4.png
+  :width: 317
   
-- Open the VirtualBox by clicking on the Windows desktop icon.
-- Click on "machine" and then on "new".
+- Name the machine whatever you want. For Type select "Linux" and for Version select "Ubuntu (64-bit)".
 
-.. image:: images/A6.png
-  :width: 600
-  
-- Name the machine as you wish. In type select "Linux" and in version select "Ubuntu (64-bits)".
+.. image:: images/VB5.png
+  :width: 412
 
-.. image:: images/A7.png
-  :width: 600
-  
-.. image:: images/A8.png
-  :width: 600
-
-- Allot it the memory size you want , then click on NEXT.
-
-.. image:: images/A9.png
-  :width: 600
-
-- Choose "Create a virtual hard disk now" and click on CREATE.
-
-.. image:: images/A10.png
-  :width: 600
-
-- In hard disk file type choose VDI(VirtualBox Disk Image) and click on NEXT.
-
-.. image:: images/A11.png
-  :width: 600
-
-- In storage on physical hard disk choose "Dynamically allocated" and click on NEXT.
-
-.. image:: images/A12.png
-  :width: 600
-
-- Continue with the default options by clicking on next. Your machine will be created.
-- Start the machine.
-
-.. image:: images/A13.png
-  :width: 600
-
-
-Ubuntu download 
-~~~~~~~~~~~~~~~~~
-- Type "Download Ubuntu" in the search bar.
-- Click on download (Prefer LTS version). Ubuntu will be downloaded.
-
-.. image:: images/A14.png
-  :width: 600
+- Allocate at least 4GB of memory, and create a virtual hard disk with at least 20GB of memory.
+- Continue with the default options. Your machine will be created.
 
 Installing Ubuntu in VirtualBox
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-- Open the machine which we have created earlier.
-- Now in the pop-up, click on the disk image where you have downloaded your Ubuntu and click on finish.
-- In the welcome window select Install Ubuntu and move forward with the default options.
+- Download the Desktop image of Ubuntu from the `Ubuntu download page <https://releases.ubuntu.com/20.04.4/>`__.
+- Select the Optical Drive under Storage and add the .iso file you just downloaded.
 
-.. image:: images/Af.png
+.. image:: images/VB6.png
+  :width: 813
+
+- Start the VM by clicking on the green arrow.
+- In the welcome window select Install Ubuntu.
+
+.. image:: images/VB7.png
   :width: 600
 
-- Select the keyboard layout you desire.
-- Select installation type as "Erase disk and install Ubuntu".
+- Continue the installation, and select the installation type: "Erase disk and install Ubuntu" when it asks.
+- Once you reach this screen, your Ubuntu will be ready to use in few minutes.
 
-.. image:: images/Ad.png
+.. image:: images/VB8.png
   :width: 600
 
-- Enter your details and set a password.
+- After the installation finishes, click "Restart Now" and your Ubuntu VM will be ready to use!
 
-.. image:: images/Ac.png
+.. image:: images/VB9.png
   :width: 600
-
-.. image:: images/Ab.png
-  :width: 600  
-
-- Your Ubuntu will be ready to use in few minutes.
-
-.. image:: images/Aa.png
-  :width: 600  
 

@@ -30,11 +30,9 @@ Run this command to reload bash_profile::
 
   source .bash_profile
 
-Check if it was updated::
+Check if the environment variable exists::
 
-  env
-
-``env`` should contain ``OBJC_DISABLE_INITIALIZE_FORK_SAFETY``.
+  env | grep OBJC_DISABLE_INITIALIZE_FORK_SAFETY
 
 macOS takes "helpful" measures to prevent Python subprocesses (which Augur uses) from forking cleanly, and setting this environment variable disables these safety measures to restore normal Python functionality.
 
@@ -52,6 +50,13 @@ Required:
 -  `GitHub Access Token <https://github.com/settings/tokens>`__ (``repo`` and all ``read`` scopes except ``enterprise``)
 -  `GitLab Access Token <https://gitlab.com/profile/personal_access_tokens>`__
 -  `Python 3.6 - 3.10 <https://www.python.org/downloads/>`__
+-  `Go 1.12 or later <https://golang.org/doc/install>`__
+
+Go can be installed using homebrew with the following command:
+
+.. code-block:: bash
+
+  $ brew install golang
 
 **Although Mac comes with a preinstalled version of Python, it is outdated and needs to be replaced with any version between Python 3.6 and 3.10, with 3.10 being the latest version supported. If your machine workers (which work with TensorFlow) do not work, then try downgrading your version of Python. If you wish to download python on your machine or view your current version of Python run the commmands below**
 
@@ -65,19 +70,10 @@ Our REST API & data collection workers are written in Python 3.6. We query the G
 
 Optional:
 
--  `Go 1.12 or later <https://golang.org/doc/install>`__
-
-.. note::
-  Go can be installed using homebrew with the following command
-
-.. code-block:: bash
-
-  $ brew install golang
-
 The ``value_worker`` uses a Go package called `scc <https://github.com/boyter/scc>`_ to run COCOMO calculations.
 Once you've installed Go, follow the appropriate steps for your system to install the ``scc`` package.
 
--  Install gcc OpenMP Support on mac: `brew install gcc` 
+-  Install gcc OpenMP Support on mac: ``brew install gcc`` 
 
 .. note::
   GCC provides support for OpenMP starting from its version 4.2.
@@ -189,4 +185,4 @@ To enable log parsing for errors, you need to install `Elasticsearch <https://ww
    If you use a package manager, it defaults to v7+, so we recommend downloading `binary <https://www.elastic.co/downloads/past-releases/logstash-6-8-10>`_ .
    This change is tested with Elasticsearch v7.8.0_2 and Logstash v6.8.10.
 
-Once everything is installed, you're ready to `configure your data collection workers <collecting-data.html>`_!
+Once everything is installed, you're ready to `configure your data collection workers <../collecting-data.html>`_!

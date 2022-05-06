@@ -6,6 +6,13 @@ In order to ensure this data model remains performant with large amounts of data
 We'll need to set up a PostgreSQL instance and create a database, after which Augur can take care of the rest.
 Make sure to save off the credentials you use when you create the database, you'll need them again to configure Augur.
 
+First, make sure you have the necessary packages to build Augur:
+
+.. code-block:: bash
+
+        $ sudo dnf groupinstall "Development Tools" "Development Libraries"
+        $ sudo dnf install gcc openssl-devel bzip2-devel libffi-devel zlib-devel
+
 PostgreSQL Installation
 ~~~~~~~~~~~~~~~~~~~~~~~~
 

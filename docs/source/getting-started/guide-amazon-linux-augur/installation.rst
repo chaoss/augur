@@ -81,12 +81,9 @@ Our REST API & data collection workers are written in Python 3.6. We query the G
 
 Optional:
 
--  `Go 1.12 or later <https://golang.org/doc/install>`__
+-  The ``value_worker`` uses a Go package called `scc <https://github.com/boyter/scc>`_ to run COCOMO calculations. Once you've installed Go, follow the appropriate steps for your system to install the ``scc`` package.
 
-The ``value_worker`` uses a Go package called `scc <https://github.com/boyter/scc>`_ to run COCOMO calculations.
-Once you've installed Go, follow the appropriate steps for your system to install the ``scc`` package.
-
--  Install gcc OpenMP Support: `sudo apt-get install libgomp1` -- Ubuntu 
+-  Install gcc OpenMP Support: ``sudo dnf install libgomp1`` 
 
 The ``message_insights_worker`` uses a system level package called OpenMP. You will need this installed at the system level for that worker to "work". 
 
@@ -192,4 +189,4 @@ To enable log parsing for errors, you need to install `Elasticsearch <https://ww
    If you use a package manager, it defaults to v7+, so we recommend downloading `binary <https://www.elastic.co/downloads/past-releases/logstash-6-8-10>`_ .
    This change is tested with Elasticserach v7.8.0_2 and Logstash v6.8.10.
 
-Once everything is installed, you're ready to `configure your data collection workers <collecting-data.html>`_!
+Once everything is installed, you're ready to `configure your data collection workers <../collecting-data.html>`_!

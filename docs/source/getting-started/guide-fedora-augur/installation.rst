@@ -22,6 +22,11 @@ Required:
 -  `GitHub Access Token <https://github.com/settings/tokens>`__ (``repo`` and all ``read`` scopes except ``enterprise``)
 -  `GitLab Access Token <https://gitlab.com/profile/personal_access_tokens>`__
 -  `Python 3.6 - 3.10 <https://www.python.org/downloads/>`__
+-  Go 1.12 or later which can be installed with the following command:
+
+.. code-block:: bash
+
+  $ sudo dnf install golang
 
 **Python 3.10 is the latest version supported. If your machine workers (which work with TensorFlow) do not work, then try downgrading your version of Python. [Older versions of Augur support Python 3.6]**
 
@@ -41,16 +46,10 @@ Our REST API & data collection workers are written in Python 3.6. We query the G
 
 Optional:
 
--  Go 1.12 or later which can be installed with the following command:
-
-.. code-block:: bash
-
-  $ sudo dnf install golang
-
 The ``value_worker`` uses a Go package called `scc <https://github.com/boyter/scc>`_ to run COCOMO calculations.
 Once you've installed Go, follow the appropriate steps for your system to install the ``scc`` package.
 
--  Install gcc OpenMP Support: `sudo apt-get install libgomp1` -- Ubuntu 
+-  Install gcc OpenMP Support: ``sudo apt-get install libgomp1`` 
 
 The ``message_insights_worker`` uses a system level package called OpenMP. You will need this installed at the system level for that worker to "work". 
 
@@ -71,7 +70,7 @@ Visualization API calls
 
 On Linux flavors: if you want to use the new Augur API Calls that generate downloadable graphics developed in the `https://github.com/chaoss/augur-community-reports` repository, you need to install the `firefox-geckodriver` at the system level. This dependency exists because the Bokeh libraries we use for these APIs require a web browser engine. 
 
-For Fedora You Can Use:
+For Fedora you can use:
 
 .. code-block:: bash
 
@@ -158,4 +157,4 @@ To enable log parsing for errors, you need to install `Elasticsearch <https://ww
    If you use a package manager, it defaults to v7+, so we recommend downloading `binary <https://www.elastic.co/downloads/past-releases/logstash-6-8-10>`_ .
    This change is tested with Elasticsearch v7.8.0_2 and Logstash v6.8.10.
 
-Once everything is installed, you're ready to `configure your data collection workers <collecting-data.html>`_!
+Once everything is installed, you're ready to `configure your data collection workers <../collecting-data.html>`_!

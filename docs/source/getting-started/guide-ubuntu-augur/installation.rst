@@ -143,4 +143,4 @@ To enable log parsing for errors, you need to install `Elasticsearch <https://ww
    If you use a package manager, it defaults to v7+, so we recommend downloading `binary <https://www.elastic.co/downloads/past-releases/logstash-6-8-10>`_ .
    This change is tested with Elasticsearch v7.8.0_2 and Logstash v6.8.10.
 
-Once everything is installed, you're ready to `configure your data collection workers <collecting-data.html>`_!
+Once everything is installed, you're ready to `configure your data collection workers <../collecting-data.html>`_!
