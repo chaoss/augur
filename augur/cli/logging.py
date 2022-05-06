@@ -29,7 +29,10 @@ def log_query(logs_dir, tags):
     f = open(logs_dir + "/augur.log")
     lines = f.readlines()
     for line in lines:
-        linetags = line.split('|')[1].split(' ')
+        linesep = line.split('|')
+        if len(linesep) == 0:
+            continue
+        linetags = linesep[1].split(' ')
         if tagset <= set(linetags):
             print(line)
 
