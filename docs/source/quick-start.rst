@@ -3,11 +3,9 @@ Quickstart
 
 Get going fast! Intended for folks familiar with setting up DevOps environments. These instructions were tested using Ubuntu 20.04 and Ubuntu 18.04. 
 
-If you need more instruction, head on over to `Getting Started <getting-started/toc.html>`_!
-
 PostgreSQL Installation
 ~~~~~~~~~~~~~~~~~~~~~~~~
-- Gain access to an Ubuntu 18.04 or later environment and install PostgreSQL. Ubuntu 20.04 is recommended because its long-term support (LTS) window is longer. 
+Gain access to an Ubuntu 18.04 or later environment and install PostgreSQL. Ubuntu 20.04 is recommended because its long-term support (LTS) window is longer. 
 
 .. code-block:: bash 
 
@@ -19,12 +17,11 @@ PostgreSQL Installation
 	sudo apt install build-essential
 
 
-- Create a PostgreSQL database for Augur to use
+Create a PostgreSQL database for Augur to use
 
 .. code-block:: bash
 
-    $ sudo su - 
-    $ su - postgres
+    $ sudo su - postgres
     $ psql 
 
 Then, once you've connected to your PostgreSQL instance\:
@@ -37,7 +34,7 @@ Then, once you've connected to your PostgreSQL instance\:
 
 Git Configuration
 ~~~~~~~~~~~~~~~~~~~~~~~~
-- Configure Git: These instructions assume the potential of large repositories that occasionally perform significant refactoring within a small number of commits. Our experience is that nearly all organizations have at least one project that meets these criteria. 
+Configure Git: These instructions assume the potential of large repositories that occasionally perform significant refactoring within a small number of commits. Our experience is that nearly all organizations have at least one project that meets these criteria. 
 
 .. code-block:: bash
 
@@ -46,11 +43,17 @@ Git Configuration
 	git config --global credential.helper cache
 	git config --global credential.helper 'cache --timeout=9999999999999'
 
-- For each platform, perform a command line login in order to cache Git credentials for the LINUX user who operates Augur. This step is required in order to prevent the Facade Commit Counting Diesel from stalling on a command line prompt when repositories move or disappear. 
+For each platform, perform a command line login in order to cache Git credentials for the LINUX user who operates Augur. This step is required in order to prevent the Facade Commit Counting Diesel from stalling on a command line prompt when repositories move or disappear. 
 
 Install Go
 ~~~~~~~~~~~~~~~~~~~~~~~~
-Two of Augur's workers use the Go programming language, which needs to be installed on your computer. Snap is the easiest way to install Go. If Snap does not work for you, see instructions here: https://www.digitalocean.com/community/tutorials/how-to-install-go-on-ubuntu-20-04
+Two of Augur's workers use the Go programming language, which needs to be installed on your computer.
+
+.. code-block:: bash
+
+        sudo apt install golang-go
+
+If this command fails, try installing Go through Snap. If Snap does not work for you, see instructions here: https://www.digitalocean.com/community/tutorials/how-to-install-go-on-ubuntu-20-04
 
 .. code-block:: bash
 
@@ -78,7 +81,7 @@ Python Virtual Environment Configuration
 	python -m pip install --upgrade pip
 	make install-dev {Follow prompts. You will need database credentials, a file location for cloned repositories, a GitHub Token, and a GitLab token.}
 
-- Seven sample repositories will load by default. You can delete them if you want to use your own repositories by deleting records from the `repo` table first, then deleting the records from the `repo_groups` table. 
+Seven sample repositories will load by default. You can delete them if you want to use your own repositories by deleting records from the `repo` table first, then deleting the records from the `repo_groups` table. 
 
 
 .. code-block:: bash
@@ -99,3 +102,4 @@ The commands for loading repos are:
 
 We recommend that you test your instance using 50 or fewer repositories before undertaking a more substantial data collection. When you do take on more collection, you can "collect data faster" by adding additional tokens to the `worker_oauth` table in the `augur_operations` schema and increasing the number of workers for the pull request and GitHub worker blocks in the `augur.config.json` file that generates at install.
 
+Take a look at `Deployment <deployment/toc.html>`_ if you'd like to setup a web server or `Collecting Data <getting-started/collecting-data.html>`_ if you'd like to configure your data collection workers.

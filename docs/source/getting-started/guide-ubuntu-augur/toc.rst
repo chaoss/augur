@@ -4,7 +4,8 @@ Ubuntu Installation
 
 .. note::
 
-   Hello world!
+   Database setup and installation documentation specifically tested using Ubuntu.
+   Visit the `quick start guide <../../quick-start.html>`_ if you have any trouble.
 
 .. toctree::
    :maxdepth: 1

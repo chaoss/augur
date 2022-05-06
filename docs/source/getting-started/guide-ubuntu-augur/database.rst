@@ -6,6 +6,16 @@ In order to ensure this data model remains performant with large amounts of data
 We'll need to set up a PostgreSQL instance and create a database, after which Augur can take care of the rest.
 Make sure to save off the credentials you use when you create the database, you'll need them again to configure Augur.
 
+First, make sure you have all the necessary packages for building Augur:
+
+.. code-block:: bash
+
+        sudo apt update
+        sudo apt upgrade
+        sudo apt install software-properties-common
+        sudo apt install python3-dev
+        sudo apt install build-essential
+
 PostgreSQL Installation
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -15,7 +25,19 @@ Before you can install our schema, you will need to make sure you have write acc
 
     If you want to collect data over the long term, we strongly advise against `using a Docker container for your database <https://vsupalov.com/database-in-docker/>`_.
 
-If you're a newcomer to to PostgreSQL, you can follow their excellent instructions `here <https://www.postgresql.org/docs/12/tutorial-install.html>`_ to set it up for your machine of choice. We recommend using ``Postgres.app`` if you're on macOS, but if you're running UNIX or are looking for an alternative to ``Postgres.app`` then pgAdmin is a great open source alternative.
+If you're a newcomer to to PostgreSQL, you can follow their excellent instructions `here <https://www.postgresql.org/docs/12/tutorial-install.html>`_ to set it up for your machine of choice, or use the following commands to install it.
+
+.. code-block:: bash
+
+        $ sudo apt install postgresql postgresql-contrib postgresql-client
+        
+There should be a command for starting your database server in the output of the above command (for example, ``pg_ctlcluster 12 main start``). Switch to the postgres user and run it.
+
+.. code-block:: bash
+
+        $ sudo su - postgres
+        $ pg_ctlcluster 12 main start
+        $ psql
 
 Creating a Database
 ~~~~~~~~~~~~~~~~~~~~~
