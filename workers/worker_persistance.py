@@ -180,7 +180,8 @@ class Persistant():
         # Alternative way to create and set up a logger:
         h_tags = HandlerTags('info', 'error', 'debug')
         auth = Author(self.worker_type, self.config["port"])
-        logger = LoggerFactory.create_logger(self.workerType, h_tags, auth, logfile_dir, self.config['verbose'], self.config['debug'])
+        logger = LoggerFactory.create_logger(self.config['id'], self.worker_type, h_tags, auth, logfile_dir,
+                                             self.config['verbose'], self.config['debug'])
         # how to provide relevant tags to this?
 
         if self.config['quiet']:
