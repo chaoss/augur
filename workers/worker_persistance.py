@@ -25,6 +25,9 @@ import pandas as pd
 from pathlib import Path
 from urllib.parse import urlparse, quote
 from sqlalchemy.ext.automap import automap_base
+
+from augur.LogHandlerFactory import Author
+from augur.LoggerFactory import HandlerTags, LoggerFactory
 from augur.config import AugurConfig
 from augur.logging import AugurLogConfigurer
 from sqlalchemy.sql.expression import bindparam
@@ -174,11 +177,11 @@ class Persistant():
             logger.addHandler(console_handler)
         """
 
-        #Alternative way to create and set up a logger:
-        hTags = HandlerTags('info', 'error', 'debug')
+        # Alternative way to create and set up a logger:
+        h_tags = HandlerTags('info', 'error', 'debug')
         auth = Author(self.worker_type, self.config["port"])
-        logger = LoggerFactory.create_logger(self.workerType, hTags, auth, logfile_dir, self.config['verbose'], self.config['debug'])
-        #how to provide relevant tags to this?
+        logger = LoggerFactory.create_logger(self.workerType, h_tags, auth, logfile_dir, self.config['verbose'], self.config['debug'])
+        # how to provide relevant tags to this?
 
         if self.config['quiet']:
             logger.disabled = True
