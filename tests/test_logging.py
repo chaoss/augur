@@ -1,91 +1,113 @@
-import click
+from pickle import NONE
+import pytest
 import os
-import json
-import pandas as pd
-import tempfile
-import logging
+from collections import namedtuple
+from augur.LogHandlerFactory import LogHandlerFactory 
+# import augur.LoggerFactory
+# import augur.LogHandlerFactory
+# from augur.LoggerFactory import LoggerFactory
+from augur.logging import AugurLogConfigurer
+# import augur.AugurLogger
 import logging.config
-import logging.handlers
-import LogHandlerFactory
-import atexit
-import shutil
-import coloredlogs
-from logging import FileHandler, StreamHandler, Formatter
-from multiprocessing import Process, Queue, Event, current_process
-from time import sleep
-from pathlib import Path
-from copy import deepcopy
-from augur.cli import pass_logs_dir
-from queue import Queue
-from workers.util import read_config
-from workers.worker_base import Worker
-from workers.worker_git_integration import WorkerGitInterfaceable
-from augur.config import AugurConfig, default_config
-from augur import ROOT_AUGUR_DIRECTORY
+
+
+
+Author = namedtuple("Author", "worker_type port")
+HandlerTags = namedtuple("HandlerTags", "info error debug")
 
 temp_dir = os.path.join(os.getcwd(), "util")
 config_path = os.path.join(temp_dir, "test.config.json")
 
 def test_handler_exists():
-	try:
-		test_handler = create_handler("test", 1, ("first", "last"))
-		test_handler != None
-	except:
-		print("Handler not created, value is NULL")
+    new = tuple(["first", "last"])
+    
+    test_handler = LogHandlerFactory("None",'/test_file.txt',Author)
+    if test_handler == None:
+        print("Handler not created, value is NULL")
+    else:
+        pass    
 
-def test_handler_args():	
-	tag = "test"
-	level = 1
-	author = ("first", "last")
- 
-	assert !tag.isEmpty()
-	assert level.is_integer()
-	assert type(author) is tuple
+def test_handler_args():    
+    test_handler = LogHandlerFactory("",'/test_file.txt',Author)
 
-	test_handler1 = create_handler(tag, level, author)
+    try:
+        test_handler.log_tags
+    except ValueError:
+        print("Tags not unitialized./n") 
+    
+    try:
+        test_handler.logfile_dir
+    except ValueError:
+        print("File not unitialized./n") 
 
-def test_LHF_exists():
-	Author = namedtuple("Author", "worker_type port")
-	
-	try:
-		LHF = LogHandlerFactory.__init__("tags", "dir",Author, False)
-		LHF != None
-	except:
-		print("LogHandlerFactory was not initialized")
+    try:
+        test_handler.author
+    except ValueError:
+        print("Author not unitialized./n") 
 
 def test_create_handler():
-	
-	try:
-		result = LogHandlerFactory.create_handler("tags",1)
-		result != None
-	except:
-		"Factory creation failed, result is NULL"
+    handler_test = LogHandlerFactory("None",temp_dir,Author)
+    result = handler_test.create_handler("tags",1)
+    try:
+        result != None
+    except:
+        "Factory creation failed, result is NULL"
 
 def test_create_debug():
-	try:
-		result = LogHandlerFactory._create_debug_handler	
-		result != None
-	except:
-		"Debug Handler failed, value is NULL"
+    result = LogHandlerFactory._create_debug_handler 
+    try:   
+        result != None
+    except ValueError:
+        "Debug Handler failed, value is NULL"
 
 def test_create_info():
+        result = LogHandlerFactory._create_info_handler
         try:
-                result = LogHandlerFactory._create_info_handler
                 result != None
-        except:
+        except ValueError:
                 "Info Handler failed, value is NULL"
 
 def test_create_error():
+        result = LogHandlerFactory._create_error_handler
         try:
-                result = LogHandlerFactory._create_error_handler
                 result != None
-        except:
+        except ValueError:
                 "Error Handler failed, value is NULL"
 
-##def test_log_query():
+# def test_LoggerFactory():
+#     factory = LoggerFactory.create_logger(HandlerTags, Author, temp_dir)
 
-##def test_log_format():
+#     try:
+#         factory != None
+#     except ValueError:
+#         "Factory failed to initialize"
 
-##def log_location():
+def test_init_ALC():
+    alc = AugurLogConfigurer()
+    try:
+        alc != None
+    except ValueError:
+        "Log configuration failed"
 
-##def test_workers_log():
+def test_disable_log():
+    alc = AugurLogConfigurer()
+    alc._disable_all_logging()
+
+    try:
+        for logger in ["augur", "augur.application", "augur.housekeeper", "augur.config", "augur.cli", "root"]:
+            lg = logging.getLogger(logger)
+            lg.disabled == False
+    except ValueError:
+        "Logging not properly disabled" 
+
+def test_config_cli_log():
+    alc = AugurLogConfigurer()
+    
+    test_config = alc.logfile_config
+    try:
+        test_config != NONE
+    except ValueError:
+        "Logfiles not properly configured"
+
+
+
