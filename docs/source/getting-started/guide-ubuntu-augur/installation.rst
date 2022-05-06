@@ -25,14 +25,22 @@ Required:
 -  `Python 3.6 - 3.8 <https://www.python.org/downloads/>`__
 -  `Go 1.12 or later <https://golang.org/doc/install>`__
 
+Go can be installed via the following command:
+
+.. code-block:: bash
+
+        sudo apt install golang-go
+
+If this command fails, try installing Go through Snap. If Snap does not work for you, follow the instructions `here <https://www.digitalocean.com/community/tutorials/how-to-install-go-on-ubuntu-20-04>`__.
+
 **Python 3.9 is not yet supported because TensorFlow, which we use in our machine learning workers, does not yet support Python 3.9.**
 
 Our REST API & data collection workers are written in Python 3.6. We query the GitHub & GitLab API to collect data about issues, pull requests, contributors, and other information about a repository, so GitLab and GitHub access tokens are **required** for data collection.
 
+Optional: 
+
 The ``value_worker`` uses a Go package called `scc <https://github.com/boyter/scc>`_ to run COCOMO calculations.
 Once you've installed Go, follow the appropriate steps for your system to install the ``scc`` package.
-
-Optional: 
 
 -  Install gcc OpenMP Support: `sudo apt-get install libgomp1`
 
