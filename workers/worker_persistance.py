@@ -40,7 +40,7 @@ class Persistant():
 
     def __init__(self, worker_type, data_tables=[],operations_tables=[]):
 
-        file = open("testLogging.txt", 'a')
+        file = open("testLogging2.txt", 'a')
         file.write("beginning worker initialization!\n")
         file.close()
 
@@ -138,21 +138,21 @@ class Persistant():
         #User custom for stderr, Gives more info than verbose_format_string
         error_formatter = Formatter(fmt=AugurLogConfigurer.error_format_string)
         """
-        file = open("testLogging.txt", 'a')
+        file = open("testLogging2.txt", 'a')
         file.write("ready to create directory!\n")
         file.close()
 
         worker_dir = AugurLogConfigurer.get_log_directories(self.augur_config, reset_logfiles=False) + "/workers/"
         Path(worker_dir).mkdir(exist_ok=True)
 
-        file = open("testLogging.txt", 'a')
+        file = open("testLogging2.txt", 'a')
         file.write(f"worker directory: {worker_dir}\n")
         file.close()
 
         logfile_dir = worker_dir + f"/{self.worker_type}/"
         Path(logfile_dir).mkdir(exist_ok=True)
 
-        file = open("testLogging.txt", 'a')
+        file = open("testLogging2.txt", 'a')
         file.write(f"logfile directory: {logfile_dir}\n")
         file.close()
 
