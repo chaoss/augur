@@ -9,6 +9,7 @@ We are editing the documentation, specifically adding instructions for several m
 - This folder: we've added some more documents.
 - We've finalized all our guides.
 - A build of the current form of our documentation can also be found in the zip file in this folder.
+- We moved some content out of `Quickstart` - someone added instructions for an Ubuntu VM into `Quickstart`, which bogged it down. We migrated it to `Getting Started` and cleaned it up a bit.
 
 ## Issues We Ran Into
 
