@@ -29,7 +29,8 @@ class LogHandlerFactory:
                 handler_format = AugurLogConfigurer.tagged_simple_format_string
 
         result.setLevel(log_level)
-        result.setFormatter(handler_format.format(handler_tags=(self.log_tags + handler_tags)))
+        result.setFormatter(logging.Formatter(fmt=handler_format.format(handler_tags=(self.log_tags + handler_tags)),
+                                              style='%'))
         return result
 
     @staticmethod
