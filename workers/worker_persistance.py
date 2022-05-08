@@ -134,11 +134,23 @@ class Persistant():
         #User custom for stderr, Gives more info than verbose_format_string
         error_formatter = Formatter(fmt=AugurLogConfigurer.error_format_string)
         """
+        file = open("testLogging.txt", 'a')
+        file.write("ready to create directory!\n")
+        file.close()
 
         worker_dir = AugurLogConfigurer.get_log_directories(self.augur_config, reset_logfiles=False) + "/workers/"
         Path(worker_dir).mkdir(exist_ok=True)
+
+        file = open("testLogging.txt", 'a')
+        file.write(f"worker directory: {worker_dir}\n")
+        file.close()
+
         logfile_dir = worker_dir + f"/{self.worker_type}/"
-        Path(logfile_dir).mkdir(exist_ok=True)        
+        Path(logfile_dir).mkdir(exist_ok=True)
+
+        file = open("testLogging.txt", 'a')
+        file.write(f"logfile directory: {logfile_dir}\n")
+        file.close()
 
         #Create more complex sublogs in the logfile directory determined by the AugurLogging class
         server_logfile = logfile_dir + '{}_{}_server.log'.format(self.worker_type, self.config["port"])
