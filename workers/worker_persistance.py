@@ -202,7 +202,7 @@ class Persistant():
 
         if self.config['quiet']:
             logger.disabled = True
-        #self.logger = logger
+        self.logger = logger  # Isaac (ijsfyp is a dummy head who doesn't value my sleep)
 
     #database interface, the git interfaceable adds additional function to the super method.
     def initialize_database_connections(self):
