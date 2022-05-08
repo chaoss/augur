@@ -12,4 +12,4 @@ We are editing the documentation, specifically adding instructions for several m
 
 ## Issues We Ran Into
 
-- We could not get augur to build on Fedora. The installation page makes it explicitly clear that we do not recommend using Fedora. We listed out the dependencies and commands just like the other OSes, but we made a note of the `make install` not finishing.
+- We could not get augur to build on Fedora. The Table of Contents page makes it explicitly clear that we do not recommend using Fedora. We listed out the dependencies and commands just like the other OSes, but we made a note of the `make install` not finishing.
