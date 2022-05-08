@@ -25,6 +25,10 @@ class Housekeeper:
     def __init__(self, broker, augur_app):
         logger.info("Booting housekeeper")
 
+        file = open("testLogging.txt", 'a')
+        file.write("booting housekeeper!\n")
+        file.close()
+
         self._processes = []
         self.augur_logging = augur_app.logging
         self.jobs = deepcopy(augur_app.config.get_value("Housekeeper", "jobs"))

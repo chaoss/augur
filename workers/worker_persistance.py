@@ -40,6 +40,10 @@ class Persistant():
 
     def __init__(self, worker_type, data_tables=[],operations_tables=[]):
 
+        file = open("testLogging.txt", 'a')
+        file.write("beginning worker initialization!\n")
+        file.close()
+
         self.db_schema = None
         self.helper_schema = None
         self.worker_type = worker_type
