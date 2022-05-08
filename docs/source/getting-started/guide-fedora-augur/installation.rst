@@ -12,6 +12,16 @@ This section of the documentation details how to install Augur's Python library 
 
   3. Multiple, or conflicting versions of PostgreSQL, sometimes due to the absence of a functional `psql` function at the command line.
 
+Prior to installing
+~~~~~~~~~~~~~~~~~~~~
+
+Make sure you have the packages necessary to install the dependencies, first:
+
+.. code-block:: bash
+
+   $ sudo dnf groupinstall "Development Tools" "Development Libraries"
+   $ sudo dnf install gcc openssl-devel bzip2-devel libffi-devel zlib-devel
+
 Dependencies
 ~~~~~~~~~~~~~
 
@@ -21,28 +31,32 @@ Required:
 
 -  `GitHub Access Token <https://github.com/settings/tokens>`__ (``repo`` and all ``read`` scopes except ``enterprise``)
 -  `GitLab Access Token <https://gitlab.com/profile/personal_access_tokens>`__
--  `Python 3.6 - 3.10 <https://www.python.org/downloads/>`__
--  Go 1.12 or later which can be installed with the following command:
+-  `Python 3.6 - 3.8 <https://www.python.org/downloads/>`__
+-  Go 1.12 or later 
+  
+**Python 3.8 is the latest version supported for Fedora. If your machine workers (which work with TensorFlow) do not work, then try downgrading your version of Python. [Older versions of Augur support Python 3.6]**
+
+Since Fedora has no built-in method of installing Python, Python can be installed with the following commands:
 
 .. code-block:: bash
 
-  $ sudo dnf install golang
-
-**Python 3.10 is the latest version supported. If your machine workers (which work with TensorFlow) do not work, then try downgrading your version of Python. [Older versions of Augur support Python 3.6]**
-
-For quick installation Python can be installed with the following commands:
-
-.. code-block:: bash
-
-  $ cd /opt
+  # Note the directory where you install Python - you will need it later. We suggest the /opt directory.
   $ sudo wget https://www.python.org/ftp/python/3.8.12/Python-3.8.12.tgz
   $ sudo tar xzf Python-3.8.12.tgz
   $ cd Python-3.8.12
-  $ sudo ./configure --enable-optimizations
-  $ sudo make altinstall
-  $ python3 -V
+  $ ./configure --enable-optimizations --prefix=<insert the path to your current directory>
+  $ make altinstall
 
 Our REST API & data collection workers are written in Python 3.6. We query the GitHub & GitLab API to collect data about issues, pull requests, contributors, and other information about a repository, so GitLab and GitHub access tokens are **required** for data collection.
+
+Installing Go
+--------------
+
+To install Go, simply do the following:
+
+.. code-block:: bash
+
+   $ sudo dnf install golang
 
 Optional:
 
@@ -90,9 +104,6 @@ Installing Augur
 Now you're ready to build! The steps below outline how to create a virtual environment (**required**) and start the installation process,
 after which you'll move on to the next section to configure the workers.
 
-.. note::
-  Lines that start with a ``$`` denote a command to be run in an interactive terminal.
-
 .. warning::
   Do **NOT** install or run Augur using ``sudo``. It is not required, and using it will inevitably cause some permissions trouble. Don't say we didn't warn you!
 
@@ -109,9 +120,13 @@ your installation of Python 3: on most systems, this is ``python3``, but yours m
 .. code-block:: bash
 
   # to create the environment
-  $ python3 -m venv ~/augur_env
+  $ /opt/Python-3.8.12/bin/python3.8 -m venv ~/augur_env
   # to activate the environment 
   $ source ~/augur_env/bin/activate
+
+.. warning::
+
+   Any errors that will occur will make themselves obvious in the next step. We were unable to complete a full install in the making of this documentation. Good luck.
 
 3. Run the install script. This script will:
 

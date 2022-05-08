@@ -6,13 +6,6 @@ In order to ensure this data model remains performant with large amounts of data
 We'll need to set up a PostgreSQL instance and create a database, after which Augur can take care of the rest.
 Make sure to save off the credentials you use when you create the database, you'll need them again to configure Augur.
 
-First, make sure you have the necessary packages to build Augur:
-
-.. code-block:: bash
-
-        $ sudo dnf groupinstall "Development Tools" "Development Libraries"
-        $ sudo dnf install gcc openssl-devel bzip2-devel libffi-devel zlib-devel
-
 PostgreSQL Installation
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -22,13 +15,18 @@ Before you can install our schema, you will need to make sure you have write acc
 
     If you want to collect data over the long term, we strongly advise against `using a Docker container for your database <https://vsupalov.com/database-in-docker/>`_.
 
-If you're a newcomer to to PostgreSQL, the following commands can be used to install PostgreSQL on Fedora.
+If you're a newcomer to to PostgreSQL, we recommend taking a look at the `official guide <https://www.postgresql.org/docs/12/tutorial-install.html>`. Otherwise, the list of necessary commands can be found below.
 
 .. code-block:: bash 
 
     $ sudo dnf install postgresql postgresql-contrib postgresql-server
     $ sudo postgresql-setup --initdb --unit postgresql
     $ sudo systemctl start postgresql
+
+You can then sign into psql (and the postgres user) like this:
+
+.. code-block:: bash
+
     $ sudo su - postgres
     $ psql
 

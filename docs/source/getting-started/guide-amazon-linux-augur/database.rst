@@ -36,6 +36,13 @@ Don't forget to activate and start the service!
 	$ sudo service postgresql initdb
 	$ sudo service postgresql start
 
+You should then be able to access the user `postgres` and the `psql` service.
+
+.. code-block:: bash
+
+        $ sudo su - postgres
+        $ psql
+
 Creating a Database
 ~~~~~~~~~~~~~~~~~~~~~
 

@@ -117,9 +117,6 @@ Installing Augur
 Now you're ready to build! The steps below outline how to create a virtual environment (**required**) and start the installation process,
 after which you'll move on to the next section to configure the workers.
 
-.. note::
-  Lines that start with a ``$`` denote a command to be run in an interactive terminal.
-
 .. warning::
   Do **NOT** install or run Augur using ``sudo``. It is not required, and using it will inevitably cause some permissions trouble. Don't say we didn't warn you!
 

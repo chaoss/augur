@@ -8,7 +8,7 @@ This section of the documentation details how to install Augur's Python library 
 
   1. The absence of a `GCC` or `Fortran` compiler, required by numpy and NLTK Python libraries. Look up how to install these compilers for your local operating system. Many times they simply need to be updated to a more current version.
 
-  2. Conflicting versions of Python: The fix is platform specific. On Mac OS X, more often than not multiple versions of Python have been installed by the OS, brew, Anaconda, or a combination of both. The result is some python commands are drawn from different paths because of how they are linked in `/usr/local/bin`
+  2. Conflicting versions of Python: The fix is platform specific. Some Python commands may be drawn from different commands because of how they are linked in `usr/local/bin`. A clean install of Python from the terminal should be able to fix any issues.
 
   3. Multiple, or conflicting versions of PostgreSQL, sometimes due to the absence of a functional `psql` function at the command line.
 
@@ -22,9 +22,19 @@ Required:
 
 -  `GitHub Access Token <https://github.com/settings/tokens>`__ (``repo`` and all ``read`` scopes except ``enterprise``)
 -  `GitLab Access Token <https://gitlab.com/profile/personal_access_tokens>`__
--  `Python 3.6 - 3.8 <https://www.python.org/downloads/>`__
+-  `Python 3.6 - 3.10 <https://www.python.org/downloads/>`__
 -  `Go 1.12 or later <https://golang.org/doc/install>`__
 
+**Python 3.10 is the latest version supported. If your machine workers (which work with TensorFlow) do not work, then try downgrading your version of Python. [Older version of Augur support Python 3.8 at the latest.]**
+
+Our REST API & data collection workers are written in Python 3.6. We query the GitHub & GitLab API to collect data about issues, pull requests, contributors, and other information about a repository, so GitLab and GitHub access tokens are **required** for data collection.
+
+.. note::
+
+   If you are simply trying Augur out, no GitLab token is necessary.
+
+Installing Go
+--------------
 Go can be installed via the following command:
 
 .. code-block:: bash
@@ -32,10 +42,6 @@ Go can be installed via the following command:
         sudo apt install golang-go
 
 If this command fails, try installing Go through Snap. If Snap does not work for you, follow the instructions `here <https://www.digitalocean.com/community/tutorials/how-to-install-go-on-ubuntu-20-04>`__.
-
-**Python 3.9 is not yet supported because TensorFlow, which we use in our machine learning workers, does not yet support Python 3.9.**
-
-Our REST API & data collection workers are written in Python 3.6. We query the GitHub & GitLab API to collect data about issues, pull requests, contributors, and other information about a repository, so GitLab and GitHub access tokens are **required** for data collection.
 
 Optional: 
 
@@ -58,12 +64,12 @@ If you're interested in using our visualizations, you can optionally install the
 
 We use Vue.js as our frontend web framework, and ``npm`` as our package manager.
 
+**At this point in time, we do not recommend installing Frontend dependencies.**
+
 Visualization API calls
 ---------------------------
 
 If you want to use the new Augur API Calls that generate downloadable graphics developed in the `https://github.com/chaoss/augur-community-reports` repository, you need to install the `firefox-geckodriver`. This dependency exists because the Bokeh libraries we use for these APIs require a web browser engine. 
-
-For Ubuntu you can use: 
 
 .. code-block:: bash
 
@@ -74,17 +80,11 @@ For Ubuntu you can use:
 .. note::
   If you have BOTH firefox-geckodriver AND chromedriver installed the visualization API will not work. 
 
-  We have fully tested with firefox-gecko driver on Linux platforms, and geckodriver on OSX. If you have ONLY chromedriver installed, it will probably work. Open an issue if you have a functioning chromedriver implementation.  
-
-
 Installing Augur
 ~~~~~~~~~~~~~~~~~
 
 Now you're ready to build! The steps below outline how to create a virtual environment (**required**) and start the installation process,
 after which you'll move on to the next section to configure the workers.
-
-.. note::
-  Lines that start with a ``$`` denote a command to be run in an interactive terminal.
 
 .. warning::
   Do **NOT** install or run Augur using ``sudo``. It is not required, and using it will inevitably cause some permissions trouble. Don't say we didn't warn you!

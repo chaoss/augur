@@ -17,10 +17,10 @@ Prior to Installing
 ~~~~~~~~~~~~~~~~~~~
 
 
-Installing GO
+Installing Go
 -------------
 
-Augur requires a language called GO to fully install. This `simple method of installing`_ (shown directly below) works best, but a workaround is also listed in the event that it does not.
+Augur requires a language called Go to fully install. This `simple method of installing`_ (shown directly below) works best, but a workaround is also listed in the event that it does not.
 
 .. code-block:: bash
   
@@ -31,7 +31,7 @@ Augur requires a language called GO to fully install. This `simple method of ins
 The Workaround
 ---------------
 
-There's a guide here_ for CentOS that can be adapted for the current version of GO and Amazon Linux without much difficulty. We recommend getting the latest version of GO from their website_ and following steps 2 and 3 from the guide (also listed below).
+There's a guide here_ for CentOS that can be adapted for the current version of Go and Amazon Linux without much difficulty. We recommend getting the latest version of Go from their website_ and following steps 2 and 3 from the guide (also listed below).
 
 .. _here: https://www.digitalocean.com/community/tutorials/how-to-install-go-1-7-on-centos-7
 .. _website: https://go.dev/dl/
@@ -47,7 +47,7 @@ Then set up your PATH so those folders are included. Append onto */etc/profile.d
 	
 	export PATH=$PATH:/usr/local/go/bin
 
-Set up environmental variables so GO can be used - onto your *~/.bash_profile* , append these:
+Set up environmental variables so Go can be used - onto your *~/.bash_profile* , append these:
 
 .. code-block::
 	

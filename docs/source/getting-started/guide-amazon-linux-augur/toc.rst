@@ -4,7 +4,7 @@ Amazon Linux Installation
 
 .. note::
 
-   This has been tested on Amazon Linux 2. It should work for Amazon Linux as well.
+   Database setup and installation specifically tested using Amazon Linux 2. It should work for Amazon Linux as well.
 
 .. toctree::
    :maxdepth: 1

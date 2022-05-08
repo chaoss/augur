@@ -10,11 +10,11 @@ First, make sure you have all the necessary packages for building Augur:
 
 .. code-block:: bash
 
-        sudo apt update
-        sudo apt upgrade
-        sudo apt install software-properties-common
-        sudo apt install python3-dev
-        sudo apt install build-essential
+        $ sudo apt update
+        $ sudo apt upgrade
+        $ sudo apt install software-properties-common
+        $ sudo apt install python3-dev
+        $ sudo apt install build-essential
 
 PostgreSQL Installation
 ~~~~~~~~~~~~~~~~~~~~~~~~
