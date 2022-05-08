@@ -1,5 +1,7 @@
 import logging
 from collections import namedtuple
+
+from augur.Formatter310 import Formatter
 from augur.logging import AugurLogConfigurer
 
 Author = namedtuple("Author", "worker_type port")
@@ -29,8 +31,9 @@ class LogHandlerFactory:
                 handler_format = AugurLogConfigurer.tagged_simple_format_string
 
         result.setLevel(log_level)
-        result.setFormatter(logging.Formatter(fmt=handler_format.format(handler_tags=(self.log_tags + handler_tags)),
-                                              style='%'))
+        result.setFormatter(Formatter(fmt=handler_format.format(handler_tags=(self.log_tags + handler_tags)),
+                                      style='%',
+                                      defaults={"ExtraTags": None}))
         return result
 
     @staticmethod
