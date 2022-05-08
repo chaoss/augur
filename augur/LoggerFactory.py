@@ -1,6 +1,6 @@
 import logging
 from collections import namedtuple
-import AugurLogger
+from augur.AugurLogger import AugurLogger
 from augur.LogHandlerFactory import LogHandlerFactory, Author
 
 HandlerTags = namedtuple("HandlerTags", "info error debug")
@@ -11,7 +11,7 @@ class LoggerFactory:
     def create_logger(name: str, general_tags: str, handler_tags: HandlerTags, author: Author,
                       logfile_dir, verbose: bool = False, debug: bool = False) -> AugurLogger:
         # create new AugurLogger
-        logger = AugurLogger.AugurLogger(name)
+        logger = AugurLogger(name)
         # instantiate a log handler Factory
         log_handler_factory = LogHandlerFactory(general_tags, logfile_dir, author, verbose)
         # attach handlers
