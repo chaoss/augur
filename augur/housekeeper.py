@@ -63,12 +63,30 @@ class Housekeeper:
         """
         Starts update processes
         """
+
+        file = open("testLogging.txt", 'a')
+        file.write("beginning schedule updates!\n")
+        file.close()
+
         self.prep_jobs()
+
+        file = open("testLogging.txt", 'a')
+        file.write("job prep complete!\n")
+        file.close()
+
         self.augur_logging.initialize_housekeeper_logging_listener()
+
+        file = open("testLogging.txt", 'a')
+        file.write(f"jobs in list: {len(self.jobs)}\n")
+        file.close()
+
         logger.info("Scheduling update processes")
         for job in self.jobs:
             process = Process(target=self.updater_process, name=job["model"], args=(self.broker_host, self.broker_port, self.broker, job, (self.augur_logging.housekeeper_job_config, self.augur_logging.get_config())))
             self._processes.append(process)
+            file = open("testLogging.txt", 'a')
+            file.write(f"created {process.name}, preparing to start!\n")
+            file.close()
             process.start()
 
 
