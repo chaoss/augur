@@ -58,7 +58,7 @@ Ubuntu download
 Installing Ubuntu in VirtualBox
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 - Open the machine which we have created earlier.
-- Now in the pop-up, click on the disk image where you have downloaded your ubuntu and click on finish.
+- Now in the pop-up, click on the disk image where you have downloaded your Ubuntu and click on finish.
 - In the welcome window select Install Ubuntu and move forward with the default options.
 .. image:: development-guide/images/Af.png
   :width: 600  
@@ -71,7 +71,7 @@ Installing Ubuntu in VirtualBox
   :width: 600  
 .. image:: development-guide/images/Ab.png
   :width: 600  
-- Your Ubuntu will be ready to use in few minutes.
+- Your Ubuntu will be ready to use in a few minutes.
 .. image:: development-guide/images/Aa.png
   :width: 600  
 
@@ -117,7 +117,7 @@ Git Configuration
 	git config --global credential.helper cache
 	git config --global credential.helper 'cache --timeout=9999999999999'
 
-- For each platform, perform a command line login in order to cache Git credentials for the LINUX user who operates Augur. This step is required in order to prevent the Facade Commit Counting Diesel from stalling on a command line prompt when repositories move or disappear.
+- For each platform, perform a command-line login to cache Git credentials for the LINUX user who operates Augur. This step is required  to prevent the Facade Commit Counting Diesel from stalling on a command line prompt when repositories move or disappear.
 
 Install Go
 ~~~~~~~~~~~~~~~~~~~~~~~~
