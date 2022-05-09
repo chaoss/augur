@@ -2,7 +2,8 @@
 import click
 import os
 from os import walk
-
+import time
+from datetime import datetime
 from augur.cli import pass_logs_dir
 
 @click.group("logging", short_help="View Augur's log files")
@@ -19,22 +20,93 @@ def directory(logs_dir):
 
 
 @cli.command("log_query")
-@click.argument("tags", default=None)
+@click.argument("tags")
+@click.argument("worker")
+@click.option("--limit", 'limit', default=10)
+@click.option("--output", 'output', default=None)
 @pass_logs_dir
-def log_query(logs_dir, tags):
+def log_query(logs_dir, tags, worker, limit, output):
     """
     Query augur logs with tags comma separated
     """
+    start_time = time.time()
+    if not os.path.exists(logs_dir + "/workers"):
+        print("Worker logs have not been generated yet.")
+        return
+
+    if tags == '':
+        print("Tags are required!")
+        return
+        
     tagset = set(tags.split(','))
-    f = open(logs_dir + "/augur.log")
-    lines = f.readlines()
-    for line in lines:
-        linesep = line.split('|')
-        if len(linesep) == 0:
+
+    if worker == '':
+        print("Worker is required!")
+        return
+
+    if not os.path.exists(logs_dir + "/workers/" + worker):
+        print("Logs for this worker do not exist. (Check spelling?)")
+        return
+        
+    file_list = os.listdir(logs_dir + "/workers/" + worker)
+    log_file = ""
+    for file in file_list:
+        if file.endswith("collection.log"):
+            log_file = file
+            break
+    log_file_path = logs_dir + "/workers/" + worker + "/" + log_file
+
+    worker_file = open(log_file_path)
+    worker_file_lines = worker_file.readlines()
+    worker_file_lines = [value for value in worker_file_lines if value != '\n']
+    worker_file.close()
+    output_logs = []
+    current_output_log = ""
+    log_limit = limit
+    line_index = len(worker_file_lines) - 1
+    saved_line_index = 0
+    # for each line, back to front
+    while line_index >= 0:
+        if '|' in worker_file_lines[line_index]:
+            linesep = worker_file_lines[line_index].split('|')
+            linetags = linesep[1].split(' ')
+            if not tagset <= set(linetags):
+                line_index -= 1
+                continue
+            saved_line_index = line_index
+            current_output_log = worker_file_lines[line_index]
+            while line_index + 1 != len(worker_file_lines) and '|' not in worker_file_lines[line_index + 1]:
+                line_index += 1
+                current_output_log += worker_file_lines[line_index]
+            output_logs.insert(0, current_output_log)
+            line_index = saved_line_index - 1
+            log_limit -= 1
+            if log_limit == 0:
+                break
+        else:
+            line_index -= 1
             continue
-        linetags = linesep[1].split(' ')
-        if tagset <= set(linetags):
-            print(line)
+    run_time = round(1000 * (time.time() - start_time), 0)
+    log_count = len(output_logs)
+    if log_count == 0:
+        print("Query returned no results.")
+    else:
+        print("--- QUERY RETURNED " + str(log_count) + " RESULTS (in %sms) ---\n" % run_time)
+        for value in output_logs:
+            print(value)
+        print("--- END OF RESULTS ---")
+        if output != None:
+            try:
+                output_file = open(output, "w")
+                output_file.write("Query ran at " + str(datetime.now()) + ". Query parameters: tags=" + tags + ", worker=" + worker + '\n')
+                output_file.write("--- QUERY RETURNED " + str(log_count) + " RESULTS (in %sms) ---\n" % run_time)
+                for value in output_logs:
+                    output_file.write(value + '\n')
+                output_file.write("--- END OF RESULTS ---")
+                output_file.close()
+            except Exception as e:
+                print("Output file entered is not valid or no permission to write to this file.")
+
 
 @cli.command("errors")
 @click.argument("worker", default="all")
