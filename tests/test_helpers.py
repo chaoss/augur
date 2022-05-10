@@ -1,6 +1,5 @@
 import pytest
 import os
-import scipy as sp
 import json
 import pandas as pd
 import tempfile
@@ -59,3 +58,7 @@ def test_discover_config_file_env_no_exception():
         pass
     config_object = AugurConfig(temp_dir, test_config)
     assert config_object.discover_config_file() == os.path.join(temp_dir, "augur.config.json")
+
+
+
+

@@ -40,10 +40,6 @@ class Persistant():
 
     def __init__(self, worker_type, data_tables=[],operations_tables=[]):
 
-        # file = open("testLogging2.txt", 'a')
-        # file.write("beginning worker initialization!\n")
-        # file.close()
-
         self.db_schema = None
         self.helper_schema = None
         self.worker_type = worker_type
@@ -125,32 +121,10 @@ class Persistant():
         if self.config['debug']:
             self.config['log_level'] = 'DEBUG'
 
-        if self.config['verbose']:
-            format_string = AugurLogConfigurer.verbose_format_string
-        else:
-            format_string = AugurLogConfigurer.simple_format_string
-
-        #Use stock python formatter for stdout
-        formatter = Formatter(fmt=format_string)
-        #User custom for stderr, Gives more info than verbose_format_string
-        error_formatter = Formatter(fmt=AugurLogConfigurer.error_format_string)
-        # file = open("testLogging2.txt", 'a')
-        # file.write("ready to create directory!\n")
-        # file.close()
-
         worker_dir = AugurLogConfigurer.get_log_directories(self.augur_config, reset_logfiles=False) + "/workers/"
         Path(worker_dir).mkdir(exist_ok=True)
-
-        # file = open("testLogging2.txt", 'a')
-        # file.write(f"worker directory: {worker_dir}\n")
-        # file.close()
-
         logfile_dir = worker_dir + f"/{self.worker_type}/"
         Path(logfile_dir).mkdir(exist_ok=True)
-
-        # file = open("testLogging2.txt", 'a')
-        # file.write(f"logfile directory: {logfile_dir}\n")
-        # file.close()
 
         #Create more complex sublogs in the logfile directory determined by the AugurLogging class
         server_logfile = logfile_dir + '{}_{}_server.log'.format(self.worker_type, self.config["port"])
@@ -163,38 +137,18 @@ class Persistant():
             'collection_errorfile': collection_errorfile
         })
 
-        collection_file_handler = FileHandler(filename=self.config['collection_logfile'], mode="a")
-        collection_file_handler.setFormatter(formatter)
-        collection_file_handler.setLevel(self.config['log_level'])
-
-        collection_errorfile_handler = FileHandler(filename=self.config['collection_errorfile'], mode="a")
-        collection_errorfile_handler.setFormatter(error_formatter)
-        collection_errorfile_handler.setLevel(logging.WARNING)
-        # logger = logging.getLogger(self.config['id'])
-        # logger.handlers = []
-        # logger.addHandler(collection_file_handler)
-        # logger.addHandler(collection_errorfile_handler)
-        # logger.setLevel(self.config['log_level'])
-        # logger.propagate = False
-        if self.config['debug']:
-            self.config['log_level'] = 'DEBUG'
-            console_handler = StreamHandler()
-            console_handler.setFormatter(formatter)
-            console_handler.setLevel(self.config['log_level'])
-            # logger.addHandler(console_handler)
-
         # Alternative way to create and set up a logger:
         h_tags = HandlerTags('info', 'error', 'debug')
-        auth = Author(self.worker_type, self.config["port"])
-        logger = LoggerFactory.create_logger(self.config['id'], self.worker_type, h_tags, auth, logfile_dir,
+        author = Author(self.worker_type, self.config["port"])
+        logger = LoggerFactory.create_logger(self.config['id'], self.worker_type, h_tags, author, logfile_dir,
                                              self.config['verbose'], self.config['debug'])
         # how to provide relevant tags to this?
 
         if self.config['quiet']:
             logger.disabled = True
-        self.logger = logger  # Isaac (ijsfyp) is a dummy head who doesn't value my sleep
+        self.logger = logger
 
-    # database interface, the git interfaceable adds additional function to the super method.
+    #database interface, the git interfaceable adds additional function to the super method.
     def initialize_database_connections(self):
         DB_STR = 'postgresql://{}:{}@{}:{}/{}'.format(
             self.config['user_database'], self.config['password_database'], self.config['host_database'], self.config['port_database'], self.config['name_database']
@@ -1336,14 +1290,14 @@ class Persistant():
 
     """
     Prints the traceback when an exception occurs
-
+    
     Params
         exception_message: String - Explain the location that the exception occurred
         exception: String - Exception object that python returns during an Exception
         debug_log: Boolean - Determines whether the message is printed to the debug log or info log
-
+        
     Notes
-        To print the location of the exception to the info log and the traceback to the debug log,
+        To print the location of the exception to the info log and the traceback to the debug log, 
         add a self.logger.info call then call self.print_traceback("", e) to print the traceback to only the debug log
     """
     def print_traceback(self, exception_message, exception, debug_log=True):

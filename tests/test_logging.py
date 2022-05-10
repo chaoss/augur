@@ -10,7 +10,7 @@ from augur.logging import AugurLogConfigurer
 # import augur.AugurLogger
 import logging.config
 
-
+# todo get these to actually run and be useful
 
 Author = namedtuple("Author", "worker_type port")
 HandlerTags = namedtuple("HandlerTags", "info error debug")

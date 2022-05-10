@@ -307,11 +307,6 @@ class ContributorInterfaceable(WorkerGitInterfaceable):
         if self.config['debug']:
             self.config['log_level'] = 'DEBUG'
 
-        if self.config['verbose']:
-            format_string = AugurLogConfigurer.verbose_format_string
-        else:
-            format_string = AugurLogConfigurer.simple_format_string
-
         format_string = AugurLogConfigurer.verbose_format_string
 
         # log_port = self.facade_com

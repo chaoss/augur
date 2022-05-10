@@ -44,17 +44,17 @@ def log_query(logs_dir, tags, worker, limit, output):
         print("Worker is required!")
         return
 
-    if not os.path.exists(logs_dir + "/workers/" + worker):
+    if not os.path.exists(f"{logs_dir}/workers/{worker}"):
         print("Logs for this worker do not exist. (Check spelling?)")
         return
         
-    file_list = os.listdir(logs_dir + "/workers/" + worker)
+    file_list = os.listdir(f"{logs_dir}/workers/{worker}")
     log_file = ""
     for file in file_list:
         if file.endswith("collection.log"):
             log_file = file
             break
-    log_file_path = logs_dir + "/workers/" + worker + "/" + log_file
+    log_file_path = f"{logs_dir}/workers/{worker}/{log_file}"
 
     worker_file = open(log_file_path)
     worker_file_lines = worker_file.readlines()
