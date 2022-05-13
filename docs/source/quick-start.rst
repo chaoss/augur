@@ -25,7 +25,9 @@ PostgreSQL Installation
     $ su - postgres
     $ psql
 
-Then, once you've connected to your PostgreSQL instance\:
+Note: Make sure your server is running before running the "psql" command.
+
+Then, once you've connected to your PostgreSQL instance
 
 .. code-block:: postgresql
 
