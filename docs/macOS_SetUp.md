@@ -10,7 +10,7 @@
 
 #### Issue Resolved
 
-Users faced this issues that in the installation page, it says:
+Issues faced by new users in the installation page, it says:
 
 - If you’re running Augur on macOS, we strongly suggest adding the following line to your shell’s initialization script:
 export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES 
