@@ -5,12 +5,16 @@ Get going fast! Intended for folks familiar with setting up DevOps environments.
 
 :ref:`Complete installation instructions with more complete explanations are located in our "Getting Started" section.<Getting Started>`
 
-Setting up VirtualBox
+installing VirtualBox
 ~~~~~~~~~~~~~~~~~~~~~~~
-- Type "Download VirtualBox for Windows" in the search bar.
-- Click on the websight by Oracle.
+Windows
+---------
+- Type "Download VirtualBox" in the search bar.
+- Click on the website by Oracle.
 .. image:: development-guide/images/A1.png
   :width: 600  
+- Alternatively you can can go to the VirtualBox downloads page by visiting https://www.virtualbox.org/wiki/Downloads
+
 - Download VirtualBox for "Windows hosts".
 .. image:: development-guide/images/A2.png
   :width: 600  
@@ -23,11 +27,54 @@ Setting up VirtualBox
 - Allow all permissions
 .. image:: development-guide/images/A4.png
   :width: 600  
-- Open the VirtualBox by clicking on the Windows desktop icon.
+
+Macbook
+----------
+- Type "Download Virtualbox" in the search bar of your browser
+- Click on the website by Oracle.
+.. image:: development-guide/images/A1.png
+  :width: 600  
+- Alternatively you can can go to the VirtualBox downloads page by visiting https://www.virtualbox.org/wiki/Downloads
+- Download VirtualBox for "OS X hosts".
+.. image:: development-guide/images/macbook1.png
+  :width: 600 
+- Open the downloaded file.
+- Double click on the VirtualBox.pkg icon.
+.. image:: development-guide/images/macbook2.png
+  :width: 600 
+- If you see the dialog popup, click on Allow.
+.. image:: development-guide/images/macbook3.png
+  :width: 600 
+- Click on continue.
+.. image:: development-guide/images/macbook4.png
+  :width: 600 
+- You are asked about installation location. You can change the installation location, but it is recommended to use the default.
+- Click on Install.
+.. image:: development-guide/images/macbook5.png
+  :width: 600 
+- Either provide finger print, or enter the password manually.
+.. image:: development-guide/images/macbook6.png
+  :width: 600 
+- Installation will start, wait for a few seconds till the process is complete.
+.. image:: development-guide/images/macbook7.png
+  :width: 600 
+- Installation successful message will be displayed on the window.
+- Click on Close.
+.. image:: development-guide/images/macbook8.png
+  :width: 600 
+- You will be asked to delete or keep the downloaded package. You can delete the package now. Click on Move to Trash.
+.. image:: development-guide/images/macbook9.png
+  :width: 600 
+
+setting up VirtualBox 
+~~~~~~~~~~~~~~~~~~~~~~~
+- Open the VirtualBox by clicking on the Windows desktop icon for Windows, or by clicking the VirtualBox icon in launchpad for Macbook.
 - Click "Machine" and then "New".
 .. image:: development-guide/images/A6.png
   :width: 600  
-- Name the Machine. In type select "Linux" and in version select "Ubuntu (64-bits)".
+- Name the Machine. 
+- In type select "Linux".
+- In version select "Ubuntu (64-bits)".
 .. image:: development-guide/images/A7.png
   :width: 600  
 .. image:: development-guide/images/A8.png
@@ -67,7 +114,7 @@ Installing Ubuntu in VirtualBox
 - Select Installation type "Erase disk and install Ubuntu".
 .. image:: development-guide/images/Ad.png
   :width: 600  
-- Enter your details and set a password.
+- Enter your details and set a password. Remember the password as this will be the password of the root user.
 .. image:: development-guide/images/Ac.png
   :width: 600  
 .. image:: development-guide/images/Ab.png
@@ -79,7 +126,7 @@ Installing Ubuntu in VirtualBox
 
 PostgreSQL Installation
 ~~~~~~~~~~~~~~~~~~~~~~~~
-- Gain access to an Ubuntu 18.04 or later environment and install PostgreSQL. Ubuntu 20.04 is recommended because its long-term support (LTS) window is longer.
+- Once Ubuntu is ready, next step is to install PostgreSQL. Run following commands in Ubuntu terminal.
 
 .. code-block:: bash
 
@@ -91,16 +138,16 @@ PostgreSQL Installation
 	sudo apt install build-essential
 
 
-- Create a PostgreSQL database for Augur to use
+- To connect to your PostgreSQL instance, run following commands.
 
 .. code-block:: bash
 
-	$ sudo service postgresql start
-    $ sudo su -
-    $ su - postgres
-    $ psql
+	sudo service postgresql start
+    sudo su -
+    su - postgres
+    psql
 
-Then, once you've connected to your PostgreSQL instance:
+Then, once you've connected to your PostgreSQL instance, create a PostgreSQL database for Augur to use.
 
 .. code-block:: postgresql
 
@@ -108,8 +155,15 @@ Then, once you've connected to your PostgreSQL instance:
     postgres=# CREATE USER augur WITH ENCRYPTED PASSWORD 'password';
     postgres=# GRANT ALL PRIVILEGES ON DATABASE augur TO augur;
 
+Remember database name, user name and password. They will be required while building augur.
+
 Git Configuration
 ~~~~~~~~~~~~~~~~~~~~~~~~
+- In case git is not installed, run the given command.
+.. code-block:: bash
+
+	sudo apt install git
+
 - Configure Git: These instructions assume the potential of large repositories that occasionally perform significant refactoring within a small number of commits. Our experience is that nearly all organizations have at least one project that meets these criteria.
 
 .. code-block:: bash
@@ -149,9 +203,6 @@ Python Virtual Environment Configuration
 
 .. code-block:: bash
 
-	# Ensure you are logged in as your user on Github and change the "<YOUR_GITHUB_USERNAME>" to your Github username (e.g. "sean")
-	git clone https://github.com/<YOUR_GITHUB_USERNAME>/augur.git
-	cd augur/
 	sudo apt install make
 	sudo apt-get install python3-venv
 	python3 -m venv $HOME/.virtualenvs/augur_env
@@ -160,10 +211,25 @@ Python Virtual Environment Configuration
 	sudo apt install python3-pip
 	sudo apt install pythonpy
 	python -m pip install --upgrade pip
-	make install-dev {Follow prompts. You will need database credentials, a file location for cloned repositories, a GitHub Token, and a GitLab token.}
+
+Setting up Augur
+~~~~~~~~~~~~~~~~~~
+
+- Clone and install Augur as a regular user. Run the following commands.
+- Keep the database name, user name and password from PostgreSQL Installation section ready.
+- You also require GitHub token and GitLab toke. Login to Github and get personal access token. Copy and keep this token for use. Same for GitLab. Login and keep personal access token ready.
+
+.. code-block:: bash
+
+	# Ensure you are logged in as your user on Github and change the "<YOUR_GITHUB_USERNAME>" to your Github username (e.g. "sean")
+	git clone https://github.com/<YOUR_GITHUB_USERNAME>/augur.git
+	cd augur/
+	source $HOME/.virtualenvs/augur_env/bin/activate
+	make install-dev
+
+- Follow prompts. You will need database credentials, a file location for cloned repositories, a GitHub Token, and a GitLab token.
 
 - Seven sample repositories will load by default. You can delete them if you want to use your repositories by deleting records from the `repo` table first, then deleting the records from the `repo_groups` table.
-
 
 .. code-block:: bash
 
