@@ -1,4 +1,4 @@
-Quickstart
+Set up Augur
 ===============
 
 This section of the documentation is an entry-level walkthrough of the Augur project. By the end, you'll hopefully have a fully functioning local installation of Augur ready to collect data.
@@ -27,96 +27,96 @@ We shall be using Oracle VirtualBox for running Ubuntu. The installation steps a
 - Type "Download VirtualBox" in the search bar.  
 - Click on the website by Oracle.  
 
-.. image:: development-guide/images/A1.png
+.. image:: images/A1.png
   :width: 600  
 - Alternatively you can can go to the VirtualBox downloads page by visiting https://www.virtualbox.org/wiki/Downloads
 
 - Download VirtualBox for "Windows hosts".
-.. image:: development-guide/images/A2.png
+.. image:: images/A2.png
   :width: 600  
 - Click on the downloaded VirtualBox and continue clicking Next with the default options.
-.. image:: development-guide/images/A3.png
+.. image:: images/A3.png
   :width: 600  
 - Accept the warning for Network Interfaces.
-.. image:: development-guide/images/A5.png
+.. image:: images/A5.png
   :width: 600  
 - Allow all permissions
-.. image:: development-guide/images/A4.png
+.. image:: images/A4.png
   :width: 600  
 
 **Macbook**  
 
 - Type "Download Virtualbox" in the search bar of your browser
 - Click on the website by Oracle.
-.. image:: development-guide/images/A1.png
+.. image:: images/A1.png
   :width: 600  
 - Alternatively you can can go to the VirtualBox downloads page by visiting https://www.virtualbox.org/wiki/Downloads
 - Download VirtualBox for "OS X hosts".
-.. image:: development-guide/images/macbook1.png
+.. image:: images/macbook1.png
   :width: 600 
 - Open the downloaded file.
 - Double click on the VirtualBox.pkg icon.
-.. image:: development-guide/images/macbook2.png
+.. image:: images/macbook2.png
   :width: 600 
 - If you see the dialog popup, click on Allow.
-.. image:: development-guide/images/macbook3.png
+.. image:: images/macbook3.png
   :width: 600 
 - Click on continue.
-.. image:: development-guide/images/macbook4.png
+.. image:: images/macbook4.png
   :width: 600 
 - You are asked about installation location. You can change the installation location, but it is recommended to use the default.
 - Click on Install.
-.. image:: development-guide/images/macbook5.png
+.. image:: images/macbook5.png
   :width: 600 
 - Either provide finger print, or enter the password manually.
-.. image:: development-guide/images/macbook6.png
+.. image:: images/macbook6.png
   :width: 600 
 - Installation will start, wait for a few seconds till the process is complete.
-.. image:: development-guide/images/macbook7.png
+.. image:: images/macbook7.png
   :width: 600 
 - Installation successful message will be displayed on the window.
 - Click on Close.
-.. image:: development-guide/images/macbook8.png
+.. image:: images/macbook8.png
   :width: 600 
 - You will be asked to delete or keep the downloaded package. You can delete the package now. Click on Move to Trash.
-.. image:: development-guide/images/macbook9.png
+.. image:: images/macbook9.png
   :width: 600 
 
 setting up VirtualBox 
 ----------------------
 - Open the VirtualBox by clicking on the Windows desktop icon for Windows, or by clicking the VirtualBox icon in launchpad for Macbook.
 - Click "Machine" and then "New".
-.. image:: development-guide/images/A6.png
+.. image:: images/A6.png
   :width: 600  
 - Name the Machine. 
 - In type select "Linux".
 - In version select "Ubuntu (64-bits)".
-.. image:: development-guide/images/A7.png
+.. image:: images/A7.png
   :width: 600  
-.. image:: development-guide/images/A8.png
+.. image:: images/A8.png
   :width: 600  
 - Choose memory size, then click Next.
-.. image:: development-guide/images/A9.png
+.. image:: images/A9.png
   :width: 600  
 - Choose "Create a virtual hard disk now" and click Create.
-.. image:: development-guide/images/A10.png
+.. image:: images/A10.png
   :width: 600  
 - Hard disk file type choose VDI (VirtualBox Disk Image) and click Next.
-.. image:: development-guide/images/A11.png
+.. image:: images/A11.png
   :width: 600  
 - Storage on physical hard disk choose "Dynamically allocated" and click Next.
-.. image:: development-guide/images/A12.png
+.. image:: images/A12.png
   :width: 600  
 - Continue with the default options by clicking Next. Your machine will be created.
 - Start the Machine.
-.. image:: development-guide/images/A13.png
+.. image:: images/A13.png
   :width: 600  
 
 Ubuntu download 
 -----------------
 - Type "Download Ubuntu" in the search bar.
 - Click download (Prefer LTS version). Ubuntu will be downloaded.
-.. image:: development-guide/images/A14.png
+.. image:: images/A14.png
   :width: 600  
 
 Installing Ubuntu in VirtualBox
@@ -124,19 +124,19 @@ Installing Ubuntu in VirtualBox
 - Open the machine which we have created earlier.
 - Now in the pop-up, click on the disk image where you have downloaded your Ubuntu and click on finish.
 - In the welcome window select Install Ubuntu and move forward with the default options.
-.. image:: development-guide/images/Af.png
+.. image:: images/Af.png
   :width: 600  
 - Select Keyboard layout.
 - Select Installation type "Erase disk and install Ubuntu".
-.. image:: development-guide/images/Ad.png
+.. image:: images/Ad.png
   :width: 600  
 - Enter your details and set a password. Remember the password as this will be the password of the root user.
-.. image:: development-guide/images/Ac.png
+.. image:: images/Ac.png
   :width: 600  
-.. image:: development-guide/images/Ab.png
+.. image:: images/Ab.png
   :width: 600  
 - Your Ubuntu will be ready to use in a few minutes.
-.. image:: development-guide/images/Aa.png
+.. image:: images/Aa.png
   :width: 600  
 
 2. Setting up database

@@ -6,9 +6,8 @@ Welcome Augur's documentation is split into Seven parts,if you’re new to the p
 .. toctree::
    :maxdepth: 2
 
-   quick-start
-   deployment/toc
    getting-started/toc
+   deployment/toc
    development-guide/toc
    rest-api/api
    docker/toc
