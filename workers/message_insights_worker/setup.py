@@ -32,7 +32,7 @@ setup(
         'click==8.0.3',
         'scipy==1.7.3',
         'sklearn==0.0',
-        'numpy==1.21.0',
+        'numpy==1.22.0',
         'nltk==3.6.6',
         'pandas==1.3.5',
         'emoji==1.2.0',
