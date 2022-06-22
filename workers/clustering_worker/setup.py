@@ -28,7 +28,7 @@ setup(
         'requests==2.28.0',
         'psycopg2-binary==2.9.3',
         'sklearn==0.0',
-        'numpy==1.21.0',
+        'numpy==1.22.0',
         'nltk==3.6.6',
         'seaborn==0.11.1',
         'pandas==1.3.5',
