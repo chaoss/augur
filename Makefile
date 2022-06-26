@@ -115,7 +115,7 @@ docs:
 	@ bash -c 'cd docs/ && rm -rf build/ && make html;'
 
 docs-view: docs
-	@ bash -c 'xdg-open docs/build/html/index.html'
+	@ bash -c 'open docs/build/html/index.html'
 
 
 #
