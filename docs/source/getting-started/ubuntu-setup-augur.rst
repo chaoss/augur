@@ -1,5 +1,5 @@
-Set up Augur
-===============
+Ubuntu: Set up Augur
+=====================
 
 This section of the documentation is an entry-level walkthrough of the Augur project. By the end, you'll hopefully have a fully functioning local installation of Augur ready to collect data.
 
@@ -141,35 +141,58 @@ Installing Ubuntu in VirtualBox
 
 2. Setting up database
 ~~~~~~~~~~~~~~~~~~~~~~~~
+
 One of the reasons that Augur is so powerful is because of its `unified data model <../schema/data-model.html>`_.
-To ensure this data model remains performant with large amounts of data, we use PostgreSQL as our database engine. 
+To ensure this data model remains performant with large amounts of data, we use PostgreSQL as our database engine.
+You will need to have **write access** to a PostgreSQL 10 or later database.
 We'll need to set up a PostgreSQL instance and create a database, after which Augur can take care of the rest.
+
+If you're looking for the fastest possible way to get Augur started, we recommend use our `database container <../docker/docker.html>`_. If you're looking to collect data long-term, we recommend following the rest of this tutorial and setting up a persistent PostgreSQL installation.
+
+.. warning::
+
+    If you want to collect data over the long term, we strongly advise against `using a Docker container for your database <https://vsupalov.com/database-in-docker/>`_.
 
 PostgreSQL Installation
 ------------------------
+.. note::
+
+	As we are using Ubuntu for this documentation, we shall be using ``apt`` package manager for most of our installations. Depending on your operating system, you may need to use different package manager, e.g., ``rpm`` for fedora, ``brew`` for MacOs, etc.
 
 Run following commands in Ubuntu terminal to install PostgreSQL.
 
 .. code-block:: bash
 
-	sudo apt update
-	sudo apt upgrade
-	sudo apt install software-properties-common
-	sudo apt install python3-dev
 	sudo apt install postgresql postgresql-contrib postgresql-client
-	sudo apt install build-essential
 
-
+PostgreSQL instance connection
+-------------------------------
 Next step is to connect to your PostgreSQL instance. Run following commands.
 
 .. code-block:: bash
 
-	sudo service postgresql start
+	  sudo service postgresql start
     sudo su -
     su - postgres
     psql
 
-Create a PostgreSQL database for Augur to use.
+Creating Database
+------------------
+After you set up your PostgreSQL instance, you'll need to create a database and user with the correct permissions. You can do this with the SQL commands below, but be sure to change the password!
+
+.. code-block:: postgresql 
+    
+    CREATE DATABASE augur;
+    CREATE USER augur WITH ENCRYPTED PASSWORD 'password';
+    GRANT ALL PRIVILEGES ON DATABASE augur TO augur;
+
+For example, since we are using ``psql`` to connect to an instance on your machine ``localhost`` under the default user ``postgres`` on the default PostgreSQL port ``5432``, you might run something like this to connect to the server:
+
+.. code-block:: bash
+
+    $ psql -h localhost -U postgres -p 5432
+
+Then, once you've connected to your PostgreSQL instance\:
 
 .. code-block:: postgresql
 
@@ -184,7 +207,8 @@ Make sure to save the database name, user name and password. They will be requir
 
 Git Configuration
 ------------------
-- In case git is not installed, run the given command.
+In case git is not installed, run the given command.
+
 .. code-block:: bash
 
 	sudo apt install git
@@ -202,7 +226,7 @@ Git Configuration
 
 Install Go
 ------------
-Two of Augur's workers use the Go programming language, which needs to be installed on your computer. Snap is the easiest way to install Go. If Snap does not work for you, see instructions here: https://www.digitalocean.com/community/tutorials/how-to-install-go-on-ubuntu-20-04
+The ``value_worker`` uses a Go package called `scc <https://github.com/boyter/scc>`_ to run COCOMO calculations, therefore ``Go`` needs to be installed on your computer. Snap is the easiest way to install Go. If Snap does not work for you, see instructions here: https://www.digitalocean.com/community/tutorials/how-to-install-go-on-ubuntu-20-04
 
 .. code-block:: bash
 
@@ -220,15 +244,23 @@ Incase you encounter any problem following the above commands, try doing these f
 	snap version
 
 If the last command returns successfully, you can try installing Go again using either of the two options above.
+
+The ``message_insights_worker`` uses a system-level package called OpenMP. You will need this installed at the system level for that worker to work. Run the following command.
+
+.. code-block:: bash
+
+	sudo apt-get install libgomp1
 	
 Python Virtual Environment Configuration
 -------------------------------------------
 - Set up a Python virtual environment (Python 3.8 and above are now required. Python 3.9 and python 3.10 work as well, though we have tested Python 3.9 on more platforms.)
-- Clone and install Augur as a regular user.
 
 .. code-block:: bash
 
+	sudo apt install build-essential
 	sudo apt install make
+	sudo apt install software-properties-common
+	sudo apt install python3-dev
 	sudo apt-get install python3-venv
 	python3 -m venv $HOME/.virtualenvs/augur_env
 	source $HOME/.virtualenvs/augur_env/bin/activate
@@ -256,42 +288,57 @@ If you're interested in using our visualizations, you can optionally install the
 
 We use Vue.js as our frontend web framework and ``npm`` as our package manager.
 
+Visualization API calls (Optional)
+------------------------------------
+If you want to use the new Augur API Calls that generate downloadable graphics developed in the `https://github.com/chaoss/augur-community-reports` repository, you need to install the `firefox-geckodriver` (on Ubuntu or Red Hat Fedora). This dependency exists because the Bokeh libraries we use for these APIs require a web browser engine.
+
+Run the code: 
+
+.. code-block:: bash
+
+    sudo apt install firefox-geckodriver
+
+.. note::
+  If you have BOTH Firefox-geckodriver AND ChromeDriver installed the visualization API will not work. 
+  
+  We have fully tested with Firefox-gecko driver on Linux platforms, and geckodriver on OSX. If you have ONLY ChromeDriver installed, it will probably work. Open an issue if you have a functioning ChromeDriver implementation.  
+
 4. Installing Augur
 ~~~~~~~~~~~~~~~~~~~~~
 
 Setting up Augur
 -----------------
-
 - Clone and install Augur as a regular user. Run the following commands.
 - Keep the database name, user name and password from PostgreSQL Installation section ready.
 
-.. code-block:: bash
+.. code-block:: bash  
 
-	# Ensure you are logged in as your user on Github and change the "<YOUR_GITHUB_USERNAME>" to your Github username (e.g. "sean")
+	# Ensure you are logged in as your user on Github and change the "<YOUR_GITHUB_USERNAME>" to your Github username (e.g. "sean") 
 	git clone https://github.com/<YOUR_GITHUB_USERNAME>/augur.git
 	cd augur/
 	source $HOME/.virtualenvs/augur_env/bin/activate
-	make install-dev
+	make install
+  # If you want to develop with Augur, use this command instead
+  make install-dev
 
 - Follow prompts. You will need database credentials, a file location for cloned repositories, a GitHub Token, and a GitLab token.
 
+If you think something went wrong, check the log files in ``logs/``. If you want to try again, you can use ``make clean`` to delete any build files before running ``make install`` again.
+
+The above script performs following actions
+
+- Install Augur’s Python library and application server
+- Install Augur's data collection workers
+- Prompt you for configuration settings, including your database credentials
+- Generate a configuration file using your provided settings
+- Install Augur's schema in the configured database
+- Optionally, install Augur’s frontend and its dependencies
+- Generate and output an Augur API key
+
+.. note::
+
+  The install script will also generate an Augur API key for your database at the very end. This key will be automatically inserted into your database and printed to your terminal. It requires to use the repo & repo group creation endpoints, so **make sure you save it off somewhere!** There is only one key per database.
+
 - Seven sample repositories will load by default. You can delete them if you want to use your repositories by deleting records from the `repo` table first, then deleting the records from the `repo_groups` table.
 
-.. code-block:: bash
-
-	augur --help
-	augur db --help
-	augur backend --help
-
-Loading Repositories
-----------------------
-The commands for loading repos are:
-
-.. code-block:: bash
-
-	augur db add-github-org
-	augur db add-repo-groups
-	augur db add-repos
-
-We recommend that you test your instance using 50 or fewer repositories before undertaking a more substantial data collection. When you do take on more collection, you can "collect data faster" by adding additional tokens to the `worker_oauth` table in the `augur_operations` schema and increasing the number of workers for the pull request and GitHub worker blocks in the `augur.config.json` file that generates at install.
-
+We have successfully set up augur on our system and we can move to the section dedicated to how to use it.
