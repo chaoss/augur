@@ -20,7 +20,7 @@ export default defineConfig({
         proxy: {
             "/api": "http://backend:5000/"
         }
-    }
+    },
     plugins: [
         vue({
             template: {
