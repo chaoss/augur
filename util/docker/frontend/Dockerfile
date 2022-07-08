@@ -1,5 +1,5 @@
 #SPDX-License-Identifier: MIT
-FROM node:16 as build-stage
+FROM node:17 as build-stage
 
 LABEL maintainer="outdoors@acm.org"
 LABEL version="0.27.4"
