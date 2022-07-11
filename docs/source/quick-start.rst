@@ -3,13 +3,16 @@ Quickstart
 
 Get going fast! Intended for folks familiar with setting up DevOps environments. These instructions were tested using Ubuntu 20.04. Ubuntu 18x is no longer supported because the versions of Python3 available on it are not current. 
 
-:ref:`Complete installation instructions with more complete explanations are located in our "Getting Started" section.<Getting Started>`
+The instructions below are for a faster installation of Augur inorder to get to use or know the software quicker.
+
+:ref:`For a more detailed installation process, go to the "Getting Started" section. <Getting Started>`
+
 
 Setting up VirtualBox
 ~~~~~~~~~~~~~~~~~~~~~~~
 - Go to the official box website to download using this `link <https://www.virtualbox.org/>`_.
 - Download VirtualBox for "Windows hosts".
-.. image:: development-guide/images/A2.png
+.. image:: development-guide/images/A2png
   :width: 600  
 - Click on the downloaded VirtualBox and continue clicking Next with the default options.
 .. image:: development-guide/images/A3.png
