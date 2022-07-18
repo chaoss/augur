@@ -1,0 +1,3 @@
+[console_scripts]
+augur = cli._multicommand:run
+
