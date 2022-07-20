@@ -7,7 +7,7 @@ Get going fast! Intended for folks familiar with setting up DevOps environments.
 
 Setting up VirtualBox
 ~~~~~~~~~~~~~~~~~~~~~~~
-- Go to the official box website to download using this link `https://www.virtualbox.org/`
+- Go to the official box website to download using this `link <https://www.virtualbox.org/>`_.
 - Download VirtualBox for "Windows hosts".
 .. image:: development-guide/images/A2.png
   :width: 600  
@@ -92,7 +92,7 @@ PostgreSQL Installation
 
 .. code-block:: bash
 
-	$ sudo service postgresql start
+    $ sudo service postgresql start
     $ sudo su -
     $ su - postgres
     $ psql

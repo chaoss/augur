@@ -27,8 +27,6 @@ import Default from '@/layouts/Default.vue';
 import AugurAPI from '@/AugurAPI';
 import AugurStats from '@/AugurStats';
 
-
-
 export default function Augur() {
   // AugurApp.store = store
   // Object.defineProperty(AugurApp, 'store', store);

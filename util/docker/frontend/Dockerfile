@@ -13,3 +13,4 @@ COPY frontend/package.json .
 RUN yarn install --ignore-optional
 COPY frontend/ .
 CMD yarn dev
+
