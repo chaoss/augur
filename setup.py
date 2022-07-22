@@ -58,6 +58,7 @@ setup(
         "fsspec >= 0.6.0",
         "toolz >= 0.8.2",
         "partd >= 0.3.10",
+        "tornado < 6.2",
         "distributed >= 2021.03.0",
         "nltk==3.6.6",
         "h5py~=3.6.0",
