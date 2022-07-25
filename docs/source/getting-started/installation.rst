@@ -20,7 +20,7 @@ Backend
 Required:
 
 -  `GitHub Access Token <https://github.com/settings/tokens>`__ (``repo`` and all ``read`` scopes except ``enterprise``)
--  `GitLab Access Token <https://gitlab.com/profile/personal_access_tokens>`__
+-  `GitLab Access Token <https://gitlab.com/-/profile/personal_access_tokens>`__
 -  `Python 3.6 - 3.8 <https://www.python.org/downloads/>`__
 
 **Python 3.9 is not yet supported because TensorFlow, which we use in our machine learning workers, does not yet support Python 3.9.**
