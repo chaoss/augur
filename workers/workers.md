@@ -18,5 +18,5 @@ Other Data Collection Workers
  - deps worker
  - gitlab issues worker
  - gitlab merge request worker
- - value worker (requires facade to have run first)
+ - value worker (requires facade to have run first) 
  

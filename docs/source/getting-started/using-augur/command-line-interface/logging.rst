@@ -5,7 +5,7 @@ Logging Commands
 ``augur logging``
 ==================
 
-The collection of the ``augur logging`` commands is for interacting with the database.
+The collection of the ``augur logging`` commands is for interacting with logs.
 
 ``directory``
 --------------
@@ -13,7 +13,7 @@ Prints the location of the directory to which Augur is configured to write its l
 
 Example usage::
 
-  # to stop the server and workers
+  # to print path to logs directory
   $ augur logging directory
 
   # successful output looks like:
@@ -26,7 +26,7 @@ Prints the last ``n`` lines of each ``.log`` and ``.err`` file in the logs direc
 
 Example usage::
 
-  # to stop the server and workers
+  # to print last ``n`` lines of ``.log`` and ``.err``
   $ augur logging tail
 
   # successful output looks like:
