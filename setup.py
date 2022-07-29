@@ -68,7 +68,7 @@ setup(
         "slack==0.0.2",
         "boto3==1.17.57",
         "toml",
-        "mistune==0.8.4",
+        "mistune==2.0.3",
         "pyYaml", 
         "urllib3==1.26.9"
     ],
