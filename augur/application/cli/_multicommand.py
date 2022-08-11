@@ -8,7 +8,7 @@ import sys
 import click
 import importlib
 import traceback
-# import augur.application
+import augur.application
 
 CONTEXT_SETTINGS = dict(auto_envvar_prefix='AUGUR')
 
