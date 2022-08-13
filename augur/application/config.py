@@ -6,7 +6,7 @@ from augur.application.db.models import Config
 default_config = {
             "Augur": {
                 "developer": 0,
-                "version": 2
+                "version": 1
             },
             "Keys": {
                 "github": "<gh_api_key>",
@@ -47,6 +47,10 @@ default_config = {
             },
             "Celery": {
                 "concurrency": 12
+            },
+            "Redis": {
+                "cache_group": 0, 
+                "connection_string": "redis://localhost:6379/"
             }
         }
 

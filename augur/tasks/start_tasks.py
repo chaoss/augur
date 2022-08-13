@@ -9,7 +9,7 @@ from celery.result import allow_join_result
 from celery import signature
 from celery import group, chain, chord, signature
 
-from augur import queue_name
+
 from augur.tasks.github import *
 from augur.tasks.init.celery_app import celery_app as celery
 from augur.application.logs import AugurLogger
@@ -24,7 +24,7 @@ def deserialize_task_set(dict_obj):
         for task in dict_obj['kwargs']['tasks']:
             task_list.append(signature(dict(task)))
         
-        return group(task_list)
+        return group(task_list) if dict_obj['task'] == 'celery.group' else chain(task_list)
     else:
         #assume its a signature
         return signature(dict(dict_obj))
@@ -188,6 +188,10 @@ def start_task(repo_git: str):
     secondary_task_list.append(collect_issue_and_pr_comments.si(repo_git))
     
     secondary_task_group = group(secondary_task_list)
+
+    routine = AugurTaskRoutine()
+    routine['start'] = chain(start_tasks_group,secondary_task_group)
+    routine.start_data_collection()
 
 
 def get_owner_repo(git_url):

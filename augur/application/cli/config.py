@@ -22,7 +22,7 @@ from augur.application.cli import test_connection, test_db_connection
 
 ROOT_AUGUR_DIRECTORY = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 
-logger = AugurLogger("cli").get_logger()
+logger = logging.getLogger(__name__)
 
 ENVVAR_PREFIX = "AUGUR_"
 
@@ -34,9 +34,10 @@ def cli():
 @click.option('--github_api_key', help="GitHub API key for data collection from the GitHub API", envvar=ENVVAR_PREFIX + 'GITHUB_API_KEY')
 @click.option('--facade_repo_directory', help="Directory on the database server where Facade should clone repos", envvar=ENVVAR_PREFIX + 'FACADE_REPO_DIRECTORY')
 @click.option('--gitlab_api_key', help="GitLab API key for data collection from the GitLab API", envvar=ENVVAR_PREFIX + 'GITLAB_API_KEY')
+@click.option('--redis-conn-string', help="String to connect to redis cache", envvar=ENVVAR_PREFIX + 'REDIS_CONN_STRING')
 @test_connection
 @test_db_connection
-def init_config(github_api_key, facade_repo_directory, gitlab_api_key):
+def init_config(github_api_key, facade_repo_directory, gitlab_api_key, redis_conn_string):
 
     if not github_api_key:
         github_api_key = os.getenv(ENVVAR_PREFIX + 'GITHUB_API_KEY')
@@ -70,6 +71,20 @@ def init_config(github_api_key, facade_repo_directory, gitlab_api_key):
         config = session.config
 
         default_config = config.default_config
+
+        if redis_conn_string:
+
+            try:
+                redis_string_array = redis_conn_string.split("/")
+                cache_number = int(redis_string_array[-1])
+                digits = len(str(cache_number))
+
+                redis_conn_string = redis_conn_string[:-digits]
+            
+            except ValueError:
+                pass
+
+            default_config["Redis"]["connection_string"] = redis_conn_string
 
         default_config["Keys"] = keys
 
@@ -133,27 +148,28 @@ def add_section(section_name, file):
 @click.option('--section', required=True)
 @click.option('--setting', required=True)
 @click.option('--value', required=True)
-@click.option('--data-type', required=True)
+@click.option('--type', required=True)
 @test_connection
 @test_db_connection
-def config_set(section, setting, value, data_type):
+def config_set(section, setting, value, type):
 
     with DatabaseSession(logger) as session:
         config = session.config
 
-        if data_type not in config.accepted_types:
+        if type not in config.accepted_types:
             print(f"Error invalid type for config. Please use one of these types: {config.accepted_types}")
             return
 
         
-        setting = {
+        setting_dict = {
             "section_name": section,
             "setting_name": setting, 
             "value": value,
-            "type": data_type
+            "type": type
         }
 
-        config.add_or_update_settings([setting])
+        config.add_or_update_settings([setting_dict])
+        print(f"{setting} in {section} section set to {value}")
 
 @cli.command('get')
 @click.option('--section', required=True)
