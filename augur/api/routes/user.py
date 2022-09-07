@@ -43,6 +43,7 @@ def create_routes(server):
         if username is None or password is None:
             # https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400
             return jsonify({"status": "Missing argument"}), 400
+
         user = session.query(User).filter(User.login_name == username).first()
         checkPassword = check_password_hash(user.login_hashword, password)
         if user is None:

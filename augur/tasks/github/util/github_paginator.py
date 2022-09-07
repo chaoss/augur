@@ -15,6 +15,7 @@ from enum import Enum
 
 
 from augur.tasks.github.util.github_random_key_auth import GithubRandomKeyAuth
+from augur.tasks.github.util.util import parse_json_response
 
  
 def hit_api(key_manager, url: str, logger: logging.Logger, timeout: float = 10, method: str = 'GET', ) -> Optional[httpx.Response]:
@@ -29,7 +30,7 @@ def hit_api(key_manager, url: str, logger: logging.Logger, timeout: float = 10, 
 
         try:
             response = client.request(
-                method=method, url=url, auth=key_manager, timeout=timeout)
+                method=method, url=url, auth=key_manager, timeout=timeout, follow_redirects=True)
 
         except TimeoutError:
             logger.info(f"Request timed out. Sleeping {round(timeout)} seconds and trying again...\n")
@@ -37,6 +38,11 @@ def hit_api(key_manager, url: str, logger: logging.Logger, timeout: float = 10, 
             return None
         except httpx.TimeoutException:
             logger.info(f"Request timed out. Sleeping {round(timeout)} seconds and trying again...\n")
+            time.sleep(round(timeout))
+            return None
+        except httpx.ReadError:
+            logger.info(f"Request timed out. Sleeping {round(timeout)} seconds and trying again...\n")
+            logger.debug("Read error timeout")
             time.sleep(round(timeout))
             return None
 
@@ -54,7 +60,7 @@ def process_dict_response(logger: logging.Logger, response: httpx.Response, page
     Returns:
         A string explaining what happened is returned if what happened is determined, otherwise None is returned.
     """
-    # logger.info("Request returned a dict: {}\n".format(page_data))
+    #logger.info("Request returned a dict: {}\n".format(page_data))
 
     if 'message' not in page_data.keys():
         return GithubApiResult.NEW_RESULT
@@ -67,8 +73,12 @@ def process_dict_response(logger: logging.Logger, response: httpx.Response, page
         return GithubApiResult.REPO_NOT_FOUND
 
     if "You have exceeded a secondary rate limit. Please wait a few minutes before you try again" in page_data['message']:
-        logger.info('\n\n\n\nSleeping for 100 seconds due to secondary rate limit issue.\n\n\n\n')
-        time.sleep(100)
+
+        # sleeps for the specified amount of time that github says to retry after
+        retry_after = int(response.headers["Retry-After"])
+        logger.info(
+            f'\n\n\n\nSleeping for {retry_after} seconds due to secondary rate limit issue.\n\n\n\n')
+        time.sleep(retry_after)
 
         return GithubApiResult.SECONDARY_RATE_LIMIT
         # return "do_not_increase_attempts"
@@ -290,7 +300,7 @@ class GithubPaginator(collections.abc.Sequence):
 
         if result != GithubApiResult.SUCCESS:
             self.logger.debug("Failed to retrieve the data even though 10 attempts were given")
-            yield None
+            yield None, None
             return
 
         # this retrieves the page for the given url
@@ -345,13 +355,8 @@ class GithubPaginator(collections.abc.Sequence):
                 num_attempts += 1
                 continue
             
-            # try to get json from response
-            try:
-                
-                page_data = response.json()
-            except json.decoder.JSONDecodeError as e:
-                self.logger.error(f"Error invalid return from GitHub. Response was: {response.text}. Error: {e}")
-                page_data = json.loads(json.dumps(response.text))
+            
+            page_data = parse_json_response(self.logger, response)
 
 
             # if the data is a list, then return it and the response
@@ -369,7 +374,7 @@ class GithubPaginator(collections.abc.Sequence):
                 if dict_processing_result == GithubApiResult.REPO_NOT_FOUND:
                     return None, response, GithubApiResult.REPO_NOT_FOUND
 
-                if dict_processing_result in (GithubApiResult.SECONDARY_RATE_LIMIT, GithubApiResult.ABUSE_MECHANISM_DETECTED):
+                if dict_processing_result in (GithubApiResult.SECONDARY_RATE_LIMIT, GithubApiResult.ABUSE_MECHANISM_TRIGGERED):
                     continue
 
                 if dict_processing_result == GithubApiResult.RATE_LIMIT_EXCEEDED:
