@@ -46,10 +46,7 @@ class RedisList(MutableSequence):
         """
 
         for index in range(0, self.__len__()):
-            item = self.__getitem__(index)
-
-            if item is not None:
-                yield item
+            yield self.__getitem__(index)
 
     def __getitem__(self, index: int) -> Any:
         """Gets an item from the redis list by index
@@ -65,9 +62,6 @@ class RedisList(MutableSequence):
         """
 
         item = redis.lindex(self.redis_list_key, index)
-        if item is None:
-            return None
-
         try:
             item = int(item)
             return item

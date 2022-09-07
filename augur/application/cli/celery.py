@@ -7,15 +7,12 @@ Augur library commands for controlling the backend components
 import os
 import click
 import subprocess
-import uuid
-import time
-# from redis.exceptions import ConnectionError as RedisConnectionError
+from redis.exceptions import ConnectionError as RedisConnectionError
 
 from augur import instance_id
 from augur.application.logs import AugurLogger
 from augur.tasks.init.redis_connection import redis_connection
 from augur.application.cli import test_connection, test_db_connection 
-from augur.application.cli.backend import clear_redis_caches, raise_open_file_limit
 
 logger = AugurLogger("augur", reset_logfiles=True).get_logger()
 
@@ -28,35 +25,24 @@ def cli():
 @test_db_connection
 def start():
     """Start Augur's celery process."""
+    celery_process = None
 
-    raise_open_file_limit(100000)
-
-    default_worker = None
-    cpu_worker = None
-
-    default_worker = f"celery -A augur.tasks.init.celery_app.celery_app worker -P eventlet -l info --concurrency=1000 -n {instance_id}@%h"
-    cpu_worker = f"celery -A augur.tasks.init.celery_app.celery_app worker -l info --concurrency=20 -n {uuid.uuid4().hex}@%h -Q cpu"
-    default_worker_process = subprocess.Popen(default_worker.split(" "))
-    cpu_worker_process = subprocess.Popen(cpu_worker.split(" "))
-    time.sleep(5)
+    celery_command = f"celery -A augur.tasks.init.celery_app.celery_app worker --loglevel=info --concurrency=20 -n {instance_id}@%h"
+    celery_process = subprocess.Popen(celery_command.split(" "))
 
     try:
-        default_worker_process.wait()
+        celery_process.wait()
     except KeyboardInterrupt:
 
-        if default_worker_process or cpu_worker_process:
+        if celery_process:
             logger.info("Shutting down celery process")
-
-        if default_worker_process:
-            default_worker_process.terminate()
-
-        if cpu_worker_process:
-            cpu_worker_process.terminate()
+            celery_process.terminate()
 
         try:
-            clear_redis_caches()
+            logger.info("Flusing redis cache")
+            redis_connection.flushdb()
             
-        except Exception as e:
+        except RedisConnectionError:
             pass
 
 @cli.command("clear-tasks")

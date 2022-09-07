@@ -5,7 +5,6 @@ from typing import Optional, List
 from augur.application.db.models import WorkerOauth
 from augur.tasks.util.redis_list import RedisList
 from augur.application.db.session import DatabaseSession
-from augur.tasks.init.celery_app import engine
 
 class GithubApiKeyHandler():
     """Handles Github API key retrieval from the database and redis
@@ -70,12 +69,8 @@ class GithubApiKeyHandler():
             Valid Github api keys
         """
 
-        redis_keys = list(self.redis_key_list)
-
-        if redis_keys:
-            print(f"Getting api keys from cache length is {len(redis_keys)}")
-            print(f"Keys are: {redis_keys}")
-            return redis_keys
+        if len(self.redis_key_list) > 0:
+            return list(self.redis_key_list)
 
         keys = self.get_api_keys_from_database()
     
