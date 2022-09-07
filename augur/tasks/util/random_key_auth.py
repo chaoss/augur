@@ -29,22 +29,17 @@ class RandomKeyAuth(Auth):
 
         # the choice function is from the random library, and gets a random value from a list
         # this gets a random key from the list
-        
-        if self.list_of_keys:
-            key_value = choice(self.list_of_keys)
+        key_value = choice(self.list_of_keys)
 
-            # formats the key string into a format GitHub will accept
+        # formats the key string into a format GitHub will accept
 
-            if self.key_format: 
-                key_string = self.key_format.format(key_value)
-            else:
-                key_string = key_value
-                
-            # set the headers of the request with the new key
-            request.headers[self.header_name] = key_string
-
+        if self.key_format: 
+            key_string = self.key_format.format(key_value)
         else:
-            self.error(f"There are no valid keys to make a request with: {self.list_of_keys}")
+            key_string = key_value
+            
+        # set the headers of the request with the new key
+        request.headers[self.header_name] = key_string
 
         # sends the request back with modified headers
         # basically it saves our changes to the request object

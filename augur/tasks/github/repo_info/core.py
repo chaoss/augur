@@ -292,8 +292,9 @@ def repo_info_model(session, repo_orm_obj):
         'repo_archived_date_collected': archived_date_collected
     }
 
-    current_repo_dict.update(rep_additional_data)
-    result = session.insert_data(current_repo_dict, Repo, ['repo_id'])
+    rep_additional_data.update(current_repo_dict)
+    
+    result = session.insert_data(rep_additional_data, Repo, ['repo_id'])
     #result = self.db.execute(self.repo_table.update().where(
     #    self.repo_table.c.repo_id==repo_id).values(rep_additional_data))
 

@@ -2,7 +2,7 @@ import time
 import logging
 
 
-from augur.tasks.init.celery_app import celery_app as celery, engine
+from augur.tasks.init.celery_app import celery_app as celery
 from augur.application.db.data_parse import *
 from augur.tasks.github.util.github_paginator import GithubPaginator, hit_api
 from augur.tasks.github.util.github_task_session import GithubTaskSession
@@ -81,12 +81,10 @@ def process_commit_metadata(contributorQueue,repo_id):
                 login = get_login_with_commit_hash(session,contributor, repo_id)
         
             if login == None or login == "":
-                session.logger.info("Failed to get login from commit hash")
                 # Try to get the login from supplemental data if not found with the commit hash
                 login = get_login_with_supplemental_data(session,contributor)
         
-            if login == None or login == "":
-                session.logger.error("Failed to get login from supplemental data!")
+            if login == None:
                 continue
 
             url = ("https://api.github.com/users/" + login)
