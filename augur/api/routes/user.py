@@ -104,7 +104,7 @@ def create_routes(server):
         except AssertionError as exception_message: 
             return jsonify(msg='Error: {}. '.format(exception_message)), 400
     
-    @server.app.route(f"/{AUGUR_API_VERSION}/user/remove", methods=['GET', 'PUT','DELETE'])
+    @server.app.route(f"/{AUGUR_API_VERSION}/user/remove", methods=['POST', 'DELETE'])
     def delete_user():
         if not development and not request.is_secure:
             return generate_upgrade_request()
@@ -121,7 +121,7 @@ def create_routes(server):
             session.commit()
             return jsonify({"status": "User deleted"}), 200
     
-    @server.app.route(f"/{AUGUR_API_VERSION}/user/update", methods=['GET', 'POST'])
+    @server.app.route(f"/{AUGUR_API_VERSION}/user/update", methods=['POST'])
     def update_user():
         if not development and not request.is_secure:
             return generate_upgrade_request()
