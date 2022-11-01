@@ -19,6 +19,7 @@ REPO_ENDPOINT = "https://api.github.com/repos/{}/{}"
 ORG_REPOS_ENDPOINT = "https://api.github.com/orgs/{}/repos?per_page=100"
 DEFAULT_REPO_GROUP_ID = 1
 CLI_USER_ID = 1
+CLI_GROUP_ID = 1
 
 
 class RepoLoadController:
@@ -81,6 +82,14 @@ class RepoLoadController:
                 return False
             
             return True
+
+    def is_valid_user_group(self, user_id, group_id) -> bool:
+
+        try:
+            self.session.query(UserRepo).filter(UserRepo.user_id == user_id, UserRepo.group_id == group_id).one()
+            return True
+        except s.orm.exc.NoResultFound:
+            return False
 
 
     def retrieve_org_repos(self, url: str) -> List[str]:
@@ -182,7 +191,7 @@ class RepoLoadController:
         return result[0]["repo_id"]
 
 
-    def add_repo_to_user(self, repo_id, user_id=1):
+    def add_repo_to_user_group(self, repo_id, group_id=CLI_GROUP_ID):
         """Add a repo to a user in the user_repos table.
 
         Args:
@@ -190,22 +199,47 @@ class RepoLoadController:
             user_id: id of user_id from users table
         """
 
-        repo_user_data = {
-            "user_id": user_id,
+        repo_user_group_data = {
+            "group_id": group_id,
             "repo_id": repo_id
         }
             
             
-        repo_user_unique = ["user_id", "repo_id"]
-        return_columns = ["user_id", "repo_id"]
+        repo_user_group_unique = ["group_id", "repo_id"]
+        return_columns = ["group_id", "repo_id"]
         data = self.session.insert_data(repo_user_data, UserRepo, repo_user_unique, return_columns)
 
-        if data[0]["user_id"] == user_id and data[0]["repo_id"] == repo_id:
+        if data[0]["group_id"] == group_id and data[0]["repo_id"] == repo_id:
             return True
 
         return False
 
-    def add_frontend_repo(self, url: List[str], user_id: int):
+    def add_user_group(self, user_id, group_name):
+
+        user_group_data = {
+            "group_name": group_id,
+            "user_id": repo_id
+        }
+
+        # TODO Add exception for duplicate groups
+        group_obj = UserGroup(**user_group_data)
+        self.session.add(group_obj)
+        self.session.commit()
+        
+        return True
+
+    def get_user_groups(self, user_id):
+
+        return self.session.query(UserGroup).filter(UserGroup.user_id == user_id).all() 
+
+    def get_user_group_repos(self, user_id, group_id):
+
+        repos = self.session.query(UserRepo).filter(UserGroup.user_id == user_id, UserGroup.group_id = group_id).all()
+
+        return [repo["repo_id"] for repo in repos]
+
+
+    def add_frontend_repo(self, url: List[str], user_id: int, group_id: int, valid_group=False):
         """Add list of repos to a users repos.
 
         Args:
@@ -216,12 +250,15 @@ class RepoLoadController:
         if not self.is_valid_repo(url):
             return {"status": "Invalid repo", "repo_url": url}
 
+        if not valid_group and not self.is_valid_user_group(user_id, group_id):
+            return {"status": "Invalid user group", "group_id": group_id}
+
         repo_id = self.add_repo_row(url, DEFAULT_REPO_GROUP_ID, "Frontend")
 
         if not repo_id:
             return {"status": "Repo insertion failed", "repo_url": url}
 
-        result = self.add_repo_to_user(repo_id, user_id)
+        result = self.add_repo_to_user_group(repo_id, group_id)
 
         if not result:
             return {"status": "repo_user insertion failed", "repo_url": url}
@@ -230,7 +267,7 @@ class RepoLoadController:
 
     
 
-    def add_frontend_org(self, url: List[str], user_id: int):
+    def add_frontend_org(self, url: List[str], user_id: int, group_id: int):
         """Add list of orgs and their repos to a users repos.
 
         Args:
@@ -242,11 +279,14 @@ class RepoLoadController:
 
         if not repos:
             return {"status": "Invalid org", "org_url": url}
+
+        if not self.is_valid_user_group(user_id, group_id):
+            return {"status": "Invalid user group", "group_id": group_id}
         
         failed_repos = []
         for repo in repos:
 
-            result = self.add_frontend_repo(repo, user_id)
+            result = self.add_frontend_repo(repo, user_id, group_id, valid_group=True)
 
             if result["status"] != "Repo Added":
                 failed_repos.append(repo)
@@ -278,7 +318,7 @@ class RepoLoadController:
                 logger.warning(f"Invalid repo group id specified for {url}, skipping.")
                 return
 
-            self.add_repo_to_user(repo_id, CLI_USER_ID)
+            self.add_repo_to_user_group(repo_id)
 
     def add_cli_org(self, org_name):
         """Add list of orgs and their repos to specified repo_groups
