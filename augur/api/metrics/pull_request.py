@@ -1174,18 +1174,6 @@ def pull_request_average_comments_over_time(repo_group_id, repo_id=None, group_b
             pr_merged_at,
             pr_created_at,
             pr_closed_at,
-            count(*) FILTER (WHERE action = 'assigned') AS assigned_count,
-            count(*) FILTER (WHERE action = 'review_requested') AS review_requested_count,
-            count(*) FILTER (WHERE action = 'labeled') AS labeled_count,
-            count(*) FILTER (WHERE action = 'unlabeled') AS unlabeled_count,
-            count(*) FILTER (WHERE action = 'subscribed') AS subscribed_count,
-            count(*) FILTER (WHERE action = 'mentioned') AS mentioned_count,
-            count(*) FILTER (WHERE action = 'referenced') AS referenced_count,
-            count(*) FILTER (WHERE action = 'closed') AS closed_count,
-            count(*) FILTER (WHERE action = 'head_ref_force_pushed') AS head_ref_force_pushed_count,
-            count(*) FILTER (WHERE action = 'head_ref_deleted') AS head_ref_deleted_count,
-            count(*) FILTER (WHERE action = 'milestoned') AS milestoned_count,
-            count(*) FILTER (WHERE action = 'merged') AS merged_count,
             COUNT(DISTINCT message.msg_timestamp) AS comment_count
             FROM pull_request_events, pull_request_message_ref, message, repo_groups,
             pull_requests JOIN repo ON pull_requests.repo_id = repo.repo_id
@@ -1220,18 +1208,6 @@ def pull_request_average_comments_over_time(repo_group_id, repo_id=None, group_b
             pr_merged_at,
             pr_created_at,
             pr_closed_at,
-            count(*) FILTER (WHERE action = 'assigned') AS assigned_count,
-            count(*) FILTER (WHERE action = 'review_requested') AS review_requested_count,
-            count(*) FILTER (WHERE action = 'labeled') AS labeled_count,
-            count(*) FILTER (WHERE action = 'unlabeled') AS unlabeled_count,
-            count(*) FILTER (WHERE action = 'subscribed') AS subscribed_count,
-            count(*) FILTER (WHERE action = 'mentioned') AS mentioned_count,
-            count(*) FILTER (WHERE action = 'referenced') AS referenced_count,
-            count(*) FILTER (WHERE action = 'closed') AS closed_count,
-            count(*) FILTER (WHERE action = 'head_ref_force_pushed') AS head_ref_force_pushed_count,
-            count(*) FILTER (WHERE action = 'head_ref_deleted') AS head_ref_deleted_count,
-            count(*) FILTER (WHERE action = 'milestoned') AS milestoned_count,
-            count(*) FILTER (WHERE action = 'merged') AS merged_count,
             COUNT(DISTINCT message.msg_timestamp) AS comment_count
             FROM pull_request_events, pull_requests, repo, pull_request_message_ref, message
             WHERE repo.repo_id = :repo_id
@@ -1243,9 +1219,8 @@ def pull_request_average_comments_over_time(repo_group_id, repo_id=None, group_b
                 AND pr_closed_at::DATE <= :end_date ::DATE
             GROUP BY pull_requests.pull_request_id
             ) data
-        GROUP BY closed_year, closed_month, closed_week, closed_day, merged_status, data.assigned_count, data.review_requested_count, data.labeled_count, data.unlabeled_count, data.subscribed_count, data.mentioned_count, data.referenced_count, data.closed_count, 
-        data.head_ref_force_pushed_count, data.head_ref_deleted_count, data.milestoned_count, data.merged_count, data.comment_count
-        ORDER BY merged_status, closed_year, closed_week, closed_day
+        GROUP BY closed_year, closed_month, closed_week, closed_day, merged_status, data.comment_count
+        ORDER BY data.comment_count, merged_status, closed_year, closed_week, closed_day
         """)
 
         pr_all = pd.read_sql(pr_all_SQL, engine,
