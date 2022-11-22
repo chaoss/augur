@@ -20,8 +20,8 @@ from augur.application.db.models import User, UserRepo
 from augur.application.config import get_development_flag
 logger = logging.getLogger(__name__)
 development = get_development_flag()
-from augur.application.db.engine import create_database_engine
-Session = sessionmaker(bind=create_database_engine())
+from augur.application.db.engine import DatabaseEngine
+Session = sessionmaker(bind=DatabaseEngine().engine)
 
 AUGUR_API_VERSION = 'api/unstable'
 
@@ -45,14 +45,17 @@ def create_routes(server):
         if not development and not request.is_secure:
             return generate_upgrade_request()
 
-        session = Session()
+        
         username = request.args.get("username")
         password = request.args.get("password")
         if username is None or password is None:
             # https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400
             return jsonify({"status": "Missing argument"}), 400
 
+        session = Session()
         user = session.query(User).filter(User.login_name == username).first()
+        session.close()
+
         checkPassword = check_password_hash(user.login_hashword, password)
         if user is None:
             return jsonify({"status": "Invalid username"})
@@ -65,13 +68,16 @@ def create_routes(server):
         if not development and not request.is_secure:
             return generate_upgrade_request()
 
-        session = Session()
+       
         username = request.args.get("username")
         if username is None:
             # https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400
             return jsonify({"status": "Missing argument"}), 400
+
+        session = Session()
         user = session.query(User).filter(User.login_name == username).first()
-        
+        session.close()
+
         if user is None:
             return jsonify({"status": "Invalid username"})
 
@@ -82,7 +88,7 @@ def create_routes(server):
         if not development and not request.is_secure:
             return generate_upgrade_request()
 
-        session = Session()
+        
         username = request.args.get("username")
         password = request.args.get("password")
         email = request.args.get("email")
@@ -93,18 +99,24 @@ def create_routes(server):
         if username is None or password is None or email is None:
             # https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400
             return jsonify({"status": "Missing argument"}), 400
+
+        session = Session()
         user = session.query(User).filter(User.login_name == username).first()
         if user is not None:
+            session.close()
             return jsonify({"status": "User already exists"})
         emailCheck = session.query(User).filter(User.email == email).first()
         if emailCheck is not None:
+            session.close()
             return jsonify({"status": "Email already exists"})
         try:
             user = User(login_name = username, login_hashword = generate_password_hash(password), email = email, first_name = first_name, last_name = last_name, tool_source="User API", tool_version=None, data_source="API", admin=False)
             session.add(user)
             session.commit()
+            session.close()
             return jsonify({"status": "User created"})
         except AssertionError as exception_message: 
+            session.close()
             return jsonify(msg='Error: {}. '.format(exception_message)), 400
     
     @server.app.route(f"/{AUGUR_API_VERSION}/user/remove", methods=['POST', 'DELETE'])
@@ -112,14 +124,16 @@ def create_routes(server):
         if not development and not request.is_secure:
             return generate_upgrade_request()
 
-        session = Session()
+       
         username = request.args.get("username")
         if username is None:
             return jsonify({"status": "Missing argument"}), 400
 
+        session = Session()
         user = session.query(User).filter(User.login_name == username).first()
        
         if user is None:
+            session.close()
             return jsonify({"status": "User does not exist"})
 
         user_repos = session.query(UserRepo).filter(UserRepo.user_id == user.user_id).all()
@@ -128,6 +142,7 @@ def create_routes(server):
 
         session.delete(user)
         session.commit()
+        session.close()
         return jsonify({"status": "User deleted"}), 200
 
     @server.app.route(f"/{AUGUR_API_VERSION}/user/update", methods=['POST'])
@@ -135,7 +150,6 @@ def create_routes(server):
         if not development and not request.is_secure:
             return generate_upgrade_request()
 
-        session = Session()
         username = request.args.get("username")
         password = request.args.get("password")
         email = request.args.get("email")
@@ -145,8 +159,10 @@ def create_routes(server):
         if username is None or password is None:
             return jsonify({"status": "Missing argument"}), 400
 
+        session = Session()
         user = session.query(User).filter(User.login_name == username).first()
         if user is None:
+            session.close()
             return jsonify({"status": "User does not exist"})
 
         checkPassword = check_password_hash(user.login_hashword, password)
@@ -156,15 +172,18 @@ def create_routes(server):
         if email is not None:
             existing_user = session.query(User).filter(User.email == email).one()
             if existing_user is not None:
+                session = Session()
                 return jsonify({"status": "Already an account with this email"})
 
             user.email = email
             session.commit()
+            session = Session()
             return jsonify({"status": "Email Updated"})
 
         if new_password is not None:
             user.login_hashword = generate_password_hash(new_password)
             session.commit()
+            session = Session()
             return jsonify({"status": "Password Updated"})
 
         if new_login_name is not None:
@@ -174,6 +193,7 @@ def create_routes(server):
 
             user.login_name = new_login_name
             session.commit()
+            session = Session()
             return jsonify({"status": "Username Updated"})
 
         return jsonify({"status": "Missing argument"}), 400

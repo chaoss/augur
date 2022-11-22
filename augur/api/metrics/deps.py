@@ -7,8 +7,7 @@ import sqlalchemy as s
 import pandas as pd
 from augur.api.util import register_metric
 
-from augur.application.db.engine import create_database_engine
-engine = create_database_engine()
+from augur.application.db.engine import DatabaseEngine
 
 @register_metric()
 def deps(repo_group_id, repo_id=None, period='day', begin_date=None, end_date=None):
@@ -28,49 +27,50 @@ def deps(repo_group_id, repo_id=None, period='day', begin_date=None, end_date=No
     if not end_date:
         end_date = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
-    if repo_id:
+    with DatabaseEngine(connection_pool_size=1) as engine:
+        if repo_id:
 
-        depsSQL = s.sql.text("""
-            SELECT
-            augur_data.repo_dependencies.*,
-            augur_data.repo_groups.repo_group_id 
-            FROM
-            augur_data.repo_dependencies,
-            augur_data.repo_groups,
-            augur_data.repo,
-            ( SELECT MAX ( date_trunc( 'day', augur_data.repo_dependencies.data_collection_date ) ) AS data_collection_date FROM repo_dependencies WHERE repo_id = repo_id ) C 
-            WHERE
-            repo_dependencies.repo_id = repo.repo_id 
-            AND repo.repo_group_id = repo_groups.repo_group_id 
-            AND date_trunc( 'day', repo_dependencies.data_collection_date ) = C.data_collection_date 
-            AND repo_dependencies.repo_id = :repo_id
-            """)
+            depsSQL = s.sql.text("""
+                SELECT
+                augur_data.repo_dependencies.*,
+                augur_data.repo_groups.repo_group_id 
+                FROM
+                augur_data.repo_dependencies,
+                augur_data.repo_groups,
+                augur_data.repo,
+                ( SELECT MAX ( date_trunc( 'day', augur_data.repo_dependencies.data_collection_date ) ) AS data_collection_date FROM repo_dependencies WHERE repo_id = repo_id ) C 
+                WHERE
+                repo_dependencies.repo_id = repo.repo_id 
+                AND repo.repo_group_id = repo_groups.repo_group_id 
+                AND date_trunc( 'day', repo_dependencies.data_collection_date ) = C.data_collection_date 
+                AND repo_dependencies.repo_id = :repo_id
+                """)
 
-        results = pd.read_sql(depsSQL, engine)    	
+            results = pd.read_sql(depsSQL, engine)    	
 
-    else:
+        else:
 
-        depsSQL = s.sql.text("""
-            SELECT
-            augur_data.repo_dependencies.*,
-            augur_data.repo_groups.repo_group_id 
-            FROM
-            augur_data.repo_dependencies,
-            augur_data.repo_groups,
-            augur_data.repo,
-            ( SELECT MAX ( date_trunc( 'day', augur_data.repo_dependencies.data_collection_date ) ) AS data_collection_date 
-            FROM repo_dependencies, repo, repo_groups 
-            WHERE repo.repo_group_id = repo_groups.repo_group_id and 
-            repo_dependencies.repo_id = repo.repo_id and
-            repo_groups.repo_group_id = :repo_group_id ) C 
-            WHERE
-            repo_dependencies.repo_id = repo.repo_id 
-            AND repo.repo_group_id = repo_groups.repo_group_id 
-            AND date_trunc( 'day', repo_dependencies.data_collection_date ) = C.data_collection_date 
-            AND repo.repo_group_id = :repo_group_id
-            """)
+            depsSQL = s.sql.text("""
+                SELECT
+                augur_data.repo_dependencies.*,
+                augur_data.repo_groups.repo_group_id 
+                FROM
+                augur_data.repo_dependencies,
+                augur_data.repo_groups,
+                augur_data.repo,
+                ( SELECT MAX ( date_trunc( 'day', augur_data.repo_dependencies.data_collection_date ) ) AS data_collection_date 
+                FROM repo_dependencies, repo, repo_groups 
+                WHERE repo.repo_group_id = repo_groups.repo_group_id and 
+                repo_dependencies.repo_id = repo.repo_id and
+                repo_groups.repo_group_id = :repo_group_id ) C 
+                WHERE
+                repo_dependencies.repo_id = repo.repo_id 
+                AND repo.repo_group_id = repo_groups.repo_group_id 
+                AND date_trunc( 'day', repo_dependencies.data_collection_date ) = C.data_collection_date 
+                AND repo.repo_group_id = :repo_group_id
+                """)
 
-        results = pd.read_sql(depsSQL, engine)
+            results = pd.read_sql(depsSQL, engine)
     return results
 
 

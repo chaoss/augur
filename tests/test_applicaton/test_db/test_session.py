@@ -264,9 +264,10 @@ def test_session_without_passing_engine():
         query = s.sql.text("""SELECT * FROM repo""")
 
         result = connection.execute(query)
-
-        print(result.fetchall())
+        data = result.fetchall()
 
         assert result is not None
+        assert data is not None
+        assert isinstance(data, list)
 
 

@@ -62,8 +62,8 @@ class DatabaseEngine():
 
         self._engine.dispose()
 
-    def __del__(self):
-        self._engine.dispose()
+    def close(self):
+        self._engine.close()
 
     @property
     def engine(self):
@@ -88,7 +88,7 @@ class DatabaseEngine():
         db_conn_string = get_database_string()
 
         if connection_pool_size == 1:
-            engine = create_database_engine(db_conn_string, poolclass=NullPool)
+            engine = create_engine(db_conn_string, poolclass=NullPool)
 
         elif connection_pool_size < 0:
             raise Exception(f"Invalid Pool Size: {connection_pool_size}")
