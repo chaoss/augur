@@ -69,6 +69,10 @@ Contributors
 - `Ivana Atanasova <https://github.com/ivanayov/>`_
 - `Georg J.P. Link <https://github.com/GeorgLink/>`_
 
+CMP_SC-4320 Fall 2022 participants
+-----------------------
+- `Allison Drainer <'https://github.com/DrainerA/>`_
+
 GSoC 2020 participants
 -----------------------
 - `Akshara P <https://github.com/aksh555/>`_
