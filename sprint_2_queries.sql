@@ -5,16 +5,19 @@ FILTER (WHERE pr_src_author_association = 'MEMBER'
 FROM augur_data.pull_requests
 
 
+-- Organization or volunteer - driven returns the number of commits by users affiliated with an organization vs. users with no organizational affiliation.
 
--- repo_id field will match repo id passed in from other metric
--- returns count of contributions made by a user with a company affiliation
-SELECT COUNT(cntrb_company) AS organization_cntrb
-FROM augur_data.contributors
-INNER JOIN (SELECT pr_augur_contributor_id
-		   FROM augur_data.pull_requests 
-		   WHERE repo_id = 26285) AS pr_cntrb_id
-		   ON contributors.cntrb_id=pr_cntrb_id.pr_augur_contributor_id
-		   
+SELECT 'Organizations' as null_state, COUNT(*)
+FROM augur_data.pull_requests
+inner join augur_data.contributors on pull_requests.pr_augur_contributor_id = contributors.cntrb_id
+WHERE repo_id = '26285'
+    AND cntrb_company is not null
+union
+SELECT 'Volunteers' as null_state, COUNT(*)
+FROM augur_data.pull_requests
+inner join augur_data.contributors on pull_requests.pr_augur_contributor_id = contributors.cntrb_id
+WHERE repo_id = '26285'
+    AND cntrb_company is null;
 		   
 		   
 -- Organizational influence - returns the percent of pull requests that were made by each company during the period
