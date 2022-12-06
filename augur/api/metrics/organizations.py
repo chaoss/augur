@@ -12,7 +12,7 @@ from augur.application.db.engine import create_database_engine
 engine = create_database_engine()
 
 @register_metric()
-def contributors(repo_group_id, repo_id=None, period='day', begin_date=None, end_date=None):
+def maintainers(repo_group_id, repo_id=None, period='day', begin_date=None, end_date=None):
     """
     Returns a timeseries of all the contributions to a project.
     DataFrame has these columns:
