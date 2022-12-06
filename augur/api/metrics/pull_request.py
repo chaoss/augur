@@ -1123,7 +1123,59 @@ def pull_request_merged_status_counts(repo_group_id, repo_id=None, begin_date='1
     
     return pr_merged_counts
 
+@register_metric()
+def pull_request_ratio_merged_to_closed(self, repo_id=None):
+    """
+    Ratio of merged to closed pull requests
 
+    :param repo_group_id: The repository's repo_group_id
+    :param repo_id: The repository's repo_id, defaults to None
+    """
+
+    if not repo_id:
+        pr_all_sql = s.sql.text("""
+        SELECT
+            a.repo_id, 
+            CAST(merged AS FLOAT) / NULLIF(CAST(closed AS FLOAT),0) AS ratio_merged_to_closed
+            FROM
+                (SELECT 
+                    repo_id, COUNT(pr_merged_at) AS merged  
+                    FROM augur_data.pull_requests
+                    WHERE pr_merged_at IS NOT NULL
+                    GROUP BY repo_id) a
+                INNER JOIN
+                (SELECT
+                    repo_id, COUNT(pr_closed_at) AS closed
+                    FROM augur_data.pull_requests
+                    WHERE pr_merged_at IS NULL
+                    GROUP BY repo_id) b
+                ON a.repo_id = b.repo_id
+        """)
+    else:
+        pr_all_sql = s.sql.text("""
+        SELECT 
+            a.repo_id, 
+            CAST(merged AS FLOAT) / NULLIF(CAST(closed AS FLOAT),0) AS ratio_merged_to_closed
+            FROM
+                (SELECT 
+                    repo_id, COUNT(pr_merged_at) AS merged  
+                    FROM augur_data.pull_requests
+                    WHERE pr_merged_at IS NOT NULL
+                    GROUP BY repo_id) a
+                INNER JOIN
+                (SELECT
+                    repo_id, COUNT(pr_closed_at) AS closed
+                    FROM augur_data.pull_requests
+                    WHERE pr_merged_at IS NULL
+                    GROUP BY repo_id) b
+                ON a.repo_id = b.repo_id
+        WHERE a.repo_id = :repo_id
+        """)
+
+    pr_all = pd.read_sql(pr_all_sql, self.database,
+                         params={'repo_id': repo_id})
+
+    return pr_all
 
 
 
