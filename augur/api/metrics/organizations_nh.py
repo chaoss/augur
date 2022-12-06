@@ -1,7 +1,7 @@
 import datetime
 import sqlalchemy as s
 import pandas as pd
-from augur.util import register_metric
+from augur.api.util import register_metric
 
 from augur.application.db.engine import create_database_engine
 engine = create_database_engine()
