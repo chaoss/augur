@@ -7,7 +7,7 @@ from augur.application.db.engine import create_database_engine
 engine = create_database_engine()
 
 @register_metric()
-def contributor_affiliations()
+def contributor_affiliations():
   """
   Add comments here
   """
