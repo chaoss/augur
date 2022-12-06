@@ -26,7 +26,7 @@ Test change take 2 -AD
 .. 
   schema/toc
 
-.. image:: development-guide/images/augur-architecture-2.png
+.. image:: AugurSetup.png
   :width: 700
   :alt: Development guide image overview of augur 
 
