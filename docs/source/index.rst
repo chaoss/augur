@@ -72,6 +72,7 @@ Contributors
 CMP_SC-4320 Fall 2022 participants
 -----------------------
 - `Allison Drainer <https://github.com/DrainerA/>`_
+- `Isabel Layland <https://github.com/AppreciativeWalrus/>`_
 
 GSoC 2020 participants
 -----------------------
