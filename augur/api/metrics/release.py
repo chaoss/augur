@@ -172,12 +172,12 @@ def release_frequency(repo_group_id, repo_id=None, period='day', begin_date=None
     if not repo_id:
         releases_SQL = s.sql.text("""
             SELECT
-    			COUNT(release_published_at) AS releases_over_time
-    		FROM
-    			releases
-    		WHERE release_published_at BETWEEN :start_date AND :end_date
-    		AND repo_id IN (SELECT repo_id FROM repo WHERE repo_group_id=:repo_group_id )
-    		GROUP BY repo_id;
+                COUNT(release_published_at) AS releases_over_time
+            FROM
+                releases
+            WHERE release_published_at BETWEEN :begin_date AND :end_date
+            AND repo_id IN (SELECT repo_id FROM repo WHERE repo_group_id=:repo_group_id )
+            GROUP BY repo_id;
         """)
 
         results = pd.read_sql(releases_SQL, engine,
@@ -188,12 +188,12 @@ def release_frequency(repo_group_id, repo_id=None, period='day', begin_date=None
     else:
         releases_SQL = s.sql.text("""
             SELECT
-    			COUNT(release_published_at) AS releases_over_time
-    		FROM
-    			releases
-    		WHERE release_published_at BETWEEN :start_date AND :end_date
-    		AND repo_id = :repo_id
-    		GROUP BY repo_id;
+                COUNT(release_published_at) AS releases_over_time
+            FROM
+                releases
+            WHERE release_published_at BETWEEN :begin_date AND :end_date
+            AND repo_id = :repo_id
+            GROUP BY repo_id;
 
         """)
 
