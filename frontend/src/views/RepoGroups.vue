@@ -47,16 +47,6 @@
                       ></div>
                     </div>
                   </th>
-                  <th scope="col" class="border-0" v-on:click="sortTable('rg_repos')">
-                    <div class="row">
-                      <div class="col col-9">Repos</div>
-                      <div
-                        class="arrow"
-                        v-bind:class="ascending ? 'arrow_up' : 'arrow_down'"
-                        v-if="'rg_repos' == sortColumn"
-                      ></div>
-                    </div>
-                  </th>
                   <th scope="col" class="border-0" v-on:click="sortTable('rg_website')">
                     <div class="row">
                       <div class="col col-9">Website</div>
@@ -102,7 +92,6 @@
                     <router-link tag="a" :to="'/group/' + group.rg_name + '/overview'">{{ group.rg_name }}</router-link>
                   </td>
                   <td>{{ group.rg_description }}</td>
-                  <td>{{ repoCountInGroup(group.repo_group_id) }}</td>
                   <td>{{ group.rg_website }}</td>
                   <td>{{ group.rg_last_modified }}</td>
                   <td>{{ group.rg_type }}</td>
@@ -158,7 +147,6 @@ import Component from "vue-class-component";
 import Vue from "vue";
 import { mapActions, mapGetters, mapMutations } from "vuex";
 import Spinner from "@/components/Spinner.vue";
-
 @Component({
   components: {
     Spinner
@@ -175,7 +163,7 @@ import Spinner from "@/components/Spinner.vue";
     ...mapActions("compare", ["addComparedGroup", "setBaseGroup"])
   },
   computed: {
-    ...mapGetters("common", ["sortedRepoGroups", "repoGroups", "repoCountInGroup"])
+    ...mapGetters("common", ["sortedRepoGroups", "repoGroups"])
   }
 })
 export default class RepoGroups extends Vue {
@@ -206,7 +194,6 @@ export default class RepoGroups extends Vue {
 
   getRepoRelations!: any;
   loadRepoGroups!: any;
-  repoCountInGroup!: any;
   repo_groups!: any[];
   sortedRepoGroups!: any[];
   addRepoGroup!: any;
