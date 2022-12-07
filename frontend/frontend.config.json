@@ -1,7 +1,13 @@
 {
     "Frontend": {
-        "host": "ebay.chaoss.io",
+        "host": "augur.chaoss.io",
+        "port": 5000
+    },
+    "Server": {
+        "cache_expire": "3600",
+        "host": "augur.chaoss.io",
         "port": 5000,
-        "ssl": false
+        "workers": 6,
+        "timeout": 6000
     }
 }
