@@ -34,7 +34,7 @@ def messages(repo_group_id, repo_id=None, period='day', begin_date=None, end_dat
             SELECT
 	          COUNT(msg_id) AS msg_count
 	          FROM message
-	          WHERE msg_timestamp BETWEEN :start_date AND :end_date
+	          WHERE msg_timestamp BETWEEN :begin_date AND :end_date
 	          AND repo_id = :repo_id
 	          GROUP BY repo_id;
         """)
@@ -47,7 +47,7 @@ def messages(repo_group_id, repo_id=None, period='day', begin_date=None, end_dat
 	          repo_id,
 	          COUNT(msg_id) AS msg_count
 	          FROM message
-	          WHERE msg_timestamp BETWEEN :start_date AND :end_date
+	          WHERE msg_timestamp BETWEEN :begin_date AND :end_date
             AND repo_id IN
                 (SELECT repo_id FROM repo WHERE repo_group_id = :repo_group_id)
 	          GROUP BY repo_id;
