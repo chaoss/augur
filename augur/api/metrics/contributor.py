@@ -7,6 +7,7 @@ import datetime
 import sqlalchemy as s
 import pandas as pd
 from augur.api.util import register_metric
+import uuid 
 
 from augur.application.db.engine import create_database_engine
 engine = create_database_engine()
@@ -42,7 +43,7 @@ def contributors(repo_group_id, repo_id=None, period='day', begin_date=None, end
 
     if repo_id:
         contributorsSQL = s.sql.text("""
-           SELECT id                           AS user_id,
+           SELECT id::text                         AS user_id,
                 SUM(commits)                 AS commits,
                 SUM(issues)                  AS issues,
                 SUM(commit_comments)         AS commit_comments,
@@ -53,7 +54,7 @@ def contributors(repo_group_id, repo_id=None, period='day', begin_date=None, end
                     a.pull_request_comments) AS total,
                 a.repo_id, repo.repo_name
             FROM (
-                    (SELECT gh_user_id AS id,
+                    (SELECT reporter_id AS id,
                             0          AS commits,
                             COUNT(*)   AS issues,
                             0          AS commit_comments,
@@ -64,9 +65,9 @@ def contributors(repo_group_id, repo_id=None, period='day', begin_date=None, end
                     FROM issues
                     WHERE repo_id = :repo_id
                         AND created_at BETWEEN :begin_date AND :end_date
-                        AND gh_user_id IS NOT NULL
+                        AND reporter_id IS NOT NULL
                         AND pull_request IS NULL
-                    GROUP BY gh_user_id, repo_id)
+                    GROUP BY reporter_id, repo_id)
                     UNION ALL
                     (SELECT cmt_ght_author_id AS id,
                             COUNT(*)          AS commits,
@@ -112,7 +113,7 @@ def contributors(repo_group_id, repo_id=None, period='day', begin_date=None, end
                             issue_message_ref,
                             message
                         WHERE issues.repo_id = :repo_id
-                        AND gh_user_id IS NOT NULL
+                        AND reporter_id IS NOT NULL
                         AND issues.issue_id = issue_message_ref.issue_id
                         AND issue_message_ref.msg_id = message.msg_id
                         AND issues.pull_request IS NULL
@@ -129,7 +130,7 @@ def contributors(repo_group_id, repo_id=None, period='day', begin_date=None, end
                                                                 'begin_date': begin_date, 'end_date': end_date})
     else:
         contributorsSQL = s.sql.text("""
-           SELECT id                           AS user_id,
+           SELECT id::text                          AS user_id,
                 SUM(commits)                 AS commits,
                 SUM(issues)                  AS issues,
                 SUM(commit_comments)         AS commit_comments,
@@ -139,7 +140,7 @@ def contributors(repo_group_id, repo_id=None, period='day', begin_date=None, end
                 SUM(a.commits + a.issues + a.commit_comments + a.issue_comments + a.pull_requests +
                     a.pull_request_comments) AS total, a.repo_id, repo_name
             FROM (
-                    (SELECT gh_user_id AS id,
+                    (SELECT reporter_id AS id,
                             repo_id,
                             0          AS commits,
                             COUNT(*)   AS issues,
@@ -150,9 +151,9 @@ def contributors(repo_group_id, repo_id=None, period='day', begin_date=None, end
                     FROM issues
                     WHERE repo_id in (SELECT repo_id FROM repo WHERE repo_group_id=:repo_group_id)
                         AND created_at BETWEEN :begin_date AND :end_date
-                        AND gh_user_id IS NOT NULL
+                        AND reporter_id IS NOT NULL
                         AND pull_request IS NULL
-                    GROUP BY gh_user_id, issues.repo_id)
+                    GROUP BY reporter_id, issues.repo_id)
                     UNION ALL
                     (SELECT cmt_ght_author_id AS id,
                             repo_id,
@@ -198,7 +199,7 @@ def contributors(repo_group_id, repo_id=None, period='day', begin_date=None, end
                             issue_message_ref,
                             message
                         WHERE issues.repo_id in (SELECT repo_id FROM repo WHERE repo_group_id=:repo_group_id)
-                        AND gh_user_id IS NOT NULL
+                        AND issues.reporter_id IS NOT NULL
                         AND issues.issue_id = issue_message_ref.issue_id
                         AND issue_message_ref.msg_id = message.msg_id
                         AND issues.pull_request IS NULL
@@ -240,13 +241,13 @@ def contributors_new(repo_group_id, repo_id=None, period='day', begin_date=None,
             FROM (
                     SELECT id as id, MIN(created_at) AS created_at, a.repo_id
                     FROM (
-                            (SELECT gh_user_id AS id, MIN(created_at) AS created_at, repo_id
+                            (SELECT reporter_id AS id, MIN(created_at) AS created_at, repo_id
                             FROM issues
                             WHERE repo_id = :repo_id
                                 AND created_at BETWEEN :begin_date AND :end_date
-                                AND gh_user_id IS NOT NULL
+                                AND reporter_id IS NOT NULL
                                 AND pull_request IS NULL
-                            GROUP BY gh_user_id, repo_id)
+                            GROUP BY reporter_id, repo_id)
                             UNION ALL
                             (SELECT cmt_ght_author_id                                AS id,
                                     MIN(TO_TIMESTAMP(cmt_author_date, 'YYYY-MM-DD')) AS created_at,
@@ -289,13 +290,13 @@ def contributors_new(repo_group_id, repo_id=None, period='day', begin_date=None,
             FROM (
                     SELECT id as id, MIN(created_at) AS created_at, a.repo_id
                     FROM (
-                            (SELECT gh_user_id AS id, MIN(created_at) AS created_at, repo_id
+                            (SELECT reporter_id AS id, MIN(created_at) AS created_at, repo_id
                             FROM issues
                             WHERE repo_id in (SELECT repo_id FROM repo WHERE repo_group_id=:repo_group_id)
                                 AND created_at BETWEEN :begin_date AND :end_date
-                                AND gh_user_id IS NOT NULL
+                                AND reporter_id IS NOT NULL
                                 AND pull_request IS NULL
-                            GROUP BY gh_user_id, repo_id)
+                            GROUP BY reporter_id, repo_id)
                             UNION ALL
                             (SELECT cmt_ght_author_id                                AS id,
                                     MIN(TO_TIMESTAMP(cmt_author_date, 'YYYY-MM-DD')) AS created_at,
@@ -315,7 +316,7 @@ def contributors_new(repo_group_id, repo_id=None, period='day', begin_date=None,
                                 and commit_comment_ref.msg_id = message.msg_id
                             group by id, commits.repo_id)
                             UNION ALL
-                            (SELECT issue_events.cntrb_id AS id, MIN(issue_events.created_at) AS created_at, repo_id
+                            (SELECT issue_events.cntrb_id AS id, MIN(issue_events.created_at) AS created_at, issue_events.repo_id
                             FROM issue_events, issues
                             WHERE issues.repo_id in (SELECT repo_id FROM repo WHERE repo_group_id=:repo_group_id)
                                 AND issues.issue_id = issue_events.issue_id
@@ -323,7 +324,7 @@ def contributors_new(repo_group_id, repo_id=None, period='day', begin_date=None,
                                 AND issue_events.created_at BETWEEN :begin_date AND :end_date
                                 AND issue_events.cntrb_id IS NOT NULL
                                 AND action = 'closed'
-                            GROUP BY issue_events.cntrb_id, repo_id)
+                            GROUP BY issue_events.cntrb_id, issue_events.repo_id)
                         ) a
                     GROUP BY a.id, a.repo_id) b, repo
             WHERE repo.repo_id = b.repo_id
