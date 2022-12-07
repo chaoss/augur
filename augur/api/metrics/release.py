@@ -170,15 +170,42 @@ def release_frequency(repo_group_id, repo_id=None, period='day', begin_date=None
         end_date = datetime.datetime.now().strftime('%Y-%m-%d')
 
     if not repo_id:
-        releases_SQL = s.sql.text("""
-            SELECT
-                COUNT(release_published_at) AS releases_over_time
-            FROM
-                releases
-            WHERE release_published_at BETWEEN :begin_date AND :end_date
-            AND repo_id IN (SELECT repo_id FROM repo WHERE repo_group_id=:repo_group_id )
-            GROUP BY repo_id;
-        """)
+        if period == 'year':
+            releases_SQL = s.sql.text("""
+                SELECT
+                    COUNT(release_published_at) / ((DATE_PART('day', AGE('2022-11-10', '2022-10-10'))/365) +
+                        (DATE_PART('month', AGE('2022-11-10', '2022-10-10'))/12) +
+                        DATE_PART('year', AGE('2022-11-10', '2022-10-20'))) AS releases_over_time
+                FROM
+                    releases
+                WHERE release_published_at BETWEEN :begin_date AND :end_date
+                AND repo_id IN (SELECT repo_id FROM repo WHERE repo_group_id=:repo_group_id )
+                GROUP BY repo_id;
+            """)
+        elif period == 'month':
+            releases_SQL = s.sql.text("""
+                SELECT
+                    COUNT(release_published_at) / ((DATE_PART('day', AGE('2022-11-10', '2022-10-10'))/30) +
+                        DATE_PART('month', AGE('2022-11-10', '2022-10-10')) +
+                        (DATE_PART('year', AGE('2022-11-10', '2022-10-20'))*12)) AS releases_over_time
+                FROM
+                    releases
+                WHERE release_published_at BETWEEN :begin_date AND :end_date
+                AND repo_id IN (SELECT repo_id FROM repo WHERE repo_group_id=:repo_group_id )
+                GROUP BY repo_id;
+            """)
+        else:
+            releases_SQL = s.sql.text("""
+                SELECT
+                    COUNT(release_published_at) / (DATE_PART('day', AGE('2022-11-10', '2022-10-10')) +
+                        (DATE_PART('month', AGE('2022-11-10', '2022-10-10'))*30) +
+                        (DATE_PART('year', AGE('2022-11-10', '2022-10-20'))*365)) AS releases_over_time
+                FROM
+                    releases
+                WHERE release_published_at BETWEEN :begin_date AND :end_date
+                AND repo_id IN (SELECT repo_id FROM repo WHERE repo_group_id=:repo_group_id )
+                GROUP BY repo_id;
+            """)
 
         results = pd.read_sql(releases_SQL, engine,
                               params={'period': period, 'repo_group_id': repo_group_id,
@@ -186,16 +213,42 @@ def release_frequency(repo_group_id, repo_id=None, period='day', begin_date=None
         return results
 
     else:
-        releases_SQL = s.sql.text("""
-            SELECT
-                COUNT(release_published_at) AS releases_over_time
-            FROM
-                releases
-            WHERE release_published_at BETWEEN :begin_date AND :end_date
-            AND repo_id = :repo_id
-            GROUP BY repo_id;
-
-        """)
+        if period == 'year':
+            releases_SQL = s.sql.text("""
+                SELECT
+                    COUNT(release_published_at) / ((DATE_PART('day', AGE('2022-11-10', '2022-10-10'))/365) +
+                        (DATE_PART('month', AGE('2022-11-10', '2022-10-10'))/12) +
+                        DATE_PART('year', AGE('2022-11-10', '2022-10-20'))) AS releases_over_time
+                FROM
+                    releases
+                WHERE release_published_at BETWEEN :begin_date AND :end_date
+                AND repo_id = :repo_id
+                GROUP BY repo_id;
+            """)
+        elif period == 'month':
+            releases_SQL = s.sql.text("""
+                SELECT
+                    COUNT(release_published_at) / ((DATE_PART('day', AGE('2022-11-10', '2022-10-10'))/30) +
+                        DATE_PART('month', AGE('2022-11-10', '2022-10-10')) +
+                        (DATE_PART('year', AGE('2022-11-10', '2022-10-20'))*12)) AS releases_over_time
+                FROM
+                    releases
+                WHERE release_published_at BETWEEN :begin_date AND :end_date
+                AND repo_id = :repo_id
+                GROUP BY repo_id;
+            """)
+        else:
+            releases_SQL = s.sql.text("""
+                SELECT
+                    COUNT(release_published_at) / (DATE_PART('day', AGE('2022-11-10', '2022-10-10')) +
+                        (DATE_PART('month', AGE('2022-11-10', '2022-10-10'))*30) +
+                        (DATE_PART('year', AGE('2022-11-10', '2022-10-20'))*365)) AS releases_over_time
+                FROM
+                    releases
+                WHERE release_published_at BETWEEN :begin_date AND :end_date
+                AND repo_id = :repo_id
+                GROUP BY repo_id;
+            """)
 
         results = pd.read_sql(releases_SQL, engine,
                               params={'period': period, 'repo_id': repo_id,
