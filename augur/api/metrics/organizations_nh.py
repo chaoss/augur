@@ -12,6 +12,10 @@ def contributor_affiliations(repo_group_id, repo_id=None, period='day', begin_da
   Add comments here
   """
   
+  if not begin_date:
+    begin_date = '1970-1-1 00:00:01'
+  if not end_date:
+    end_date = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
   
   if repo_id:
     cntrb_affiliationsSQL = s.sql.text("""
