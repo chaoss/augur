@@ -7,7 +7,7 @@ import json
 import asyncio
 import datetime
 import logging
-
+from sqlalchemy.sql import text
 
 from typing import List, Optional, Union, Generator, Tuple
 from urllib.parse import urlencode, urlparse, parse_qs, urlunparse
@@ -15,7 +15,43 @@ from enum import Enum
 
 
 from augur.tasks.github.util.github_random_key_auth import GithubRandomKeyAuth
+from augur.application.db.session import DatabaseSession
 from augur.tasks.github.util.util import parse_json_response
+
+def update_moved_repo(old_url, new_url, logger):
+
+    with DatabaseSession(logger) as session:
+
+        # check if new url already exists if so delete old url and return
+        new_url_query = text(f"""SELECT repo_id FROM repo WHERE repo_git={new_url}""")
+        result = session.fetchall_data_from_sql_text(new_url_query)
+
+        if len(result) > 0:
+
+            delete_repo_query = text(f"""DELETE FROM augur_data.commits where repo_id={repo_id};
+                                        DELETE FROM augur_data.issue_assignees where repo_id ={repo_id};
+                                        DELETE FROM augur_data.issue_events where repo_id={repo_id};
+                                        DELETE FROM augur_data.issue_labels where repo_id={repo_id};
+                                        DELETE FROM augur_data.issue_message_ref where repo_id={repo_id};
+                                        DELETE FROM augur_data.pull_request_assignees where repo_id={repo_id};
+                                        DELETE FROM augur_data.pull_request_commits where repo_id={repo_id};
+                                        DELETE FROM augur_data.pull_request_events where repo_id={repo_id};
+                                        DELETE FROM augur_data.pull_request_files where repo_id={repo_id};
+                                        DELETE FROM augur_data.pull_request_meta where repo_id={repo_id};
+                                        DELETE FROM augur_data.releases where repo_id={repo_id};
+                                        DELETE FROM augur_data.pull_request_message_ref where repo_id={repo_id};
+                                        DELETE FROM augur_operations.user_repos where repo_id={repo_id};
+                                        DELETE FROM augur_data.pull_request_labels where repo_id={repo_id};
+                                        DELETE FROM repo where repo_id={repo_id};
+                                """)
+            session.execute_sql(delete_repo_query)
+            return 
+
+        # update the old url to the new url 
+        query = text("""SELECT * FROM augur_data.repo WHERE repo_git='old_url' FOR UPDATE;
+                        UPDATE augur_data.repo SET repo_git = 'new_url' WHERE repo_git='old_url';""")
+        session.execute_sql(query)
+    
 
  
 def hit_api(key_manager, url: str, logger: logging.Logger, timeout: float = 10, method: str = 'GET', ) -> Optional[httpx.Response]:
@@ -30,7 +66,14 @@ def hit_api(key_manager, url: str, logger: logging.Logger, timeout: float = 10, 
 
         try:
             response = client.request(
-                method=method, url=url, auth=key_manager, timeout=timeout, follow_redirects=True)
+                method=method, url=url, auth=key_manager, timeout=timeout)
+
+            if response.status_code == 301:
+
+                new_url = response.headers['location']
+                update_moved_repo(url, new_url)
+
+                
 
         except TimeoutError:
             logger.info(f"Request timed out. Sleeping {round(timeout)} seconds and trying again...\n")
