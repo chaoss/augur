@@ -146,14 +146,14 @@ import Spinner from '../components/Spinner.vue'
   computed: {
     ...mapGetters('common', [
       'sortedRepos',
-      'contributorsCountInRepo'
+      
     ]),
   },
 })
 
 export default class Repos extends Vue{
   colors: string[] = ["#343A40", "#24a2b7", "#159dfb", "#FF3647", "#4736FF","#3cb44b","#ffe119","#f58231","#911eb4","#42d4f4","#f032e6"];
-  testEndpoints: string[] = ['issuesClosed', 'codeChangesLines', 'issueNew','contributors'];
+  testEndpoints: string[] = ['issuesClosed', 'codeChangesLines', 'issueNew'];
   testTimeframes: string[] = ['past 1 month', 'past 3 months', 'past 2 weeks'];
   // repos: any[] = [];
   repo_groups:any[] = [];
@@ -169,7 +169,7 @@ export default class Repos extends Vue{
   getRepoRelations!: any
   sortedRepos!:any
   loadRepos!:any;
-  contributorsCountInRepo!: any;
+  
 
   addRepo!:any;
   setBaseRepo!:any;
