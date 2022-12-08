@@ -5,13 +5,13 @@
       <d-breadcrumb-item
         :active="false"
         :text="base.rg_name"
-        href="#"
+        :href="'../../../../group/' + base.rg_name + '/overview'"
         @click="onRepoGroup({rg_name: base.rg_name, repo_group_id: base.repo_group_id})"
       />
       <d-breadcrumb-item :active="true" :text="base.repo_name" href="#" />
       <!-- <d-button style="line-height:1;transform: translateX(0.5rem) translateY(-0.1rem);"><d-link :to="{name: 'repo_risk', params: {repo: base.repo_name, group:base.rg_name}}"><span>Risk</span></d-link></d-button> -->
     </d-breadcrumb>
-
+    
     <!-- <tab-selector></tab-selector> -->
 
     <p></p>
