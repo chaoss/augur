@@ -15,28 +15,34 @@ def contributor_affiliations():
   
   if repo_id:
     cntrb_affiliationsSQL = s.sql.text("""
-      SELECT trim(BOTH from cntrb_company) as cntrb_company, 
-      COUNT(*) AS organization_cntrb 
-      FROM augur_data.contributors INNER JOIN 
-	      (SELECT pr_augur_contributor_id 
-	      FROM augur_data.pull_requests 
-	      WHERE repo_id = 26285) AS pr_cntrb_id 
-	      ON contributors.cntrb_id=pr_cntrb_id.pr_augur_contributor_id 
-	      Group by trim(BOTH from cntrb_company)
+      SELECT 'Organizations' as null_state, COUNT(*)
+      FROM augur_data.pull_requests
+      inner join augur_data.contributors on pull_requests.pr_augur_contributor_id = contributors.cntrb_id
+      WHERE repo_id = '26285'
+        AND cntrb_company is not null
+      union
+      SELECT 'Volunteers' as null_state, COUNT(*)
+      FROM augur_data.pull_requests
+      inner join augur_data.contributors on pull_requests.pr_augur_contributor_id = contributors.cntrb_id
+      WHERE repo_id = '26285'
+        AND cntrb_company is null;
       """)
     
     results = pd.read_sql(cntrb_affiliationsSQL, engine, params={'repo_id': repo_id, 'period': period,
                                                                 'begin_date': begin_date, 'end_date': end_date})
   else:
     cntrb_affiliationsSQL = s.sql.text("""
-      SELECT trim(BOTH from cntrb_company) as cntrb_company, 
-      COUNT(*) AS organization_cntrb 
-      FROM augur_data.contributors INNER JOIN 
-	      (SELECT pr_augur_contributor_id 
-	      FROM augur_data.pull_requests 
-	      WHERE repo_id = 26285) AS pr_cntrb_id 
-	      ON contributors.cntrb_id=pr_cntrb_id.pr_augur_contributor_id 
-	      Group by trim(BOTH from cntrb_company)
+           SELECT 'Organizations' as null_state, COUNT(*)
+      FROM augur_data.pull_requests
+      inner join augur_data.contributors on pull_requests.pr_augur_contributor_id = contributors.cntrb_id
+      WHERE repo_id = '26285'
+        AND cntrb_company is not null
+      union
+      SELECT 'Volunteers' as null_state, COUNT(*)
+      FROM augur_data.pull_requests
+      inner join augur_data.contributors on pull_requests.pr_augur_contributor_id = contributors.cntrb_id
+      WHERE repo_id = '26285'
+        AND cntrb_company is null;
       """)
           
     results = pd.read_sql(contributorsSQL, engine, params={'repo_group_id': repo_group_id, 'period': period,
