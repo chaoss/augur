@@ -1,0 +1,4 @@
+Our SQL queries have been tested using pgAdmin, but are not yet all wrapped in Python. 
+Wrapped queries seem to be working, but as far as we can tell the repo has no data.
+
+All design files are still applicable, and so have been moved here.
