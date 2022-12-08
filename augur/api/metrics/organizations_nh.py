@@ -18,13 +18,13 @@ def contributor_affiliations():
       SELECT 'Organizations' as null_state, COUNT(*)
       FROM augur_data.pull_requests
       inner join augur_data.contributors on pull_requests.pr_augur_contributor_id = contributors.cntrb_id
-      WHERE repo_id = '26285'
+      WHERE repo_id = :repo_id
         AND cntrb_company is not null
       union
       SELECT 'Volunteers' as null_state, COUNT(*)
       FROM augur_data.pull_requests
       inner join augur_data.contributors on pull_requests.pr_augur_contributor_id = contributors.cntrb_id
-      WHERE repo_id = '26285'
+      WHERE repo_id = :repo_id
         AND cntrb_company is null;
       """)
     
@@ -35,13 +35,13 @@ def contributor_affiliations():
            SELECT 'Organizations' as null_state, COUNT(*)
       FROM augur_data.pull_requests
       inner join augur_data.contributors on pull_requests.pr_augur_contributor_id = contributors.cntrb_id
-      WHERE repo_id = '26285'
+      WHERE repo_id = :repo_id
         AND cntrb_company is not null
       union
       SELECT 'Volunteers' as null_state, COUNT(*)
       FROM augur_data.pull_requests
       inner join augur_data.contributors on pull_requests.pr_augur_contributor_id = contributors.cntrb_id
-      WHERE repo_id = '26285'
+      WHERE repo_id = :repo_id
         AND cntrb_company is null;
       """)
           
