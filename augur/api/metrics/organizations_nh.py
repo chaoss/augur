@@ -49,7 +49,7 @@ def contributor_affiliations(repo_group_id, repo_id=None, period='day', begin_da
         AND cntrb_company is null;
       """)
           
-    results = pd.read_sql(contributorsSQL, engine, params={'repo_group_id': repo_group_id, 'period': period,
+    results = pd.read_sql(cntrb_affiliationsSQL, engine, params={'repo_group_id': repo_group_id, 'period': period,
                                                                 'begin_date': begin_date, 'end_date': end_date}) 
 
   return results
