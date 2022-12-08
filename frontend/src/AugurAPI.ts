@@ -3,6 +3,7 @@
 var $ = require('jquery')
 var _ = require('lodash')
 
+
 interface __reverseEndpointMap {
   [key: string]: any; // Add index signature
 }
@@ -16,6 +17,7 @@ export default class AugurAPI {
   __pending: any
   getDownloadedGitRepos: any
   getRepos: any
+  getContributors: any
   getRepoGroups: any
   topInsights: any
   openRequests: number
@@ -38,6 +40,7 @@ export default class AugurAPI {
 
     // this.getDownloadedGitRepos = this.__EndpointFactory('git/repos')
     this.getRepos = this.__EndpointFactory('repos')
+    this.getContributors = this.__EndpointFactory('contributors')
     this.getRepoGroups = this.__EndpointFactory('repo-groups')
     this.topInsights = this.__EndpointFactory('top-insights')
 
