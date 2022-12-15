@@ -62,6 +62,12 @@
                       <div class="arrow" v-bind:class="ascending ? 'arrow_up' : 'arrow_down'" v-if="'issues_all_time' == sortColumn"></div>
                     </div>
                   </th>
+                  <th scope="col" class="border-0" v-on:click="sortTable('pull_requests_all_time')">
+                    <div class="row">
+                      <div class="col col-0">Total Pull Requests</div>
+                      <div class="arrow" v-bind:class="ascending ? 'arrow_up' : 'arrow_down'" v-if="'pull_requests_all_time' == sortColumn"></div>
+                    </div>
+                  </th>
                   <!-- <th scope="col" class="border-0" v-on:click="sortTable('repo_status')">
                     <div class="row">
                       <div class="col col-9">Status</div>
@@ -81,6 +87,7 @@
                   <!-- <td>{{ repo.repo_count }}</td> -->
                   <td>{{ repo.commits_all_time }}</td>
                   <td>{{ repo.issues_all_time }}</td>
+                  <td>{{ repo.pull_requests_all_time }}</td>
                   <!-- <td>{{ repo.repo_status }}</td> -->
                   <!-- <td>
                     <div class="row">
@@ -138,7 +145,8 @@ import Spinner from '../components/Spinner.vue'
   },
   computed: {
     ...mapGetters('common', [
-      'sortedRepos'
+      'sortedRepos',
+      
     ]),
   },
 })
@@ -161,6 +169,7 @@ export default class Repos extends Vue{
   getRepoRelations!: any
   sortedRepos!:any
   loadRepos!:any;
+  
 
   addRepo!:any;
   setBaseRepo!:any;
