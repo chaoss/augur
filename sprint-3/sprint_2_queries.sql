@@ -1,10 +1,11 @@
+-- Wrapped
 -- repo_id field will match repo id passed in from other metric 
 SELECT COUNT(*) 
 FILTER (WHERE pr_src_author_association = 'MEMBER'
 	   AND repo_id = '26285') as maintainer_count
 FROM augur_data.pull_requests
 
-
+-- Wrapped
 -- Organization or volunteer - driven returns the number of commits by users affiliated with an organization vs. users with no organizational affiliation.
 
 SELECT 'Organizations' as null_state, COUNT(*)
@@ -19,7 +20,8 @@ inner join augur_data.contributors on pull_requests.pr_augur_contributor_id = co
 WHERE repo_id = '26285'
     AND cntrb_company is null;
 		   
-		   
+
+-- Wrapped		   
 -- Organizational influence - returns the percent of pull requests that were made by each company during the period
 
 SELECT
@@ -41,7 +43,8 @@ FROM augur_data.contributors
     WHERE contributors.cntrb_company is not null
 GROUP BY lower(trim(LEADING '@' from trim(BOTH from cntrb_company)));
 
-		   
+
+-- Wrapped	   
 -- Peripheral organizations - returns the number of pull requests, date of first pull request, and date of latest pull request associated with each company
 
 select lower(trim(LEADING '@' from trim(BOTH from cntrb_company))) as organization_name, count(pr_merged_at) as number_of_contributions,
@@ -51,6 +54,7 @@ inner join augur_data.contributors on pull_requests.pr_augur_contributor_id = co
 where cntrb_company is not null and pr_merged_at is not null
 and repo_id = '26285'
 group by lower(trim(LEADING '@' from trim(BOTH from cntrb_company)));
+
 
 -- Organizations contributing – returns average PR’s per day while an organization was contributing, in the 60 days before they started, and in the 60 days after they stopped contributing.
 

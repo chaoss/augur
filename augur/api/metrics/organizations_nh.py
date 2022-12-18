@@ -34,6 +34,7 @@ def contributor_affiliations(repo_group_id, repo_id=None, period='day', begin_da
     
     results = pd.read_sql(cntrb_affiliationsSQL, engine, params={'repo_id': repo_id, 'period': period,
                                                                 'begin_date': begin_date, 'end_date': end_date})
+  # Not written for repo_group_id as written
   else:
     cntrb_affiliationsSQL = s.sql.text("""
            SELECT 'Organizations' as null_state, COUNT(*)
