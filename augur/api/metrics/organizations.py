@@ -12,7 +12,7 @@ from augur.application.db.engine import create_database_engine
 engine = create_database_engine()
 
 @register_metric()
-def maintainers(self, repo_group_id, repo_id=None, period='day', begin_date=None, end_date=None):
+def maintainers(repo_group_id, repo_id=None, period='day', begin_date=None, end_date=None):
     """
     Returns the amount of contributors with the maintainer role for a repository
     :param repo_id: The repository's id
@@ -54,7 +54,7 @@ def maintainers(self, repo_group_id, repo_id=None, period='day', begin_date=None
 
 
 @register_metric()
-def organizational_influence(self, repo_group_id, repo_id=None, period='day', begin_date=None, end_date=None):
+def organizational_influence(repo_group_id, repo_id=None, period='day', begin_date=None, end_date=None):
     """
     Returns the percent of pull requests that were made by each company during the period.
 
@@ -341,7 +341,7 @@ def organization_contributing(repo_group_id, repo_id=None, company=None):
     return results
 
 @register_metric()
-def contributor_affiliations(self, repo_group_id, repo_id=None, period='day', begin_date=None, end_date=None):
+def contributor_affiliations(repo_group_id, repo_id=None, period='day', begin_date=None, end_date=None):
     """
     Returns the number of commits by users affiliated with an organization vs. 
      users with no organizational affiliation.
