@@ -31,7 +31,8 @@ Required:
 
 - For Mac, run the following command to see what versions of python you have installed: ``ls /usr/local/bin/python*``
 
-- You’re going to need homebrew if you are on mac to download a lot of the dependency packages. If you don’t have brew, download it `here: <https://brew.sh/>`_ To check that it’s installed, run: ``brew --version``
+
+You’re going to need homebrew if you are on mac to download a lot of the dependency packages. If you don’t have brew, download it `here: <https://brew.sh/>`_ To check that it’s installed, run: ``brew --version``
 
 
 
