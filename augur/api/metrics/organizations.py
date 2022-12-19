@@ -93,7 +93,7 @@ def organizational_influence(repo_group_id, repo_id=None, period='day', begin_da
             GROUP BY lower(trim(LEADING '@' from trim(BOTH from cntrb_company)));
         """)
 
-        results = pd.read_sql(orgInfluence, engine,  params={'repo_group_id': repo_group_id, 'period': period,
+        results = pd.read_sql(orgInfluence, engine,  params={'repo_id': repo_group_id, 'period': period,
                                                                 'begin_date': begin_date, 'end_date': end_date})
 
         # Not not written for repo_group_id as written
@@ -219,7 +219,8 @@ def peripheral_organizations(repo_group_id, repo_id=None, period='day', begin_da
             group by lower(trim(LEADING '@' from trim(BOTH from cntrb_company)));
         """)
 
-        results = pd.read_sql(po, engine, params={'repo_id': repo_id,})
+        results = pd.read_sql(po, engine, params={'repo_id': repo_id, 'period': period,
+                                                                'begin_date': begin_date, 'end_date': end_date})
 
     # Not written for repo_group_id as written
     else:
