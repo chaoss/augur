@@ -15,6 +15,9 @@ Before you can install our schema, you will need to make sure you have **write a
 
     If you want to collect data over the long term, we strongly advise against `using a Docker container for your database <https://vsupalov.com/database-in-docker/>`_.
 
+To install PostgreSQL, download the most recent installer for your system `here <https://www.enterprisedb.com/downloads/postgres-postgresql-downloads>`_.
+Follow the instructions to 
+
 If you're a newcomer to PostgreSQL, you can follow their excellent instructions `here <https://www.postgresql.org/docs/12/tutorial-install.html>`_ to set it up for your machine of choice. We recommend using ``Postgres.app`` if you're on macOS, but if you're running UNIX or are looking for an alternative to ``Postgres.app`` then pgAdmin is a great open-source alternative.
 
 Creating a Database
