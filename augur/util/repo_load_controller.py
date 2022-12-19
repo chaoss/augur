@@ -184,7 +184,7 @@ class RepoLoadController:
             
         repo_user_group_unique = ["group_id", "repo_id"]
         return_columns = ["group_id", "repo_id"]
-        data = self.session.insert_data(repo_user_data, UserRepo, repo_user_unique, return_columns)
+        data = self.session.insert_data(repo_user_group_data, UserGroup, repo_user_group_unique, return_columns)
 
         if data[0]["group_id"] == group_id and data[0]["repo_id"] == repo_id:
             return True
@@ -211,7 +211,7 @@ class RepoLoadController:
 
     def get_user_group_repos(self, user_id, group_id):
 
-        repos = self.session.query(UserRepo).filter(UserGroup.user_id == user_id, UserGroup.group_id = group_id).all()
+        repos = self.session.query(UserRepo).filter(UserGroup.user_id == user_id, UserGroup.group_id == group_id).all()
 
         return [repo["repo_id"] for repo in repos]
 
