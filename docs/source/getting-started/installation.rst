@@ -157,23 +157,33 @@ General Augur Installation Steps (Irrespective of Operating System)
    $ cd augur/
 
 2. Create a virtual environment in a directory of your choosing. Be sure to use the correct ``python`` command for
-your installation of Python 3: on most systems, this is ``python3``, but yours may differ (you can use ``python -V`` or ``python3 -V`` to check).
+your installation of Python3: on most systems, this is ``python3``, but yours may differ (you can use ``python -V`` or ``python3 -V`` to check).
 
 .. code-block:: bash
 
-    # to create the environment
+    # to create the environment if your MOST RECENT version of python is valid
     $ python3 -m venv $HOME/.virtualenvs/augur_env
+
+    #to create the environment if you have python 3.9 but it isn’t the most recent version
+    $python3.9 -m venv $HOME/.virtualenvs/augur_env 
 
     # to activate the environment
     $ source $HOME/.virtualenvs/augur_env/bin/activate
 
 3. Set AUGUR_DB environment variable with a postgres database connection string (if you have not setup a database yet, refer to :ref:`database setup<Creating a Database>`) Note: Three terminals will be needed to collect data for augur, and AUGUR_DB needs to be set for 2 out of the 3. If you don't want to add it to both terminals you can add it permanently in your .bashrc file if running bash, or .zshrc file if in running zsh. 
 
+- Replace <user> with augur, <password> with the password you created for the augur user, <host> with localhost (if you are building this locally), and <port> with 5432 (assuming you left that as the default port)
+
+- An example of what this will actually look like: For user = augur, password = password, host = localhost, port = 5432, and database_name = augur
+
+- Ex. ``export AUGUR_DB=postgresql+psycopg2://augur:password@localhost:5432/augur``
+
 .. code-block:: bash
 
     # set postgres database connection string to AUGUR_DB environment variable
     # replace <> variables with actual values
     $ export AUGUR_DB=postgresql+psycopg2://<user>:<password>@<host>:<port>/<database_name>
+
 
 4. Run the install script. This script will:
 
