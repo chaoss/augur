@@ -41,7 +41,7 @@ You’re going to need homebrew if you are on mac to download a lot of the depen
 Our REST API & data collection workers write in Python 3.6. We query the GitHub & GitLab API to collect data about issues, pull requests, contributors, and other information about a repository, so GitLab and GitHub access tokens are **required** for data collection.
 
 
-Install `Go <https://formulae.brew.sh/formula/go>`_` (not strictly necessary to run Augur, but the value_worker requires it)
+Install `Go <https://formulae.brew.sh/formula/go/>`_ (not strictly necessary to run Augur, but the value_worker requires it)
 
 - If you are running on MacOS, you will need to run ``brew install go`` in order for it to end up in the correct location for augur to find it
 
