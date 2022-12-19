@@ -22,22 +22,17 @@ Follow the instructions in the installer. At some point you will be asked to set
 ``$ ls -d /Library/PostgreSQL/*/bin``
 Result will look something like this.
 ``$ /Library/PostgreSQL/15/bin``
-
 Now you need to add this path to the bottom of the /etc/paths file. To edit the file, use the command:
-
-.. code-block:: bash
-    sudo nano /etc/paths
-
+``$ sudo nano /etc/paths``
 You will be prompted to enter the administrator password for your computer. When the file opens, add the bin directory path you found in the last step to the bottom of the file. Then type CTRL-X, Y, and ENTER. 
+
 To use the psql command, open a new terminal then type:
-
-.. code-block:: bash
-    psql -U postgres
-
+``$ psql -U postgres``
 -U specifies the user, postgres. Postgres is the superuser username. You will be prompted to login with a password. Use the password you set during installation.
 After logging in, your terminal will now look like this:
 
 .. code-block:: bash
+
     psql (15.1)
     Type "help" for help.
 
