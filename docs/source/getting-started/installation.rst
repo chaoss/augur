@@ -31,6 +31,8 @@ Our REST API & data collection workers write in Python 3.6. We query the GitHub 
 
 - For Mac, run the following command to see what versions of python you have installed: ``ls /usr/local/bin/python*``
 
+- If you do not have the correct version of Python on Mac, run either ``brew install python@3.8`` or ``brew install python@3.9``
+
 
 You’re going to need homebrew if you are on mac to download a lot of the dependency packages. If you don’t have brew, download it `here <https://brew.sh/>`_. 
 
