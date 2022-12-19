@@ -55,11 +55,13 @@ def maintainers(repo_group_id, repo_id=None, period='day', begin_date=None, end_
 
 @register_metric()
 def organizational_influence(repo_group_id, repo_id=None, period='day', begin_date=None, end_date=None):
+
     """
     Returns the percent of pull requests that were made by each company during the period.
 
     :param repo_id: The repository's id
     :param repo_group_id: The repository's group id
+    :param period: To set the periodicity to 'day', 'week', 'month' or 'year', defaults to 'day'
     :param begin_date: Specifies the begin date, defaults to '1970-1-1 00:00:00'
     :param end_date: Specifies the end date, defaults to datetime.now()
     """
@@ -195,12 +197,15 @@ def organizational_influence(repo_group_id, repo_id=None, begin_date=None, end_d
 '''
 
 @register_metric()
-def peripheral_organizations(repo_group_id, repo_id=None):
+def peripheral_organizations(repo_group_id, repo_id=None, period='day', begin_date=None, end_date=None):
     """
     Returns the number of pull requests, date of first pull request, and date of latest pull request associated with each company
 
     :param repo_id: The repository's id
     :param repo_group_id: The repository's group id
+    :param period: To set the periodicity to 'day', 'week', 'month' or 'year', defaults to 'day'
+    :param begin_date: Specifies the begin date, defaults to '1970-1-1 00:00:00'
+    :param end_date: Specifies the end date, defaults to datetime.now()
     """
 
     if repo_id:
