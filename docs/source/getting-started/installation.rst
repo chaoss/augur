@@ -25,7 +25,12 @@ Required:
 
 
   
-**Python version 3.8 or 3.9. (Will not work for Python 3.10 or later because machine learning libraries are not supported)**
+**Python version 3.10 or later will not work, because some machine learning libraries are not supported**
+
+- If you do have a valid version but it isn’t your most recent version of python you will need to specify that exact version when you make the virtual environment. 
+
+- Run the following command to see what versions of python you have installed: ``ls /usr/local/bin/python*``
+
 
 Our REST API & data collection workers write in Python 3.6. We query the GitHub & GitLab API to collect data about issues, pull requests, contributors, and other information about a repository, so GitLab and GitHub access tokens are **required** for data collection.
 
