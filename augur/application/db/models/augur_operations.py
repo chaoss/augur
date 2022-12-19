@@ -193,14 +193,14 @@ class User(Base):
 
 
 class UserGroup(Base):
-    id = Column(UUID, primary_key=True)
+    user_group_id = Column(BigInteger, primary_key=True)
     user_id = Column(Integer, 
                     ForeignKey("augur_operations.users.user_id", name="user_group_user_id_fkey")
     )
     name = Column(String, nullable=False)
     __tablename__ = 'user_groups'
     __table_args__ = (
-        UniqueConstraint('user_g', name='user_group_unique'),
+        UniqueConstraint('user_id', 'name', name='user_group_unique'),
         {"schema": "augur_operations"}
     )
 
@@ -215,7 +215,7 @@ class UserRepo(Base):
     )
 
     group_id = Column(
-        ForeignKey("augur_operations.user_groups.group_id", name="user_repo_group_id_fkey"), primary_key=True, nullable=False
+        ForeignKey("augur_operations.user_groups.user_group_id", name="user_repo_group_id_fkey"), primary_key=True, nullable=False
     )
     repo_id = Column(
         ForeignKey("augur_data.repo.repo_id", name="user_repo_user_id_fkey"), primary_key=True, nullable=False
