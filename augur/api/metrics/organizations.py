@@ -76,19 +76,21 @@ def organizational_influence(repo_group_id, repo_id=None, period='day', begin_da
             SELECT
                 lower(trim(LEADING '@' from trim(BOTH from cntrb_company))) as cntrb_company,
                 COUNT(*)::float / (
-                    SELECT count(pr_created_at) AS total_contributions
-                    FROM augur_data.pull_requests
-                    WHERE repo_id = :repo_id
+                SELECT count(pr_created_at) AS total_contributions
+                FROM augur_data.pull_requests
+                WHERE repo_id = :repo_id
+                and pr_created_at between :begin_date and :end_date
                 ) AS percent_cntrb
             FROM augur_data.contributors
                 INNER JOIN (
                     SELECT pr_augur_contributor_id, pr_merged_at
                     FROM augur_data.pull_requests
                     WHERE repo_id = :repo_id
+                        and pr_created_at between :begin_date and :end_date
                 ) AS pr_cntrb_id
                 ON contributors.cntrb_id=pr_cntrb_id.pr_augur_contributor_id
                 WHERE contributors.cntrb_company is not null
-            GROUP BY lower(trim(LEADING '@' from trim(BOTH from cntrb_company)));
+GROUP BY lower(trim(LEADING '@' from trim(BOTH from cntrb_company)));
         """)
 
         results = pd.read_sql(orgInfluence, engine,  params={'repo_id': repo_id, 'period': period,
