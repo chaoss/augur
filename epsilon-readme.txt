@@ -1,5 +1,7 @@
 Our SQL queries have been tested using pgAdmin, and are wrapped in Python. The python can be found in augur/api/metrics/organizations.py.
 
+A description of our endpoints, the metrics they create data for, and their output values can be found in "Endpoint Documentation.pdf"
+
 Four endpoints, "Maintainers", "Contributor Affiliations", "Peripheral Organizations", and "Organizations Contributing" can be
 accessed on the server. We believe that "Peripheral Organizations" returns no data because no pull requests in our database have
 been made by users with company affiliations. We don't know why attempting to access Organizational Influence gives a server error.
