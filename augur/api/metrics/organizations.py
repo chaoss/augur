@@ -61,6 +61,7 @@ def maintainers(repo_group_id, repo_id=None, period='day', begin_date=None, end_
                                                                 'begin_date': begin_date, 'end_date': end_date})
     return results
 
+@register_metric()
 def organizational_influence(repo_group_id, repo_id=None, begin_date=None, end_date=None):
     """
     Returns the percent of pull requests that were made by each company during the period.
@@ -127,6 +128,7 @@ def organizational_influence(repo_group_id, repo_id=None, begin_date=None, end_d
 
     return results
 
+@register_metric()
 def peripheral_organizations(repo_group_id, repo_id=None):
     """
     Returns the number of pull requests, date of first pull request, and date of latest pull request associated with each company
@@ -161,5 +163,169 @@ def peripheral_organizations(repo_group_id, repo_id=None):
         """)
 
         results = pd.read_sql(po, engine, params={'repo_group_id': repo_group_id,})
+
+    return results
+
+@register_metric()
+def organization_contributing(repo_group_id, repo_id=None, company=None):
+    """
+    Returns average PR’s per day while an organization was contributing, 
+     in the 60 days before they started, 
+     and in the 60 days after they stopped contributing.
+
+    :param repo_id: The repository's id
+    :param repo_group_id: The repository's group id
+    :param company: the name of the company
+    """
+    
+    if not company:
+        company = 'bitnami'
+
+    if repo_id:
+        org_cntrb = s.sql.text("""
+            CREATE TEMP TABLE tt2 (
+                cntrb_per_day_before float,
+                cntrb_per_day_during float,
+                cntrb_per_day_after float
+            );
+
+            -- Find the start, end, and length (in days) of the company’s contribution, and store in temp table tt
+            SELECT
+                min(pr_created_at) as first_contribution, max(pr_created_at) as last_contribution,
+                (EXTRACT(epoch from (max(pr_created_at) - min(pr_created_at))) / 86400)::int as cntrb_len
+                into temp table tt
+            FROM augur_data.pull_requests
+                inner join augur_data.contributors on pull_requests.pr_augur_contributor_id = contributors.cntrb_id
+            WHERE
+                lower(trim(LEADING '@' from trim(BOTH from cntrb_company))) = lower(trim(LEADING '@' from trim(BOTH from :company)))
+                and repo_id = :repo_id;
+
+            -- find average # of PR's made per day while the company was contributing
+            INSERT INTO tt2 (cntrb_per_day_during)
+            SELECT count(*)::float / (select cntrb_len from tt)
+            FROM augur_data.pull_requests
+            WHERE pr_created_at between (select first_contribution from tt) and (select last_contribution from tt)
+            and repo_id = :repo_id;
+
+            -- find average # of PR's made per day in the 60 days before the company started contributing
+            UPDATE tt2 SET cntrb_per_day_before =(
+            SELECT count(*)::float / 60
+            FROM augur_data.pull_requests
+            WHERE pr_created_at BETWEEN (select (first_contribution - make_interval(days => 60)) from tt) and (select first_contribution from tt)
+            and repo_id = :repo_id);
+
+            -- find average # of PR's made per day in the 60 days after the company stopped contributing
+            UPDATE tt2 SET cntrb_per_day_after = (
+            SELECT count(*)::float / 60
+            FROM augur_data.pull_requests
+            WHERE pr_created_at BETWEEN (select (last_contribution) from tt) and (select (last_contribution + make_interval(days=>60)) from tt)
+            and repo_id = :repo_id);
+
+            SELECT * from tt2;
+        """)
+
+        results = pd.read_sql(org_cntrb, engine, params={'repo_id': repo_id, 'company':company})
+
+    # Not written for repo_group_id as written
+    else:
+        org_cntrb = s.sql.text("""
+            CREATE TEMP TABLE tt2 (
+                cntrb_per_day_before float,
+                cntrb_per_day_during float,
+                cntrb_per_day_after float
+            );
+
+            -- Find the start, end, and length (in days) of the company’s contribution, and store in temp table tt
+            SELECT
+                min(pr_created_at) as first_contribution, max(pr_created_at) as last_contribution,
+                (EXTRACT(epoch from (max(pr_created_at) - min(pr_created_at))) / 86400)::int as cntrb_len
+                into temp table tt
+            FROM augur_data.pull_requests
+                inner join augur_data.contributors on pull_requests.pr_augur_contributor_id = contributors.cntrb_id
+            WHERE
+                lower(trim(LEADING '@' from trim(BOTH from cntrb_company))) = lower(trim(LEADING '@' from trim(BOTH from :company)))
+                and repo_id = :repo_id;
+
+            -- find average # of PR's made per day while the company was contributing
+            INSERT INTO tt2 (cntrb_per_day_during)
+            SELECT count(*)::float / (select cntrb_len from tt)
+            FROM augur_data.pull_requests
+            WHERE pr_created_at between (select first_contribution from tt) and (select last_contribution from tt)
+            and repo_id = :repo_id;
+
+            -- find average # of PR's made per day in the 60 days before the company started contributing
+            UPDATE tt2 SET cntrb_per_day_before =(
+            SELECT count(*)::float / 60
+            FROM augur_data.pull_requests
+            WHERE pr_created_at BETWEEN (select (first_contribution - make_interval(days => 60)) from tt) and (select first_contribution from tt)
+            and repo_id = :repo_id);
+
+            -- find average # of PR's made per day in the 60 days after the company stopped contributing
+            UPDATE tt2 SET cntrb_per_day_after = (
+            SELECT count(*)::float / 60
+            FROM augur_data.pull_requests
+            WHERE pr_created_at BETWEEN (select (last_contribution) from tt) and (select (last_contribution + make_interval(days=>60)) from tt)
+            and repo_id = :repo_id);
+
+            SELECT * from tt2;
+        """)
+
+        results = pd.read_sql(org_cntrb, engine, params={'repo_group_id': repo_group_id, 'company':company})
+
+    return results
+
+@register_metric()
+def contributor_affiliations(repo_group_id, repo_id=None, period='day', begin_date=None, end_date=None):
+    """
+    Returns the number of commits by users affiliated with an organization vs. 
+     users with no organizational affiliation.
+
+    :param repo_id: The repository's id
+    :param repo_group_id: The repository's group id
+    :param period: To set the periodicity to 'day', 'week', 'month' or 'year', defaults to 'day'
+    :param begin_date: Specifies the begin date, defaults to '1970-1-1 00:00:00'
+    :param end_date: Specifies the end date, defaults to datetime.now()
+    """
+  
+    if not begin_date:
+        begin_date = '1970-1-1 00:00:01'
+    if not end_date:
+        end_date = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+  
+    if repo_id:
+        cntrb_affiliationsSQL = s.sql.text("""
+            SELECT 'Organizations' as null_state, COUNT(*)
+            FROM augur_data.pull_requests
+            inner join augur_data.contributors on pull_requests.pr_augur_contributor_id = contributors.cntrb_id
+            WHERE repo_id = :repo_id
+                AND cntrb_company is not null
+            union
+            SELECT 'Volunteers' as null_state, COUNT(*)
+            FROM augur_data.pull_requests
+            inner join augur_data.contributors on pull_requests.pr_augur_contributor_id = contributors.cntrb_id
+            WHERE repo_id = :repo_id
+                AND cntrb_company is null;
+        """)
+    
+        results = pd.read_sql(cntrb_affiliationsSQL, engine, params={'repo_id': repo_id, 'period': period,
+                                                                'begin_date': begin_date, 'end_date': end_date})
+    # Not written for repo_group_id as written
+    else:
+        cntrb_affiliationsSQL = s.sql.text("""
+           SELECT 'Organizations' as null_state, COUNT(*)
+            FROM augur_data.pull_requests
+            inner join augur_data.contributors on pull_requests.pr_augur_contributor_id = contributors.cntrb_id
+            WHERE repo_id = :repo_id
+                AND cntrb_company is not null
+            union
+            SELECT 'Volunteers' as null_state, COUNT(*)
+            FROM augur_data.pull_requests
+            inner join augur_data.contributors on pull_requests.pr_augur_contributor_id = contributors.cntrb_id
+            WHERE repo_id = :repo_id
+                AND cntrb_company is null;
+         """)
+          
+        results = pd.read_sql(cntrb_affiliationsSQL, engine, params={'repo_group_id': repo_group_id, 'period': period,
+                                                                'begin_date': begin_date, 'end_date': end_date}) 
 
     return results
