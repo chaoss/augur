@@ -14,22 +14,13 @@ engine = create_database_engine()
 @register_metric()
 def maintainers(repo_group_id, repo_id=None, period='day', begin_date=None, end_date=None):
     """
-    Returns a timeseries of all the contributions to a project.
-    DataFrame has these columns:
-    date
-    commits
-    pull_requests
-    issues
-    commit_comments
-    pull_request_comments
-    issue_comments
-    total
+    Returns the amount of contributors with the maintainer role for a repository
     :param repo_id: The repository's id
     :param repo_group_id: The repository's group id
     :param period: To set the periodicity to 'day', 'week', 'month' or 'year', defaults to 'day'
     :param begin_date: Specifies the begin date, defaults to '1970-1-1 00:00:00'
     :param end_date: Specifies the end date, defaults to datetime.now()
-    :return: DataFrame of persons/period
+    :return: DataFrame of count of the maintainers
     """
 
     # In this version, pull request, pr request comments,issue comments haven't been calculated
@@ -61,6 +52,79 @@ def maintainers(repo_group_id, repo_id=None, period='day', begin_date=None, end_
                                                                 'begin_date': begin_date, 'end_date': end_date})
     return results
 
+
+@register_metric()
+def organizational_influence((repo_group_id, repo_id=None, period='day', begin_date=None, end_date=None):
+    """
+    Returns the percent of pull requests that were made by each company during the period.
+
+    :param repo_id: The repository's id
+    :param repo_group_id: The repository's group id
+    :param begin_date: Specifies the begin date, defaults to '1970-1-1 00:00:00'
+    :param end_date: Specifies the end date, defaults to datetime.now()
+    """
+
+    if not begin_date:
+        begin_date = '1970-1-1 00:00:01'
+    if not end_date:
+        end_date = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+    if repo_id:
+        orgInfluence = s.sql.text("""
+            SELECT
+                lower(trim(LEADING '@' from trim(BOTH from cntrb_company))) as cntrb_company,
+                COUNT(*)::float / (
+                    SELECT count(pr_created_at) AS total_contributions
+                    FROM augur_data.pull_requests
+                    WHERE repo_id = :repo_id
+                    and pr_created_at between :begin_date and :end_date
+                ) AS percent_cntrb
+            FROM augur_data.contributors
+                INNER JOIN (
+                    SELECT pr_augur_contributor_id, pr_merged_at
+                    FROM augur_data.pull_requests
+                    WHERE repo_id = :repo_id
+                        and pr_created_at between :begin_date and :end_date
+                ) AS pr_cntrb_id
+                ON contributors.cntrb_id=pr_cntrb_id.pr_augur_contributor_id
+                WHERE contributors.cntrb_company is not null
+            GROUP BY lower(trim(LEADING '@' from trim(BOTH from cntrb_company)));
+        """)
+
+        results = pd.read_sql(orgInfluence, engine, params={'repo_id': repo_id, 'begin_date': begin_date, 'end_date': end_date})
+
+        # Not not written for repo_group_id as written
+    else:
+        orgInfluence = s.sql.text("""
+            SELECT
+                lower(trim(LEADING '@' from trim(BOTH from cntrb_company))) as cntrb_company,
+                COUNT(*)::float / (
+                    SELECT count(pr_created_at) AS total_contributions
+                    FROM augur_data.pull_requests
+                    WHERE repo_id = :repo_id
+                    and pr_created_at between :begin_date and :end_date
+                ) AS percent_cntrb
+            FROM augur_data.contributors
+                INNER JOIN (
+                    SELECT pr_augur_contributor_id, pr_merged_at
+                    FROM augur_data.pull_requests
+                    WHERE repo_id = :repo_id
+                        and pr_created_at between :begin_date and :end_date
+                ) AS pr_cntrb_id
+                ON contributors.cntrb_id=pr_cntrb_id.pr_augur_contributor_id
+                WHERE contributors.cntrb_company is not null
+            GROUP BY lower(trim(LEADING '@' from trim(BOTH from cntrb_company)));
+        """)
+
+        results = pd.read_sql(orgInfluence, engine, params={'repo_group_id': repo_group_id, 'period': period,
+                                                                'begin_date': begin_date, 'end_date': end_date})
+
+    return results
+
+
+
+
+'''
 @register_metric()
 def organizational_influence(repo_group_id, repo_id=None, begin_date=None, end_date=None):
     """
@@ -127,6 +191,7 @@ def organizational_influence(repo_group_id, repo_id=None, begin_date=None, end_d
         results = pd.read_sql(orgInfluence, engine, params={'repo_group_id': repo_group_id, 'begin_date': begin_date, 'end_date': end_date})
 
     return results
+'''
 
 @register_metric()
 def peripheral_organizations(repo_group_id, repo_id=None):
