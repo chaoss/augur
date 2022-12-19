@@ -178,6 +178,12 @@ your installation of Python 3: on most systems, this is ``python3``, but yours m
     # replace <> variables with actual values
     $ export AUGUR_DB=postgresql+psycopg2://<user>:<password>@<host>:<port>/<database_name>
 
+- Replace <user> with augur, <password> with the password you created for the augur user, <host> with localhost (if you are building this locally), and <port> with 5432 (assuming you left that as the default port)
+
+- An example of what this will actually look like: For user = augur, password = password, host = localhost, port = 5432, and database_name = augur
+
+- Ex. ``export AUGUR_DB=postgresql+psycopg2://augur:password@localhost:5432/augur``
+
 4. Run the install script. This script will:
 
 - Install Augur’s Python library and application server
