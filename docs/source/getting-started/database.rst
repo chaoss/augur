@@ -21,12 +21,12 @@ Follow the instructions in the installer. At some point you will be asked to set
 **FOR MACOS** Now that you have installed PostgreSQL you need to link to it in your PATH environment variable. First, find the PostgreSQL bin directory with this command:
 
 .. code-block:: bash
-    ls -d /Library/PostgreSQL/*/bin
+    $ ls -d /Library/PostgreSQL/*/bin
 
 Result will look something like this.
 
 ..  code-block:: bash
-    /Library/PostgreSQL/15/bin
+    $ /Library/PostgreSQL/15/bin
 
 Now you need to add this path to the bottom of the /etc/paths file. To edit the file, use the command:
 
