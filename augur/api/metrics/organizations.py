@@ -54,7 +54,7 @@ def maintainers(repo_group_id, repo_id=None, period='day', begin_date=None, end_
 
 
 @register_metric()
-def organizational_influence((repo_group_id, repo_id=None, period='day', begin_date=None, end_date=None):
+def organizational_influence(repo_group_id, repo_id=None, period='day', begin_date=None, end_date=None):
     """
     Returns the percent of pull requests that were made by each company during the period.
 
