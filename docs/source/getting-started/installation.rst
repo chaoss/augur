@@ -157,7 +157,7 @@ General Augur Installation Steps (Irrespective of Operating System)
    $ cd augur/
 
 2. Create a virtual environment in a directory of your choosing. Be sure to use the correct ``python`` command for
-your installation of Python 3: on most systems, this is ``python3``, but yours may differ (you can use ``python -V`` or ``python3 -V`` to check).
+your installation of Python3: on most systems, this is ``python3``, but yours may differ (you can use ``python -V`` or ``python3 -V`` to check).
 
 .. code-block:: bash
 
