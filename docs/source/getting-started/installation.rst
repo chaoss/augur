@@ -43,7 +43,7 @@ Our REST API & data collection workers write in Python 3.6. We query the GitHub 
 
 Install `Go <https://formulae.brew.sh/formula/go/>`_ (not strictly necessary to run Augur, but the value_worker requires it)
 
-- If you are running on MacOS, you will need to run ``brew install go`` in order for it to end up in the correct location for augur to find it
+- If you are running on MacOS, you will need to run ``brew install go`` in order for augur to find it
 
 The ``value_worker`` uses a Go package called `scc <https://github.com/boyter/scc>`_ to run COCOMO calculations.
 Once you've installed Go, follow the appropriate steps for your system to install the ``scc`` package.
