@@ -161,8 +161,11 @@ your installation of Python 3: on most systems, this is ``python3``, but yours m
 
 .. code-block:: bash
 
-    # to create the environment
+    # to create the environment if your MOST RECENT version of python is valid
     $ python3 -m venv $HOME/.virtualenvs/augur_env
+
+    #to create the environment if you have python 3.9 but it isn’t the most recent version
+    $python3.9 -m venv $HOME/.virtualenvs/augur_env 
 
     # to activate the environment
     $ source $HOME/.virtualenvs/augur_env/bin/activate
