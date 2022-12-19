@@ -23,7 +23,7 @@ Required:
 -  `GitLab Access Token <https://gitlab.com/profile/personal_access_tokens>`__
 -  `Python 3.8 - 3.9 <https://www.python.org/downloads/>`__
 
-
+Our REST API & data collection workers write in Python 3.6. We query the GitHub & GitLab API to collect data about issues, pull requests, contributors, and other information about a repository, so GitLab and GitHub access tokens are **required** for data collection.
   
 **Python version 3.10 or later will not work, because some machine learning libraries are not supported**
 
@@ -37,12 +37,9 @@ You’re going to need homebrew if you are on mac to download a lot of the depen
 - To check that it’s installed, run: ``brew --version``
 
 
+Install `Go <https://formulae.brew.sh/formula/go/>`_ (not strictly necessary to run Augur, but the value_worker requires it)
 
-Our REST API & data collection workers write in Python 3.6. We query the GitHub & GitLab API to collect data about issues, pull requests, contributors, and other information about a repository, so GitLab and GitHub access tokens are **required** for data collection.
-
-Optional:
-
--  `Go 1.12 or later <https://golang.org/doc/install>`__
+- If you are running on MacOS, you will need to run ``brew install go`` in order for augur to find it
 
 The ``value_worker`` uses a Go package called `scc <https://github.com/boyter/scc>`_ to run COCOMO calculations.
 Once you've installed Go, follow the appropriate steps for your system to install the ``scc`` package.
