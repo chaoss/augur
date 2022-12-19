@@ -18,7 +18,37 @@ Before you can install our schema, you will need to make sure you have **write a
 To install PostgreSQL, download the most recent installer for your system `here <https://www.enterprisedb.com/downloads/postgres-postgresql-downloads>`_.
 Follow the instructions in the installer. At some point you will be asked to set a password for the superuser: **postgres**. Pick something you will remember and keep track of it. It will be important later.
 
-If you're a newcomer to PostgreSQL, you can follow their excellent instructions `here <https://www.postgresql.org/docs/12/tutorial-install.html>`_ to set it up for your machine of choice. We recommend using ``Postgres.app`` if you're on macOS, but if you're running UNIX or are looking for an alternative to ``Postgres.app`` then pgAdmin is a great open-source alternative.
+**FOR MACOS** Now that you have installed PostgreSQL you need to link to it in your PATH environment variable. First, find the PostgreSQL bin directory with this command:
+
+.. code-block:: bash
+    ls -d /Library/PostgreSQL/*/bin
+
+Result will look something like this.
+
+..  code-block:: bash
+    /Library/PostgreSQL/15/bin
+
+Now you need to add this path to the bottom of the /etc/paths file. To edit the file, use the command:
+
+.. code-block:: bash
+    sudo nano /etc/paths
+
+You will be prompted to enter the administrator password for your computer. When the file opens, add the bin directory path you found in the last step to the bottom of the file. Then type CTRL-X, Y, and ENTER. 
+To use the psql command, open a new terminal then type:
+
+.. code-block:: bash
+    psql -U postgres
+
+-U specifies the user, postgres. Postgres is the superuser username. You will be prompted to login with a password. Use the password you set during installation.
+After logging in, your terminal will now look like this:
+
+.. code-block:: bash
+    psql (15.1)
+    Type "help" for help.
+
+    postgres=#
+
+If you're a newcomer to PostgreSQL and you run into any issues with the steps above, you can follow their excellent instructions `here <https://www.postgresql.org/docs/12/tutorial-install.html>`_ to set it up for your machine of choice. We recommend using ``Postgres.app`` if you're on macOS, but if you're running UNIX or are looking for an alternative to ``Postgres.app`` then pgAdmin is a great open-source alternative.
 
 Creating a Database
 ~~~~~~~~~~~~~~~~~~~~~
