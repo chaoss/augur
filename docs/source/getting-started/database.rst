@@ -38,6 +38,7 @@ After logging in, your terminal will now look like this:
 
     postgres=#
 
+Use the ``\quit`` command to exit the psql terminal.
 If you're a newcomer to PostgreSQL and you run into any issues with the steps above, you can follow their excellent instructions `here <https://www.postgresql.org/docs/12/tutorial-install.html>`_ to set it up for your machine of choice. We recommend using ``Postgres.app`` if you're on macOS, but if you're running UNIX or are looking for an alternative to ``Postgres.app`` then pgAdmin is a great open-source alternative.
 
 Creating a Database
