@@ -1150,11 +1150,11 @@ def pull_request_ratio_merged_to_closed(repo_group_id, repo_id=None):
                     WHERE pr_merged_at IS NULL
                     GROUP BY repo_id) b
                 ON a.repo_id = b.repo_id
+        WHERE a.repo_id IN (SELECT repo_id FROM repo WHERE repo_group_id=:repo_group_id)
         """)
     else:
         pr_all_sql = s.sql.text("""
         SELECT 
-            a.repo_id, 
             CAST(merged AS FLOAT) / NULLIF(CAST(closed AS FLOAT),0) AS ratio_merged_to_closed
             FROM
                 (SELECT 

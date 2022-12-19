@@ -501,7 +501,7 @@ def sustained_contributors(repo_group_id, repo_id=None, period='day', begin_date
         sustained = s.sql.text("""
             SELECT * FROM
                 (SELECT 
-                cmt_author_email AS sustained_cntrb_email,
+                repo_id, cmt_author_email AS sustained_cntrb_email,
                 COUNT(cmt_id) AS total_contributions
                 FROM commits
                 WHERE repo_id IN
@@ -510,7 +510,7 @@ def sustained_contributors(repo_group_id, repo_id=None, period='day', begin_date
                 AND cmt_author_date IS NOT NULL
                 AND cmt_author_date > :begin_date
                 AND cmt_author_date < :end_date
-                GROUP BY cmt_author_email) a
+                GROUP BY repo_id, cmt_author_email) a
                 WHERE total_contributions > 1;
         """)
 
