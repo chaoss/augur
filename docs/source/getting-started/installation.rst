@@ -31,6 +31,10 @@ Required:
 
 - For Mac, run the following command to see what versions of python you have installed: ``ls /usr/local/bin/python*``
 
+-You’re going to need homebrew if you are on mac to download a lot of the dependency packages. If you don’t have brew, download it `here: <https://brew.sh/>`_ To check that it’s installed, run:
+``brew --version``
+
+
 
 Our REST API & data collection workers write in Python 3.6. We query the GitHub & GitLab API to collect data about issues, pull requests, contributors, and other information about a repository, so GitLab and GitHub access tokens are **required** for data collection.
 
