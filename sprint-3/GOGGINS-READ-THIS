@@ -1,7 +1,0 @@
-Our SQL queries have been tested using pgAdmin, but are not yet all wrapped in Python. 
-Wrapped queries seem to be working, but as far as we can tell the repo has no data.
-  http://epsilon.osshealth.io:5005/api/unstable/repos/26658/maintainers -> One endpoint that we created is able to be accessed, however the data is not populated
-
-Python for our wrapped queries can be found in augur/api/metrics/organizations.py, and augur/api/metrics/organizations_nh.py (untested)
-
-All design files are still applicable, and so have been moved here.

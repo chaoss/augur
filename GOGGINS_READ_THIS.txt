@@ -1,4 +1,0 @@
-- Program progess is in print_2_queries.sql
-- Right now we have made good puery progress, but still need to complete then and wrap them
-
-- Design doc is uploaded as Sprint_2_-_Design_Document.pdf
