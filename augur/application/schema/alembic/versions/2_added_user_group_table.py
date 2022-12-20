@@ -78,7 +78,7 @@ def upgrade():
 
         table_changes = """
         ALTER TABLE user_repos
-            ADD COLUMN group_id INT,
+            ADD COLUMN group_id BIGINT,
             ADD CONSTRAINT user_repos_group_id_fkey FOREIGN KEY (group_id) REFERENCES user_groups(group_id),
             DROP COLUMN user_id,
             ADD PRIMARY KEY (group_id, repo_id);
