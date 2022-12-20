@@ -184,27 +184,22 @@ class RepoLoadController:
             
         repo_user_group_unique = ["group_id", "repo_id"]
         return_columns = ["group_id", "repo_id"]
-        data = self.session.insert_data(repo_user_group_data, UserGroup, repo_user_group_unique, return_columns)
+        data = self.session.insert_data(repo_user_group_data, UserRepo, repo_user_group_unique, return_columns)
 
-        if data[0]["group_id"] == group_id and data[0]["repo_id"] == repo_id:
-            return True
-
-        return False
+        return data[0]["group_id"] == group_id and data[0]["repo_id"] == repo_id
 
     def add_user_group(self, user_id, group_name):
 
         user_group_data = {
-            "group_name": group_id,
-            "user_id": repo_id
+            "name": group_name,
+            "user_id": user_id
         }
 
-        # TODO Add exception for duplicate groups
-        group_obj = UserGroup(**user_group_data)
-        self.session.add(group_obj)
-        self.session.commit()
-        
-        return True
 
+        result = session.insert_data(user_group_data, UserGroup, ["name", "user_id"], return_columns=["group_id"])
+
+        return result is not None
+        
     def get_user_groups(self, user_id):
 
         return self.session.query(UserGroup).filter(UserGroup.user_id == user_id).all() 
