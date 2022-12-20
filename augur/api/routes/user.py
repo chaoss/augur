@@ -16,7 +16,7 @@ from augur.tasks.github.util.github_task_session import GithubTaskSession
 from augur.util.repo_load_controller import RepoLoadController
 
 
-from augur.application.db.models import User, UserRepo
+from augur.application.db.models import User, UserRepo, UserGroup
 from augur.application.config import get_development_flag
 logger = logging.getLogger(__name__)
 development = get_development_flag()
@@ -206,19 +206,48 @@ def create_routes(server):
 
         username = request.args.get("username")
         repo = request.args.get("repo_url")
+        group_name = request.args.get("group_name")
 
         with GithubTaskSession(logger) as session:
 
-            if username is None:
+            if username is None or repo is None or group_name is None:
                 return jsonify({"status": "Missing argument"}), 400
             user = session.query(User).filter(
                 User.login_name == username).first()
             if user is None:
                 return jsonify({"status": "User does not exist"})
 
+            user_group = session.query(UserGroup).filter(UserGroup.user_id == user.user_id, UserGroup.name == group_name).first()
+            if user_group is None:
+                return jsonify({"status": "User group does not exists"})
+
             repo_load_controller = RepoLoadController(gh_session=session)
 
-            result = repo_load_controller.add_frontend_repo(repo, user.user_id)
+            result = repo_load_controller.add_frontend_repo(repo, user.user_id, user_group.group_id)
+
+            return jsonify(result)
+
+
+    @server.app.route(f"/{AUGUR_API_VERSION}/user/add_group", methods=['GET', 'POST'])
+    def add_user_group():
+        if not development and not request.is_secure:
+            return generate_upgrade_request()
+
+        username = request.args.get("username")
+        group_name = request.args.get("group_name")
+
+        with GithubTaskSession(logger) as session:
+
+            if username is None or group_name is None:
+                return jsonify({"status": "Missing argument"}), 400
+
+            user = session.query(User).filter(User.login_name == username).first()
+            if user is None:
+                return jsonify({"status": "User does not exist"})
+
+            repo_load_controller = RepoLoadController(gh_session=session)
+
+            result = repo_load_controller.add_user_group(user.user_id, group_name)
 
             return jsonify(result)
 

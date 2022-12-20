@@ -10,7 +10,7 @@ from augur.tasks.github.util.github_paginator import hit_api
 from augur.tasks.github.util.github_paginator import GithubPaginator
 from augur.tasks.github.util.github_task_session import GithubTaskSession
 from augur.application.db.session import DatabaseSession
-from augur.application.db.models import Repo, UserRepo, RepoGroup
+from augur.application.db.models import Repo, UserRepo, RepoGroup, UserGroup
 from augur.application.db.util import execute_session_query
 
 
@@ -73,7 +73,7 @@ class RepoLoadController:
     def is_valid_user_group(self, user_id, group_id) -> bool:
 
         try:
-            self.session.query(UserRepo).filter(UserRepo.user_id == user_id, UserRepo.group_id == group_id).one()
+            self.session.query(UserRepo).filter(UserGroup.user_id == user_id, UserGroup.group_id == group_id).one()
             return True
         except s.orm.exc.NoResultFound:
             return False
@@ -195,10 +195,12 @@ class RepoLoadController:
             "user_id": user_id
         }
 
+        result = self.session.insert_data(user_group_data, UserGroup, ["name", "user_id"], return_columns=["group_id"])
 
-        result = session.insert_data(user_group_data, UserGroup, ["name", "user_id"], return_columns=["group_id"])
-
-        return result is not None
+        if result:
+            return {"status": "Group created"}
+        else:
+            return {"status": "Group already exists"}
         
     def get_user_groups(self, user_id):
 
@@ -229,7 +231,7 @@ class RepoLoadController:
         if not valid_group and not self.is_valid_user_group(user_id, group_id):
             return {"status": "Invalid user group", "group_id": group_id}
 
-        repo_id = self.add_repo_row(url, DEFAULT_REPO_GROUP_ID, "Frontend")
+        repo_id = self.add_repo_row(url, DEFAULT_REPO_GROUP_IDS[0], "Frontend")
         if not repo_id:
             return {"status": "Repo insertion failed", "repo_url": url}
 
