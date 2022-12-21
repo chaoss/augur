@@ -219,7 +219,7 @@ def test_add_repo_row(test_db_engine):
 
 def test_add_repo_row_with_updates(test_db_engine):
 
-    clear_tables = ["user_repos", "repo", "repo_groups", "users"]
+    clear_tables = ["user_repos", "user_groups", "repo", "repo_groups", "users"]
     clear_tables_statement = get_repo_related_delete_statements(clear_tables)
 
     try:
@@ -437,7 +437,6 @@ def test_add_frontend_org_with_valid_org(test_db_engine):
 
             url = "https://github.com/{}/".format(data["org_name"])
             result = RepoLoadController(session).add_frontend_org(url, data["user_id"], data["user_group_name"])
-            print(result)
             assert result["status"] == "Org repos added"
 
         with test_db_engine.connect() as connection:
@@ -463,13 +462,13 @@ def test_add_cli_org_with_valid_org(test_db_engine):
     try:
         with test_db_engine.connect() as connection:
 
-            data = {"user_id": CLI_USER_ID, "repo_group_id": 5, "org_name": VALID_ORG["org"]}
+            data = {"user_id": CLI_USER_ID, "repo_group_id": 5, "org_name": VALID_ORG["org"], "user_group_name": "test_group", "user_group_id": 1}
 
             query_statements = []
             query_statements.append(clear_tables_statement)
             query_statements.append(get_repo_group_insert_statement(data["repo_group_id"]))
             query_statements.append(get_user_insert_statement(data["user_id"]))
-
+            query_statements.append(get_user_group_insert_statement(data["user_id"], data["user_group_name"], data["user_group_id"]))
 
             connection.execute("".join(query_statements))
 
@@ -500,19 +499,20 @@ def test_add_cli_org_with_valid_org(test_db_engine):
 
 def test_add_cli_repos_with_duplicates(test_db_engine):
 
-    clear_tables = ["user_repos", "repo", "repo_groups", "users", "config"]
+    clear_tables = ["user_repos", "user_groups", "repo", "repo_groups", "users", "config"]
     clear_tables_statement = get_repo_related_delete_statements(clear_tables)
 
     try:
         with test_db_engine.connect() as connection:
 
-            data = {"user_id": CLI_USER_ID, "repo_group_id": 5, "org_name": "operate-first", "repo_name": "operate-first-twitter"}
+            data = {"user_id": CLI_USER_ID, "repo_group_id": 5, "org_name": "operate-first", "repo_name": "operate-first-twitter", "user_group_name": "test_group", "user_group_id": 1}
             url = f"https://github.com/{data['org_name']}/{data['repo_name']}"
 
             query_statements = []
             query_statements.append(clear_tables_statement)
             query_statements.append(get_repo_group_insert_statement(data["repo_group_id"]))
             query_statements.append(get_user_insert_statement(data["user_id"]))
+            query_statements.append(get_user_group_insert_statement(data["user_id"], data["user_group_name"], data["user_group_id"]))
 
             connection.execute("".join(query_statements))
 
@@ -542,7 +542,7 @@ def test_add_cli_repos_with_duplicates(test_db_engine):
 
 def test_convert_group_name_to_id(test_db_engine):
 
-    clear_tables = ["user_repos", "repo", "repo_groups", "users"]
+    clear_tables = ["user_repos", "user_groups", "repo", "repo_groups", "users"]
     clear_tables_statement = get_repo_related_delete_statements(clear_tables)
 
     try:

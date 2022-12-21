@@ -55,6 +55,8 @@ class RepoLoadController:
             True if repo url is valid and False if not
         """
 
+        print("Is repo valid?")
+
         owner, repo = self.parse_repo_url(url)
         if not owner or not repo:
             return False
@@ -190,8 +192,6 @@ class RepoLoadController:
             user_id: id of user_id from users table
         """
 
-        print(f"Group id: {group_id}")
-
         repo_user_group_data = {
             "group_id": group_id,
             "repo_id": repo_id
@@ -309,7 +309,6 @@ class RepoLoadController:
             user_id: id of user_id from users table
         """
         group_id = self.convert_group_name_to_id(user_id, group_name)
-        print(group_id)
         if group_id is None:
             return {"status": "Invalid group name"}
 
@@ -341,7 +340,7 @@ class RepoLoadController:
 
         return {"status": "Org repos added", "org_url": url}
 
-    def add_cli_repo(self, repo_data: Dict[str, Any]):
+    def add_cli_repo(self, repo_data: Dict[str, Any], valid_repo=False):
         """Add list of repos to specified repo_groups
 
         Args:
@@ -351,7 +350,7 @@ class RepoLoadController:
         url = repo_data["url"]
         repo_group_id = repo_data["repo_group_id"]
 
-        if self.is_valid_repo(url):
+        if valid_repo or self.is_valid_repo(url):
 
             # if the repo doesn't exist it adds it
             # if the repo does exist it updates the repo_group_id
@@ -397,7 +396,7 @@ class RepoLoadController:
         for repo_url in repos:
             logger.info(
                 f"Adding {repo_url}")
-            self.add_cli_repo({"url": repo_url, "repo_group_id": repo_group_id})
+            self.add_cli_repo({"url": repo_url, "repo_group_id": repo_group_id}, valid_repo=True)
 
 
     def get_user_repo_ids(self, user_id: int) -> List[int]:
