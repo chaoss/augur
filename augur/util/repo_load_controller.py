@@ -10,19 +10,33 @@ from augur.tasks.github.util.github_paginator import hit_api
 from augur.tasks.github.util.github_paginator import GithubPaginator
 from augur.tasks.github.util.github_task_session import GithubTaskSession
 from augur.application.db.session import DatabaseSession
-from augur.application.db.models import Repo, UserRepo, RepoGroup, UserGroup
+from augur.application.db.models import Repo, UserRepo, RepoGroup, UserGroup, User
 from augur.application.db.util import execute_session_query
 
 
-
 logger = logging.getLogger(__name__)
-
 
 REPO_ENDPOINT = "https://api.github.com/repos/{}/{}"
 ORG_REPOS_ENDPOINT = "https://api.github.com/orgs/{}/repos?per_page=100"
 DEFAULT_REPO_GROUP_IDS = [1, 10]
 CLI_USER_ID = 1
-CLI_GROUP_ID = 1
+
+
+# determine what that CLI Group ID is
+with DatabaseSession(logger) as session:
+
+    user = session.query(User).filter(User.user_id == CLI_USER_ID).one()
+    user_groups = user.groups
+
+    if len(user_groups) == 0:
+        cli_user_group = UserGroup(user_id=CLI_USER_ID, name="CLI_Repo_Group")
+        session.add(cli_user_group)
+        session.commit()
+
+    else:
+        cli_user_group = user_groups[0]
+
+    CLI_GROUP_ID = cli_user_group.group_id
 
 
 class RepoLoadController:
@@ -176,6 +190,8 @@ class RepoLoadController:
             user_id: id of user_id from users table
         """
 
+        print(f"Group id: {group_id}")
+
         repo_user_group_data = {
             "group_id": group_id,
             "repo_id": repo_id
@@ -201,19 +217,46 @@ class RepoLoadController:
             return {"status": "Group created"}
         else:
             return {"status": "Group already exists"}
+
+    def remove_user_group(self, user_id, group_name):
+
+        # convert group_name to group_id
+        group_id = self.convert_group_name_to_id(user_id, group_name)
+        if group_id is None:
+            return {"status": "WARNING: Trying to delete group that does not exist"}
+
+        # delete rows from user repos with group_id
+        self.session.query(UserRepo).filter(UserRepo.group_id == group_id).delete()
+        
+        # delete group from user groups table
+        self.session.query(UserGroup).filter(UserGroup.group_id == group_id).delete()
+
+        self.session.commit()
+
+        return {"status": "Group deleted"}
+
+
+    def convert_group_name_to_id(self, user_id, group_name):
+
+        try:
+            user_group = self.session.query(UserGroup).filter(UserGroup.user_id == user_id, UserGroup.name == group_name).one()
+        except s.orm.exc.NoResultFound:
+            return None
+
+        return user_group.group_id
         
     def get_user_groups(self, user_id):
 
         return self.session.query(UserGroup).filter(UserGroup.user_id == user_id).all() 
 
-    def get_user_group_repos(self, user_id, group_id):
+    def get_user_group_repos(self, group_id):
 
-        repos = self.session.query(UserRepo).filter(UserGroup.user_id == user_id, UserGroup.group_id == group_id).all()
+        user_repos = self.session.query(UserRepo).filter(UserRepo.user_id == user_id, UserRepo.group_id == group_id).all()
 
-        return [repo["repo_id"] for repo in repos]
+        return [user_repo.repo.repo_id for user_repo in user_repos]
 
 
-    def add_frontend_repo(self, url: List[str], user_id: int, group_id: int, valid_group=False):
+    def add_frontend_repo(self, url: List[str], user_id: int, group_name: str, group_id=None, valid_repo=False):
         """Add list of repos to a users repos.
 
         Args:
@@ -225,11 +268,14 @@ class RepoLoadController:
             If no repo_group_id is passed the repo will be added to a default repo_group
         """
 
-        if not self.is_valid_repo(url):
-            return {"status": "Invalid repo", "repo_url": url}
+        if group_id is None:
 
-        if not valid_group and not self.is_valid_user_group(user_id, group_id):
-            return {"status": "Invalid user group", "group_id": group_id}
+            group_id = self.convert_group_name_to_id(user_id, group_name)
+            if group_id is None:
+                return {"status": "Invalid group name"}
+
+        if not valid_repo and not self.is_valid_repo(url):
+            return {"status": "Invalid repo", "repo_url": url}
 
         repo_id = self.add_repo_row(url, DEFAULT_REPO_GROUP_IDS[0], "Frontend")
         if not repo_id:
@@ -242,23 +288,36 @@ class RepoLoadController:
 
         return {"status": "Repo Added", "repo_url": url}
 
-    
+    def remove_frontend_repo(self, repo_id, user_id, group_name):
 
-    def add_frontend_org(self, url: List[str], user_id: int, group_id: int):
+        group_id = self.convert_group_name_to_id(user_id, group_name)
+        if group_id is None:
+            return {"status": "Invalid group name"}
+
+                # delete rows from user repos with group_id
+        self.session.query(UserRepo).filter(UserRepo.group_id == group_id, UserRepo.repo_id == repo_id).delete()
+        self.session.commit()
+
+        return {"status": "Repo Removed"}
+
+
+    def add_frontend_org(self, url: List[str], user_id: int, group_name: int):
         """Add list of orgs and their repos to a users repos.
 
         Args:
             urls: list of org urls
             user_id: id of user_id from users table
         """
+        group_id = self.convert_group_name_to_id(user_id, group_name)
+        print(group_id)
+        if group_id is None:
+            return {"status": "Invalid group name"}
 
         repos = self.retrieve_org_repos(url)
        
         if not repos:
             return {"status": "Invalid org", "org_url": url}
 
-        if not self.is_valid_user_group(user_id, group_id):
-            return {"status": "Invalid user group", "group_id": group_id}
         
         org_name = self.parse_org_url(url)
         if not org_name:
@@ -269,7 +328,7 @@ class RepoLoadController:
         failed_repos = []
         for repo in repos:
 
-            result = self.add_frontend_repo(repo, user_id, group_id, valid_group=True)
+            result = self.add_frontend_repo(repo, user_id, group_name, group_id, valid_repo=True)
 
             # keep track of all the repos that failed
             if result["status"] != "Repo Added":
@@ -351,23 +410,21 @@ class RepoLoadController:
             list of repo ids
         """
 
-        user_repo_id_query = s.sql.text(f"""SELECT * FROM augur_operations.user_repos WHERE user_id={user_id};""")
+        user_groups = session.query(UserGroup).filter(UserGroup.user_id).all()
+
+        all_repo_ids = set()
+        for group in user_groups:
+
+            repo_ids = [user_repo.repo.repo_id for user_repo in group.repos]
+            all_repo_ids.update(repo_ids)
 
 
-        result = self.session.execute_sql(user_repo_id_query).fetchall()
-
-        if len(result) == 0:
-            return []
-
-        repo_ids = [dict(row)["repo_id"] for row in result]
-
-        return repo_ids
-
+        return list(all_repo_ids)
 
 
     def parse_repo_url(self, url):
 
-        if url.endswith(".github") or url.endswith(".github.io"):
+        if url.endswith(".github") or url.endswith(".github.io") or url.endswith(".js"):
         
             result = re.search(r"https?:\/\/github\.com\/([A-Za-z0-9 \- _]+)\/([A-Za-z0-9 \- _ \.]+)(.git)?\/?$", url)
         else:

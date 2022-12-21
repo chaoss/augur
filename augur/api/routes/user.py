@@ -217,13 +217,9 @@ def create_routes(server):
             if user is None:
                 return jsonify({"status": "User does not exist"})
 
-            user_group = session.query(UserGroup).filter(UserGroup.user_id == user.user_id, UserGroup.name == group_name).first()
-            if user_group is None:
-                return jsonify({"status": "User group does not exists"})
-
             repo_load_controller = RepoLoadController(gh_session=session)
 
-            result = repo_load_controller.add_frontend_repo(repo, user.user_id, user_group.group_id)
+            result = repo_load_controller.add_frontend_repo(repo, user.user_id, group_name)
 
             return jsonify(result)
 
@@ -236,6 +232,9 @@ def create_routes(server):
         username = request.args.get("username")
         group_name = request.args.get("group_name")
 
+        if group_name == "default":
+            return jsonify({"status": "Reserved Group Name"})
+            
         with GithubTaskSession(logger) as session:
 
             if username is None or group_name is None:
@@ -251,6 +250,31 @@ def create_routes(server):
 
             return jsonify(result)
 
+    @server.app.route(f"/{AUGUR_API_VERSION}/user/remove_group", methods=['GET', 'POST'])
+    def remove_user_group():
+        if not development and not request.is_secure:
+            return generate_upgrade_request()
+
+        username = request.args.get("username")
+        group_name = request.args.get("group_name")
+            
+        with GithubTaskSession(logger) as session:
+
+            if username is None or group_name is None
+                return jsonify({"status": "Missing argument"}), 400
+
+            user = session.query(User).filter(User.login_name == username).first()
+            if user is None:
+                return jsonify({"status": "User does not exist"})
+
+            repo_load_controller = RepoLoadController(gh_session=session)
+
+            result = repo_load_controller.remove_user_group(user.user_id, group_name)
+
+            return jsonify(result)
+
+    
+
 
     @server.app.route(f"/{AUGUR_API_VERSION}/user/add_org", methods=['GET', 'POST'])
     def add_user_org():
@@ -259,10 +283,37 @@ def create_routes(server):
 
         username = request.args.get("username")
         org = request.args.get("org_url")
+        group_name = request.args.get("group_name")
 
         with GithubTaskSession(logger) as session:
 
-            if username is None:
+            if username is None or org is None or group_name is None:
+                return jsonify({"status": "Missing argument"}), 400
+
+            user = session.query(User).filter(
+                User.login_name == username).first()
+            if user is None:
+                return jsonify({"status": "User does not exist"})
+
+            repo_load_controller = RepoLoadController(gh_session=session)
+
+            result = repo_load_controller.add_frontend_org(org, user.user_id, group_name)
+
+            return jsonify(result)
+
+
+    @server.app.route(f"/{AUGUR_API_VERSION}/user/remove_repo", methods=['GET', 'POST'])
+    def remove_user_repo():
+        if not development and not request.is_secure:
+            return generate_upgrade_request()
+
+        username = request.args.get("username")
+        repo_id = request.args.get("repo_id")
+        group_name = request.args.get("group_name")
+
+        with GithubTaskSession(logger) as session:
+
+            if username is None or repo is None or group_name is None:
                 return jsonify({"status": "Missing argument"}), 400
             user = session.query(User).filter(
                 User.login_name == username).first()
@@ -271,7 +322,7 @@ def create_routes(server):
 
             repo_load_controller = RepoLoadController(gh_session=session)
 
-            result = repo_load_controller.add_frontend_org(org, user.user_id)
+            result = repo_load_controller.remove_frontend_repo(repo_id, user.user_id, group_name)
 
             return jsonify(result)
 

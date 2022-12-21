@@ -4,6 +4,7 @@ from sqlalchemy.dialects.postgresql import TIMESTAMP, UUID
 
 
 from augur.application.db.models.base import Base
+from sqlalchemy.orm import relationship
 
 metadata = Base.metadata
 
@@ -191,6 +192,8 @@ class User(Base):
         {"schema": "augur_operations"}
     )
 
+    groups = relationship("UserGroup")
+
 
 class UserGroup(Base):
     group_id = Column(BigInteger, primary_key=True)
@@ -203,6 +206,9 @@ class UserGroup(Base):
         UniqueConstraint('user_id', 'name', name='user_group_unique'),
         {"schema": "augur_operations"}
     )
+
+    user = relationship("User")
+    repos = relationship("UserRepo")
 
 
 
@@ -220,4 +226,7 @@ class UserRepo(Base):
     repo_id = Column(
         ForeignKey("augur_data.repo.repo_id", name="user_repo_user_id_fkey"), primary_key=True, nullable=False
     )
+
+    repo = relationship("Repo")
+    group = relationship("UserGroup")
 

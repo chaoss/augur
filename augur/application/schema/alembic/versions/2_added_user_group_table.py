@@ -12,6 +12,7 @@ import sqlalchemy as sa
 from augur.application.db.session import DatabaseSession
 from augur.application.db.models.augur_operations import UserGroup, UserRepo
 
+CLI_USER_ID = 1
 
 
 # revision identifiers, used by Alembic.
@@ -37,9 +38,12 @@ def upgrade():
             );
 
 
-                ALTER TABLE "augur_operations"."user_groups" 
-                OWNER TO "augur";
-            """
+            ALTER TABLE "augur_operations"."user_groups" 
+            OWNER TO "augur";
+
+            INSERT INTO "augur_operations"."user_groups" ("group_id", "user_id", "name") VALUES (1, {}, 'default') ON CONFLICT ("user_id", "name") DO NOTHING;
+            ALTER SEQUENCE user_groups_group_id_seq RESTART WITH 2;
+            """.format(CLI_USER_ID)
 
         session.execute_sql(sa.sql.text(create_user_groups_table))
 
@@ -52,14 +56,18 @@ def upgrade():
         if user_groups:
 
             result = []
-            for row in user_groups:
+            for group in user_groups:
                 
-                user_id = row["user_id"]
+                user_id = group["user_id"]
+
+                if user_id == CLI_USER_ID:
+                    continue
 
                 user_group_insert = sa.sql.text(f"""INSERT INTO "augur_operations"."user_groups" ("user_id", "name") VALUES ({user_id}, 'default') RETURNING group_id, user_id;""")
                 result.append(session.fetchall_data_from_sql_text(user_group_insert)[0])
             
-            user_group_id_mapping = {}
+            # cli user mapping by default
+            user_group_id_mapping = {CLI_USER_ID: "1"}
             for row in result:
                 user_group_id_mapping[row["user_id"]] = row["group_id"]
             

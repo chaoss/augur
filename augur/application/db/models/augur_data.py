@@ -813,6 +813,7 @@ class Repo(Base):
     )
 
     repo_group = relationship("RepoGroup")
+    user_repo = relationship("UserRepo")
 
 
 class RepoTestCoverage(Base):

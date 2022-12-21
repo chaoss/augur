@@ -16,7 +16,7 @@ from augur.application.db.util import execute_session_query
 
 logger = logging.getLogger(__name__)
 
-VALID_ORG = {"org": "CDCgov", "repo_count": 235}
+VALID_ORG = {"org": "CDCgov", "repo_count": 241}
 
 
 ######## Helper Functions to Get Delete statements #################
@@ -41,6 +41,10 @@ def get_user_repo_delete_statement():
 
     return get_delete_statement("augur_operations", "user_repos")
 
+def get_user_group_delete_statement():
+
+    return get_delete_statement("augur_operations", "user_groups")
+
 def get_config_delete_statement():
 
     return get_delete_statement("augur_operations", "config")
@@ -57,6 +61,9 @@ def get_repo_related_delete_statements(table_list):
     query_list = []
     if "user_repos" in table_list or "user_repo" in table_list:
         query_list.append(get_user_repo_delete_statement())
+
+    if "user_groups" in table_list or "user_group" in table_list:
+        query_list.append(get_user_group_delete_statement())
 
     if "repos" in table_list or "repo" in table_list:
         query_list.append(get_repo_delete_statement())
@@ -101,6 +108,13 @@ def get_repo_group_insert_statement(rg_id):
 def get_user_insert_statement(user_id):
 
     return """INSERT INTO "augur_operations"."users" ("user_id", "login_name", "login_hashword", "email", "first_name", "last_name", "admin") VALUES ({}, 'bil', 'pass', 'b@gmil.com', 'bill', 'bob', false);""".format(user_id)
+
+def get_user_group_insert_statement(user_id, group_name, group_id=None):
+
+    if group_id:
+        return """INSERT INTO "augur_operations"."user_groups" ("group_id", "user_id", "name") VALUES ({}, {}, '{}');""".format(group_id, user_id, group_name)
+
+    return """INSERT INTO "augur_operations"."user_groups" (user_id", "name") VALUES (1, 'default');""".format(user_id, group_name)
 
 
 ######## Helper Functions to get retrieve data from tables #################
@@ -243,32 +257,33 @@ def test_add_repo_row_with_updates(test_db_engine):
             connection.execute(clear_tables_statement)
 
 
-def test_add_repo_to_user(test_db_engine):
+def test_add_repo_to_user_group(test_db_engine):
 
-    clear_tables = ["user_repos", "repo", "repo_groups", "users"]
+    clear_tables = ["user_repos", "user_groups", "repo", "repo_groups", "users"]
     clear_tables_statement = get_repo_related_delete_statements(clear_tables)
 
     try:
         with test_db_engine.connect() as connection:
 
-            data = {"repo_id": 1, "user_id": 2, "user_repo_group_id": 1}
+            data = {"repo_id": 1, "user_id": 2, "user_repo_group_id": 1, "user_group_id": 1, "user_group_name": "test_group"}
 
             query_statements = []
             query_statements.append(clear_tables_statement)
             query_statements.append(get_repo_group_insert_statement(data["user_repo_group_id"]))
             query_statements.append(get_repo_insert_statement(data["repo_id"], data["user_repo_group_id"]))
             query_statements.append(get_user_insert_statement(data["user_id"]))
+            query_statements.append(get_user_group_insert_statement(data["user_id"], data["user_group_name"], data["user_group_id"]))
             query = s.text("".join(query_statements))
 
             connection.execute(query)
 
         with DatabaseSession(logger, test_db_engine) as session:
 
-            RepoLoadController(session).add_repo_to_user(data["repo_id"], data["user_id"])
+            RepoLoadController(session).add_repo_to_user_group(data["repo_id"], data["user_group_id"])
 
         with test_db_engine.connect() as connection:
 
-            query = s.text("""SELECT * FROM "augur_operations"."user_repos" WHERE "user_id"=:user_id AND "repo_id"=:repo_id""")
+            query = s.text("""SELECT * FROM "augur_operations"."user_repos" WHERE "group_id"=:user_group_id AND "repo_id"=:repo_id""")
 
             result = connection.execute(query, **data).fetchall()
             assert result is not None
@@ -281,7 +296,7 @@ def test_add_repo_to_user(test_db_engine):
 
 def test_add_frontend_repos_with_duplicates(test_db_engine):
 
-    clear_tables = ["user_repos", "repo", "repo_groups", "users", "config"]
+    clear_tables = ["user_repos", "user_groups", "repo", "repo_groups", "users", "config"]
     clear_tables_statement = get_repo_related_delete_statements(clear_tables)
 
     try:
@@ -289,12 +304,13 @@ def test_add_frontend_repos_with_duplicates(test_db_engine):
 
             url = "https://github.com/operate-first/operate-first-twitter"
 
-            data = {"user_id": 2, "repo_group_id": DEFAULT_REPO_GROUP_IDS[0]}
+            data = {"user_id": 2, "repo_group_id": DEFAULT_REPO_GROUP_IDS[0], "user_group_name": "test_group", "user_group_id": 1}
 
             query_statements = []
             query_statements.append(clear_tables_statement)
             query_statements.append(get_repo_group_insert_statement(data["repo_group_id"]))
             query_statements.append(get_user_insert_statement(data["user_id"]))
+            query_statements.append(get_user_group_insert_statement(data["user_id"], data["user_group_name"], data["user_group_id"]))
 
             connection.execute("".join(query_statements))
         
@@ -303,8 +319,11 @@ def test_add_frontend_repos_with_duplicates(test_db_engine):
         with GithubTaskSession(logger, test_db_engine) as session:
 
             controller = RepoLoadController(session)
-            controller.add_frontend_repo(url, data["user_id"])
-            controller.add_frontend_repo(url, data["user_id"])
+            result = controller.add_frontend_repo(url, data["user_id"], data["user_group_name"])
+            result2 = controller.add_frontend_repo(url, data["user_id"], data["user_group_name"])
+
+            assert result["status"] == "Repo Added"
+            assert result2["status"] == "Repo Added"
 
         with test_db_engine.connect() as connection:
 
@@ -320,7 +339,7 @@ def test_add_frontend_repos_with_duplicates(test_db_engine):
 
 def test_add_frontend_repos_with_invalid_repo(test_db_engine):
 
-    clear_tables = ["user_repos", "repo", "repo_groups", "users", "config"]
+    clear_tables = ["user_repos", "user_groups", "repo", "repo_groups", "users", "config"]
     clear_tables_statement = get_repo_related_delete_statements(clear_tables)
 
     try:
@@ -328,12 +347,13 @@ def test_add_frontend_repos_with_invalid_repo(test_db_engine):
 
             url = "https://github.com/chaoss/whitepaper"
 
-            data = {"user_id": 2, "repo_group_id": 5}
+            data = {"user_id": 2, "repo_group_id": 5, "user_group_name": "test_group", "user_group_id": 1}
 
             query_statements = []
             query_statements.append(clear_tables_statement)
             query_statements.append(get_repo_group_insert_statement(data["repo_group_id"]))
             query_statements.append(get_user_insert_statement(data["user_id"]))
+            query_statements.append(get_user_group_insert_statement(data["user_id"], data["user_group_name"], data["user_group_id"]))
 
             connection.execute("".join(query_statements))
 
@@ -341,7 +361,9 @@ def test_add_frontend_repos_with_invalid_repo(test_db_engine):
 
         with GithubTaskSession(logger, test_db_engine) as session:
 
-            RepoLoadController(session).add_frontend_repo(url, data["user_id"])
+            result = RepoLoadController(session).add_frontend_repo(url, data["user_id"], data["user_group_name"])
+
+            assert result["status"] == "Invalid repo"
 
         with test_db_engine.connect() as connection:
 
@@ -356,12 +378,12 @@ def test_add_frontend_repos_with_invalid_repo(test_db_engine):
 
 def test_add_frontend_org_with_invalid_org(test_db_engine):
 
-    clear_tables = ["user_repos", "repo", "repo_groups", "users", "config"]
+    clear_tables = ["user_repos", "user_groups", "repo", "repo_groups", "users", "config"]
     clear_tables_statement = get_repo_related_delete_statements(clear_tables)
 
     try:
 
-        data = {"user_id": 2, "repo_group_id": DEFAULT_REPO_GROUP_IDS[0], "org_name": "chaosssss"}
+        data = {"user_id": 2, "repo_group_id": DEFAULT_REPO_GROUP_IDS[0], "org_name": "chaosssss", "user_group_name": "test_group", "user_group_id": 1}
 
         with test_db_engine.connect() as connection:
 
@@ -369,6 +391,7 @@ def test_add_frontend_org_with_invalid_org(test_db_engine):
             query_statements.append(clear_tables_statement)
             query_statements.append(get_repo_group_insert_statement(data["repo_group_id"]))
             query_statements.append(get_user_insert_statement(data["user_id"]))
+            query_statements.append(get_user_group_insert_statement(data["user_id"], data["user_group_name"], data["user_group_id"]))
 
             connection.execute("".join(query_statements))
 
@@ -376,7 +399,8 @@ def test_add_frontend_org_with_invalid_org(test_db_engine):
         with GithubTaskSession(logger, test_db_engine) as session:
 
             url = f"https://github.com/{data['org_name']}/"
-            controller = RepoLoadController(session).add_frontend_org(url, data["user_id"])
+            result = RepoLoadController(session).add_frontend_org(url, data["user_id"], data["user_group_name"])
+            assert result["status"] == "Invalid org"
 
         with test_db_engine.connect() as connection:
 
@@ -391,18 +415,20 @@ def test_add_frontend_org_with_invalid_org(test_db_engine):
 
 def test_add_frontend_org_with_valid_org(test_db_engine):
 
-    clear_tables = ["user_repos", "repo", "repo_groups", "users", "config"]
+    clear_tables = ["user_repos", "user_groups", "repo", "repo_groups", "users", "config"]
     clear_tables_statement = get_repo_related_delete_statements(clear_tables)
 
     try:
         with test_db_engine.connect() as connection:
 
-            data = {"user_id": 2, "repo_group_id": DEFAULT_REPO_GROUP_IDS[0], "org_name": VALID_ORG["org"]}
+            data = {"user_id": 2, "repo_group_id": DEFAULT_REPO_GROUP_IDS[0], "org_name": VALID_ORG["org"], "user_group_name": "test_group", "user_group_id": 1}
 
             query_statements = []
             query_statements.append(clear_tables_statement)
             query_statements.append(get_repo_group_insert_statement(data["repo_group_id"]))
             query_statements.append(get_user_insert_statement(data["user_id"]))
+            query_statements.append(get_user_group_insert_statement(data["user_id"], data["user_group_name"], data["user_group_id"]))
+
             connection.execute("".join(query_statements))
 
         add_keys_to_test_db(test_db_engine)
@@ -410,7 +436,9 @@ def test_add_frontend_org_with_valid_org(test_db_engine):
         with GithubTaskSession(logger, test_db_engine) as session:
 
             url = "https://github.com/{}/".format(data["org_name"])
-            RepoLoadController(session).add_frontend_org(url, data["user_id"])
+            result = RepoLoadController(session).add_frontend_org(url, data["user_id"], data["user_group_name"])
+            print(result)
+            assert result["status"] == "Org repos added"
 
         with test_db_engine.connect() as connection:
 
@@ -429,7 +457,7 @@ def test_add_frontend_org_with_valid_org(test_db_engine):
 
 def test_add_cli_org_with_valid_org(test_db_engine):
 
-    clear_tables = ["user_repos", "repo", "repo_groups", "users", "config"]
+    clear_tables = ["user_repos", "user_groups", "repo", "repo_groups", "users", "config"]
     clear_tables_statement = get_repo_related_delete_statements(clear_tables)
 
     try:
@@ -442,6 +470,7 @@ def test_add_cli_org_with_valid_org(test_db_engine):
             query_statements.append(get_repo_group_insert_statement(data["repo_group_id"]))
             query_statements.append(get_user_insert_statement(data["user_id"]))
 
+
             connection.execute("".join(query_statements))
 
         repo_count = None
@@ -450,7 +479,8 @@ def test_add_cli_org_with_valid_org(test_db_engine):
 
         with GithubTaskSession(logger, test_db_engine) as session:
 
-            RepoLoadController(session).add_cli_org(data["org_name"])
+            result = RepoLoadController(session).add_cli_org(data["org_name"])
+            print(result)
 
         with test_db_engine.connect() as connection:
 
@@ -464,7 +494,8 @@ def test_add_cli_org_with_valid_org(test_db_engine):
 
     finally:
         with test_db_engine.connect() as connection:
-            connection.execute(clear_tables_statement)
+            pass
+            # connection.execute(clear_tables_statement)
 
 
 def test_add_cli_repos_with_duplicates(test_db_engine):
@@ -506,4 +537,43 @@ def test_add_cli_repos_with_duplicates(test_db_engine):
     finally:
         with test_db_engine.connect() as connection:
             connection.execute(clear_tables_statement)
+
+
+
+def test_convert_group_name_to_id(test_db_engine):
+
+    clear_tables = ["user_repos", "repo", "repo_groups", "users"]
+    clear_tables_statement = get_repo_related_delete_statements(clear_tables)
+
+    try:
+        with test_db_engine.connect() as connection:
+
+            data = {"user_id": 1, "group_name": "test_group_name", "group_id": 1}
+            url = f"https://github.com/{data['org_name']}/{data['repo_name']}"
+
+            query_statements = []
+            query_statements.append(clear_tables_statement)
+            query_statements.append(get_user_insert_statement(data["user-id"]))
+            query_statements.append(get_user_group_insert_statement(data["user_id"], data["group_name"], data["group_id"]))
+
+            connection.execute("".join(query_statements))
+
+        with GithubTaskSession(logger, test_db_engine) as session:
+
+            repo_data = {"url": url, "repo_group_id": data["repo_group_id"]}
+
+            controller = RepoLoadController(session)
+            group_id = controller.convert_group_name_to_id(data["user_id"], data["group_name"])
+
+            assert group_id is not None
+            assert group_id == data["group_id"]
+
+    finally:
+        with test_db_engine.connect() as connection:
+            connection.execute(clear_tables_statement)
+
+
+
+
+
 
