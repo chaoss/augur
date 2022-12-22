@@ -510,3 +510,68 @@ def test_remove_user_group(test_db_engine):
 
 
 
+def test_get_user_groups(test_db_engine):
+
+    clear_tables = ["user_repos", "user_groups", "repo", "repo_groups", "users"]
+    clear_tables_statement = get_repo_related_delete_statements(clear_tables)
+
+    try:
+        with test_db_engine.connect() as connection:
+
+            user_id =1
+
+            groups = [
+                {
+                    "group_name": "test group 1",
+                    "group_id": 1
+                },
+                {
+                    "group_name": "test group 2",
+                    "group_id": 2
+                },
+                {
+                    "group_name": "test group 3",
+                    "group_id": 3
+                },
+                {
+                    "group_name": "test group 4",
+                    "group_id": 4
+                },
+                {
+                    "group_name": "test group 5",
+                    "group_id": 5
+                }
+            ]
+
+            query_statements = []
+            query_statements.append(clear_tables_statement)
+            query_statements.append(get_user_insert_statement(user_id))
+
+            for group in groups:
+                query_statements.append(get_user_group_insert_statement(user_id, group["group_name"], group["group_id"]))
+
+            connection.execute("".join(query_statements))
+
+        with GithubTaskSession(logger, test_db_engine) as session:
+
+            controller = RepoLoadController(session)
+
+            assert len(controller.get_user_groups(user_id)) == len(groups)
+
+
+            with test_db_engine.connect() as connection:
+
+                user_group_delete_statement = get_user_group_delete_statement()
+                query = s.text(user_group_delete_statement)
+
+                result = connection.execute(query)
+
+            assert len(controller.get_user_groups(user_id)) == 0
+ 
+    finally:
+        with test_db_engine.connect() as connection:
+            connection.execute(clear_tables_statement)
+
+
+
+
