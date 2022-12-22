@@ -151,44 +151,44 @@ def test_add_repo_row(test_db_engine):
             connection.execute(clear_tables_statement)
 
 
-# def test_add_repo_row_with_updates(test_db_engine):
+def test_add_repo_row_with_updates(test_db_engine):
 
-#     clear_tables = ["user_repos", "user_groups", "repo", "repo_groups", "users"]
-#     clear_tables_statement = get_repo_related_delete_statements(clear_tables)
+    clear_tables = ["user_repos", "user_groups", "repo", "repo_groups", "users"]
+    clear_tables_statement = get_repo_related_delete_statements(clear_tables)
 
-#     try:
-#         data = {"old_rg_id": 1, "new_rg_id": 2, "repo_id": 1, "repo_id_2": 2, "tool_source": "Test",
-#                 "repo_url": "https://github.com/chaoss/augur", "repo_url_2": "https://github.com/chaoss/grimoirelab-perceval-opnfv",  "repo_status": "Complete"}
+    try:
+        data = {"old_rg_id": 1, "new_rg_id": 2, "repo_id": 1, "repo_id_2": 2, "tool_source": "Test",
+                "repo_url": "https://github.com/chaoss/augur", "repo_url_2": "https://github.com/chaoss/grimoirelab-perceval-opnfv",  "repo_status": "Complete"}
 
-#         with test_db_engine.connect() as connection:
+        with test_db_engine.connect() as connection:
 
-#             query_statements = []
-#             query_statements.append(clear_tables_statement)
-#             query_statements.append(get_repo_group_insert_statement(data["old_rg_id"]))
-#             query_statements.append(get_repo_group_insert_statement(data["new_rg_id"]))
-#             query_statements.append(get_repo_insert_statement(data["repo_id"], data["old_rg_id"], repo_url=data["repo_url"], repo_status=data["repo_status"]))
-#             query = s.text("".join(query_statements))
+            query_statements = []
+            query_statements.append(clear_tables_statement)
+            query_statements.append(get_repo_group_insert_statement(data["old_rg_id"]))
+            query_statements.append(get_repo_group_insert_statement(data["new_rg_id"]))
+            query_statements.append(get_repo_insert_statement(data["repo_id"], data["old_rg_id"], repo_url=data["repo_url"], repo_status=data["repo_status"]))
+            query = s.text("".join(query_statements))
 
-#             connection.execute(query)
+            connection.execute(query)
 
-#         with DatabaseSession(logger, test_db_engine) as session:
+        with DatabaseSession(logger, test_db_engine) as session:
 
-#             result =  RepoLoadController(session).add_repo_row(data["repo_url"], data["new_rg_id"], data["tool_source"]) is not None
-#             assert result == data["repo_id"]
+            result =  RepoLoadController(session).add_repo_row(data["repo_url"], data["new_rg_id"], data["tool_source"]) is not None
+            assert result == data["repo_id"]
 
-#         with test_db_engine.connect() as connection:
+        with test_db_engine.connect() as connection:
 
-#             result = get_repos(connection, where_string=f"WHERE repo_git='{data['repo_url']}'")
-#             assert result is not None
-#             assert len(result) == 1
+            result = get_repos(connection, where_string=f"WHERE repo_git='{data['repo_url']}'")
+            assert result is not None
+            assert len(result) == 1
 
-#             value = dict(result[0])
-#             assert value["repo_status"] == data["repo_status"]
-#             assert value["repo_group_id"] == data["new_rg_id"]
+            value = dict(result[0])
+            assert value["repo_status"] == data["repo_status"]
+            assert value["repo_group_id"] == data["new_rg_id"]
 
-#     finally:
-#         with test_db_engine.connect() as connection:
-#             connection.execute(clear_tables_statement)
+    finally:
+        with test_db_engine.connect() as connection:
+            connection.execute(clear_tables_statement)
 
 
 def test_add_repo_to_user_group(test_db_engine):
@@ -199,33 +199,90 @@ def test_add_repo_to_user_group(test_db_engine):
     try:
         with test_db_engine.connect() as connection:
 
-            data = {"repo_id": 1, "user_id": 2, "user_repo_group_id": 1, "user_group_id": 1, "user_group_name": "test_group"}
+            data = {"repo_ids": [1, 2, 3], "repo_urls":["url 1", "url2", "url3"], "user_id": 2, "user_repo_group_id": 1, "user_group_ids": [1, 2], "user_group_names": ["test_group", "test_group_2"]}
 
             query_statements = []
             query_statements.append(clear_tables_statement)
             query_statements.append(get_repo_group_insert_statement(data["user_repo_group_id"]))
-            query_statements.append(get_repo_insert_statement(data["repo_id"], data["user_repo_group_id"]))
+
+            for i in range(0, len(data["repo_ids"])):
+                query_statements.append(get_repo_insert_statement(data["repo_ids"][i], data["user_repo_group_id"], data["repo_urls"][i]))
+
             query_statements.append(get_user_insert_statement(data["user_id"]))
-            query_statements.append(get_user_group_insert_statement(data["user_id"], data["user_group_name"], data["user_group_id"]))
+
+            for i in range(0, len(data["user_group_ids"])):
+                query_statements.append(get_user_group_insert_statement(data["user_id"], data["user_group_names"][i], data["user_group_ids"][i]))
+            
             query = s.text("".join(query_statements))
 
             connection.execute(query)
 
         with DatabaseSession(logger, test_db_engine) as session:
 
-            RepoLoadController(session).add_repo_to_user_group(data["repo_id"], data["user_group_id"])
+            controller = RepoLoadController(session)
+
+            # add valid repo to group 0
+            assert controller.add_repo_to_user_group(data["repo_ids"][0], data["user_group_ids"][0]) is True
+
+            # add repo again to group 0 ... should be 1 repo row still
+            assert controller.add_repo_to_user_group(data["repo_ids"][0], data["user_group_ids"][0]) is True
+
+            # add another valid repo to group 0
+            assert controller.add_repo_to_user_group(data["repo_ids"][1], data["user_group_ids"][0]) is True
+
+            # add same repo to group 1
+            assert controller.add_repo_to_user_group(data["repo_ids"][0], data["user_group_ids"][1]) is True
+
+            # add different repo to group 1
+            assert controller.add_repo_to_user_group(data["repo_ids"][2], data["user_group_ids"][1]) is True
+
+            # add with invalid repo id
+            assert controller.add_repo_to_user_group(130000, data["user_group_ids"][1]) is False
+
+            # add with invalid group_id
+            assert controller.add_repo_to_user_group(data["repo_ids"][0], 133333) is False
+
+            # pass invalid tpyes
+            assert controller.add_repo_to_user_group("130000", data["user_group_ids"][1]) is False
+            assert controller.add_repo_to_user_group(data["repo_ids"][0], "133333") is False
+
+
+            # end result
+            # 4 rows in table
+            # 2 rows in each group
+
 
         with test_db_engine.connect() as connection:
 
-            query = s.text("""SELECT * FROM "augur_operations"."user_repos" WHERE "group_id"=:user_group_id AND "repo_id"=:repo_id""")
+            query = s.text("""SELECT * FROM "augur_operations"."user_repos";""")
+            # WHERE "group_id"=:user_group_id AND "repo_id"=:repo_id
 
-            result = connection.execute(query, **data).fetchall()
+            result = connection.execute(query).fetchall()
             assert result is not None
-            assert len(result) > 0
+            assert len(result) == 4
+
+
+            query = s.text("""SELECT * FROM "augur_operations"."user_repos" WHERE "group_id"={};""".format(data["user_group_ids"][0]))
+
+            result = connection.execute(query).fetchall()
+            assert result is not None
+            assert len(result) == 2
+
+
+            query = s.text("""SELECT * FROM "augur_operations"."user_repos" WHERE "group_id"={};""".format(data["user_group_ids"][0]))
+
+            result = connection.execute(query).fetchall()
+            assert result is not None
+            assert len(result) == 2
 
     finally:
         with test_db_engine.connect() as connection:
             connection.execute(clear_tables_statement)
+
+
+def test_add_user_group():
+
+    pass
 
 
 

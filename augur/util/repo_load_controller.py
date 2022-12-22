@@ -171,6 +171,9 @@ class RepoLoadController:
             user_id: id of user_id from users table
         """
 
+        if not isinstance(repo_id, int) or not isinstance(group_id, int):
+            return False
+
         repo_user_group_data = {
             "group_id": group_id,
             "repo_id": repo_id
@@ -179,7 +182,11 @@ class RepoLoadController:
             
         repo_user_group_unique = ["group_id", "repo_id"]
         return_columns = ["group_id", "repo_id"]
-        data = self.session.insert_data(repo_user_group_data, UserRepo, repo_user_group_unique, return_columns)
+
+        try:
+            data = self.session.insert_data(repo_user_group_data, UserRepo, repo_user_group_unique, return_columns)
+        except s.exc.IntegrityError:
+            return False
 
         return data[0]["group_id"] == group_id and data[0]["repo_id"] == repo_id
 
