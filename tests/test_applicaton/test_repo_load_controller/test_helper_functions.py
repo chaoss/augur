@@ -12,6 +12,37 @@ from tests.test_applicaton.test_repo_load_controller.helper import *
 logger = logging.getLogger(__name__)
 
 
+def test_parse_repo_url():
+
+    with DatabaseSession(logger) as session:
+
+        controller = RepoLoadController(session)
+
+        assert controller.parse_repo_url("hello world") == (None, None)
+        assert controller.parse_repo_url("https://github.com/chaoss/hello") == ("chaoss", "hello")
+        assert controller.parse_repo_url("https://github.com/hello124/augur") == ("hello124", "augur")
+        assert controller.parse_repo_url("https://github.com//augur") == (None, None)
+        assert controller.parse_repo_url("https://github.com/chaoss/") == (None, None)
+        assert controller.parse_repo_url("https://github.com//") == (None, None)
+        assert controller.parse_repo_url("https://github.com/chaoss/augur") == ("chaoss", "augur")
+        assert controller.parse_repo_url("https://github.com/chaoss/augur/") == ("chaoss", "augur")
+        assert controller.parse_repo_url("https://github.com/chaoss/augur.git") == ("chaoss", "augur")
+
+
+def test_parse_org_url():
+
+    with DatabaseSession(logger) as session:
+
+        controller = RepoLoadController(session)
+
+        assert controller.parse_org_url("hello world") == None, None
+        assert controller.parse_org_url("https://github.com/chaoss/") == "chaoss"
+        assert controller.parse_org_url("https://github.com/chaoss") == "chaoss"
+        assert controller.parse_org_url("https://github.com/hello124/augur") == None
+        assert controller.parse_org_url("https://github.com//augur") == None, None
+        assert controller.parse_org_url("https://github.com//") == None
+        assert controller.parse_org_url("https://github.com/chaoss/augur") == None
+
 
 def test_is_valid_repo():
 
@@ -29,6 +60,48 @@ def test_is_valid_repo():
         assert controller.is_valid_repo("https://github.com/chaoss/augur/") is True
         assert controller.is_valid_repo("https://github.com/chaoss/augur.git") is True
 
+def test_is_valid_repo_group_id(test_db_engine):
+
+    clear_tables = ["repo_groups"]
+    clear_tables_statement = get_repo_related_delete_statements(clear_tables)
+
+    try:
+
+
+        data = {"rg_ids": [1, 2, 3], "repo_id": 1, "tool_source": "Frontend",
+                "repo_url": "https://github.com/chaoss/augur"}
+
+        with test_db_engine.connect() as connection:
+
+            query_statements = []
+            query_statements.append(clear_tables_statement)
+            query_statements.append(get_repo_group_insert_statement(data["rg_ids"][0]))
+            query_statements.append(get_repo_group_insert_statement(data["rg_ids"][1]))
+            query_statements.append(get_repo_group_insert_statement(data["rg_ids"][2]))
+            query = s.text("".join(query_statements))
+
+            connection.execute(query)
+
+        with DatabaseSession(logger, test_db_engine) as session:
+
+            controller = RepoLoadController(session)
+
+            # valid 
+            assert controller.is_valid_repo_group_id(data["rg_ids"][0]) is True
+            assert controller.is_valid_repo_group_id(data["rg_ids"][1]) is True
+            assert controller.is_valid_repo_group_id(data["rg_ids"][2]) is True
+
+
+            # invalid
+            assert controller.is_valid_repo_group_id(-1) is False
+            assert controller.is_valid_repo_group_id(12) is False
+            assert controller.is_valid_repo_group_id(11111) is False
+
+
+    finally:
+        with test_db_engine.connect() as connection:
+            connection.execute(clear_tables_statement)
+
 
 def test_add_repo_row(test_db_engine):
 
@@ -36,8 +109,10 @@ def test_add_repo_row(test_db_engine):
     clear_tables_statement = get_repo_related_delete_statements(clear_tables)
 
     try:
-        data = {"rg_id": 1, "repo_id": 1, "tool_source": "Frontend",
-                "repo_url": "https://github.com/chaoss/augur"}
+        data = {"rg_id": 1, 
+                "tool_source": "Frontend",
+                "repo_urls": ["https://github.com/chaoss/augur", "https://github.com/chaoss/grimoirelab-sortinghat"]
+                }
 
         with test_db_engine.connect() as connection:
 
@@ -50,57 +125,70 @@ def test_add_repo_row(test_db_engine):
 
         with DatabaseSession(logger, test_db_engine) as session:
 
-            assert RepoLoadController(session).add_repo_row(data["repo_url"], data["rg_id"], data["tool_source"]) is not None
+            assert RepoLoadController(session).add_repo_row(data["repo_urls"][0], data["rg_id"], data["tool_source"]) is not None
+            assert RepoLoadController(session).add_repo_row(data["repo_urls"][1], data["rg_id"], data["tool_source"]) is not None
+
+            # invalid rg_id
+            assert RepoLoadController(session).add_repo_row(data["repo_urls"][0], 12, data["tool_source"]) is None
+
+            # invalid type for repo url
+            assert RepoLoadController(session).add_repo_row(1, data["rg_id"], data["tool_source"]) is None
+
+            # invalid type for rg_id
+            assert RepoLoadController(session).add_repo_row(data["repo_urls"][1], "1", data["tool_source"]) is None
+
+            # invalid type for tool_source
+            assert RepoLoadController(session).add_repo_row(data["repo_urls"][1], data["rg_id"], 52) is None
 
         with test_db_engine.connect() as connection:
 
-            result = get_repos(connection, where_string=f"WHERE repo_git='{data['repo_url']}'")
+            result = get_repos(connection)
             assert result is not None
-            assert len(result) > 0
+            assert len(result) == len(data["repo_urls"])
 
     finally:
         with test_db_engine.connect() as connection:
             connection.execute(clear_tables_statement)
 
 
-def test_add_repo_row_with_updates(test_db_engine):
+# def test_add_repo_row_with_updates(test_db_engine):
 
-    clear_tables = ["user_repos", "user_groups", "repo", "repo_groups", "users"]
-    clear_tables_statement = get_repo_related_delete_statements(clear_tables)
+#     clear_tables = ["user_repos", "user_groups", "repo", "repo_groups", "users"]
+#     clear_tables_statement = get_repo_related_delete_statements(clear_tables)
 
-    try:
-        data = {"old_rg_id": 1, "new_rg_id": 2, "repo_id": 1, "repo_id_2": 2, "tool_source": "Test",
-                "repo_url": "https://github.com/chaoss/augur", "repo_url_2": "https://github.com/chaoss/grimoirelab-perceval-opnfv",  "repo_status": "Complete"}
+#     try:
+#         data = {"old_rg_id": 1, "new_rg_id": 2, "repo_id": 1, "repo_id_2": 2, "tool_source": "Test",
+#                 "repo_url": "https://github.com/chaoss/augur", "repo_url_2": "https://github.com/chaoss/grimoirelab-perceval-opnfv",  "repo_status": "Complete"}
 
-        with test_db_engine.connect() as connection:
+#         with test_db_engine.connect() as connection:
 
-            query_statements = []
-            query_statements.append(clear_tables_statement)
-            query_statements.append(get_repo_group_insert_statement(data["old_rg_id"]))
-            query_statements.append(get_repo_group_insert_statement(data["new_rg_id"]))
-            query_statements.append(get_repo_insert_statement(data["repo_id"], data["old_rg_id"], repo_url=data["repo_url"], repo_status=data["repo_status"]))
-            query = s.text("".join(query_statements))
+#             query_statements = []
+#             query_statements.append(clear_tables_statement)
+#             query_statements.append(get_repo_group_insert_statement(data["old_rg_id"]))
+#             query_statements.append(get_repo_group_insert_statement(data["new_rg_id"]))
+#             query_statements.append(get_repo_insert_statement(data["repo_id"], data["old_rg_id"], repo_url=data["repo_url"], repo_status=data["repo_status"]))
+#             query = s.text("".join(query_statements))
 
-            connection.execute(query)
+#             connection.execute(query)
 
-        with DatabaseSession(logger, test_db_engine) as session:
+#         with DatabaseSession(logger, test_db_engine) as session:
 
-            result =  RepoLoadController(session).add_repo_row(data["repo_url"], data["new_rg_id"], data["tool_source"]) is not None
-            assert result == data["repo_id"]
+#             result =  RepoLoadController(session).add_repo_row(data["repo_url"], data["new_rg_id"], data["tool_source"]) is not None
+#             assert result == data["repo_id"]
 
-        with test_db_engine.connect() as connection:
+#         with test_db_engine.connect() as connection:
 
-            result = get_repos(connection, where_string=f"WHERE repo_git='{data['repo_url']}'")
-            assert result is not None
-            assert len(result) == 1
+#             result = get_repos(connection, where_string=f"WHERE repo_git='{data['repo_url']}'")
+#             assert result is not None
+#             assert len(result) == 1
 
-            value = dict(result[0])
-            assert value["repo_status"] == data["repo_status"]
-            assert value["repo_group_id"] == data["new_rg_id"]
+#             value = dict(result[0])
+#             assert value["repo_status"] == data["repo_status"]
+#             assert value["repo_group_id"] == data["new_rg_id"]
 
-    finally:
-        with test_db_engine.connect() as connection:
-            connection.execute(clear_tables_statement)
+#     finally:
+#         with test_db_engine.connect() as connection:
+#             connection.execute(clear_tables_statement)
 
 
 def test_add_repo_to_user_group(test_db_engine):

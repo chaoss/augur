@@ -37,8 +37,6 @@ class RepoLoadController:
             True if repo url is valid and False if not
         """
 
-        print("Is repo valid?")
-
         owner, repo = self.parse_repo_url(url)
         if not owner or not repo:
             return False
@@ -109,7 +107,11 @@ class RepoLoadController:
 
     def is_valid_repo_group_id(self, repo_group_id):
         query = self.session.query(RepoGroup).filter(RepoGroup.repo_group_id == repo_group_id)
-        result = execute_session_query(query, 'one')
+
+        try:
+            result = execute_session_query(query, 'one')
+        except (s.orm.exc.NoResultFound, s.orm.exc.MultipleResultsFound):
+            return False
 
         if result and result.repo_group_id == repo_group_id:
             return True
@@ -126,6 +128,9 @@ class RepoLoadController:
         Note:
             If repo row exists then it will update the repo_group_id if param repo_group_id is not a default. If it does not exist is will simply insert the repo.
         """
+
+        if not isinstance(url, str) or not isinstance(repo_group_id, int) or not isinstance(tool_source, str):
+            return None
 
         if not self.is_valid_repo_group_id(repo_group_id):
             return None
@@ -153,7 +158,7 @@ class RepoLoadController:
 
             if not repo.repo_group_id == repo_group_id:
                 repo.repo_group_id = repo_group_id
-                self.session.commit()
+                self.session.commit()            
         
         return result[0]["repo_id"]
 
