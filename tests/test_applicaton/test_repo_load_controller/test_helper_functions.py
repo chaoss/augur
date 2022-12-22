@@ -280,9 +280,94 @@ def test_add_repo_to_user_group(test_db_engine):
             connection.execute(clear_tables_statement)
 
 
-def test_add_user_group():
+def test_add_user_group(test_db_engine):
 
-    pass
+    clear_tables = ["user_repos", "user_groups", "repo", "repo_groups", "users"]
+    clear_tables_statement = get_repo_related_delete_statements(clear_tables)
+
+    try:
+        with test_db_engine.connect() as connection:
+
+            data = {
+                "users": [
+                    {
+                        "id": 0,
+                        "username": "user 1",
+                        "email": "email 1"
+                    },
+                    {
+                        "id": 1,
+                        "username": "user 2",
+                        "email": "email 2"
+                    }
+                ],
+                "group_names": ["test_group", "test_group_2"]}
+
+            query_statements = []
+            query_statements.append(clear_tables_statement)
+
+            for user in data["users"]:
+                query_statements.append(get_user_insert_statement(user["id"], user["username"], user["email"]))
+            
+            query = s.text("".join(query_statements))
+
+            connection.execute(query)
+
+        with DatabaseSession(logger, test_db_engine) as session:
+
+            controller = RepoLoadController(session)
+
+            # add valid group to user 0
+            assert controller.add_user_group(data["users"][0]["id"], data["group_names"][0])["status"] == "Group created"
+
+            # add group again to user 0 ... should be 1 group row still
+            assert controller.add_user_group(data["users"][0]["id"], data["group_names"][0])["status"] == "Group created"
+
+            # add another valid group to user 0
+            assert controller.add_user_group(data["users"][0]["id"], data["group_names"][1])["status"] == "Group created"
+
+            # add same group to user 1
+            assert controller.add_user_group(data["users"][1]["id"], data["group_names"][0])["status"] == "Group created"
+
+
+            # add with invalid user id
+            assert controller.add_user_group(130000, data["group_names"][0])["status"] == "Error: User id does not exist"
+
+            # pass invalid tpyes
+            assert controller.add_user_group("130000", data["group_names"][0])["status"] == "Invalid input"
+            assert controller.add_user_group(data["users"][0]["id"], 133333)["status"] == "Invalid input"
+
+
+            # end result
+            # 3 groups in table
+            # 1 row for user 1
+            # 2 rows for user 0
+
+
+        with test_db_engine.connect() as connection:
+
+            query = s.text("""SELECT * FROM "augur_operations"."user_groups";""")
+
+            result = connection.execute(query).fetchall()
+            assert result is not None
+            assert len(result) == 3
+
+            query = s.text("""SELECT * FROM "augur_operations"."user_groups" WHERE "user_id"={};""".format(data["users"][0]["id"]))
+
+            result = connection.execute(query).fetchall()
+            assert result is not None
+            assert len(result) == 2
+
+            query = s.text("""SELECT * FROM "augur_operations"."user_groups" WHERE "user_id"={};""".format(data["users"][1]["id"]))
+
+            result = connection.execute(query).fetchall()
+            assert result is not None
+            assert len(result) == 1
+
+
+    finally:
+        with test_db_engine.connect() as connection:
+            connection.execute(clear_tables_statement)
 
 
 
@@ -294,22 +379,48 @@ def test_convert_group_name_to_id(test_db_engine):
     try:
         with test_db_engine.connect() as connection:
 
-            data = {"user_id": 1, "group_name": "test_group_name", "group_id": 1}
+            user_id =1
+
+            groups = [
+                {
+                    "group_name": "test group 1",
+                    "group_id": 1
+                },
+                {
+                    "group_name": "test group 2",
+                    "group_id": 2
+                },
+                {
+                    "group_name": "test group 3",
+                    "group_id": 3
+                },
+            ]
 
             query_statements = []
             query_statements.append(clear_tables_statement)
-            query_statements.append(get_user_insert_statement(data["user_id"]))
-            query_statements.append(get_user_group_insert_statement(data["user_id"], data["group_name"], data["group_id"]))
+            query_statements.append(get_user_insert_statement(user_id))
+
+            for group in groups:
+                query_statements.append(get_user_group_insert_statement(user_id, group["group_name"], group["group_id"]))
 
             connection.execute("".join(query_statements))
 
         with GithubTaskSession(logger, test_db_engine) as session:
 
             controller = RepoLoadController(session)
-            group_id = controller.convert_group_name_to_id(data["user_id"], data["group_name"])
 
-            assert group_id is not None
-            assert group_id == data["group_id"]
+            for group in groups:
+                assert controller.convert_group_name_to_id(user_id, group["group_name"]) == group["group_id"]
+
+            # test invalid group name 
+            assert controller.convert_group_name_to_id(user_id, "hello") is None
+
+            # test invalid user id 
+            assert controller.convert_group_name_to_id(user_id*2, groups[0]["group_name"]) is None
+
+            # test invalid types
+            assert controller.convert_group_name_to_id(user_id, 5) is None
+            assert controller.convert_group_name_to_id("5", groups[0]["group_name"]) is None
 
     finally:
         with test_db_engine.connect() as connection:

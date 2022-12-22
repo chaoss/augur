@@ -192,17 +192,24 @@ class RepoLoadController:
 
     def add_user_group(self, user_id, group_name):
 
+        if not isinstance(user_id, int) or not isinstance(group_name, str):
+            return {"status": "Invalid input"}
+
         user_group_data = {
             "name": group_name,
             "user_id": user_id
         }
 
-        result = self.session.insert_data(user_group_data, UserGroup, ["name", "user_id"], return_columns=["group_id"])
+        try:
+            result = self.session.insert_data(user_group_data, UserGroup, ["name", "user_id"], return_columns=["group_id"])
+        except s.exc.IntegrityError:
+            return {"status": "Error: User id does not exist"}
+        
 
         if result:
             return {"status": "Group created"}
         else:
-            return {"status": "Group already exists"}
+            return {"status": "Error while creating group"}
 
     def remove_user_group(self, user_id, group_name):
 
@@ -223,6 +230,9 @@ class RepoLoadController:
 
 
     def convert_group_name_to_id(self, user_id, group_name):
+
+        if not isinstance(user_id, int) or not isinstance(group_name, str):
+            return None
 
         try:
             user_group = self.session.query(UserGroup).filter(UserGroup.user_id == user_id, UserGroup.name == group_name).one()
