@@ -246,10 +246,9 @@ class RepoLoadController:
         return self.session.query(UserGroup).filter(UserGroup.user_id == user_id).all() 
 
     def get_user_group_repos(self, group_id):
+        user_repos = self.session.query(UserRepo).filter(UserRepo.group_id == group_id).all()
 
-        user_repos = self.session.query(UserRepo).filter(UserRepo.user_id == user_id, UserRepo.group_id == group_id).all()
-
-        return [user_repo.repo.repo_id for user_repo in user_repos]
+        return [user_repo.repo for user_repo in user_repos]
 
 
     def add_frontend_repo(self, url: List[str], user_id: int, group_name: str, group_id=None, valid_repo=False):
