@@ -21,24 +21,6 @@ ORG_REPOS_ENDPOINT = "https://api.github.com/orgs/{}/repos?per_page=100"
 DEFAULT_REPO_GROUP_IDS = [1, 10]
 CLI_USER_ID = 1
 
-
-# determine what that CLI Group ID is
-with DatabaseSession(logger) as session:
-
-    user = session.query(User).filter(User.user_id == CLI_USER_ID).one()
-    user_groups = user.groups
-
-    if len(user_groups) == 0:
-        cli_user_group = UserGroup(user_id=CLI_USER_ID, name="CLI_Repo_Group")
-        session.add(cli_user_group)
-        session.commit()
-
-    else:
-        cli_user_group = user_groups[0]
-
-    CLI_GROUP_ID = cli_user_group.group_id
-
-
 class RepoLoadController:
 
     def __init__(self, gh_session):
@@ -85,14 +67,6 @@ class RepoLoadController:
                 return False
             
             return True
-
-    def is_valid_user_group(self, user_id, group_id) -> bool:
-
-        try:
-            self.session.query(UserRepo).filter(UserGroup.user_id == user_id, UserGroup.group_id == group_id).one()
-            return True
-        except s.orm.exc.NoResultFound:
-            return False
 
 
     def retrieve_org_repos(self, url: str) -> List[str]:
@@ -184,7 +158,7 @@ class RepoLoadController:
         return result[0]["repo_id"]
 
 
-    def add_repo_to_user_group(self, repo_id, group_id=CLI_GROUP_ID):
+    def add_repo_to_user_group(self, repo_id, group_id=1):
         """Add a repo to a user in the user_repos table.
 
         Args:
