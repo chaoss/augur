@@ -3163,3 +3163,44 @@ class PullRequestReviewMessageRef(Base):
     msg = relationship("Message")
     pr_review = relationship("PullRequestReview")
     repo = relationship("Repo")
+
+
+class RepoClone(Base):
+    __tablename__ = "repo_clones"
+    __table_args__ = (
+        UniqueConstraint("repo_id", name="repo-clone-insert-unique"),
+        {"schema": "augur_data",
+        "comment":"This table is used to store the number of clones for a repository. The clone_url is the URL of the repository that was cloned. The unique_clones is the number of unique clones for the repository. The total_clones is the total number of clones for the repository. The clone_timestamp is the time that the clone occurred. "},
+    )
+
+    repo_clone_id = Column(
+        BigInteger,
+        primary_key=True,
+        server_default=text(
+            "nextval('augur_data.repo_clone_repo_clone_id_seq'::regclass)"
+        ),
+    )
+    repo_id = Column(
+        ForeignKey(
+            "augur_data.repo.repo_id",
+            ondelete="RESTRICT",
+            onupdate="CASCADE",
+            deferrable=True,
+            initially="DEFERRED",
+        ),
+        nullable=False,
+    )
+    unique_clones = Column(BigInteger)
+    count_clones = Column(BigInteger)
+    clone_timestamp = Column(TIMESTAMP(precision=6))
+
+    repo = relationship("Repo")
+
+    @classmethod
+    def from_github(cls, repo, clone):
+        clone_repo_obj = cls()
+        clone_repo_obj.repo_id = repo.repo_id
+        clone_repo_obj.unique_clones = clone["uniques"]
+        clone_repo_obj.count_clones = clone["count"]
+        clone_repo_obj.clone_timestamp = clone["timestamp"]
+        return clone_repo_obj

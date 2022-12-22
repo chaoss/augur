@@ -2778,6 +2778,20 @@ CREATE TABLE augur_data.working_commits (
 ALTER TABLE augur_data.working_commits OWNER TO augur;
 
 --
+-- Name: repo_clones; Type: TABLE; Schema: augur_data; Owner: augur
+--
+
+CREATE TABLE augur_data.repo_clones (
+    repo_id integer NOT NULL,
+    unique_clones integer NOT NULL,
+    count_clones integer NOT NULL,
+    clone_timestamp timestamp(0) without time zone
+);
+
+
+ALTER TABLE augur_data.repo_clones OWNER TO augur;
+
+--
 -- Name: affiliations_corp_id_seq; Type: SEQUENCE; Schema: augur_operations; Owner: augur
 --
 
