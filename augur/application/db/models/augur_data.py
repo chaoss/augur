@@ -3167,11 +3167,7 @@ class PullRequestReviewMessageRef(Base):
 
 class RepoClone(Base):
     __tablename__ = "repo_clones"
-    __table_args__ = (
-        UniqueConstraint("repo_id", name="repo-clone-insert-unique"),
-        {"schema": "augur_data",
-        "comment":"This table is used to store the number of clones for a repository. The clone_url is the URL of the repository that was cloned. The unique_clones is the number of unique clones for the repository. The total_clones is the total number of clones for the repository. The clone_timestamp is the time that the clone occurred. "},
-    )
+    __table_args__ = {"schema": "augur_data"}
 
     repo_clone_id = Column(
         BigInteger,
