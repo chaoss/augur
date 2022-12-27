@@ -2778,10 +2778,25 @@ CREATE TABLE augur_data.working_commits (
 ALTER TABLE augur_data.working_commits OWNER TO augur;
 
 --
+-- Name: repo_clones_id_seq; Type: SEQUENCE; Schema: augur_data; Owner: augur
+--
+
+CREATE SEQUENCE augur_data.repo_clones_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE augur_data.repo_clones_id_seq OWNER TO augur;
+
+--
 -- Name: repo_clones; Type: TABLE; Schema: augur_data; Owner: augur
 --
 
 CREATE TABLE augur_data.repo_clones (
+    clone_id bigint DEFAULT nextval('augur_data.repo_clones_id_seq'::regclass) NOT NULL,
     repo_id integer NOT NULL,
     unique_clones integer NOT NULL,
     count_clones integer NOT NULL,

@@ -3193,9 +3193,9 @@ class RepoClone(Base):
     repo = relationship("Repo")
 
     @classmethod
-    def from_github(cls, repo, clone):
+    def from_github(cls, repo_id, clone):
         clone_repo_obj = cls()
-        clone_repo_obj.repo_id = repo.repo_id
+        clone_repo_obj.repo_id = repo_id
         clone_repo_obj.unique_clones = clone["uniques"]
         clone_repo_obj.count_clones = clone["count"]
         clone_repo_obj.clone_timestamp = clone["timestamp"]
