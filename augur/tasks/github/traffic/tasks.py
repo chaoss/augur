@@ -1,10 +1,9 @@
 import time
 import logging
 
-
 from augur.tasks.init.celery_app import celery_app as celery, engine
 from augur.application.db.data_parse import *
-from augur.tasks.github.util.github_paginator import GithubPaginator, hit_api
+from augur.tasks.github.util.github_paginator import GithubPaginator
 from augur.tasks.github.util.github_task_session import GithubTaskSession
 from augur.tasks.util.worker_util import remove_duplicate_dicts
 from augur.tasks.github.util.util import get_owner_repo
@@ -12,9 +11,9 @@ from augur.application.db.models import RepoClone, Repo
 from augur.application.db.util import execute_session_query
 
 @celery.task
-def collect_github_repo_clones(repo_git: str) -> None:
+def collect_github_repo_clones_data(repo_git: str) -> None:
     
-    logger = logging.getLogger(collect_github_repo_clones.__name__)
+    logger = logging.getLogger(collect_github_repo_clones_data.__name__)
 
     # using GithubTaskSession to get our repo_obj for which we will store data of clones
     with GithubTaskSession(logger) as session:
@@ -64,9 +63,12 @@ def retrieve_all_clones_data(repo_git: str, logger):
     return all_data
 
 
-def process_clones_data(clones_data, task_name, repo_id, logger):
-    clone_history_data = clones_data['clones']
-    clone_history_data = remove_duplicate_dicts(clone_history_data, 'timestamp')
-    with GithubTaskSession(logger, engine) as session:
-        session.insert_data(clone_history_data, RepoClone, repo_id)
+def process_clones_data(clones_data, task_name, repo_id, logger) -> None:
+    clone_history_data = clones_data[0]['clones']
 
+    with GithubTaskSession(logger, engine) as session:
+        
+        clone_history_data = remove_duplicate_dicts(clone_history_data, 'timestamp')
+        logger.info(f"{task_name}: Inserting {len(clone_history_data)} clone history records")
+
+        session.insert_data(clone_history_data, RepoClone, repo_id)

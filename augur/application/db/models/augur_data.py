@@ -3169,11 +3169,11 @@ class RepoClone(Base):
     __tablename__ = "repo_clones"
     __table_args__ = {"schema": "augur_data"}
 
-    repo_clone_id = Column(
+    repo_clone_data_id = Column(
         BigInteger,
         primary_key=True,
         server_default=text(
-            "nextval('augur_data.repo_clone_repo_clone_id_seq'::regclass)"
+            "nextval('augur_data.repo_clones_id_seq'::regclass)"
         ),
     )
     repo_id = Column(
@@ -3188,7 +3188,7 @@ class RepoClone(Base):
     )
     unique_clones = Column(BigInteger)
     count_clones = Column(BigInteger)
-    clone_timestamp = Column(TIMESTAMP(precision=6))
+    clone_data_timestamp = Column(TIMESTAMP(precision=6))
 
     repo = relationship("Repo")
 
@@ -3198,5 +3198,5 @@ class RepoClone(Base):
         clone_repo_obj.repo_id = repo_id
         clone_repo_obj.unique_clones = clone["uniques"]
         clone_repo_obj.count_clones = clone["count"]
-        clone_repo_obj.clone_timestamp = clone["timestamp"]
+        clone_repo_obj.clone_data_timestamp = clone["timestamp"]
         return clone_repo_obj

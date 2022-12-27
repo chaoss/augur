@@ -2796,11 +2796,11 @@ ALTER TABLE augur_data.repo_clones_id_seq OWNER TO augur;
 --
 
 CREATE TABLE augur_data.repo_clones (
-    clone_id bigint DEFAULT nextval('augur_data.repo_clones_id_seq'::regclass) NOT NULL,
+    repo_clone_data_id bigint DEFAULT nextval('augur_data.repo_clones_id_seq'::regclass) NOT NULL,
     repo_id integer NOT NULL,
     unique_clones integer NOT NULL,
     count_clones integer NOT NULL,
-    clone_timestamp timestamp(0) without time zone
+    clone_data_timestamp timestamp(0) without time zone
 );
 
 
