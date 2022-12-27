@@ -66,11 +66,11 @@ def retrieve_all_clones_data(repo_git: str, logger):
 def process_clones_data(clones_data, task_name, repo_id, logger) -> None:
     clone_history_data = clones_data[0]['clones']
 
+    clone_history_data_dicts = extract_needed_clone_history_data(clone_history_data, repo_id)
+
     with GithubTaskSession(logger, engine) as session:
         
-        clone_history_data = remove_duplicate_dicts(clone_history_data, 'timestamp')
-        logger.info(f"{task_name}: Inserting {len(clone_history_data)} clone history records")
+        clone_history_data = remove_duplicate_dicts(clone_history_data_dicts, 'clone_data_timestamp')
+        logger.info(f"{task_name}: Inserting {len(clone_history_data_dicts)} clone history records")
         
-        session.insert_data(clone_history_data, RepoClone)
-
-
+        session.insert_data(clone_history_data_dicts, RepoClone, ['repo_id'])

@@ -3166,14 +3166,14 @@ class PullRequestReviewMessageRef(Base):
 
 
 class RepoClone(Base):
-    __tablename__ = "repo_clones"
+    __tablename__ = "repo_clones_data"
     __table_args__ = {"schema": "augur_data"}
 
     repo_clone_data_id = Column(
         BigInteger,
         primary_key=True,
         server_default=text(
-            "nextval('augur_data.repo_clones_id_seq'::regclass)"
+            "nextval('augur_data.repo_clones_data_id_seq'::regclass)"
         ),
     )
     repo_id = Column(
