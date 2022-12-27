@@ -3191,12 +3191,3 @@ class RepoClone(Base):
     clone_data_timestamp = Column(TIMESTAMP(precision=6))
 
     repo = relationship("Repo")
-
-    @classmethod
-    def from_github(cls, repo_id, clone):
-        clone_repo_obj = cls()
-        clone_repo_obj.repo_id = repo_id
-        clone_repo_obj.unique_clones = clone["uniques"]
-        clone_repo_obj.count_clones = clone["count"]
-        clone_repo_obj.clone_data_timestamp = clone["timestamp"]
-        return clone_repo_obj
