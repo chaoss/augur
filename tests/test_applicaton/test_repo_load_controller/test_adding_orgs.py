@@ -10,7 +10,7 @@ from augur.util.repo_load_controller import RepoLoadController, DEFAULT_REPO_GRO
 logger = logging.getLogger(__name__)
 
 
-VALID_ORG = {"org": "CDCgov", "repo_count": 241}
+VALID_ORG = {"org": "CDCgov", "repo_count": 246}
 
 
 def test_add_frontend_org_with_invalid_org(test_db_engine):

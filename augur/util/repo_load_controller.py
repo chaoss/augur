@@ -404,7 +404,7 @@ class RepoLoadController:
             list of repo ids
         """
 
-        user_groups = session.query(UserGroup).filter(UserGroup.user_id).all()
+        user_groups = self.session.query(UserGroup).filter(UserGroup.user_id == user_id).all()
 
         all_repo_ids = set()
         for group in user_groups:
