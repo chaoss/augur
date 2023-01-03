@@ -317,7 +317,7 @@ def create_routes(server):
 
         with GithubTaskSession(logger) as session:
 
-            if username is None or repo is None or group_name is None:
+            if username is None or repo_id is None or group_name is None:
                 return jsonify({"status": "Missing argument"}), 400
             user = session.query(User).filter(
                 User.login_name == username).first()

@@ -218,11 +218,14 @@ class RepoLoadController:
         if group_id is None:
             return {"status": "WARNING: Trying to delete group that does not exist"}
 
+        group = self.session.query(UserGroup).filter(UserGroup.group_id == group_id).one()
+
         # delete rows from user repos with group_id
-        self.session.query(UserRepo).filter(UserRepo.group_id == group_id).delete()
-        
+        for repo in group.repos:
+            self.session.delete(repo)
+
         # delete group from user groups table
-        self.session.query(UserGroup).filter(UserGroup.group_id == group_id).delete()
+        self.session.delete(group)
 
         self.session.commit()
 
