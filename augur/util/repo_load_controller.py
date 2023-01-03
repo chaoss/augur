@@ -452,7 +452,3 @@ class RepoLoadController:
             return owner
         except IndexError:
             return None
-
-        
-
-

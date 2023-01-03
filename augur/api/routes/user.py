@@ -122,9 +122,13 @@ def create_routes(server):
         if user is None:
             return jsonify({"status": "User does not exist"})
 
-        user_repos = session.query(UserRepo).filter(UserRepo.user_id == user.user_id).all()
-        for repo in user_repos:
-            session.delete(repo)
+        for group in user.groups:
+            user_repos_list = group.repos
+
+            for user_repo_entry in user_repos_list:
+                session.delete(user_repo_entry)
+
+            session.delete(group)
 
         session.delete(user)
         session.commit()
@@ -260,7 +264,7 @@ def create_routes(server):
             
         with GithubTaskSession(logger) as session:
 
-            if username is None or group_name is None
+            if username is None or group_name is None:
                 return jsonify({"status": "Missing argument"}), 400
 
             user = session.query(User).filter(User.login_name == username).first()
