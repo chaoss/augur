@@ -39,19 +39,19 @@ def prelim_phase():
 
     logger = logging.getLogger(prelim_phase.__name__)
 
-    tasks_with_repo_domain = []
+    tasks_with_repo_domain = None
+
+    
 
     with DatabaseSession(logger) as session:
         query = session.query(Repo)
         repos = execute_session_query(query, 'all')
+        repo_git_list = [repo.repo_git for repo in repos]
 
-        for repo in repos:
-            tasks_with_repo_domain.append(detect_github_repo_move.si(repo.repo_git))
+        tasks_with_repo_domain = create_grouped_task_load(dataList=repo_git_list,task=detect_github_repo_move)
 
-    #preliminary_task_list = [detect_github_repo_move.si()]
-    preliminary_tasks = group(*tasks_with_repo_domain)
-    #preliminary_tasks.apply_async()
-    return preliminary_tasks
+
+    return tasks_with_repo_domain
 
 def repo_collect_phase():
     logger = logging.getLogger(repo_collect_phase.__name__)
