@@ -38,20 +38,13 @@ CELERY_CHAIN_TYPE = type(chain())
 def prelim_phase():
 
     logger = logging.getLogger(prelim_phase.__name__)
-
-    tasks_with_repo_domain = None
-
     
-
     with DatabaseSession(logger) as session:
         query = session.query(Repo)
         repos = execute_session_query(query, 'all')
         repo_git_list = [repo.repo_git for repo in repos]
 
-        tasks_with_repo_domain = create_grouped_task_load(dataList=repo_git_list,task=detect_github_repo_move)
-
-
-    return tasks_with_repo_domain
+        return create_grouped_task_load(dataList=repo_git_list,task=detect_github_repo_move)
 
 def repo_collect_phase():
     logger = logging.getLogger(repo_collect_phase.__name__)
