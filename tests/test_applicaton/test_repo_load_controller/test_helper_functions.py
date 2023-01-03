@@ -59,6 +59,7 @@ def test_is_valid_repo():
         assert controller.is_valid_repo("https://github.com/chaoss/augur") is True
         assert controller.is_valid_repo("https://github.com/chaoss/augur/") is True
         assert controller.is_valid_repo("https://github.com/chaoss/augur.git") is True
+        assert controller.is_valid_repo("https://github.com/chaoss/augur/") is True
 
 def test_is_valid_repo_group_id(test_db_engine):
 
@@ -436,6 +437,8 @@ def test_remove_user_group(test_db_engine):
         with test_db_engine.connect() as connection:
 
             user_id =1
+            repo_id = 1
+            rg_id = 1
 
             groups = [
                 {
@@ -466,6 +469,10 @@ def test_remove_user_group(test_db_engine):
 
             for group in groups:
                 query_statements.append(get_user_group_insert_statement(user_id, group["group_name"], group["group_id"]))
+
+            query_statements.append(get_repo_group_insert_statement(rg_id))
+            query_statements.append(get_repo_insert_statement(repo_id, rg_id))
+            query_statements.append(get_user_repo_insert_statement(repo_id, groups[0]["group_id"]))
 
             connection.execute("".join(query_statements))
 

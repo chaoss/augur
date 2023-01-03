@@ -35,9 +35,15 @@ def test_add_frontend_org_with_invalid_org(test_db_engine):
         add_keys_to_test_db(test_db_engine)
         with GithubTaskSession(logger, test_db_engine) as session:
 
+            controller = RepoLoadController(session)
+
             url = f"https://github.com/{data['org_name']}/"
-            result = RepoLoadController(session).add_frontend_org(url, data["user_id"], data["user_group_name"])
+            result = controller.add_frontend_org(url, data["user_id"], data["user_group_name"])
             assert result["status"] == "Invalid org"
+
+            # test with invalid group name
+            result = controller.add_frontend_org(url, data["user_id"], "Invalid group name")
+            assert result["status"] == "Invalid group name"
 
         with test_db_engine.connect() as connection:
 
@@ -115,8 +121,15 @@ def test_add_cli_org_with_valid_org(test_db_engine):
 
         with GithubTaskSession(logger, test_db_engine) as session:
 
-            result = RepoLoadController(session).add_cli_org(data["org_name"])
-            print(result)
+            controller = RepoLoadController(session)
+
+            result = controller.add_cli_org(data["org_name"])
+
+            assert result["status"] == "Org added"
+            
+            result2 = controller.add_cli_org("Invalid org")
+            assert result2["status"] == "No organization found"
+
 
         with test_db_engine.connect() as connection:
 
@@ -130,5 +143,6 @@ def test_add_cli_org_with_valid_org(test_db_engine):
 
     finally:
         with test_db_engine.connect() as connection:
-            pass
-            # connection.execute(clear_tables_statement)
+            connection.execute(clear_tables_statement)
+
+    

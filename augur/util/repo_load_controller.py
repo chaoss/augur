@@ -41,14 +41,6 @@ class RepoLoadController:
         if not owner or not repo:
             return False
 
-        if repo.endswith(".git"):
-                # removes .git
-            repo = repo[:-4]
-
-        if repo.endswith("/"):
-            # reomves /
-            repo = repo[:-1]
-
         url = REPO_ENDPOINT.format(owner, repo)
 
         attempts = 0
@@ -84,10 +76,6 @@ class RepoLoadController:
         if not owner:
             return False
 
-        if owner.endswith("/"):
-            # reomves /
-            owner = owner[:-1]
-
         url = ORG_REPOS_ENDPOINT.format(owner)
     
         repos = []
@@ -113,10 +101,7 @@ class RepoLoadController:
         except (s.orm.exc.NoResultFound, s.orm.exc.MultipleResultsFound):
             return False
 
-        if result and result.repo_group_id == repo_group_id:
-            return True
-
-        return False
+        return True
 
     def add_repo_row(self, url: str, repo_group_id: int, tool_source):
         """Add a repo to the repo table.
@@ -288,6 +273,9 @@ class RepoLoadController:
 
     def remove_frontend_repo(self, repo_id, user_id, group_name):
 
+        if not isinstance(repo_id, int) or not isinstance(user_id, int) or not isinstance(group_name, str):
+            return {"status": "Invalid input params"}
+
         group_id = self.convert_group_name_to_id(user_id, group_name)
         if group_id is None:
             return {"status": "Invalid group name"}
@@ -313,11 +301,6 @@ class RepoLoadController:
         repos = self.retrieve_org_repos(url)
        
         if not repos:
-            return {"status": "Invalid org", "org_url": url}
-
-        
-        org_name = self.parse_org_url(url)
-        if not org_name:
             return {"status": "Invalid org", "org_url": url}
 
         # try to get the repo group with this org name
@@ -356,7 +339,7 @@ class RepoLoadController:
 
             if not repo_id:
                 logger.warning(f"Invalid repo group id specified for {url}, skipping.")
-                return
+                return {"status": f"Invalid repo group id specified for {url}, skipping."}
 
             self.add_repo_to_user_group(repo_id)
 
@@ -373,14 +356,15 @@ class RepoLoadController:
         if not repos:
             print(
                 f"No organization with name {org_name} could be found")
-            return
+            return {"status": "No organization found"}
 
         # check if the repo group already exists
         query = self.session.query(RepoGroup).filter(RepoGroup.rg_name == org_name)
         rg = execute_session_query(query, 'first')
         if rg:
             print(f"{rg.rg_name} is already a repo group")
-            return
+
+            return {"status": "Already a repo group"}
 
         print(f'Organization "{org_name}" found')
 
@@ -395,6 +379,8 @@ class RepoLoadController:
             logger.info(
                 f"Adding {repo_url}")
             self.add_cli_repo({"url": repo_url, "repo_group_id": repo_group_id}, valid_repo=True)
+        
+        return {"status": "Org added"}
 
 
     def get_user_repo_ids(self, user_id: int) -> List[int]:
@@ -433,13 +419,11 @@ class RepoLoadController:
 
         capturing_groups = result.groups()
 
-        try:
-            owner = capturing_groups[0]
-            repo = capturing_groups[1]
+        
+        owner = capturing_groups[0]
+        repo = capturing_groups[1]
 
-            return owner, repo
-        except IndexError:
-            return None, None
+        return owner, repo
 
     def parse_org_url(self, url):
 
@@ -448,10 +432,5 @@ class RepoLoadController:
         if not result:
             return None
 
-        capturing_groups = result.groups()
-
-        try:
-            owner = capturing_groups[0]
-            return owner
-        except IndexError:
-            return None
+        # if the result is not None then the groups should be valid so we don't worry about index errors here
+        return result.groups()[0]
