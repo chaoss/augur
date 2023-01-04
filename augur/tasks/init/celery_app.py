@@ -62,7 +62,7 @@ celery_app.conf.task_routes = {
 celery_app.conf.task_track_started = True
 
 #ignore task results by default
-celery_app.conf.task_ignore_result = True
+##celery_app.conf.task_ignore_result = True
 
 # store task erros even if the task result is ignored
 celery_app.conf.task_store_errors_even_if_ignored = True
