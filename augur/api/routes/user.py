@@ -7,6 +7,8 @@ import logging
 import requests
 import json
 import os
+import base64
+import pandas as pd
 from flask import request, Response, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy.sql import text
@@ -182,26 +184,6 @@ def create_routes(server):
 
         return jsonify({"status": "Missing argument"}), 400
 
-    @server.app.route(f"/{AUGUR_API_VERSION}/user/repos", methods=['GET', 'POST'])
-    def user_repos():
-        if not development and not request.is_secure:
-            return generate_upgrade_request()
-
-        username = request.args.get("username")
-
-        with DatabaseSession(logger) as session:
-    
-            if username is None:
-                return jsonify({"status": "Missing argument"}), 400
-            user = session.query(User).filter(User.login_name == username).first()
-            if user is None:
-                return jsonify({"status": "User does not exist"})
-            
-            repo_load_controller = RepoLoadController(gh_session=session)
-
-            repo_ids = repo_load_controller.get_user_repo_ids(user.user_id)
-
-            return jsonify({"status": "success", "repo_ids": repo_ids})
 
     @server.app.route(f"/{AUGUR_API_VERSION}/user/add_repo", methods=['GET', 'POST'])
     def add_user_repo():
@@ -331,4 +313,144 @@ def create_routes(server):
             return jsonify(result)
 
 
-        
+
+    @server.app.route(f"/{AUGUR_API_VERSION}/user/group_repos", methods=['GET', 'POST'])
+    def group_repos():
+        if not development and not request.is_secure:
+            return generate_upgrade_request()
+
+        username = request.args.get("username")
+        group_name = request.args.get("group_name")
+        page = request.args.get("page")
+        page_size = request.args.get("page_size")
+        sort = request.args.get("sort")
+        direction = request.args.get("direction")
+
+        if (not username) or (not group_name) or (not page) or (not page_size) or (sort and not direction) or (not sort and direction):
+            return jsonify({"status": "Missing argument"}), 400
+
+        if direction and direction != "ASC" and direction != "DESC":
+            return {"status": "Invalid direction"}
+
+        try:
+            page = int(page)
+            page_size = int(page_size)
+        except ValueError:
+            return jsonify({"status": "Page size and page should be integers"}), 400
+
+        if page < 0 or page_size < 0:
+            return jsonify({"status": "Page size and page should be postive"}), 400
+
+
+        with DatabaseSession(logger) as session:
+
+            controller = RepoLoadController(session)
+
+            user = session.query(User).filter(User.login_name == username).first()
+    
+            group_id = controller.convert_group_name_to_id(user.user_id, group_name)
+            if group_id is None:
+                return jsonify({"status": "Group does not exist"}), 400
+            
+           
+        order_by = sort if sort else "repo_id"
+        order_direction = direction if direction else "ASC"
+
+        get_page_of_repos_sql = text(f"""
+            SELECT
+                    augur_data.repo.repo_id,
+                    augur_data.repo.repo_name,
+                    augur_data.repo.description,
+                    augur_data.repo.repo_git AS url,
+                    augur_data.repo.repo_status,
+                    a.commits_all_time,
+                    b.issues_all_time,
+                    rg_name,
+                    augur_data.repo.repo_group_id
+            FROM
+                    augur_data.repo
+                    LEFT OUTER JOIN augur_data.api_get_all_repos_commits a ON augur_data.repo.repo_id = a.repo_id
+                    LEFT OUTER JOIN augur_data.api_get_all_repos_issues b ON augur_data.repo.repo_id = b.repo_id
+                    JOIN augur_operations.user_repos ON augur_data.repo.repo_id = augur_operations.user_repos.repo_id
+                    JOIN augur_data.repo_groups ON augur_data.repo.repo_group_id = augur_data.repo_groups.repo_group_id
+            WHERE augur_operations.user_repos.group_id = {group_id}
+            ORDER BY {order_by} {order_direction}
+            LIMIT {page_size}
+            OFFSET {page*page_size};
+        """)
+
+        results = pd.read_sql(get_page_of_repos_sql, create_database_engine())
+        results['url'] = results['url'].apply(lambda datum: datum.split('//')[1])
+
+        b64_urls = []
+        for i in results.index:
+            b64_urls.append(base64.b64encode((results.at[i, 'url']).encode()))
+        results['base64_url'] = b64_urls
+
+        data = results.to_json(orient="records", date_format='iso', date_unit='ms')
+        return Response(response=data,
+                        status=200,
+                        mimetype="application/json")
+
+
+
+    @server.app.route(f"/{AUGUR_API_VERSION}/user/group_repo_count", methods=['GET', 'POST'])
+    def group_repo_count():
+        if not development and not request.is_secure:
+            return generate_upgrade_request()
+
+        username = request.args.get("username")
+        group_name = request.args.get("group_name")
+
+        if (not username) or (not group_name):
+            return jsonify({"status": "Missing argument"}), 400
+
+        with DatabaseSession(logger) as session:
+
+            controller = RepoLoadController(session)
+
+            user = session.query(User).filter(User.login_name == username).first()
+    
+            group_id = controller.convert_group_name_to_id(user.user_id, group_name)
+            if group_id is None:
+                return jsonify({"status": "Group does not exist"}), 400
+
+            get_page_of_repos_sql = text(f"""
+                SELECT
+                    count(*)
+                FROM
+                        augur_data.repo
+                        LEFT OUTER JOIN augur_data.api_get_all_repos_commits a ON augur_data.repo.repo_id = a.repo_id
+                        LEFT OUTER JOIN augur_data.api_get_all_repos_issues b ON augur_data.repo.repo_id = b.repo_id
+                        JOIN augur_operations.user_repos ON augur_data.repo.repo_id = augur_operations.user_repos.repo_id
+                        JOIN augur_data.repo_groups ON augur_data.repo.repo_group_id = augur_data.repo_groups.repo_group_id
+                WHERE augur_operations.user_repos.group_id = {group_id}
+            """)
+
+            result = session.fetchall_data_from_sql_text(get_page_of_repos_sql)
+            
+            return jsonify({"repos": result[0]["count"]}), 200
+
+
+    @server.app.route(f"/{AUGUR_API_VERSION}/user/groups", methods=['GET', 'POST'])
+    def get_user_groups():
+        if not development and not request.is_secure:
+            return generate_upgrade_request()
+
+        username = request.args.get("username")
+
+        if not username:
+            return jsonify({"status": "Missing argument"}), 400
+
+        with DatabaseSession(logger) as session:
+
+            controller = RepoLoadController(session)
+
+            user = session.query(User).filter(User.login_name == username).first()
+    
+            user_groups = controller.get_user_groups(user.user_id)
+
+            group_names = [group.name for group in user_groups]
+
+            return jsonify({"group_names": group_names}), 200
+
