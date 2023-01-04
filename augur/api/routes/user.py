@@ -316,21 +316,48 @@ def create_routes(server):
 
     @server.app.route(f"/{AUGUR_API_VERSION}/user/group_repos", methods=['GET', 'POST'])
     def group_repos():
+        """Select repos from a user group by name
+
+        Arguments
+        ----------
+        username : str
+            The username of the user making the request
+        group_name : str
+            The name of the group to select
+        page : int = 0 -> [>= 0]
+            The page offset to use for pagination (optional)
+        page_size : int = 25 -> [> 0]
+            The number of result per page (optional)
+        sort : str
+            The name of the column to sort the data by (optional)
+        direction : str = "ASC" -> ["ASC" | "DESC"]
+            The direction to be used for sorting (optional)
+
+        Returns
+        -------
+        list
+            A list of dictionaries containing repos which match the given arguments
+        """
+
         if not development and not request.is_secure:
             return generate_upgrade_request()
 
         username = request.args.get("username")
         group_name = request.args.get("group_name")
-        page = request.args.get("page")
-        page_size = request.args.get("page_size")
-        sort = request.args.get("sort")
-        direction = request.args.get("direction")
 
-        if (not username) or (not group_name) or (not page) or (not page_size) or (sort and not direction) or (not sort and direction):
+        # Set default values for ancillary arguments
+        page = request.args.get("page") or 0
+        page_size = request.args.get("page_size") or 25
+        sort = request.args.get("sort")
+        direction = request.args.get("direction") or ("ASC" if sort else None)
+
+
+
+        if (not username) or (not group_name):
             return jsonify({"status": "Missing argument"}), 400
 
         if direction and direction != "ASC" and direction != "DESC":
-            return {"status": "Invalid direction"}
+            return jsonify({"status": "Invalid direction"}), 400
 
         try:
             page = int(page)
@@ -396,6 +423,21 @@ def create_routes(server):
 
     @server.app.route(f"/{AUGUR_API_VERSION}/user/group_repo_count", methods=['GET', 'POST'])
     def group_repo_count():
+        """Count repos from a user group by name
+
+        Arguments
+        ----------
+        username : str
+            The username of the user making the request
+        group_name : str
+            The name of the group to select
+
+        Returns
+        -------
+        int
+            A count of the repos in the given user group
+        """
+
         if not development and not request.is_secure:
             return generate_upgrade_request()
 
@@ -434,6 +476,19 @@ def create_routes(server):
 
     @server.app.route(f"/{AUGUR_API_VERSION}/user/groups", methods=['GET', 'POST'])
     def get_user_groups():
+        """Get a list of user groups by username
+
+        Arguments
+        ----------
+        username : str
+            The username of the user making the request
+
+        Returns
+        -------
+        list
+            A list of group names associated with the given username
+        """
+
         if not development and not request.is_secure:
             return generate_upgrade_request()
 
