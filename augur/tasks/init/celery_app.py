@@ -12,7 +12,7 @@ from sqlalchemy import create_engine, event
 from augur.application.logs import TaskLogConfig
 from augur.application.db.session import DatabaseSession
 from augur.application.db.engine import get_database_string
-from augur.tasks.init import get_redis_conn_values
+from augur.tasks.init import get_redis_conn_values, get_rabbitmq_conn_string
 
 logger = logging.getLogger(__name__)
 
