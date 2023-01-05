@@ -27,6 +27,57 @@ Session = sessionmaker(bind=create_database_engine())
 
 AUGUR_API_VERSION = 'api/unstable'
 
+""" 
+    Extract Bearer token from request header,
+    using the standard oauth2 format
+"""
+def get_bearer_token(request):
+    token = request.headers.get("Authorization")
+
+    if token and " " in token:
+        token = token.split(" ")
+        if len(token) == 2:
+            return token[1]
+
+        for substr in token:
+            if substr and "Bearer" not in substr:
+                return substr
+    
+    return token
+
+def user_login_required(fun):
+    def wrapper(*args, **kwargs):
+        # TODO check that user session token is valid
+
+        # We still need to decide on the format for this
+
+        # If valid:
+        return fun(*args, **kwargs)
+
+        # else: return error JSON
+    
+    return wrapper
+
+def api_key_required(fun):
+    def wrapper(*args, **kwargs):
+        # TODO check that API key is valid
+
+        # If valid:
+        return fun(*args, **kwargs)
+
+        # else: return error JSON
+    
+    return wrapper
+
+# usage:
+"""
+@app.route("/path")
+@api_key_required
+@user_login_required
+def priviledged_function():
+    stuff
+"""
+
 # TODO This should probably be available to all endpoints
 def generate_upgrade_request():
     # https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/426
@@ -60,7 +111,49 @@ def create_routes(server):
             return jsonify({"status": "Invalid username"})
         if checkPassword == False:
             return jsonify({"status": "Invalid password"})
-        return jsonify({"status": "Validated"})
+        
+        # TODO Generate user session token to be stored in client browser
+
+        token = "USER SESSION TOKEN"
+
+        return jsonify({"status": "Validated", "session": token})
+    
+    @server.app.route(f"/{AUGUR_API_VERSION}/user/oauth", methods=['POST'])
+    def oauth_validate():
+        # Check if user has an active session
+        current_session = request.args.get("session")
+
+        if current_session:
+            # TODO validate session token
+            # If invalid, set current_session to None to force validation
+            pass
+
+        if not current_session:
+            return jsonify({"status": "Invalid session"})
+        
+        # TODO generate oauth token and store in temporary table
+        # Ideally should be valid for ~1 minute
+        # oauth entry: (token: str, generated: date)
+
+        token = "TEMPORARY VALUE"
+
+        return jsonify({"status": "Validated", "oauth_token": token})
+
+    @server.app.route(f"/{AUGUR_API_VERSION}/user/generate_session", methods=['POST'])
+    def generate_session():
+        # TODO Validate oauth token
+        oauth = request.args.get("oauth_token")
+
+        # If invalid, return error JSON:
+        # return jsonify({"status": "Invalid oauth token"})
+
+        # If valid, pop oauth token from temporary table
+        # Generate user session token to be stored in client browser
+
+        token = "USER SESSION TOKEN"
+        user = "USERNAME"
+
+        return jsonify({"status": "Validated", "username": user, "session": token})
     
     @server.app.route(f"/{AUGUR_API_VERSION}/user/query", methods=['POST'])
     def query_user():
