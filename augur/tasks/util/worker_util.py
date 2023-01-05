@@ -17,8 +17,8 @@ def create_grouped_task_load(*args,processes=8,dataList=[],task=None):
         raise AssertionError
     
     print(f"Splitting {len(dataList)} items")
-    numpyData = np.array(list(dataList))
-    listsSplitForProcesses = np.array_split(numpyData, processes)
+    #numpyData = np.array(list(dataList))
+    listsSplitForProcesses = np.array_split(list(dataList), processes)
     print("Done splitting items.")
 
     #print("args")
