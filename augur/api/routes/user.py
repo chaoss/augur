@@ -13,12 +13,13 @@ from flask import request, Response, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy.sql import text
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm.exc import NoResultFound
 from augur.application.db.session import DatabaseSession
 from augur.tasks.github.util.github_task_session import GithubTaskSession
 from augur.util.repo_load_controller import RepoLoadController
 
 
-from augur.application.db.models import User, UserRepo, UserGroup
+from augur.application.db.models import User, UserRepo, UserGroup, UserSessionToken, ClientToken
 from augur.application.config import get_development_flag
 logger = logging.getLogger(__name__)
 development = get_development_flag()
@@ -51,22 +52,46 @@ def user_login_required(fun):
 
         # We still need to decide on the format for this
 
+        user_token = request.args.get("user_token")
+        print(user_token)
+                    
         # If valid:
-        return fun(*args, **kwargs)
+        if user_token:
+
+            session = Session()
+            try:
+                user = session.query(UserSessionToken).filter(UserSessionToken.token == user_token).one().user
+                
+                return fun(user=user, *args, **kwargs)
+            except NoResultFound:
+                print("Not found")
 
         # else: return error JSON
-    
+        return {"status": "Invalid user session"}
+
+    wrapper.__name__ = fun.__name__ 
     return wrapper
 
 def api_key_required(fun):
     def wrapper(*args, **kwargs):
         # TODO check that API key is valid
 
+        client_token = request.args.get("client_api_key")
+                    
         # If valid:
-        return fun(*args, **kwargs)
+        if client_token:
+
+            session = Session()
+            try:
+                session.query(ClientToken).filter(ClientToken.token == client_token).one()
+                return fun(*args, **kwargs)
+            except NoResultFound:
+                pass
 
         # else: return error JSON
+        return {"status": "Unauthorized client"}
     
+    wrapper.__name__ = fun.__name__
     return wrapper
 
 # usage:
@@ -156,7 +181,9 @@ def create_routes(server):
         return jsonify({"status": "Validated", "username": user, "session": token})
     
     @server.app.route(f"/{AUGUR_API_VERSION}/user/query", methods=['POST'])
-    def query_user():
+    @api_key_required
+    @user_login_required
+    def query_user(user):
         if not development and not request.is_secure:
             return generate_upgrade_request()
 
@@ -203,19 +230,13 @@ def create_routes(server):
             return jsonify(msg='Error: {}. '.format(exception_message)), 400
     
     @server.app.route(f"/{AUGUR_API_VERSION}/user/remove", methods=['POST', 'DELETE'])
-    def delete_user():
+    @api_key_required
+    @user_login_required
+    def delete_user(user):
         if not development and not request.is_secure:
             return generate_upgrade_request()
 
         session = Session()
-        username = request.args.get("username")
-        if username is None:
-            return jsonify({"status": "Missing argument"}), 400
-
-        user = session.query(User).filter(User.login_name == username).first()
-       
-        if user is None:
-            return jsonify({"status": "User does not exist"})
 
         for group in user.groups:
             user_repos_list = group.repos
@@ -230,27 +251,16 @@ def create_routes(server):
         return jsonify({"status": "User deleted"}), 200
 
     @server.app.route(f"/{AUGUR_API_VERSION}/user/update", methods=['POST'])
-    def update_user():
+    @api_key_required
+    @user_login_required
+    def update_user(user):
         if not development and not request.is_secure:
             return generate_upgrade_request()
 
         session = Session()
-        username = request.args.get("username")
-        password = request.args.get("password")
         email = request.args.get("email")
         new_login_name = request.args.get("new_username")
         new_password = request.args.get("new_password")
-
-        if username is None or password is None:
-            return jsonify({"status": "Missing argument"}), 400
-
-        user = session.query(User).filter(User.login_name == username).first()
-        if user is None:
-            return jsonify({"status": "User does not exist"})
-
-        checkPassword = check_password_hash(user.login_hashword, password)
-        if checkPassword == False:
-            return jsonify({"status": "Invalid password"}) 
 
         if email is not None:
             existing_user = session.query(User).filter(User.email == email).one()
@@ -279,22 +289,19 @@ def create_routes(server):
 
 
     @server.app.route(f"/{AUGUR_API_VERSION}/user/add_repo", methods=['GET', 'POST'])
-    def add_user_repo():
+    @api_key_required
+    @user_login_required
+    def add_user_repo(user):
         if not development and not request.is_secure:
             return generate_upgrade_request()
 
-        username = request.args.get("username")
         repo = request.args.get("repo_url")
         group_name = request.args.get("group_name")
 
         with GithubTaskSession(logger) as session:
 
-            if username is None or repo is None or group_name is None:
+            if repo is None or group_name is None:
                 return jsonify({"status": "Missing argument"}), 400
-            user = session.query(User).filter(
-                User.login_name == username).first()
-            if user is None:
-                return jsonify({"status": "User does not exist"})
 
             repo_load_controller = RepoLoadController(gh_session=session)
 
@@ -304,11 +311,12 @@ def create_routes(server):
 
 
     @server.app.route(f"/{AUGUR_API_VERSION}/user/add_group", methods=['GET', 'POST'])
-    def add_user_group():
+    @api_key_required
+    @user_login_required
+    def add_user_group(user):
         if not development and not request.is_secure:
             return generate_upgrade_request()
 
-        username = request.args.get("username")
         group_name = request.args.get("group_name")
 
         if group_name == "default":
@@ -316,12 +324,8 @@ def create_routes(server):
             
         with GithubTaskSession(logger) as session:
 
-            if username is None or group_name is None:
+            if group_name is None:
                 return jsonify({"status": "Missing argument"}), 400
-
-            user = session.query(User).filter(User.login_name == username).first()
-            if user is None:
-                return jsonify({"status": "User does not exist"})
 
             repo_load_controller = RepoLoadController(gh_session=session)
 
@@ -330,21 +334,18 @@ def create_routes(server):
             return jsonify(result)
 
     @server.app.route(f"/{AUGUR_API_VERSION}/user/remove_group", methods=['GET', 'POST'])
-    def remove_user_group():
+    @api_key_required
+    @user_login_required
+    def remove_user_group(user):
         if not development and not request.is_secure:
             return generate_upgrade_request()
 
-        username = request.args.get("username")
         group_name = request.args.get("group_name")
             
         with GithubTaskSession(logger) as session:
 
-            if username is None or group_name is None:
+            if group_name is None:
                 return jsonify({"status": "Missing argument"}), 400
-
-            user = session.query(User).filter(User.login_name == username).first()
-            if user is None:
-                return jsonify({"status": "User does not exist"})
 
             repo_load_controller = RepoLoadController(gh_session=session)
 
@@ -356,23 +357,19 @@ def create_routes(server):
 
 
     @server.app.route(f"/{AUGUR_API_VERSION}/user/add_org", methods=['GET', 'POST'])
-    def add_user_org():
+    @api_key_required
+    @user_login_required
+    def add_user_org(user):
         if not development and not request.is_secure:
             return generate_upgrade_request()
 
-        username = request.args.get("username")
         org = request.args.get("org_url")
         group_name = request.args.get("group_name")
 
         with GithubTaskSession(logger) as session:
 
-            if username is None or org is None or group_name is None:
+            if org is None or group_name is None:
                 return jsonify({"status": "Missing argument"}), 400
-
-            user = session.query(User).filter(
-                User.login_name == username).first()
-            if user is None:
-                return jsonify({"status": "User does not exist"})
 
             repo_load_controller = RepoLoadController(gh_session=session)
 
@@ -382,22 +379,23 @@ def create_routes(server):
 
 
     @server.app.route(f"/{AUGUR_API_VERSION}/user/remove_repo", methods=['GET', 'POST'])
-    def remove_user_repo():
+    @api_key_required
+    @user_login_required
+    def remove_user_repo(user):
         if not development and not request.is_secure:
             return generate_upgrade_request()
+        try:
+            repo_id = int(request.args.get("repo_id"))
+        except ValueError:
+            return {"status": "repo_id must be an integer"}
 
-        username = request.args.get("username")
-        repo_id = request.args.get("repo_id")
         group_name = request.args.get("group_name")
+
 
         with GithubTaskSession(logger) as session:
 
-            if username is None or repo_id is None or group_name is None:
+            if repo_id is None or group_name is None:
                 return jsonify({"status": "Missing argument"}), 400
-            user = session.query(User).filter(
-                User.login_name == username).first()
-            if user is None:
-                return jsonify({"status": "User does not exist"})
 
             repo_load_controller = RepoLoadController(gh_session=session)
 
@@ -408,7 +406,9 @@ def create_routes(server):
 
 
     @server.app.route(f"/{AUGUR_API_VERSION}/user/group_repos", methods=['GET', 'POST'])
-    def group_repos():
+    @api_key_required
+    @user_login_required
+    def group_repos(user):
         """Select repos from a user group by name
 
         Arguments
@@ -435,7 +435,6 @@ def create_routes(server):
         if not development and not request.is_secure:
             return generate_upgrade_request()
 
-        username = request.args.get("username")
         group_name = request.args.get("group_name")
 
         # Set default values for ancillary arguments
@@ -444,9 +443,7 @@ def create_routes(server):
         sort = request.args.get("sort")
         direction = request.args.get("direction") or ("ASC" if sort else None)
 
-
-
-        if (not username) or (not group_name):
+        if not group_name:
             return jsonify({"status": "Missing argument"}), 400
 
         if direction and direction != "ASC" and direction != "DESC":
@@ -465,8 +462,6 @@ def create_routes(server):
         with DatabaseSession(logger) as session:
 
             controller = RepoLoadController(session)
-
-            user = session.query(User).filter(User.login_name == username).first()
     
             group_id = controller.convert_group_name_to_id(user.user_id, group_name)
             if group_id is None:
@@ -515,7 +510,9 @@ def create_routes(server):
 
 
     @server.app.route(f"/{AUGUR_API_VERSION}/user/group_repo_count", methods=['GET', 'POST'])
-    def group_repo_count():
+    @api_key_required
+    @user_login_required
+    def group_repo_count(user):
         """Count repos from a user group by name
 
         Arguments
@@ -534,17 +531,14 @@ def create_routes(server):
         if not development and not request.is_secure:
             return generate_upgrade_request()
 
-        username = request.args.get("username")
         group_name = request.args.get("group_name")
 
-        if (not username) or (not group_name):
+        if not group_name:
             return jsonify({"status": "Missing argument"}), 400
 
         with DatabaseSession(logger) as session:
 
             controller = RepoLoadController(session)
-
-            user = session.query(User).filter(User.login_name == username).first()
     
             group_id = controller.convert_group_name_to_id(user.user_id, group_name)
             if group_id is None:
@@ -568,7 +562,9 @@ def create_routes(server):
 
 
     @server.app.route(f"/{AUGUR_API_VERSION}/user/groups", methods=['GET', 'POST'])
-    def get_user_groups():
+    @api_key_required
+    @user_login_required
+    def get_user_groups(user):
         """Get a list of user groups by username
 
         Arguments
@@ -585,16 +581,9 @@ def create_routes(server):
         if not development and not request.is_secure:
             return generate_upgrade_request()
 
-        username = request.args.get("username")
-
-        if not username:
-            return jsonify({"status": "Missing argument"}), 400
-
         with DatabaseSession(logger) as session:
 
             controller = RepoLoadController(session)
-
-            user = session.query(User).filter(User.login_name == username).first()
     
             user_groups = controller.get_user_groups(user.user_id)
 

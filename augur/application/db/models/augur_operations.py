@@ -193,6 +193,7 @@ class User(Base):
     )
 
     groups = relationship("UserGroup")
+    tokens = relationship("UserSessionToken")
 
 
 class UserGroup(Base):
@@ -229,4 +230,33 @@ class UserRepo(Base):
 
     repo = relationship("Repo")
     group = relationship("UserGroup")
+
+class UserSessionToken(Base):
+    __tablename__ = "user_session_tokens"
+    __table_args__ = (
+        {
+            "schema": "augur_operations"
+        }
+    )
+
+    token = Column(String, primary_key=True, nullable=False)
+    user_id = Column(ForeignKey("augur_operations.users.user_id", name="user_session_token_user_id_fkey"))
+    expiration = Column(BigInteger)
+
+    user = relationship("User")
+
+
+class ClientToken(Base):
+    __tablename__ = "client_tokens"
+    __table_args__ = (
+        {
+            "schema": "augur_operations"
+        }
+    )
+
+    token = Column(String, primary_key=True, nullable=False)
+    name = Column(String, nullable=False)
+    expiration = Column(BigInteger)
+
+
 

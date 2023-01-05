@@ -100,5 +100,7 @@ from augur.application.db.models.augur_operations import (
     Config,
     User,
     UserRepo,
-    UserGroup
+    UserGroup,
+    UserSessionToken,
+    ClientToken
 )

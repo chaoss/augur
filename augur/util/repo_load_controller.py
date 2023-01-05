@@ -335,7 +335,7 @@ class RepoLoadController:
         """
 
         if not isinstance(repo_id, int) or not isinstance(user_id, int) or not isinstance(group_name, str):
-            return {"status": "Invalid input params"}
+            return {"status": "Invalid types"}
 
         group_id = self.convert_group_name_to_id(user_id, group_name)
         if group_id is None:
