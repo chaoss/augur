@@ -29,7 +29,7 @@ class RepoLoadController:
 
     def is_valid_repo(self, url: str) -> bool:
         """Determine whether repo url is valid.
-        
+
         Args:
             url: repo_url
 
@@ -55,7 +55,7 @@ class RepoLoadController:
             # if there was an error return False
             if "message" in result.json().keys():
                 return False
-            
+
             return True
 
 
@@ -64,7 +64,7 @@ class RepoLoadController:
 
         Note:
             If the org url is not valid it will return []
-        
+
         Args:
             url: org url
 
@@ -74,13 +74,14 @@ class RepoLoadController:
 
         owner = self.parse_org_url(url)
         if not owner:
+            # TODO: Change to return empty list so it matches the docs
             return False
 
         url = ORG_REPOS_ENDPOINT.format(owner)
-    
+
         repos = []
         with GithubTaskSession(logger) as session:
-        
+
             for page_data, page in GithubPaginator(url, session.oauths, logger).iter_pages():
 
                 if page_data is None:
@@ -93,7 +94,16 @@ class RepoLoadController:
         return repo_urls
 
 
-    def is_valid_repo_group_id(self, repo_group_id):
+    def is_valid_repo_group_id(self, repo_group_id: int) -> bool:
+        """Deterime is repo_group_id exists.
+
+        Args:
+            repo_group_id: id from the repo groups table
+
+        Returns:
+            True if it exists, False if it does not
+        """
+
         query = self.session.query(RepoGroup).filter(RepoGroup.repo_group_id == repo_group_id)
 
         try:
@@ -137,18 +147,18 @@ class RepoLoadController:
             return None
 
         if repo_group_id not in DEFAULT_REPO_GROUP_IDS:
-            # update the repo group id 
+            # update the repo group id
             query = self.session.query(Repo).filter(Repo.repo_git == url)
             repo = execute_session_query(query, 'one')
 
             if not repo.repo_group_id == repo_group_id:
                 repo.repo_group_id = repo_group_id
-                self.session.commit()            
-        
+                self.session.commit()
+
         return result[0]["repo_id"]
 
 
-    def add_repo_to_user_group(self, repo_id, group_id=1):
+    def add_repo_to_user_group(self, repo_id: int, group_id:int = 1) -> bool:
         """Add a repo to a user in the user_repos table.
 
         Args:
@@ -163,8 +173,8 @@ class RepoLoadController:
             "group_id": group_id,
             "repo_id": repo_id
         }
-            
-            
+
+
         repo_user_group_unique = ["group_id", "repo_id"]
         return_columns = ["group_id", "repo_id"]
 
@@ -175,7 +185,20 @@ class RepoLoadController:
 
         return data[0]["group_id"] == group_id and data[0]["repo_id"] == repo_id
 
-    def add_user_group(self, user_id, group_name):
+    def add_user_group(self, user_id:int, group_name:str) -> dict:
+        """Add a group to the user.
+
+        Args
+            user_id: id of the user
+            group_name: name of the group being added
+
+        Returns:
+            Dict with status key that indicates the success of the operation
+
+        Note:
+            If group already exists the function will return that it has been added, but a duplicate group isn't added.
+            It simply detects that it already exists and doesn't add it.
+        """
 
         if not isinstance(user_id, int) or not isinstance(group_name, str):
             return {"status": "Invalid input"}
@@ -189,14 +212,24 @@ class RepoLoadController:
             result = self.session.insert_data(user_group_data, UserGroup, ["name", "user_id"], return_columns=["group_id"])
         except s.exc.IntegrityError:
             return {"status": "Error: User id does not exist"}
-        
+
 
         if result:
             return {"status": "Group created"}
         else:
             return {"status": "Error while creating group"}
 
-    def remove_user_group(self, user_id, group_name):
+    def remove_user_group(self, user_id: int, group_name: str) -> dict:
+        """ Delete a users group of repos.
+
+        Args:
+            user_id: id of the user
+            group_name: name of the users group
+
+        Returns:
+            Dict with a status key that indicates the result of the operation
+
+        """
 
         # convert group_name to group_id
         group_id = self.convert_group_name_to_id(user_id, group_name)
@@ -217,7 +250,17 @@ class RepoLoadController:
         return {"status": "Group deleted"}
 
 
-    def convert_group_name_to_id(self, user_id, group_name):
+    def convert_group_name_to_id(self, user_id: int, group_name: str) -> int:
+        """Convert a users group name to the database group id.
+
+        Args:
+            user_id: id of the user
+            group_name: name of the users group
+
+        Returns:
+            None on failure. The group id on success.
+
+        """
 
         if not isinstance(user_id, int) or not isinstance(group_name, str):
             return None
@@ -228,28 +271,36 @@ class RepoLoadController:
             return None
 
         return user_group.group_id
-        
-    def get_user_groups(self, user_id):
 
-        return self.session.query(UserGroup).filter(UserGroup.user_id == user_id).all() 
+    def get_user_groups(self, user_id: int) -> List:
 
-    def get_user_group_repos(self, group_id):
+        return self.session.query(UserGroup).filter(UserGroup.user_id == user_id).all()
+
+    def get_user_group_repos(self, group_id: int) -> List:
         user_repos = self.session.query(UserRepo).filter(UserRepo.group_id == group_id).all()
 
         return [user_repo.repo for user_repo in user_repos]
 
 
-    def add_frontend_repo(self, url: List[str], user_id: int, group_name: str, group_id=None, valid_repo=False):
+    def add_frontend_repo(self, url: List[str], user_id: int, group_name=None, group_id=None, valid_repo=False) -> dict:
         """Add list of repos to a users repos.
 
         Args:
             urls: list of repo urls
             user_id: id of user_id from users table
-            repo_group_id: repo_group_id to add the repo to
+            group_name: name of group to add repo to.
+            group_id: id of the group
+            valid_repo: boolean that indicates whether the repo has already been validated
 
         Note:
-            If no repo_group_id is passed the repo will be added to a default repo_group
+            Either the group_name or group_id can be passed not both
+
+        Returns:
+            Dict that contains the key "status" and additional useful data
         """
+
+        if group_name and group_id:
+            return {"status": "Pass only the group name or group id not both"}
 
         if group_id is None:
 
@@ -271,7 +322,17 @@ class RepoLoadController:
 
         return {"status": "Repo Added", "repo_url": url}
 
-    def remove_frontend_repo(self, repo_id, user_id, group_name):
+    def remove_frontend_repo(self, repo_id:int, user_id:int, group_name:str) -> dict:
+        """ Remove repo from a users group.
+
+        Args:
+            repo_id: id of the repo to remove
+            user_id: id of the user
+            group_name: name of group the repo is being removed from
+
+        Returns:
+            Dict with a key of status that indicates the result of the operation
+        """
 
         if not isinstance(repo_id, int) or not isinstance(user_id, int) or not isinstance(group_name, str):
             return {"status": "Invalid input params"}
@@ -299,7 +360,7 @@ class RepoLoadController:
             return {"status": "Invalid group name"}
 
         repos = self.retrieve_org_repos(url)
-       
+
         if not repos:
             return {"status": "Invalid org", "org_url": url}
 
@@ -308,7 +369,7 @@ class RepoLoadController:
         failed_repos = []
         for repo in repos:
 
-            result = self.add_frontend_repo(repo, user_id, group_name, group_id, valid_repo=True)
+            result = self.add_frontend_repo(repo, user_id, group_id=group_id, valid_repo=True)
 
             # keep track of all the repos that failed
             if result["status"] != "Repo Added":
@@ -352,7 +413,7 @@ class RepoLoadController:
 
         url = f"https://github.com/{org_name}"
         repos = self.retrieve_org_repos(url)
-        
+
         if not repos:
             print(
                 f"No organization with name {org_name} could be found")
@@ -379,7 +440,7 @@ class RepoLoadController:
             logger.info(
                 f"Adding {repo_url}")
             self.add_cli_repo({"url": repo_url, "repo_group_id": repo_group_id}, valid_repo=True)
-        
+
         return {"status": "Org added"}
 
 
@@ -405,10 +466,18 @@ class RepoLoadController:
         return list(all_repo_ids)
 
 
-    def parse_repo_url(self, url):
+    def parse_repo_url(self, url: str) -> tuple:
+        """ Gets the owner and repo from a url.
+
+        Args:
+            url: Github url
+
+        Returns:
+            Tuple of owner and repo. Or a tuple of None and None if the url is invalid.
+        """
 
         if url.endswith(".github") or url.endswith(".github.io") or url.endswith(".js"):
-        
+
             result = re.search(r"https?:\/\/github\.com\/([A-Za-z0-9 \- _]+)\/([A-Za-z0-9 \- _ \.]+)(.git)?\/?$", url)
         else:
 
@@ -419,13 +488,21 @@ class RepoLoadController:
 
         capturing_groups = result.groups()
 
-        
+
         owner = capturing_groups[0]
         repo = capturing_groups[1]
 
         return owner, repo
 
     def parse_org_url(self, url):
+        """ Gets the owner from a org url.
+
+        Args:
+            url: Github org url
+
+        Returns:
+            Org name. Or None if the url is invalid.
+        """
 
         result = re.search(r"https?:\/\/github\.com\/([A-Za-z0-9 \- _]+)\/?$", url)
 
