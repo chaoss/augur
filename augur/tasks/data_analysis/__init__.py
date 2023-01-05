@@ -11,6 +11,7 @@ from celery import group, chain, chord, signature
 from augur.tasks.init.celery_app import celery_app as celery
 import logging 
 
+@celery.task
 def machine_learning_phase():
 
     logger = logging.getLogger(machine_learning_phase.__name__)
@@ -40,5 +41,7 @@ def machine_learning_phase():
         
     task_chain = chain(*ml_tasks)
 
-    #task_chain.apply_async()
-    return task_chain
+    result = task_chain.apply_async()
+    with allow_join_result():
+        return result.get()
+    #return task_chain
