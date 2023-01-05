@@ -80,7 +80,7 @@ def repo_collect_phase():
             collect_releases.si()
         )
     
-    result = chain(repo_task_group, refresh_materialized_views.si()).get()
+    result = chain(repo_task_group, refresh_materialized_views.si()).apply_async()
     
     with allow_join_result():
         return result.get()
