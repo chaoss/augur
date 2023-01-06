@@ -2,10 +2,12 @@ import re
 import logging
 
 import sqlalchemy as s
+import pandas as pd
+import base64
 
 from typing import List, Any, Dict
 
-
+from augur.application.db.engine import create_database_engine
 from augur.tasks.github.util.github_paginator import hit_api
 from augur.tasks.github.util.github_paginator import GithubPaginator
 from augur.tasks.github.util.github_task_session import GithubTaskSession
@@ -541,7 +543,7 @@ class RepoLoadController:
         if isinstance(query, dict):
             return query
 
-        get_page_of_repos_sql = text(query)
+        get_page_of_repos_sql = s.sql.text(query)
 
         results = pd.read_sql(get_page_of_repos_sql, create_database_engine())
         results['url'] = results['url'].apply(lambda datum: datum.split('//')[1])
@@ -577,7 +579,7 @@ class RepoLoadController:
         if isinstance(query, dict):
             return query
 
-        get_page_of_repos_sql = text(query)
+        get_page_of_repos_sql = s.sql.text(query)
 
         result = self.session.fetchall_data_from_sql_text(get_page_of_repos_sql)
             
