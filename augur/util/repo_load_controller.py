@@ -511,3 +511,86 @@ class RepoLoadController:
 
         # if the result is not None then the groups should be valid so we don't worry about index errors here
         return result.groups()[0]
+
+    def paginate_repos(self, source, page=0, page_size=25, sort="repo_id", direction="ASC", **kwargs):
+
+   
+        if not source:
+            return {"status": "Missing argument"}
+
+        if source not in ["all", "user", "group"]:
+            return {"status": "Invalid source"}
+
+        if direction and direction != "ASC" and direction != "DESC":
+            return {"status": "Invalid direction"}
+
+        try:
+            page = int(page)
+            page_size = int(page_size)
+        except ValueError:
+            return {"status": "Page size and page should be integers"}
+
+        if page < 0 or page_size < 0:
+            return {"status": "Page size and page should be postive"}
+
+        order_by = sort if sort else "repo_id"
+        order_direction = direction if direction else "ASC"
+
+        query = """
+                SELECT
+                        augur_data.repo.repo_id,
+                        augur_data.repo.repo_name,
+                        augur_data.repo.description,
+                        augur_data.repo.repo_git AS url,
+                        augur_data.repo.repo_status,
+                        a.commits_all_time,
+                        b.issues_all_time,
+                        rg_name,
+                        augur_data.repo.repo_group_id
+                FROM
+                        augur_data.repo
+                        LEFT OUTER JOIN augur_data.api_get_all_repos_commits a ON augur_data.repo.repo_id = a.repo_id
+                        LEFT OUTER JOIN augur_data.api_get_all_repos_issues b ON augur_data.repo.repo_id = b.repo_id
+                        JOIN augur_data.repo_groups ON augur_data.repo.repo_group_id = augur_data.repo_groups.repo_group_id"""
+
+        if source == "user":
+
+            user = kwargs["user"]
+            group_ids = [group.group_id for group in user.groups]
+
+            query.append("JOIN augur_operations.user_repos ON augur_data.repo.repo_id = augur_operations.user_repos.repo_id")
+            query.append(f"WHERE augur_operations.user_repos.group_id in {str(group_ids)}")
+
+        elif source == "group":
+
+            with GithubTaskSession(logger) as session:
+
+                controller = RepoLoadController(session)
+                user = kwargs["user"]
+                group_name = kwargs["group_name"]
+    
+                group_id = controller.convert_group_name_to_id(user, group_name)
+                if group_id is None:
+                    return {"status": "Group does not exist"}
+
+            query.append("JOIN augur_operations.user_repos ON augur_data.repo.repo_id = augur_operations.user_repos.repo_id")
+            query.append(f"WHERE augur_operations.user_repos.group_id = {group_id}")
+
+        query.append(f"ORDER BY {order_by} {order_direction}")
+        query.append(f"LIMIT {page_size}")
+        query.append(f"OFFSET {page*page_size};")
+
+        get_page_of_repos_sql = text(base_query)
+
+        results = pd.read_sql(get_page_of_repos_sql, create_database_engine())
+        results['url'] = results['url'].apply(lambda datum: datum.split('//')[1])
+
+        b64_urls = []
+        for i in results.index:
+            b64_urls.append(base64.b64encode((results.at[i, 'url']).encode()))
+        results['base64_url'] = b64_urls
+
+        data = results.to_json(orient="records", date_format='iso', date_unit='ms')
+
+        return {"status": "success", "data": data}
+
