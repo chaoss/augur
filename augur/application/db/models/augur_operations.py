@@ -285,33 +285,198 @@ class User(Base):
         
         from augur.application.db.session import DatabaseSession
 
-    def update_user():
+    def update_user(self):
+
+        from augur.application.db.session import DatabaseSession
         pass
 
-    def add_group():
+    def add_group(self, group_name):
 
-        pass
+        from augur.tasks.github.util.github_task_session import GithubTaskSession
+        from augur.util.repo_load_controller import RepoLoadController
 
-    def remove_group():
-        pass
+        if group_name == "default":
+            return {"status": "Reserved Group Name"}
+            
+        with GithubTaskSession(logger) as session:
 
-    def add_repo():
-        pass
+            repo_load_controller = RepoLoadController(gh_session=session)
 
-    def remove_repo():
-        pass
+            result = repo_load_controller.add_user_group(self.user_id, group_name)
 
-    def add_org():
-        pass
+            return result
 
-    def get_groups():
-        pass
+    def remove_group(self, group_name):
 
-    def get_group_repos():
-        pass
+        from augur.tasks.github.util.github_task_session import GithubTaskSession
+        from augur.util.repo_load_controller import RepoLoadController
+        
+        with GithubTaskSession(logger) as session:
 
-    def get_group_repo_count():
-        pass
+            repo_load_controller = RepoLoadController(gh_session=session)
+
+            result = repo_load_controller.remove_user_group(self.user_id, group_name)
+
+            return result
+
+    def add_repo(self, group_name, repo_url):
+        
+        from augur.tasks.github.util.github_task_session import GithubTaskSession
+        from augur.util.repo_load_controller import RepoLoadController
+
+        with GithubTaskSession(logger) as session:
+
+            repo_load_controller = RepoLoadController(gh_session=session)
+
+            result = repo_load_controller.add_frontend_repo(repo_url, self.user_id, group_name)
+
+            return result
+
+    def remove_repo(self, group_name, repo_id):
+        
+        from augur.tasks.github.util.github_task_session import GithubTaskSession
+        from augur.util.repo_load_controller import RepoLoadController
+
+        with GithubTaskSession(logger) as session:
+
+            repo_load_controller = RepoLoadController(gh_session=session)
+
+            result = repo_load_controller.remove_frontend_repo(repo_id, self.user_id, group_name)
+
+            return result
+
+    def add_org(self, group_name, org_url):
+        
+        from augur.tasks.github.util.github_task_session import GithubTaskSession
+        from augur.util.repo_load_controller import RepoLoadController
+
+        with GithubTaskSession(logger) as session:
+
+            repo_load_controller = RepoLoadController(gh_session=session)
+
+            result = repo_load_controller.add_frontend_org(org, user.user_id, group_name)
+
+            return result
+
+    def get_groups(self):
+        
+        from augur.tasks.github.util.github_task_session import GithubTaskSession
+        from augur.util.repo_load_controller import RepoLoadController
+
+        with GithubTaskSession(logger) as session:
+
+            controller = RepoLoadController(session)
+    
+            user_groups = controller.get_user_groups(user.user_id)
+
+            return {"groups": user_groups}
+
+    def get_group_names(self):
+
+        user_groups = self.get_groups()["groups"]
+
+        group_names = [group.name for group in user_groups]
+
+        return {"group_names": group_names}
+
+
+
+    def get_group_repos(self, group_name, page=0, page_size=25, sort="repo_id", direction="ASC"):
+        
+        from augur.tasks.github.util.github_task_session import GithubTaskSession
+        from augur.util.repo_load_controller import RepoLoadController
+   
+        if not group_name:
+            return {"status": "Missing argument"}
+
+        if direction and direction != "ASC" and direction != "DESC":
+            return {"status": "Invalid direction"}
+
+        try:
+            page = int(page)
+            page_size = int(page_size)
+        except ValueError:
+            return {"status": "Page size and page should be integers"}
+
+        if page < 0 or page_size < 0:
+            return {"status": "Page size and page should be postive"}
+
+
+        with GithubTaskSession(logger) as session:
+
+            controller = RepoLoadController(session)
+    
+            group_id = controller.convert_group_name_to_id(user.user_id, group_name)
+            if group_id is None:
+                return {"status": "Group does not exist"}
+            
+           
+        order_by = sort if sort else "repo_id"
+        order_direction = direction if direction else "ASC"
+
+        get_page_of_repos_sql = text(f"""
+            SELECT
+                    augur_data.repo.repo_id,
+                    augur_data.repo.repo_name,
+                    augur_data.repo.description,
+                    augur_data.repo.repo_git AS url,
+                    augur_data.repo.repo_status,
+                    a.commits_all_time,
+                    b.issues_all_time,
+                    rg_name,
+                    augur_data.repo.repo_group_id
+            FROM
+                    augur_data.repo
+                    LEFT OUTER JOIN augur_data.api_get_all_repos_commits a ON augur_data.repo.repo_id = a.repo_id
+                    LEFT OUTER JOIN augur_data.api_get_all_repos_issues b ON augur_data.repo.repo_id = b.repo_id
+                    JOIN augur_operations.user_repos ON augur_data.repo.repo_id = augur_operations.user_repos.repo_id
+                    JOIN augur_data.repo_groups ON augur_data.repo.repo_group_id = augur_data.repo_groups.repo_group_id
+            WHERE augur_operations.user_repos.group_id = {group_id}
+            ORDER BY {order_by} {order_direction}
+            LIMIT {page_size}
+            OFFSET {page*page_size};
+        """)
+
+        results = pd.read_sql(get_page_of_repos_sql, create_database_engine())
+        results['url'] = results['url'].apply(lambda datum: datum.split('//')[1])
+
+        b64_urls = []
+        for i in results.index:
+            b64_urls.append(base64.b64encode((results.at[i, 'url']).encode()))
+        results['base64_url'] = b64_urls
+
+        data = results.to_json(orient="records", date_format='iso', date_unit='ms')
+
+        return {"status": "success", "data": data}
+
+    def get_group_repo_count(self, group_name):
+        
+        from augur.tasks.github.util.github_task_session import GithubTaskSession
+        from augur.util.repo_load_controller import RepoLoadController
+
+        with GithubTaskSession(logger) as session:
+
+            controller = RepoLoadController(session)
+
+            group_id = controller.convert_group_name_to_id(user.user_id, group_name)
+            if group_id is None:
+                return {"status": "Group does not exist"}
+
+            get_page_of_repos_sql = text(f"""
+                SELECT
+                    count(*)
+                FROM
+                        augur_data.repo
+                        LEFT OUTER JOIN augur_data.api_get_all_repos_commits a ON augur_data.repo.repo_id = a.repo_id
+                        LEFT OUTER JOIN augur_data.api_get_all_repos_issues b ON augur_data.repo.repo_id = b.repo_id
+                        JOIN augur_operations.user_repos ON augur_data.repo.repo_id = augur_operations.user_repos.repo_id
+                        JOIN augur_data.repo_groups ON augur_data.repo.repo_group_id = augur_data.repo_groups.repo_group_id
+                WHERE augur_operations.user_repos.group_id = {group_id}
+            """)
+
+            result = session.fetchall_data_from_sql_text(get_page_of_repos_sql)
+            
+            return {"repos": result[0]["count"]}
     
 
 class UserGroup(Base):
