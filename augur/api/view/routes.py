@@ -1,8 +1,15 @@
+import logging
 from flask import Flask, render_template, render_template_string, request, abort, jsonify, redirect, url_for, session, flash
+from sqlalchemy.orm.exc import NoResultFound
 from .utils import *
 from flask_login import login_user, logout_user, current_user, login_required
-from .server import User
+# from .server import User
+from augur.application.db.models import User
 from .server import LoginException
+from augur.application.db.session import DatabaseSession
+
+logger = logging.getLogger(__name__)
+
 
 # ROUTES -----------------------------------------------------------------------
 
@@ -123,23 +130,37 @@ def create_routes(server):
     def user_login():
         if request.method == 'POST':
             try:
-                user_id = request.form.get('username')
+                username = request.form.get('username')
                 remember = request.form.get('remember') is not None
-                if user_id is None:
+                password = request.form.get('password')
+
+                if username is None:
                     raise LoginException("A login issue occurred")
 
-                user = User(user_id)
+                # test if the user does not exist then the login is invalid
+                user = User.get_user(username)
+                if not user and not request.form.get('register'):
+                    raise LoginException("Invalid login credentials")
 
+                # register a user
                 if request.form.get('register') is not None:
-                    if user.exists:
+                    if user:
                         raise LoginException("User already exists")
-                    if not user.register(request):
+                    
+                    email = request.form.get('email')
+                    first_name = request.form.get('first_name')
+                    last_name = request.form.get('last_name')
+                    admin = request.form.get('admin')
+
+                    result = User.create_user(username, password, email, first_name, last_name, admin)
+                    if "Error" in result.keys():
                         raise LoginException("An error occurred registering your account")
                     else:
-                        flash("Account successfully created")
+                        flash(result["status"])
 
-                if user.validate(request) and login_user(user, remember = remember):
-                    flash(f"Welcome, {user_id}!")
+                # Log the user in if the password is valid
+                if User.validate(password) and login_user(user, remember = remember):
+                    flash(f"Welcome, {username}!")
                     if "login_next" in session:
                         return redirect(session.pop("login_next"))
                     return redirect(url_for('root'))

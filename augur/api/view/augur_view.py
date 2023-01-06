@@ -2,7 +2,9 @@ from flask import Flask, render_template, redirect, url_for, session, request
 from flask_login import LoginManager
 from .utils import *
 from .url_converters import *
-from .server import User
+# from .server import User
+from augur.application.db.models import User
+from augur.application.db.session import DatabaseSession
 
 login_manager = LoginManager()
 
@@ -31,14 +33,17 @@ def create_routes(server):
 
     @login_manager.user_loader
     def load_user(user_id):
-        user = User(user_id)
 
-        if not user.exists:
+        user = User.get_user(user_id)
+
+        if not user:
             return None
 
         # The flask_login library sets a unique session["_id"]
         # when login_user() is called successfully
         if session.get("_id") is not None:
+
+            # TODO: Add these as properties
             user._is_authenticated = True
             user._is_active = True
 

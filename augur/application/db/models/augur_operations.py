@@ -1,6 +1,12 @@
 # coding: utf-8
 from sqlalchemy import BigInteger, SmallInteger, Column, Index, Integer, String, Table, text, UniqueConstraint, Boolean, ForeignKey
 from sqlalchemy.dialects.postgresql import TIMESTAMP, UUID
+from sqlalchemy.orm.exc import NoResultFound
+from werkzeug.security import generate_password_hash, check_password_hash
+import logging 
+
+logger = logging.getLogger(__name__)
+
 
 
 from augur.application.db.models.base import Base
@@ -171,6 +177,7 @@ class Config(Base):
 
 # add admit column to database
 class User(Base):
+
     user_id = Column(Integer, primary_key=True)
     login_name = Column(String, nullable=False)
     login_hashword = Column(String, nullable=False)
@@ -195,6 +202,117 @@ class User(Base):
     groups = relationship("UserGroup")
     tokens = relationship("UserSessionToken")
 
+    _is_authenticated = False
+    _is_active = False
+    _is_anoymous = True
+
+    @property
+    def is_authenticated(self):
+        return self._is_authenticated
+
+    @is_authenticated.setter
+    def is_authenticated(self, val):
+        self._is_authenticated = val
+
+    @property
+    def is_active(self):
+        return self._is_active
+
+    @is_active.setter
+    def is_active(self, val):
+        self._is_active = val
+
+    @property
+    def is_anoymous(self):
+        return self._is_anoymous
+
+    @is_anoymous.setter
+    def is_anoymous(self, val):
+        self._is_anoymous = val
+
+    @staticmethod
+    def exists(username):
+        return User.get_user(username) is not None
+
+    def validate(self, password) -> bool:
+
+        from augur.application.db.session import DatabaseSession
+
+        if not password:
+            return False
+
+        return check_password_hash(self.login_hashword, password)
+
+    @staticmethod
+    def get_user(username: str):
+
+        from augur.application.db.session import DatabaseSession
+
+        with DatabaseSession(logger) as session:
+            try:
+                return session.query(User).filter(User.login_name == username).one()
+            except NoResultFound:
+                return None
+                
+    @staticmethod
+    def create_user(username: str, password: str, email: str, first_name:str, last_name:str, admin=False):
+
+        from augur.application.db.session import DatabaseSession
+
+        if username is None or password is None or email is None or first_name is None or last_name is None:
+            return {"status": "Missing field"} 
+
+        with DatabaseSession(logger) as session:
+
+            user = session.query(User).filter(User.login_name == username).first()
+            if user is not None:
+                return {"status": "A User already exists with that username"}
+
+            emailCheck = session.query(User).filter(User.email == email).first()
+            if emailCheck is not None:
+                return {"status": "A User already exists with that email"}
+
+            try:
+                user = User(login_name = username, login_hashword = generate_password_hash(password), email = email, first_name = first_name, last_name = last_name, tool_source="User API", tool_version=None, data_source="API", admin=admin)
+                session.add(user)
+                session.commit()
+                return {"status": "Account successfully created"}
+            except AssertionError as exception_message: 
+                return {"Error": f"{exception_message}."}
+
+    @staticmethod
+    def delete_user():
+        
+        from augur.application.db.session import DatabaseSession
+
+    def update_user():
+        pass
+
+    def add_group():
+
+        pass
+
+    def remove_group():
+        pass
+
+    def add_repo():
+        pass
+
+    def remove_repo():
+        pass
+
+    def add_org():
+        pass
+
+    def get_groups():
+        pass
+
+    def get_group_repos():
+        pass
+
+    def get_group_repo_count():
+        pass
+    
 
 class UserGroup(Base):
     group_id = Column(BigInteger, primary_key=True)
