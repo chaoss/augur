@@ -555,7 +555,7 @@ class RepoLoadController:
 
         return {"status": "success", "data": data}
 
-    def get_repo_count(self, source, **kwargs)
+    def get_repo_count(self, source, **kwargs):
 
         if not source:
             return {"status": "Missing argument"}
