@@ -133,20 +133,18 @@ def create_routes(server):
                 username = request.form.get('username')
                 remember = request.form.get('remember') is not None
                 password = request.form.get('password')
+                register = request.form.get('register')
 
                 if username is None:
                     raise LoginException("A login issue occurred")
 
-                # test if the user does not exist then the login is invalid
                 user = User.get_user(username)
-                if not user and request.form.get('register'):
+                if not user and register is None:
                     raise LoginException("Invalid login credentials")
-
+                
                 # register a user
-                if request.form.get('register') is not None:
-                    print("Register user")
+                if register is not None:
                     if user:
-                        print(f"User already exists: {user.__dict__}")
                         raise LoginException("User already exists")
                     
                     email = request.form.get('email')
@@ -162,10 +160,7 @@ def create_routes(server):
                         flash(result["status"])
 
                 # Log the user in if the password is valid
-                if user.validate(password):
-
-                    result = login_user(user, remember = remember)
-                    print(result)
+                if user.validate(password) and login_user(user, remember = remember):
                     flash(f"Welcome, {username}!")
                     if "login_next" in session:
                         return redirect(session.pop("login_next"))

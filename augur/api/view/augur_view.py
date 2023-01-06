@@ -35,12 +35,9 @@ def create_routes(server):
     @login_manager.user_loader
     def load_user(user_id):
 
-        print("Loading user")
-
         user = User.get_user(user_id)
 
         if not user:
-            print("User not found")
             return None
 
         # The flask_login library sets a unique session["_id"]
