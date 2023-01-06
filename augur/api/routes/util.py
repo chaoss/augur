@@ -13,6 +13,35 @@ logger = AugurLogger("augur").get_logger()
 
 AUGUR_API_VERSION = 'api/unstable'
 
+def get_all_repos(self, page=0, page_size=25, sort="repo_id", direction="ASC"):
+
+    from augur.tasks.github.util.github_task_session import GithubTaskSession
+    from augur.util.repo_load_controller import RepoLoadController
+
+    with GithubTaskSession(logger) as session:
+
+        with RepoLoadController(session) as controller:
+
+            result = controller.paginate_repos("all", page, page_size, sort, direction)
+
+            return result
+
+def get_all_repos_count(self):
+
+    from augur.tasks.github.util.github_task_session import GithubTaskSession
+    from augur.util.repo_load_controller import RepoLoadController
+
+    with GithubTaskSession(logger) as session:
+
+        controller = RepoLoadController(session)
+
+        result = controller.get_repo_count(source="all")
+        if result["status"] == "success":
+            return result["repos"]
+
+        return result["status"]
+
+
 def create_routes(server):
 
     @server.app.route('/{}/repo-groups'.format(AUGUR_API_VERSION))

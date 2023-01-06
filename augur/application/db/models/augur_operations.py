@@ -389,75 +389,58 @@ class User(Base):
 
         return {"group_names": group_names}
 
+    def query_repos(self):
+
+        from augur.application.db.session import DatabaseSession
+        from augur.application.db.models.augur_data import Repo
+
+        with DatabaseSession(logger) as session:
+
+            return [repo.repo_id for repo in session.query(Repo).all()]
 
 
-    def get_group_repos(self, group_name, page=0, page_size=25, sort="repo_id", direction="ASC"):
-        
+    def get_repos(self, group_name, page=0, page_size=25, sort="repo_id", direction="ASC"):
+
         from augur.tasks.github.util.github_task_session import GithubTaskSession
         from augur.util.repo_load_controller import RepoLoadController
-   
-        if not group_name:
-            return {"status": "Missing argument"}
 
-        if direction and direction != "ASC" and direction != "DESC":
-            return {"status": "Invalid direction"}
+        with GithubTaskSession(logger) as session:
 
-        try:
-            page = int(page)
-            page_size = int(page_size)
-        except ValueError:
-            return {"status": "Page size and page should be integers"}
+            with RepoLoadController(session) as controller:
 
-        if page < 0 or page_size < 0:
-            return {"status": "Page size and page should be postive"}
+                result = controller.paginate_repos("user", page, page_size, sort, direction, user=self, group_name=group_name)
 
+                return result
+
+    def get_repo_count(self):
+
+        from augur.tasks.github.util.github_task_session import GithubTaskSession
+        from augur.util.repo_load_controller import RepoLoadController
 
         with GithubTaskSession(logger) as session:
 
             controller = RepoLoadController(session)
-    
-            group_id = controller.convert_group_name_to_id(user.user_id, group_name)
-            if group_id is None:
-                return {"status": "Group does not exist"}
-            
-           
-        order_by = sort if sort else "repo_id"
-        order_direction = direction if direction else "ASC"
 
-        get_page_of_repos_sql = text(f"""
-            SELECT
-                    augur_data.repo.repo_id,
-                    augur_data.repo.repo_name,
-                    augur_data.repo.description,
-                    augur_data.repo.repo_git AS url,
-                    augur_data.repo.repo_status,
-                    a.commits_all_time,
-                    b.issues_all_time,
-                    rg_name,
-                    augur_data.repo.repo_group_id
-            FROM
-                    augur_data.repo
-                    LEFT OUTER JOIN augur_data.api_get_all_repos_commits a ON augur_data.repo.repo_id = a.repo_id
-                    LEFT OUTER JOIN augur_data.api_get_all_repos_issues b ON augur_data.repo.repo_id = b.repo_id
-                    JOIN augur_operations.user_repos ON augur_data.repo.repo_id = augur_operations.user_repos.repo_id
-                    JOIN augur_data.repo_groups ON augur_data.repo.repo_group_id = augur_data.repo_groups.repo_group_id
-            WHERE augur_operations.user_repos.group_id = {group_id}
-            ORDER BY {order_by} {order_direction}
-            LIMIT {page_size}
-            OFFSET {page*page_size};
-        """)
+            result = controller.get_repo_count(source="user", user=self)
+            if result["status"] == "success":
+                return result["repos"]
 
-        results = pd.read_sql(get_page_of_repos_sql, create_database_engine())
-        results['url'] = results['url'].apply(lambda datum: datum.split('//')[1])
+            return result["status"]
 
-        b64_urls = []
-        for i in results.index:
-            b64_urls.append(base64.b64encode((results.at[i, 'url']).encode()))
-        results['base64_url'] = b64_urls
 
-        data = results.to_json(orient="records", date_format='iso', date_unit='ms')
+    def get_group_repos(self, group_name, page=0, page_size=25, sort="repo_id", direction="ASC"):
 
-        return {"status": "success", "data": data}
+        from augur.tasks.github.util.github_task_session import GithubTaskSession
+        from augur.util.repo_load_controller import RepoLoadController
+
+        with GithubTaskSession(logger) as session:
+
+            with RepoLoadController(session) as controller:
+
+                result = controller.paginate_repos("group", page, page_size, sort, direction, user=self, group_name=group_name)
+
+                return result
+
 
     def get_group_repo_count(self, group_name):
         
@@ -468,25 +451,14 @@ class User(Base):
 
             controller = RepoLoadController(session)
 
-            group_id = controller.convert_group_name_to_id(user.user_id, group_name)
-            if group_id is None:
-                return {"status": "Group does not exist"}
+            result = controller.get_repo_count(source="group", group_name=group_name, user=self)
+            if result["status"] == "success":
+                return result["repos"]
 
-            get_page_of_repos_sql = text(f"""
-                SELECT
-                    count(*)
-                FROM
-                        augur_data.repo
-                        LEFT OUTER JOIN augur_data.api_get_all_repos_commits a ON augur_data.repo.repo_id = a.repo_id
-                        LEFT OUTER JOIN augur_data.api_get_all_repos_issues b ON augur_data.repo.repo_id = b.repo_id
-                        JOIN augur_operations.user_repos ON augur_data.repo.repo_id = augur_operations.user_repos.repo_id
-                        JOIN augur_data.repo_groups ON augur_data.repo.repo_group_id = augur_data.repo_groups.repo_group_id
-                WHERE augur_operations.user_repos.group_id = {group_id}
-            """)
+            return result["status"]
 
-            result = session.fetchall_data_from_sql_text(get_page_of_repos_sql)
-            
-            return {"repos": result[0]["count"]}
+
+
     
 
 class UserGroup(Base):

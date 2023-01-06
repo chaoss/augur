@@ -512,9 +512,9 @@ class RepoLoadController:
         # if the result is not None then the groups should be valid so we don't worry about index errors here
         return result.groups()[0]
 
+
     def paginate_repos(self, source, page=0, page_size=25, sort="repo_id", direction="ASC", **kwargs):
 
-   
         if not source:
             return {"status": "Missing argument"}
 
@@ -536,51 +536,12 @@ class RepoLoadController:
         order_by = sort if sort else "repo_id"
         order_direction = direction if direction else "ASC"
 
-        query = """
-                SELECT
-                        augur_data.repo.repo_id,
-                        augur_data.repo.repo_name,
-                        augur_data.repo.description,
-                        augur_data.repo.repo_git AS url,
-                        augur_data.repo.repo_status,
-                        a.commits_all_time,
-                        b.issues_all_time,
-                        rg_name,
-                        augur_data.repo.repo_group_id
-                FROM
-                        augur_data.repo
-                        LEFT OUTER JOIN augur_data.api_get_all_repos_commits a ON augur_data.repo.repo_id = a.repo_id
-                        LEFT OUTER JOIN augur_data.api_get_all_repos_issues b ON augur_data.repo.repo_id = b.repo_id
-                        JOIN augur_data.repo_groups ON augur_data.repo.repo_group_id = augur_data.repo_groups.repo_group_id"""
+        query = self.generate_repo_query(source, count=False, order_by=order_by, direction=order_direction, 
+                                    page=page, page_size=page_size)
+        if isinstance(query, dict):
+            return query
 
-        if source == "user":
-
-            user = kwargs["user"]
-            group_ids = [group.group_id for group in user.groups]
-
-            query.append("JOIN augur_operations.user_repos ON augur_data.repo.repo_id = augur_operations.user_repos.repo_id")
-            query.append(f"WHERE augur_operations.user_repos.group_id in {str(group_ids)}")
-
-        elif source == "group":
-
-            with GithubTaskSession(logger) as session:
-
-                controller = RepoLoadController(session)
-                user = kwargs["user"]
-                group_name = kwargs["group_name"]
-    
-                group_id = controller.convert_group_name_to_id(user, group_name)
-                if group_id is None:
-                    return {"status": "Group does not exist"}
-
-            query.append("JOIN augur_operations.user_repos ON augur_data.repo.repo_id = augur_operations.user_repos.repo_id")
-            query.append(f"WHERE augur_operations.user_repos.group_id = {group_id}")
-
-        query.append(f"ORDER BY {order_by} {order_direction}")
-        query.append(f"LIMIT {page_size}")
-        query.append(f"OFFSET {page*page_size};")
-
-        get_page_of_repos_sql = text(base_query)
+        get_page_of_repos_sql = text(query)
 
         results = pd.read_sql(get_page_of_repos_sql, create_database_engine())
         results['url'] = results['url'].apply(lambda datum: datum.split('//')[1])
@@ -593,4 +554,121 @@ class RepoLoadController:
         data = results.to_json(orient="records", date_format='iso', date_unit='ms')
 
         return {"status": "success", "data": data}
+
+    def get_repo_count(self, source, **kwargs)
+
+        if not source:
+            return {"status": "Missing argument"}
+
+        if source not in ["all", "user", "group"]:
+            return {"status": "Invalid source"}
+
+        try:
+            user = kwargs["user"]
+        except ValueError:
+            user = None
+        
+        try:
+            group_name = kwargs["group_name"]
+        except ValueError:
+            group_name = None
+
+        query = self.generate_repo_query(source, count=True, user=user, group_name=group_name)
+        if isinstance(query, dict):
+            return query
+
+        get_page_of_repos_sql = text(query)
+
+        result = self.session.fetchall_data_from_sql_text(get_page_of_repos_sql)
+            
+        return {"status": "success", "repos": result[0]["count"]}
+
+
+    def generate_repo_query(self, source, count, **kwargs):
+
+        if count:
+            select = "count(*)"
+        else:
+            select = """    augur_data.repo.repo_id,
+                    augur_data.repo.repo_name,
+                    augur_data.repo.description,
+                    augur_data.repo.repo_git AS url,
+                    augur_data.repo.repo_status,
+                    a.commits_all_time,
+                    b.issues_all_time,
+                    rg_name,
+                    augur_data.repo.repo_group_id"""
+
+        query = f"""
+            SELECT
+                {select}
+            FROM
+                    augur_data.repo
+                    LEFT OUTER JOIN augur_data.api_get_all_repos_commits a ON augur_data.repo.repo_id = a.repo_id
+                    LEFT OUTER JOIN augur_data.api_get_all_repos_issues b ON augur_data.repo.repo_id = b.repo_id
+                    JOIN augur_data.repo_groups ON augur_data.repo.repo_group_id = augur_data.repo_groups.repo_group_id\n"""
+
+        if source == "user":
+
+            try:
+                user = kwargs["user"]
+            except ValueError:
+                return {"status": "Missing argument"}
+
+            group_ids = tuple([group.group_id for group in user.groups])
+
+            if len(group_ids) == 1:
+                group_ids_str = str(group_ids)[:-2] + ")"
+            else:
+                group_ids_str = str(group_ids)
+
+            query += "\t\t    JOIN augur_operations.user_repos ON augur_data.repo.repo_id = augur_operations.user_repos.repo_id\n"
+            query += f"\t\t    WHERE augur_operations.user_repos.group_id in {group_ids_str}\n"
+
+        elif source == "group":
+
+            with GithubTaskSession(logger) as session:
+
+                controller = RepoLoadController(session)
+
+                try:
+                    user = kwargs["user"]
+                    group_name = kwargs["group_name"]
+                except KeyError:
+                    return {"status": "Missing argument"}
+
+                group_id = controller.convert_group_name_to_id(user.user_id, group_name)
+                if group_id is None:
+                    return {"status": "Group does not exist"}
+
+            query += "\t\t    JOIN augur_operations.user_repos ON augur_data.repo.repo_id = augur_operations.user_repos.repo_id\n"
+            query += f"\t\t    WHERE augur_operations.user_repos.group_id = {group_id}\n"
+
+        if not count:
+
+            try:
+                order_by = kwargs["order_by"]
+            except KeyError:
+                order_by = "repo_id"
+
+            try:
+                direction = kwargs["direction"]
+            except KeyError:
+                direction = "ASC"
+
+            try:
+                page = kwargs["page"]
+            except KeyError:
+                page = 0
+
+            try:
+                page_size = kwargs["page_size"]
+            except KeyError:
+                page_size = 25
+
+            query += f"\t    ORDER BY {order_by} {direction}\n"
+            query += f"\t    LIMIT {page_size}\n"
+            query += f"\t    OFFSET {page*page_size};\n"
+
+        return query
 
