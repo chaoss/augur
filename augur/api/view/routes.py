@@ -139,32 +139,39 @@ def create_routes(server):
 
                 # test if the user does not exist then the login is invalid
                 user = User.get_user(username)
-                if not user and not request.form.get('register'):
+                if not user and request.form.get('register'):
                     raise LoginException("Invalid login credentials")
 
                 # register a user
                 if request.form.get('register') is not None:
+                    print("Register user")
                     if user:
+                        print(f"User already exists: {user.__dict__}")
                         raise LoginException("User already exists")
                     
                     email = request.form.get('email')
                     first_name = request.form.get('first_name')
                     last_name = request.form.get('last_name')
-                    admin = request.form.get('admin')
+                    admin = request.form.get('admin') or False
 
                     result = User.create_user(username, password, email, first_name, last_name, admin)
                     if "Error" in result.keys():
                         raise LoginException("An error occurred registering your account")
                     else:
+                        user = User.get_user(username)
                         flash(result["status"])
 
                 # Log the user in if the password is valid
-                if User.validate(password) and login_user(user, remember = remember):
+                if user.validate(password):
+
+                    result = login_user(user, remember = remember)
+                    print(result)
                     flash(f"Welcome, {username}!")
                     if "login_next" in session:
                         return redirect(session.pop("login_next"))
                     return redirect(url_for('root'))
                 else:
+                    print("Invalid login")
                     raise LoginException("Invalid login credentials")
             except LoginException as e:
                 flash(str(e))

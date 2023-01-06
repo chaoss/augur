@@ -9,6 +9,7 @@ from augur.application.db.session import DatabaseSession
 login_manager = LoginManager()
 
 def create_routes(server):
+
     login_manager.init_app(server.app)
 
     server.app.secret_key = getSetting("session_key")
@@ -34,15 +35,18 @@ def create_routes(server):
     @login_manager.user_loader
     def load_user(user_id):
 
+        print("Loading user")
+
         user = User.get_user(user_id)
 
         if not user:
+            print("User not found")
             return None
 
         # The flask_login library sets a unique session["_id"]
         # when login_user() is called successfully
         if session.get("_id") is not None:
-
+        
             # TODO: Add these as properties
             user._is_authenticated = True
             user._is_active = True

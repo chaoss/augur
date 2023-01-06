@@ -203,7 +203,7 @@ class User(Base):
     tokens = relationship("UserSessionToken")
 
     _is_authenticated = False
-    _is_active = False
+    _is_active = True
     _is_anoymous = True
 
     @property
@@ -234,6 +234,9 @@ class User(Base):
     def exists(username):
         return User.get_user(username) is not None
 
+    def get_id(self):
+        return self.login_name
+
     def validate(self, password) -> bool:
 
         from augur.application.db.session import DatabaseSession
@@ -241,7 +244,10 @@ class User(Base):
         if not password:
             return False
 
-        return check_password_hash(self.login_hashword, password)
+        result = check_password_hash(self.login_hashword, password)
+        print(f"Validating: {result}")
+
+        return result
 
     @staticmethod
     def get_user(username: str):
@@ -249,8 +255,11 @@ class User(Base):
         from augur.application.db.session import DatabaseSession
 
         with DatabaseSession(logger) as session:
+            print("Get user")
             try:
-                return session.query(User).filter(User.login_name == username).one()
+                user = session.query(User).filter(User.login_name == username).one()
+                print(user.__dict__)
+                return user
             except NoResultFound:
                 return None
                 
@@ -261,6 +270,7 @@ class User(Base):
 
         if username is None or password is None or email is None or first_name is None or last_name is None:
             return {"status": "Missing field"} 
+
 
         with DatabaseSession(logger) as session:
 

@@ -137,12 +137,10 @@ def create_routes(server):
             return jsonify({"status": "Invalid username"})
         if checkPassword == False:
             return jsonify({"status": "Invalid password"})
-        
-        # TODO Generate user session token to be stored in client browser
 
-        token = "USER SESSION TOKEN"
+        login_user(user)
 
-        return jsonify({"status": "Validated", "session": token})
+        return jsonify({"status": "Validated"})
     
     @server.app.route(f"/{AUGUR_API_VERSION}/user/oauth", methods=['POST'])
     def oauth_validate():
@@ -182,8 +180,6 @@ def create_routes(server):
         return jsonify({"status": "Validated", "username": user, "session": token})
     
     @server.app.route(f"/{AUGUR_API_VERSION}/user/query", methods=['POST'])
-    @api_key_required
-    @user_login_required
     def query_user(user):
         if not development and not request.is_secure:
             return generate_upgrade_request()
@@ -200,16 +196,7 @@ def create_routes(server):
 
         return jsonify({"status": True})
 
-    @server.app.route(f"/{AUGUR_API_VERSION}/user/test", methods=['POST'])
-    def test():
-        if not development and not request.is_secure:
-            return generate_upgrade_request()
-
-        test = request.args.get("test")
-
-        return jsonify({"result": test})
-
-    @server.app.route(f"/{AUGUR_API_VERSION}/user/create", methods=['POST'])
+    @server.app.route(f"/{AUGUR_API_VERSION}/user/create", methods=['GET', 'POST'])
     def create_user():
         if not development and not request.is_secure:
             return generate_upgrade_request()
@@ -310,8 +297,7 @@ def create_routes(server):
         return jsonify(result)
 
     @server.app.route(f"/{AUGUR_API_VERSION}/user/remove_group", methods=['GET', 'POST'])
-    @api_key_required
-    @user_login_required
+    @login_required
     def remove_user_group(user):
         if not development and not request.is_secure:
             return generate_upgrade_request()
@@ -394,8 +380,7 @@ def create_routes(server):
 
 
     @server.app.route(f"/{AUGUR_API_VERSION}/user/group_repo_count", methods=['GET', 'POST'])
-    @api_key_required
-    @user_login_required
+    @login_required
     def group_repo_count(user):
         """Count repos from a user group by name
 
@@ -423,8 +408,7 @@ def create_routes(server):
 
 
     @server.app.route(f"/{AUGUR_API_VERSION}/user/groups", methods=['GET', 'POST'])
-    @api_key_required
-    @user_login_required
+    @login_required
     def get_user_groups(user):
         """Get a list of user groups by username
 
