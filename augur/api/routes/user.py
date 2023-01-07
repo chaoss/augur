@@ -197,14 +197,11 @@ def create_routes(server):
         if not development and not request.is_secure:
             return generate_upgrade_request()
 
-        session = Session()
         username = request.args.get("username")
         if username is None:
-            # https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400
             return jsonify({"status": "Missing argument"}), 400
-        user = session.query(User).filter(User.login_name == username).first()
-        
-        if user is None:
+
+        if not User.exists(username):
             return jsonify({"status": "Invalid username"})
 
         return jsonify({"status": True})
@@ -232,19 +229,9 @@ def create_routes(server):
         if not development and not request.is_secure:
             return generate_upgrade_request()
 
-        session = Session()
+        status = current_user.delete()
+        return jsonify(status)
 
-        for group in user.groups:
-            user_repos_list = group.repos
-
-            for user_repo_entry in user_repos_list:
-                session.delete(user_repo_entry)
-
-            session.delete(group)
-
-        session.delete(user)
-        session.commit()
-        return jsonify({"status": "User deleted"}), 200
 
     @server.app.route(f"/{AUGUR_API_VERSION}/user/update", methods=['POST'])
     @login_required
@@ -252,7 +239,6 @@ def create_routes(server):
         if not development and not request.is_secure:
             return generate_upgrade_request()
 
-        session = Session()
         email = request.args.get("email")
         new_login_name = request.args.get("new_username")
         new_password = request.args.get("new_password")

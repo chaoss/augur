@@ -250,6 +250,9 @@ class User(Base):
     @staticmethod
     def get_user(username: str):
 
+        if not username:
+            return None
+
         from augur.application.db.session import DatabaseSession
 
         with DatabaseSession(logger) as session:
@@ -286,15 +289,67 @@ class User(Base):
             except AssertionError as exception_message: 
                 return {"Error": f"{exception_message}."}
 
-    @staticmethod
-    def delete_user():
+    def delete_user(self):
         
         from augur.application.db.session import DatabaseSession
 
-    def update_user(self):
+        with DatabaseSession(logger) as session:
+
+            for group in self.groups:
+                user_repos_list = group.repos
+
+                for user_repo_entry in user_repos_list:
+                    session.delete(user_repo_entry)
+
+                session.delete(group)
+
+            session.delete(self)
+            session.commit()
+
+            return {"status": "User deleted"})
+
+    def update_user(self, **kwargs):
 
         from augur.application.db.session import DatabaseSession
-        pass
+        
+        with DatabaseSession(session) as session:
+
+            valid_kwargs = ["email", "password", "username"]
+
+            kwarg_present = False
+            for value in valid_kwargs:
+
+                if value in kwargs:  
+                    if kwarg_present:
+                        return {"status": "Please pass an email, password, or username, not multiple"}                   
+
+                    kwarg_present = True
+
+            if "email" in kwargs:
+
+                existing_user = session.query(User).filter(User.email == kwargs["email"]).one()
+                if existing_user is not None:
+                    return jsonify({"status": "Already an account with this email"})
+
+                user.email = kwargs["email"]
+                session.commit()
+                return jsonify({"status": "Email Updated"})
+
+            if "password" in kwargs:
+                user.login_hashword = generate_password_hash(kwargs["password"])
+                session.commit()
+                return jsonify({"status": "Password Updated"})
+
+            if "username" in kwargs:
+                existing_user = session.query(User).filter(User.login_name == kwargs["username"]).one()
+                if existing_user is not None:
+                    return jsonify({"status": "Username already taken"})
+
+                user.login_name = kwargs["username"]
+                session.commit()
+                return jsonify({"status": "Username Updated"})
+
+            return jsonify({"status": "Missing argument"}), 400
 
     def add_group(self, group_name):
 
