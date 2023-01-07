@@ -245,8 +245,6 @@ class User(Base):
             return False
 
         result = check_password_hash(self.login_hashword, password)
-        print(f"Validating: {result}")
-
         return result
 
     @staticmethod
@@ -255,10 +253,8 @@ class User(Base):
         from augur.application.db.session import DatabaseSession
 
         with DatabaseSession(logger) as session:
-            print("Get user")
             try:
                 user = session.query(User).filter(User.login_name == username).one()
-                print(user.__dict__)
                 return user
             except NoResultFound:
                 return None
