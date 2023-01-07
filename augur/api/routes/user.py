@@ -132,15 +132,28 @@ def create_routes(server):
             return jsonify({"status": "Missing argument"}), 400
 
         user = session.query(User).filter(User.login_name == username).first()
-        checkPassword = check_password_hash(user.login_hashword, password)
         if user is None:
             return jsonify({"status": "Invalid username"})
+
+        checkPassword = check_password_hash(user.login_hashword, password)
         if checkPassword == False:
             return jsonify({"status": "Invalid password"})
 
         login_user(user)
 
         return jsonify({"status": "Validated"})
+
+    @server.app.route(f"/{AUGUR_API_VERSION}/user/logout", methods=['POST'])
+    @login_required
+    def logout_user_func():
+        if not development and not request.is_secure:
+            return generate_upgrade_request()
+
+        if logout_user():
+            return jsonify({"status": "Logged out"})
+
+        return jsonify({"status": "Error when logging out"})
+
     
     @server.app.route(f"/{AUGUR_API_VERSION}/user/oauth", methods=['POST'])
     def oauth_validate():
@@ -180,7 +193,7 @@ def create_routes(server):
         return jsonify({"status": "Validated", "username": user, "session": token})
     
     @server.app.route(f"/{AUGUR_API_VERSION}/user/query", methods=['POST'])
-    def query_user(user):
+    def query_user():
         if not development and not request.is_secure:
             return generate_upgrade_request()
 
@@ -215,7 +228,7 @@ def create_routes(server):
     
     @server.app.route(f"/{AUGUR_API_VERSION}/user/remove", methods=['POST', 'DELETE'])
     @login_required
-    def delete_user(user):
+    def delete_user():
         if not development and not request.is_secure:
             return generate_upgrade_request()
 
@@ -235,7 +248,7 @@ def create_routes(server):
 
     @server.app.route(f"/{AUGUR_API_VERSION}/user/update", methods=['POST'])
     @login_required
-    def update_user(user):
+    def update_user():
         if not development and not request.is_secure:
             return generate_upgrade_request()
 
@@ -272,60 +285,60 @@ def create_routes(server):
 
     @server.app.route(f"/{AUGUR_API_VERSION}/user/add_repo", methods=['GET', 'POST'])
     @login_required
-    def add_user_repo(user):
+    def add_user_repo():
         if not development and not request.is_secure:
             return generate_upgrade_request()
 
         repo = request.args.get("repo_url")
         group_name = request.args.get("group_name")
 
-        result = user.add_repo(group_name, repo)
+        result = current_user.add_repo(group_name, repo)
 
         return jsonify(result)
 
 
     @server.app.route(f"/{AUGUR_API_VERSION}/user/add_group", methods=['GET', 'POST'])
     @login_required
-    def add_user_group(user):
+    def add_user_group():
         if not development and not request.is_secure:
             return generate_upgrade_request()
 
         group_name = request.args.get("group_name")
 
-        result = user.add_group(group_name)
+        result = current_user.add_group(group_name)
 
         return jsonify(result)
 
     @server.app.route(f"/{AUGUR_API_VERSION}/user/remove_group", methods=['GET', 'POST'])
     @login_required
-    def remove_user_group(user):
+    def remove_user_group():
         if not development and not request.is_secure:
             return generate_upgrade_request()
 
         group_name = request.args.get("group_name")
 
-        result = user.remove_group(group_name)
+        result = current_user.remove_group(group_name)
 
         return jsonify(result)
 
 
     @server.app.route(f"/{AUGUR_API_VERSION}/user/add_org", methods=['GET', 'POST'])
     @login_required
-    def add_user_org(user):
+    def add_user_org():
         if not development and not request.is_secure:
             return generate_upgrade_request()
 
         org = request.args.get("org_url")
         group_name = request.args.get("group_name")
 
-        result = user.add_org(group_name, org_url)
+        result = current_user.add_org(group_name, org_url)
 
         return jsonify(result)
 
 
     @server.app.route(f"/{AUGUR_API_VERSION}/user/remove_repo", methods=['GET', 'POST'])
     @login_required
-    def remove_user_repo(user):
+    def remove_user_repo():
         if not development and not request.is_secure:
             return generate_upgrade_request()
 
@@ -333,14 +346,14 @@ def create_routes(server):
         group_name = request.args.get("group_name")
         repo_id = request.args.get("repo_id")
 
-        result = user.remove_repo(group_name, repo_id)
+        result = current_user.remove_repo(group_name, repo_id)
 
         return jsonify(result)
 
 
     @server.app.route(f"/{AUGUR_API_VERSION}/user/group_repos", methods=['GET', 'POST'])
     @login_required
-    def group_repos(user):
+    def group_repos():
         """Select repos from a user group by name
 
         Arguments
@@ -373,7 +386,7 @@ def create_routes(server):
         sort = request.args.get("sort") or "repo_id"
         direction = request.args.get("direction") or "ASC"
 
-        result = user.get_group_repos(group_name, page, page_size, sort, direction)
+        result = current_user.get_group_repos(group_name, page, page_size, sort, direction)
 
         return jsonify(result)
 
@@ -381,7 +394,7 @@ def create_routes(server):
 
     @server.app.route(f"/{AUGUR_API_VERSION}/user/group_repo_count", methods=['GET', 'POST'])
     @login_required
-    def group_repo_count(user):
+    def group_repo_count():
         """Count repos from a user group by name
 
         Arguments
@@ -402,14 +415,14 @@ def create_routes(server):
 
         group_name = request.args.get("group_name")
 
-        result = user.group_repo_count(group_name)
+        result = current_user.group_repo_count(group_name)
         
         return jsonify(result)
 
 
     @server.app.route(f"/{AUGUR_API_VERSION}/user/groups", methods=['GET', 'POST'])
     @login_required
-    def get_user_groups(user):
+    def get_user_groups():
         """Get a list of user groups by username
 
         Arguments
@@ -426,7 +439,7 @@ def create_routes(server):
         if not development and not request.is_secure:
             return generate_upgrade_request()
 
-        result = user.get_groups()
+        result = current_user.get_groups()
 
         return jsonify(result)
 
