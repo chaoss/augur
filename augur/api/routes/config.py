@@ -17,7 +17,7 @@ from augur.application.db.session import DatabaseSession
 logger = logging.getLogger(__name__)
 development = get_development_flag()
 
-AUGUR_API_VERSION = 'api/unstable'
+from augur.api.routes import AUGUR_API_VERSION
 
 def generate_upgrade_request():
     # https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/426

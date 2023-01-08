@@ -306,7 +306,7 @@ class User(Base):
             session.delete(self)
             session.commit()
 
-            return {"status": "User deleted"})
+            return {"status": "User deleted"}
 
     def update_user(self, **kwargs):
 
@@ -569,6 +569,10 @@ class ClientToken(Base):
             "schema": "augur_operations"
         }
     )
+
+    # TODO ClientApplication table (Application ID: str/int, User ID: FK, Name: str, Redirect URL: str)
+
+    # It should probably be 1:1 client token to application, so we only need one table
 
     token = Column(String, primary_key=True, nullable=False)
     name = Column(String, nullable=False)

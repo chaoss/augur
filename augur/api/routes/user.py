@@ -1,6 +1,6 @@
 #SPDX-License-Identifier: MIT
 """
-Creates routes for user login functionality
+Creates routes for user functionality
 """
 
 import logging
@@ -9,7 +9,7 @@ import json
 import os
 import base64
 import pandas as pd
-from flask import request, Response, jsonify
+from flask import request, Response, jsonify, session
 from flask_login import login_user, logout_user, current_user, login_required
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy.sql import text
@@ -18,66 +18,25 @@ from sqlalchemy.orm.exc import NoResultFound
 from augur.application.db.session import DatabaseSession
 from augur.tasks.github.util.github_task_session import GithubTaskSession
 from augur.util.repo_load_controller import RepoLoadController
-
+from augur.api.util import get_bearer_token
+from augur.api.util import get_client_token
 
 from augur.application.db.models import User, UserRepo, UserGroup, UserSessionToken, ClientToken
 from augur.application.config import get_development_flag
+from augur.tasks.init.redis_connection import redis_connection as redis
+
 logger = logging.getLogger(__name__)
 development = get_development_flag()
 from augur.application.db.engine import create_database_engine
 Session = sessionmaker(bind=create_database_engine())
 
-AUGUR_API_VERSION = 'api/unstable'
-
-""" 
-    Extract Bearer token from request header,
-    using the standard oauth2 format
-"""
-def get_bearer_token(request):
-    token = request.headers.get("Authorization")
-
-    if token and " " in token:
-        token = token.split(" ")
-        if len(token) == 2:
-            return token[1]
-
-        for substr in token:
-            if substr and "Bearer" not in substr:
-                return substr
-    
-    return token
-
-def user_login_required(fun):
-    def wrapper(*args, **kwargs):
-        # TODO check that user session token is valid
-
-        # We still need to decide on the format for this
-
-        user_token = request.args.get("user_token")
-        print(user_token)
-                    
-        # If valid:
-        if user_token:
-
-            session = Session()
-            try:
-                user = session.query(UserSessionToken).filter(UserSessionToken.token == user_token).one().user
-                
-                return fun(user=user, *args, **kwargs)
-            except NoResultFound:
-                print("Not found")
-
-        # else: return error JSON
-        return {"status": "Invalid user session"}
-
-    wrapper.__name__ = fun.__name__ 
-    return wrapper
+from augur.api.routes import AUGUR_API_VERSION
 
 def api_key_required(fun):
     def wrapper(*args, **kwargs):
         # TODO check that API key is valid
 
-        client_token = request.args.get("client_api_key")
+        client_token = get_client_token()
                     
         # If valid:
         if client_token:
@@ -155,42 +114,43 @@ def create_routes(server):
         return jsonify({"status": "Error when logging out"})
 
     
-    @server.app.route(f"/{AUGUR_API_VERSION}/user/oauth", methods=['POST'])
-    def oauth_validate():
-        # Check if user has an active session
-        current_session = request.args.get("session")
+    @server.app.route(f"/{AUGUR_API_VERSION}/user/authorize", methods=['POST', 'GET'])
+    @login_required
+    def user_authorize():
+        code = secrets.token_hex()
+        username = current_user.login_name
 
-        if current_session:
-            # TODO validate session token
-            # If invalid, set current_session to None to force validation
-            pass
+        redis.set(token, username, ex=30)
 
-        if not current_session:
-            return jsonify({"status": "Invalid session"})
-        
-        # TODO generate oauth token and store in temporary table
-        # Ideally should be valid for ~1 minute
-        # oauth entry: (token: str, generated: date)
-
-        token = "TEMPORARY VALUE"
-
-        return jsonify({"status": "Validated", "oauth_token": token})
+        return jsonify({"status": "Validated", "code": code})
 
     @server.app.route(f"/{AUGUR_API_VERSION}/user/generate_session", methods=['POST'])
+    @api_key_required
     def generate_session():
         # TODO Validate oauth token
-        oauth = request.args.get("oauth_token")
+        code = request.args.get("code")
 
-        # If invalid, return error JSON:
-        # return jsonify({"status": "Invalid oauth token"})
+        username = redis.get(code)
+        redis.delete(code)
+        if not username:
+            return jsonify({"status": "Invalid authorization code"})
 
-        # If valid, pop oauth token from temporary table
-        # Generate user session token to be stored in client browser
+        user = User.get_user(username)
+        if not user:
+            return jsonify({"status": "Invalid user"})
 
-        token = "USER SESSION TOKEN"
-        user = "USERNAME"
+        user_session_token = secrets.token_hex()
+        seconds_to_expire = 86400
+        expiration = int(time.time()) + seconds_to_expire
 
-        return jsonify({"status": "Validated", "username": user, "session": token})
+        session = Session()
+        user_session = UserSessionToken(token=user_session_token, user_id=user.user_id, expiration=expiration)
+
+        session.add(user_session)
+        session.commit()
+        session.close()
+       
+        return jsonify({"status": "Validated", "username": username, "access_token": user_session_token, "token_type": "Bearer", "expires": seconds_to_expire})
     
     @server.app.route(f"/{AUGUR_API_VERSION}/user/query", methods=['POST'])
     def query_user():

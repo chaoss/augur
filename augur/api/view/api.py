@@ -10,29 +10,6 @@ def create_routes(server):
             return redirect(url_for('root', path=getSetting('caching')))
         return redirect(url_for('root', path=toCacheFilepath(file)))
 
-    # API endpoint to clear server cache
-    # TODO: Add verification
-    @server.app.route('/cache/clear')
-    def clear_cache():
-        try:
-            for f in os.listdir(getSetting('caching')):
-                os.remove(os.path.join(getSetting('caching'), f))
-            return renderMessage("Cache Cleared", "Server cache was successfully cleared", redirect="/")
-        except Exception as err:
-            print(err)
-            return renderMessage("Error", "An error occurred while clearing server cache.",  redirect="/", pause=5)
-
-    # API endpoint to reload settings from disk
-    @server.app.route('/settings/reload')
-    def reload_settings():
-        loadSettings()
-        return renderMessage("Settings Reloaded", "Server settings were successfully reloaded.", redirect="/", pause=5)
-
-    # Request the frontend version as a JSON string
-    @server.app.route('/version')
-    def get_version():
-        return jsonify(version)
-
     @server.app.route('/account/repos/add/<path:repo_url>')
     @server.app.route('/account/repos/add')
     @login_required

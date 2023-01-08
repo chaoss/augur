@@ -26,7 +26,7 @@ from augur.application.db.session import DatabaseSession
 from augur.application.logs import AugurLogger
 from metadata import __version__ as augur_code_version
 
-AUGUR_API_VERSION = 'api/unstable'
+from augur.api.routes import AUGUR_API_VERSION
 
 
 

@@ -11,7 +11,7 @@ from augur.application.logs import AugurLogger
 
 logger = AugurLogger("augur").get_logger()
 
-AUGUR_API_VERSION = 'api/unstable'
+from augur.api.routes import AUGUR_API_VERSION
 
 def get_all_repos(page=0, page_size=25, sort="repo_id", direction="ASC"):
 

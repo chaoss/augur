@@ -3,10 +3,11 @@ from flask import Flask, render_template, render_template_string, request, abort
 from sqlalchemy.orm.exc import NoResultFound
 from .utils import *
 from flask_login import login_user, logout_user, current_user, login_required
-# from .server import User
+
 from augur.application.db.models import User
 from .server import LoginException
 from augur.application.db.session import DatabaseSession
+from augur.tasks.init.redis_connection import redis_connection as redis
 
 logger = logging.getLogger(__name__)
 
@@ -182,6 +183,27 @@ def create_routes(server):
         logout_user()
         flash("You have been logged out")
         return redirect(url_for('root'))
+
+    """ ----------------------------------------------------------------
+    default:
+    table:
+        This route performs external authorization for a user
+    """
+    @app.route('/user/authorize')
+    @login_required
+    def authorize_user():
+        client_id = request.args.get("client_id")
+        state = request.args.get("state")
+        response_type = request.args.get("response_type")
+
+        if not client_id or response_type != "Code":
+            return renderMessage("Invalid Request", "Something went wrong. You may need to return to the previous application and make the request again.")
+        
+        # TODO get application from client id
+
+        client = "get client"
+        
+        return render_module("authorization", application = client, state = state)
 
     @server.app.route('/account/delete')
     @login_required

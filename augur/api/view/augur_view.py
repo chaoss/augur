@@ -2,10 +2,13 @@ from flask import Flask, render_template, redirect, url_for, session, request, j
 from flask_login import LoginManager
 from .utils import *
 from .url_converters import *
+from .init import logger
 
 # from .server import User
-from augur.application.db.models import User
+from augur.application.db.models import User, UserSessionToken
 from augur.application.db.session import DatabaseSession
+from augur.api.routes import AUGUR_API_VERSION
+from augur.api.util import get_bearer_token
 
 login_manager = LoginManager()
 
@@ -30,7 +33,7 @@ def create_routes(server):
 
     @login_manager.unauthorized_handler
     def unauthorized():
-        if "/api/unstable/" in str(request.url_rule):
+        if AUGUR_API_VERSION in str(request.url_rule):
             return jsonify({"status": "Login required"})
 
         session["login_next"] = url_for(request.endpoint, **request.args)
@@ -53,3 +56,14 @@ def create_routes(server):
 
         return user
 
+    @login_manager.request_loader
+    def load_user_request(request):
+        token = get_bearer_token(request)
+
+        with DatabaseSession(logger) as session:
+
+            token = session.query(UserSessionToken).filter(UserSessionToken.token == token).first()
+            if token:
+                return token.user
+            
+        return None
