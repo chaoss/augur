@@ -290,7 +290,7 @@ class User(Base):
         except AssertionError as exception_message: 
             return {"Error": f"{exception_message}."}
 
-    def delete_user(self):
+    def delete(self):
 
         local_session = get_session()
 

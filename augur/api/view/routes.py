@@ -218,7 +218,7 @@ def create_routes(server):
     @login_required
     def user_delete():
         if current_user.delete():
-            flash(f"Account {current_user.id} successfully removed")
+            flash(f"Account {current_user.login_name} successfully removed")
             logout_user()
         else:
             flash("An error occurred removing the account")
