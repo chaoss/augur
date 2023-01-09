@@ -22,6 +22,7 @@ from sqlalchemy.dialects.postgresql import JSONB, TIMESTAMP, UUID
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import text
 from augur.application.db.models.base import Base
+from augur.application import requires_db_session
 
 metadata = Base.metadata
 
@@ -815,7 +816,12 @@ class Repo(Base):
     repo_group = relationship("RepoGroup")
     user_repo = relationship("UserRepo")
 
+    @staticmethod
+    @requires_db_session
+    def get_by_id(session, repo_id):
 
+        return session.query(Repo).filter(Repo.repo_id == repo_id).first()
+        
 class RepoTestCoverage(Base):
     __tablename__ = "repo_test_coverage"
     __table_args__ = {"schema": "augur_data"}

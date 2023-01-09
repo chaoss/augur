@@ -17,10 +17,10 @@
 </ul>
 
 <p>By continuing, you authorize this access, and will be redirected to the following link:</p>
-<p>{{ application.response_url }}</p>
+<p>{{ application.redirect_url }}</p>
 <strong>Make sure you trust the application and this link before proceeding.</strong>
 
-<form action="{{ application.response_url }}">
+<form action="{{ application.redirect_url }}">
     <input type="hidden" id="code" name="code">
     <input type="hidden" id="state" name="state" value="{{ state }}"
     <div class="btn" style="background-color: var(--color-accent); padding: 0; margin: 0;">

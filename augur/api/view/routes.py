@@ -4,13 +4,17 @@ from sqlalchemy.orm.exc import NoResultFound
 from .utils import *
 from flask_login import login_user, logout_user, current_user, login_required
 
-from augur.application.db.models import User
+from augur.application.db.models import User, Repo
 from .server import LoginException
 from augur.application.db.session import DatabaseSession
 from augur.tasks.init.redis_connection import redis_connection as redis
+from augur.application.util import *
+from augur.application.config import AugurConfig
 
 logger = logging.getLogger(__name__)
 
+with DatabaseSession(logger) as db_session:
+    config = AugurConfig(logger, db_session)
 
 # ROUTES -----------------------------------------------------------------------
 
@@ -52,33 +56,37 @@ def create_routes(server):
     @server.app.route('/repos/views/table')
     def repo_table_view():
         query = request.args.get('q')
-        page = request.args.get('p')
+        try:
+            page = int(request.args.get('p') or 0)
+        except:
+            page = 1
+
         sorting = request.args.get('s')
         rev = request.args.get('r')
+
         if rev is not None:
             if rev == "False":
                 rev = False
             elif rev == "True":
                 rev = True
-        else:
-            rev = False
+        
+        direction = "DESC" if rev else "ASC"
+        
+        pagination_offset = config.get_value("frontend", "pagination_offset")
         
         if current_user.is_authenticated:
-            data = requestJson("repos", cached = False)
-            user_repo_ids = current_user.query_repos()
-            user_repos = []
-            for repo in data:
-                if repo["repo_id"] in user_repo_ids:
-                    user_repos.append(repo)
+            data = current_user.get_repos(page = page, sort = sorting, direction = direction)
             
-            data = user_repos or None
+            page_count = (current_user.get_repo_count() or 0) // pagination_offset
         else:
-            data = requestJson("repos")
-
+            data = get_all_repos(page = page, sort = sorting, direction = direction)
+            page_count = (get_all_repos_count() or 0) // pagination_offset
+        
         #if not cacheFileExists("repos.json"):
         #    return renderLoading("repos/views/table", query, "repos.json")
 
-        return renderRepos("table", query, data, sorting, rev, page, True)
+        # return renderRepos("table", query, data, sorting, rev, page, True)
+        return render_module("repos-table", title="Repos", repos=data, query_key=query, activePage=page, pages=page_count, offset=pagination_offset, PS="repo_table_view", reverse = rev, sorting = sorting)
 
     """ ----------------------------------------------------------------
     card:
@@ -87,32 +95,34 @@ def create_routes(server):
     @server.app.route('/repos/views/card')
     def repo_card_view():
         query = request.args.get('q')
-        return renderRepos("card", query, requestJson("repos"), filter = True)
+        count = get_all_repos_count()
+        data = get_all_repos(page_size=count)
+        return renderRepos("card", query, data, filter = True)
 
     """ ----------------------------------------------------------------
     groups:
         This route returns the groups table view, listing all the current
         groups in the backend
     """
-    @server.app.route('/groups')
-    @server.app.route('/groups/<group>')
-    def repo_groups_view(group=None):
-        query = request.args.get('q')
-        page = request.args.get('p')
+    # @server.app.route('/groups')
+    # @server.app.route('/groups/<group>')
+    # def repo_groups_view(group=None):
+    #     query = request.args.get('q')
+    #     page = request.args.get('p')
 
-        if(group is not None):
-            query = group
+    #     if(group is not None):
+    #         query = group
 
-        if(query is not None):
-            buffer = []
-            data = requestJson("repos")
-            for repo in data:
-                if query == str(repo["repo_group_id"]) or query in repo["rg_name"]:
-                    buffer.append(repo)
-            return renderRepos("table", query, buffer, page = page, pageSource = "repo_groups_view")
-        else:
-            groups = requestJson("repo-groups")
-            return render_template('index.html', body="groups-table", title="Groups", groups=groups, query_key=query, api_url=getSetting('serving'))
+    #     if(query is not None):
+    #         buffer = []
+    #         data = requestJson("repos")
+    #         for repo in data:
+    #             if query == str(repo["repo_group_id"]) or query in repo["rg_name"]:
+    #                 buffer.append(repo)
+    #         return renderRepos("table", query, buffer, page = page, pageSource = "repo_groups_view")
+    #     else:
+    #         groups = requestJson("repo-groups")
+    #         return render_template('index.html', body="groups-table", title="Groups", groups=groups, query_key=query, api_url=getSetting('serving'))
 
     """ ----------------------------------------------------------------
     status:
@@ -189,7 +199,7 @@ def create_routes(server):
     table:
         This route performs external authorization for a user
     """
-    @app.route('/user/authorize')
+    @server.app.route('/user/authorize')
     @login_required
     def authorize_user():
         client_id = request.args.get("client_id")
@@ -197,11 +207,10 @@ def create_routes(server):
         response_type = request.args.get("response_type")
 
         if not client_id or response_type != "Code":
-            return renderMessage("Invalid Request", "Something went wrong. You may need to return to the previous application and make the request again.")
+            return render_message("Invalid Request", "Something went wrong. You may need to return to the previous application and make the request again.")
         
         # TODO get application from client id
-
-        client = "get client"
+        client = ClientApplication.get_by_id(client_id)            
         
         return render_module("authorization", application = client, state = state)
 
@@ -243,19 +252,9 @@ def create_routes(server):
     def repo_repo_view(id):
         # For some reason, there is no reports definition (shouldn't be possible)
         if reports is None:
-            return renderMessage("Report Definitions Missing", "You requested a report for a repo on this instance, but a definition for the report layout was not found.")
-        data = requestJson("repos")
-        repo = {}
-        # Need to convert the repo id parameter to int so it's comparable
-        try:
-            id = int(id)
-        except:
-            pass
-        # Finding the report object in the data so the name is accessible on the page
-        for item in data:
-            if item['repo_id'] == id:
-                repo = item
-                break
+            return render_message("Report Definitions Missing", "You requested a report for a repo on this instance, but a definition for the report layout was not found.")
+
+        repo = Repo.get_by_id(id)
 
         return render_module("repo-info", reports=reports.keys(), images=reports, title="Repo", repo=repo, repo_id=id)
 
@@ -266,16 +265,17 @@ def create_routes(server):
         is currently defined as the repository table view
     """
     @server.app.route('/user/group/<group>')
-    def user_group_view(group):
-        params = {}
+    @login_required
+    def user_group_view():
+        group = request.args.get("group")
 
-        # NOT IMPLEMENTED
-        # query = request.args.get('q')
+        if not group:
+            return render_message("No Group Specified", "You must specify a group to view this page.")
 
         try:
-            params["page"] = int(request.args.get('p'))
+            params["page"] = int(request.args.get('p') or 0)
         except:
-            pass
+            params["page"] = 1
 
         if sort := request.args.get('s'):
             params["sort"] = sort
@@ -283,22 +283,26 @@ def create_routes(server):
         rev = request.args.get('r')
         if rev is not None:
             if rev == "False":
+                rev = False
                 params["direction"] = "ASC"
             elif rev == "True":
+                rev = True
                 params["direction"] = "DESC"
-        
-        if current_user.is_authenticated:
-            data = current_user.select_group(group, **params)
 
-            if not data:
-                return renderMessage("Error Loading Group", "Either the group you requestion does not exist, or an unspecified error occurred.")
-        else:
-            return renderMessage("Authentication Required", "You must be logged in to view this page.")
+        pagination_offset = config.get_value("frontend", "pagination_offset")
+
+        data = current_user.get_group_repos(group, **params)
+        page_count = current_user.get_group_repo_count(group) or 0
+        page_count //= pagination_offset
+
+        if not data:
+            return render_message("Error Loading Group", "Either the group you requested does not exist, or an unspecified error occurred.")
 
         #if not cacheFileExists("repos.json"):
         #    return renderLoading("repos/views/table", query, "repos.json")
 
-        return renderRepos("table", None, data, sort, rev, params.get("page"), True)
+        # return renderRepos("table", None, data, sort, rev, params.get("page"), True)
+        return render_module("repos-table", title="Repos", repos=data, query_key=query, activePage=params["page"], pages=page_count, offset=pagination_offset, PS="user_group_view", reverse = rev, sorting = params["sort"])
 
     """ ----------------------------------------------------------------
     Admin dashboard:

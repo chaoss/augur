@@ -317,7 +317,9 @@ def requestReports(repo_id):
             # Where should the downloaded image be stored (in cache)
             filename = toCacheFilename(f"{image['url']}?repo_id={repo_id}")
             # Where are we downloading the image from
-            image_url = f"{getSetting('serving')}/{image['url']}?repo_id={repo_id}"
+            image_url = url_for(image['url'], repo_id = repo_id)
+            # f"{getSetting('serving')}/{image['url']}?repo_id={repo_id}"
+            
             # Add a request for this image to the thread pool using the download function
             thread_pool.submit(download, image_url, connection_mgr, filename, reportImages, image['id'], repo_id)
 
@@ -411,7 +413,7 @@ def renderRepos(view, query, data, sorting = None, rev = False, page = None, fil
     Renders a simple page with the given message information, and optional page
     title and redirect
 """
-def renderMessage(messageTitle, messageBody, title = None, redirect = None, pause = None):
+def render_message(messageTitle, messageBody = None, title = None, redirect = None, pause = None):
     return render_module("notice", messageTitle=messageTitle, messageBody=messageBody, title=title, redirect=redirect, pause=pause)
 
 """ ----------------------------------------------------------------

@@ -83,14 +83,15 @@ def register_metric(metadata=None, **kwargs):
 def get_token(token_type):
     auth = request.headers.get("Authorization")
 
-    tokens = auth.split(",")
+    if auth:
+        tokens = auth.split(",")
 
-    tokens = filter(lambda x: f"{token_type} " in x, tokens)
+        tokens = filter(lambda x: f"{token_type} " in x, tokens)
 
-    if len(tokens) != 1:
-        return None
-    
-    return tokens[0].replace(f"{token_type} ", "")
+        if len(tokens) != 1:
+            return None
+        
+        return tokens[0].replace(f"{token_type} ", "")
 
 """ 
     Extract Bearer token from request header
@@ -101,6 +102,6 @@ def get_bearer_token():
 """ 
     Extract Client token from request header
 """
-def get_bearer_token():
+def get_client_token():
     return get_token("Client")
     

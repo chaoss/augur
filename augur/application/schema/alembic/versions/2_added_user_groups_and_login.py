@@ -102,17 +102,23 @@ def upgrade():
             user_repo_insert = sa.sql.text(f"""INSERT INTO "augur_operations"."user_repos" ("group_id", "repo_id") VALUES ({group_id}, {repo_id});""")
             result = session.execute_sql(user_repo_insert)
 
-    op.create_table('client_tokens',
+    op.create_table('client_applications',
+    sa.Column('id', sa.String(), nullable=False),
+    sa.Column('user_id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(), nullable=False),
-    sa.Column('token', sa.String(), nullable=False),
-    sa.Column('expiration', sa.BigInteger(), nullable=True),
-    sa.PrimaryKeyConstraint('token'),
+    sa.Column('redirect_url', sa.String(), nullable=False),
+    sa.ForeignKeyConstraint(['user_id'], ['augur_operations.users.user_id'], name='client_application_user_id_fkey'),
+    sa.PrimaryKeyConstraint('id'),
     schema='augur_operations'
     )
+
     op.create_table('user_session_tokens',
     sa.Column('token', sa.String(), nullable=False),
     sa.Column('user_id', sa.Integer(), nullable=False),
     sa.Column('expiration', sa.BigInteger(), nullable=True),
+    sa.Column('application_id', sa.String(), nullable=True),
+
+    sa.ForeignKeyConstraint(['application_id'], ['augur_operations.client_applications.id'], name='user_session_token_application_id_fkey'),
     sa.ForeignKeyConstraint(['user_id'], ['augur_operations.users.user_id'], name='user_session_token_user_fk'),
     sa.PrimaryKeyConstraint('token'),
     schema='augur_operations'
@@ -183,6 +189,6 @@ def downgrade():
             session.execute_sql(sa.sql.text(query_text))
 
     op.drop_table('user_session_tokens', schema='augur_operations')
-    op.drop_table('client_tokens', schema='augur_operations')
+    op.drop_table('client_applications', schema='augur_operations')
 
     # ### end Alembic commands ###

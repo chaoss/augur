@@ -38,7 +38,7 @@
         <div class="col-12 col-lg-4">
             <br>
             <h2>Your Repo Groups</h2>
-            {%- set groups = current_user.get_groups() -%}
+            {%- set groups = current_user.get_groups()["groups"] -%}
             {% if groups %}
             {% for group in groups %}
             {%- set tableHeaders =
@@ -66,8 +66,9 @@
                     </tbody>
                 </table>
             </div>
+            {% endfor %}
             {% else %}
-            <h3>No repos selected</h3>
+            <h3>No groups created</h3>
             {% endif %}
         </div>
         <div class="col-12 col-lg-8">
@@ -114,7 +115,7 @@
         event.preventDefault();
         var input = document.getElementById("repo_url");
         loadingModal.show();
-        window.location.replace("{{ url_for('add_user_repo') }}/" + input.value);
+        window.location.replace("{{ url_for('av_add_user_repo') }}/" + input.value);
     });
 
     function formError(event, message) {

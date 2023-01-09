@@ -28,12 +28,6 @@ def generate_upgrade_request():
     return response, 426
 
 def create_routes(server):
-
-    @server.app.errorhandler(405)
-    def unsupported_method(error):
-        return jsonify({"status": "Unsupported method"}), 405
-
-
     @server.app.route(f"/{AUGUR_API_VERSION}/config/get", methods=['GET', 'POST'])
     def get_config():
         if not development and not request.is_secure:

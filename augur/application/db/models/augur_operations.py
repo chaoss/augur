@@ -2,18 +2,24 @@
 from sqlalchemy import BigInteger, SmallInteger, Column, Index, Integer, String, Table, text, UniqueConstraint, Boolean, ForeignKey
 from sqlalchemy.dialects.postgresql import TIMESTAMP, UUID
 from sqlalchemy.orm.exc import NoResultFound
+from sqlalchemy.orm import relationship
 from werkzeug.security import generate_password_hash, check_password_hash
 import logging 
 
+from augur.application.db.models.base import Base
+
 logger = logging.getLogger(__name__)
 
+def get_session():
+    global session
 
+    if "session" not in globals():
+        from augur.application.db.session import DatabaseSession
+        session = DatabaseSession(logger)
 
-from augur.application.db.models.base import Base
-from sqlalchemy.orm import relationship
-
+    return session
+    
 metadata = Base.metadata
-
 
 t_all = Table(
     "all",
@@ -201,6 +207,7 @@ class User(Base):
 
     groups = relationship("UserGroup")
     tokens = relationship("UserSessionToken")
+    applications = relationship("ClientApplication")
 
     _is_authenticated = False
     _is_active = True
@@ -239,8 +246,6 @@ class User(Base):
 
     def validate(self, password) -> bool:
 
-        from augur.application.db.session import DatabaseSession
-
         if not password:
             return False
 
@@ -253,132 +258,122 @@ class User(Base):
         if not username:
             return None
 
-        from augur.application.db.session import DatabaseSession
+        local_session = get_session()
 
-        with DatabaseSession(logger) as session:
-            try:
-                user = session.query(User).filter(User.login_name == username).one()
-                return user
-            except NoResultFound:
-                return None
+        try:
+            user = local_session.query(User).filter(User.login_name == username).one()
+            return user
+        except NoResultFound:
+            return None
                 
     @staticmethod
     def create_user(username: str, password: str, email: str, first_name:str, last_name:str, admin=False):
 
-        from augur.application.db.session import DatabaseSession
-
         if username is None or password is None or email is None or first_name is None or last_name is None:
             return {"status": "Missing field"} 
 
+        local_session = get_session()
 
-        with DatabaseSession(logger) as session:
+        user = local_session.query(User).filter(User.login_name == username).first()
+        if user is not None:
+            return {"status": "A User already exists with that username"}
 
-            user = session.query(User).filter(User.login_name == username).first()
-            if user is not None:
-                return {"status": "A User already exists with that username"}
+        emailCheck = local_session.query(User).filter(User.email == email).first()
+        if emailCheck is not None:
+            return {"status": "A User already exists with that email"}
 
-            emailCheck = session.query(User).filter(User.email == email).first()
-            if emailCheck is not None:
-                return {"status": "A User already exists with that email"}
-
-            try:
-                user = User(login_name = username, login_hashword = generate_password_hash(password), email = email, first_name = first_name, last_name = last_name, tool_source="User API", tool_version=None, data_source="API", admin=admin)
-                session.add(user)
-                session.commit()
-                return {"status": "Account successfully created"}
-            except AssertionError as exception_message: 
-                return {"Error": f"{exception_message}."}
+        try:
+            user = User(login_name = username, login_hashword = generate_password_hash(password), email = email, first_name = first_name, last_name = last_name, tool_source="User API", tool_version=None, data_source="API", admin=admin)
+            local_session.add(user)
+            local_session.commit()
+            return {"status": "Account successfully created"}
+        except AssertionError as exception_message: 
+            return {"Error": f"{exception_message}."}
 
     def delete_user(self):
-        
-        from augur.application.db.session import DatabaseSession
 
-        with DatabaseSession(logger) as session:
+        local_session = get_session()
 
-            for group in self.groups:
-                user_repos_list = group.repos
+        for group in self.groups:
+            user_repos_list = group.repos
 
-                for user_repo_entry in user_repos_list:
-                    session.delete(user_repo_entry)
+            for user_repo_entry in user_repos_list:
+                local_session.delete(user_repo_entry)
 
-                session.delete(group)
+            local_session.delete(group)
 
-            session.delete(self)
-            session.commit()
+        local_session.delete(self)
+        local_session.commit()
 
-            return {"status": "User deleted"}
+        return {"status": "User deleted"}
 
     def update_user(self, **kwargs):
 
-        from augur.application.db.session import DatabaseSession
+        local_session = get_session()
         
-        with DatabaseSession(session) as session:
+        valid_kwargs = ["email", "password", "username"]
 
-            valid_kwargs = ["email", "password", "username"]
+        kwarg_present = False
+        for value in valid_kwargs:
 
-            kwarg_present = False
-            for value in valid_kwargs:
+            if value in kwargs:  
+                if kwarg_present:
+                    return {"status": "Please pass an email, password, or username, not multiple"}                   
 
-                if value in kwargs:  
-                    if kwarg_present:
-                        return {"status": "Please pass an email, password, or username, not multiple"}                   
+                kwarg_present = True
 
-                    kwarg_present = True
+        if "email" in kwargs:
 
-            if "email" in kwargs:
+            existing_user = local_session.query(User).filter(User.email == kwargs["email"]).one()
+            if existing_user is not None:
+                return jsonify({"status": "Already an account with this email"})
 
-                existing_user = session.query(User).filter(User.email == kwargs["email"]).one()
-                if existing_user is not None:
-                    return jsonify({"status": "Already an account with this email"})
+            user.email = kwargs["email"]
+            local_session.commit()
+            return jsonify({"status": "Email Updated"})
 
-                user.email = kwargs["email"]
-                session.commit()
-                return jsonify({"status": "Email Updated"})
+        if "password" in kwargs:
+            user.login_hashword = generate_password_hash(kwargs["password"])
+            local_session.commit()
+            return jsonify({"status": "Password Updated"})
 
-            if "password" in kwargs:
-                user.login_hashword = generate_password_hash(kwargs["password"])
-                session.commit()
-                return jsonify({"status": "Password Updated"})
+        if "username" in kwargs:
+            existing_user = local_session.query(User).filter(User.login_name == kwargs["username"]).one()
+            if existing_user is not None:
+                return jsonify({"status": "Username already taken"})
 
-            if "username" in kwargs:
-                existing_user = session.query(User).filter(User.login_name == kwargs["username"]).one()
-                if existing_user is not None:
-                    return jsonify({"status": "Username already taken"})
+            user.login_name = kwargs["username"]
+            local_session.commit()
+            return jsonify({"status": "Username Updated"})
 
-                user.login_name = kwargs["username"]
-                session.commit()
-                return jsonify({"status": "Username Updated"})
-
-            return jsonify({"status": "Missing argument"}), 400
+        return jsonify({"status": "Missing argument"}), 400
 
     def add_group(self, group_name):
 
-        from augur.tasks.github.util.github_task_session import GithubTaskSession
         from augur.util.repo_load_controller import RepoLoadController
 
         if group_name == "default":
             return {"status": "Reserved Group Name"}
             
-        with GithubTaskSession(logger) as session:
+        local_session = get_session()
 
-            repo_load_controller = RepoLoadController(gh_session=session)
+        repo_load_controller = RepoLoadController(gh_session=local_session)
 
-            result = repo_load_controller.add_user_group(self.user_id, group_name)
+        result = repo_load_controller.add_user_group(self.user_id, group_name)
 
-            return result
+        return result
 
     def remove_group(self, group_name):
 
-        from augur.tasks.github.util.github_task_session import GithubTaskSession
         from augur.util.repo_load_controller import RepoLoadController
         
-        with GithubTaskSession(logger) as session:
+        local_session = get_session()
 
-            repo_load_controller = RepoLoadController(gh_session=session)
+        repo_load_controller = RepoLoadController(gh_session=local_session)
 
-            result = repo_load_controller.remove_user_group(self.user_id, group_name)
+        result = repo_load_controller.remove_user_group(self.user_id, group_name)
 
-            return result
+        return result
 
     def add_repo(self, group_name, repo_url):
         
@@ -395,16 +390,15 @@ class User(Base):
 
     def remove_repo(self, group_name, repo_id):
         
-        from augur.tasks.github.util.github_task_session import GithubTaskSession
         from augur.util.repo_load_controller import RepoLoadController
 
-        with GithubTaskSession(logger) as session:
+        local_session = get_session()
 
-            repo_load_controller = RepoLoadController(gh_session=session)
+        repo_load_controller = RepoLoadController(gh_session=local_session)
 
-            result = repo_load_controller.remove_frontend_repo(repo_id, self.user_id, group_name)
+        result = repo_load_controller.remove_frontend_repo(repo_id, self.user_id, group_name)
 
-            return result
+        return result
 
     def add_org(self, group_name, org_url):
         
@@ -421,16 +415,15 @@ class User(Base):
 
     def get_groups(self):
         
-        from augur.tasks.github.util.github_task_session import GithubTaskSession
         from augur.util.repo_load_controller import RepoLoadController
 
-        with GithubTaskSession(logger) as session:
+        local_session = get_session()
 
-            controller = RepoLoadController(session)
-    
-            user_groups = controller.get_user_groups(user.user_id)
+        controller = RepoLoadController(local_session)
 
-            return {"groups": user_groups}
+        user_groups = controller.get_user_groups(self.user_id)
+
+        return {"groups": user_groups}
 
     def get_group_names(self):
 
@@ -442,72 +435,58 @@ class User(Base):
 
     def query_repos(self):
 
-        from augur.application.db.session import DatabaseSession
         from augur.application.db.models.augur_data import Repo
 
-        with DatabaseSession(logger) as session:
+        local_session = get_session()
 
-            return [repo.repo_id for repo in session.query(Repo).all()]
+        return [repo.repo_id for repo in local_session.query(Repo).all()]
 
 
-    def get_repos(self, group_name, page=0, page_size=25, sort="repo_id", direction="ASC"):
+    def get_repos(self, page=0, page_size=25, sort="repo_id", direction="ASC"):
 
-        from augur.tasks.github.util.github_task_session import GithubTaskSession
         from augur.util.repo_load_controller import RepoLoadController
 
-        with GithubTaskSession(logger) as session:
+        local_session = get_session()
 
-            with RepoLoadController(session) as controller:
+        result = RepoLoadController(local_session).paginate_repos("user", page, page_size, sort, direction, user=self)
 
-                result = controller.paginate_repos("user", page, page_size, sort, direction, user=self, group_name=group_name)
-
-                return result
+        return result
 
     def get_repo_count(self):
 
-        from augur.tasks.github.util.github_task_session import GithubTaskSession
         from augur.util.repo_load_controller import RepoLoadController
 
-        with GithubTaskSession(logger) as session:
+        local_session = get_session()
 
-            controller = RepoLoadController(session)
+        controller = RepoLoadController(local_session)
 
-            result = controller.get_repo_count(source="user", user=self)
-            if result["status"] == "success":
-                return result["repos"]
+        result = controller.get_repo_count(source="user", user=self)
 
-            return result["status"]
+        return result
 
 
     def get_group_repos(self, group_name, page=0, page_size=25, sort="repo_id", direction="ASC"):
 
-        from augur.tasks.github.util.github_task_session import GithubTaskSession
         from augur.util.repo_load_controller import RepoLoadController
 
-        with GithubTaskSession(logger) as session:
+        local_session = get_session()
 
-            with RepoLoadController(session) as controller:
+        result = RepoLoadController(local_session).paginate_repos("group", page, page_size, sort, direction, user=self, group_name=group_name)
 
-                result = controller.paginate_repos("group", page, page_size, sort, direction, user=self, group_name=group_name)
-
-                return result
+        return result
 
 
     def get_group_repo_count(self, group_name):
         
-        from augur.tasks.github.util.github_task_session import GithubTaskSession
         from augur.util.repo_load_controller import RepoLoadController
 
-        with GithubTaskSession(logger) as session:
+        local_session = get_session()
 
-            controller = RepoLoadController(session)
+        controller = RepoLoadController(local_session)
 
-            result = controller.get_repo_count(source="group", group_name=group_name, user=self)
-            if result["status"] == "success":
-                return result["repos"]
+        result = controller.get_repo_count(source="group", group_name=group_name, user=self)
 
-            return result["status"]
-
+        return result
 
 
     
@@ -558,25 +537,32 @@ class UserSessionToken(Base):
     token = Column(String, primary_key=True, nullable=False)
     user_id = Column(ForeignKey("augur_operations.users.user_id", name="user_session_token_user_id_fkey"))
     expiration = Column(BigInteger)
+    application_id = Column(ForeignKey("augur_operations.client_applications.id", name="user_session_token_application_id_fkey"), nullable=False)
 
     user = relationship("User")
+    application = relationship("ClientApplication")
 
 
-class ClientToken(Base):
-    __tablename__ = "client_tokens"
+class ClientApplication(Base):
+    __tablename__ = "client_applications"
     __table_args__ = (
         {
             "schema": "augur_operations"
         }
     )
 
-    # TODO ClientApplication table (Application ID: str/int, User ID: FK, Name: str, Redirect URL: str)
-
-    # It should probably be 1:1 client token to application, so we only need one table
-
-    token = Column(String, primary_key=True, nullable=False)
+    id = Column(String, primary_key=True, nullable=False)
+    user_id = Column(ForeignKey("augur_operations.users.user_id", name="client_application_user_id_fkey"), nullable=False)
     name = Column(String, nullable=False)
-    expiration = Column(BigInteger)
+    redirect_url = Column(String, nullable=False)
 
+    user = relationship("User")
 
+    @staticmethod
+    def get_by_id(client_id):
 
+        local_session = get_session()
+
+        return local_session.query(ClientApplication).filter(ClientApplication.id == client_id).first()
+
+    

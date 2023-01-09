@@ -1,5 +1,6 @@
 from flask import Flask, render_template, render_template_string, request, abort, jsonify, redirect, url_for, session, flash
 from flask_login import current_user, login_required
+from augur.util.repo_load_controller import parse_org_url, parse_repo_url
 from .utils import *
 
 def create_routes(server):
@@ -13,29 +14,20 @@ def create_routes(server):
     @server.app.route('/account/repos/add/<path:repo_url>')
     @server.app.route('/account/repos/add')
     @login_required
-    def av_add_user_repo(repo_url = None):
-        if not repo_url:
+    def av_add_user_repo(url = None):
+        # TODO finish UI and implement group adding
+        if not url:
             flash("Repo or org URL must not be empty")
-        elif current_user.try_add_url(repo_url):
-            flash("Successfully added repo or org")
+        elif result := parse_org_url(url):
+            current_user.add_org()
+            flash("Successfully added org")
+        elif result := parse_repo_url(url):
+            flash("Successfully added repo")
         else:
             flash("Could not add repo or org")
         
         return redirect(url_for("user_settings"))
-
-    """ ----------------------------------------------------------------
-    """
-    @server.app.route('/requests/make/<path:request_endpoint>')
-    def make_api_request(request_endpoint):
-        do_cache = True
-        if request.headers.get("nocache") or request.args.get("nocache"):
-            do_cache = False
-
-        data = requestJson(request_endpoint, do_cache)
-        if type(data) == tuple:
-            return jsonify({"request_error": data[1]}), 400
-        return jsonify(data)
-
+    
     """ ----------------------------------------------------------------
     Locking request loop:
         This route will lock the current request until the

@@ -25,11 +25,17 @@ def create_routes(server):
     # Code 404 response page, for pages not found
     @server.app.errorhandler(404)
     def page_not_found(error):
+        if AUGUR_API_VERSION in str(request.url_rule):
+            return jsonify({"status": "Not Found"}), 404
+
         return render_template('index.html', title='404', api_url=getSetting('serving')), 404
 
     @server.app.errorhandler(405)
     def unsupported_method(error):
-        return renderMessage("405 - Method not supported", "The resource you are trying to access does not support the request method used"), 405
+        if AUGUR_API_VERSION in str(request.url_rule):
+            return jsonify({"status": "Unsupported method"}), 405
+        
+        return render_message("405 - Method not supported", "The resource you are trying to access does not support the request method used"), 405
 
     @login_manager.unauthorized_handler
     def unauthorized():
@@ -58,7 +64,7 @@ def create_routes(server):
 
     @login_manager.request_loader
     def load_user_request(request):
-        token = get_bearer_token(request)
+        token = get_bearer_token()
 
         with DatabaseSession(logger) as session:
 

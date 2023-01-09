@@ -23,6 +23,53 @@ ORG_REPOS_ENDPOINT = "https://api.github.com/orgs/{}/repos?per_page=100"
 DEFAULT_REPO_GROUP_IDS = [1, 10]
 CLI_USER_ID = 1
 
+def parse_repo_url(url: str) -> tuple:
+    """ Gets the owner and repo from a url.
+
+    Args:
+        url: Github url
+
+    Returns:
+        Tuple of owner and repo. Or a tuple of None and None if the url is invalid.
+    """
+
+    if url.endswith(".github") or url.endswith(".github.io") or url.endswith(".js"):
+
+        result = re.search(r"https?:\/\/github\.com\/([A-Za-z0-9 \- _]+)\/([A-Za-z0-9 \- _ \.]+)(.git)?\/?$", url)
+    else:
+
+        result = re.search(r"https?:\/\/github\.com\/([A-Za-z0-9 \- _]+)\/([A-Za-z0-9 \- _]+)(.git)?\/?$", url)
+
+    if not result:
+        return None, None
+
+    capturing_groups = result.groups()
+
+
+    owner = capturing_groups[0]
+    repo = capturing_groups[1]
+
+    return owner, repo
+
+def parse_org_url(url):
+    """ Gets the owner from a org url.
+
+    Args:
+        url: Github org url
+
+    Returns:
+        Org name. Or None if the url is invalid.
+    """
+
+    result = re.search(r"https?:\/\/github\.com\/([A-Za-z0-9 \- _]+)\/?$", url)
+
+    if not result:
+        return None
+
+    # if the result is not None then the groups should be valid so we don't worry about index errors here
+    return result.groups()[0]
+
+
 class RepoLoadController:
 
     def __init__(self, gh_session):
@@ -39,7 +86,7 @@ class RepoLoadController:
             True if repo url is valid and False if not
         """
 
-        owner, repo = self.parse_repo_url(url)
+        owner, repo = parse_repo_url(url)
         if not owner or not repo:
             return False
 
@@ -74,10 +121,9 @@ class RepoLoadController:
             List of valid repo urls or empty list if invalid org
         """
 
-        owner = self.parse_org_url(url)
+        owner = parse_org_url(url)
         if not owner:
-            # TODO: Change to return empty list so it matches the docs
-            return False
+            return []
 
         url = ORG_REPOS_ENDPOINT.format(owner)
 
@@ -468,80 +514,48 @@ class RepoLoadController:
         return list(all_repo_ids)
 
 
-    def parse_repo_url(self, url: str) -> tuple:
-        """ Gets the owner and repo from a url.
-
-        Args:
-            url: Github url
-
-        Returns:
-            Tuple of owner and repo. Or a tuple of None and None if the url is invalid.
-        """
-
-        if url.endswith(".github") or url.endswith(".github.io") or url.endswith(".js"):
-
-            result = re.search(r"https?:\/\/github\.com\/([A-Za-z0-9 \- _]+)\/([A-Za-z0-9 \- _ \.]+)(.git)?\/?$", url)
-        else:
-
-            result = re.search(r"https?:\/\/github\.com\/([A-Za-z0-9 \- _]+)\/([A-Za-z0-9 \- _]+)(.git)?\/?$", url)
-
-        if not result:
-            return None, None
-
-        capturing_groups = result.groups()
-
-
-        owner = capturing_groups[0]
-        repo = capturing_groups[1]
-
-        return owner, repo
-
-    def parse_org_url(self, url):
-        """ Gets the owner from a org url.
-
-        Args:
-            url: Github org url
-
-        Returns:
-            Org name. Or None if the url is invalid.
-        """
-
-        result = re.search(r"https?:\/\/github\.com\/([A-Za-z0-9 \- _]+)\/?$", url)
-
-        if not result:
-            return None
-
-        # if the result is not None then the groups should be valid so we don't worry about index errors here
-        return result.groups()[0]
 
 
     def paginate_repos(self, source, page=0, page_size=25, sort="repo_id", direction="ASC", **kwargs):
 
         if not source:
-            return {"status": "Missing argument"}
+            print("Missing arg")
+            # return {"status": "Missing argument"}
+            return None
 
         if source not in ["all", "user", "group"]:
-            return {"status": "Invalid source"}
+            print("invalid source")
+            # return {"status": "Invalid source"}
+            return None
 
         if direction and direction != "ASC" and direction != "DESC":
-            return {"status": "Invalid direction"}
+            print("invalid direction")
+            # return {"status": "Invalid direction"}
+            return None
 
         try:
-            page = int(page)
-            page_size = int(page_size)
-        except ValueError:
-            return {"status": "Page size and page should be integers"}
+            page = int(page) if page else 0
+            page_size = int(page_size) if page else 25
+        except TypeError:
+            print("Page size and page should be integers")
+            # return {"status": "Page size and page should be integers"}
+            return None
 
         if page < 0 or page_size < 0:
-            return {"status": "Page size and page should be postive"}
+            print("Page size and page should be positive")
+            # return {"status": "Page size and page should be postive"}
+            return None
 
         order_by = sort if sort else "repo_id"
         order_direction = direction if direction else "ASC"
 
         query = self.generate_repo_query(source, count=False, order_by=order_by, direction=order_direction, 
                                     page=page, page_size=page_size)
-        if isinstance(query, dict):
-            return query
+        if not query:
+            return None
+
+        if query == "No data":
+            return []
 
         get_page_of_repos_sql = s.sql.text(query)
 
@@ -553,37 +567,35 @@ class RepoLoadController:
             b64_urls.append(base64.b64encode((results.at[i, 'url']).encode()))
         results['base64_url'] = b64_urls
 
-        data = results.to_json(orient="records", date_format='iso', date_unit='ms')
+        data = results.to_dict(orient="records")
 
-        return {"status": "success", "data": data}
+        return data 
 
     def get_repo_count(self, source, **kwargs):
 
         if not source:
-            return {"status": "Missing argument"}
+            print("Missing argument")
+            return None
 
         if source not in ["all", "user", "group"]:
-            return {"status": "Invalid source"}
+            print("Invalid source")
+            return None
 
-        try:
-            user = kwargs["user"]
-        except ValueError:
-            user = None
-        
-        try:
-            group_name = kwargs["group_name"]
-        except ValueError:
-            group_name = None
+        user = kwargs.get("user")
+        group_name = kwargs.get("group_name")
 
         query = self.generate_repo_query(source, count=True, user=user, group_name=group_name)
-        if isinstance(query, dict):
-            return query
+        if not query:
+            return None
 
+        if query == "No data":
+            return []
+           
         get_page_of_repos_sql = s.sql.text(query)
 
         result = self.session.fetchall_data_from_sql_text(get_page_of_repos_sql)
             
-        return {"status": "success", "repos": result[0]["count"]}
+        return result[0]["count"]
 
 
     def generate_repo_query(self, source, count, **kwargs):
@@ -611,13 +623,18 @@ class RepoLoadController:
                     JOIN augur_data.repo_groups ON augur_data.repo.repo_group_id = augur_data.repo_groups.repo_group_id\n"""
 
         if source == "user":
+            
+            user = kwargs.get("user")
+            if not user:
+                print("Missing argument")
+                return None
+                
+            group_ids = tuple(group.group_id for group in user.groups)
 
-            try:
-                user = kwargs["user"]
-            except ValueError:
-                return {"status": "Missing argument"}
+            if not group_ids:
+                print("No data")
+                return "No data"
 
-            group_ids = tuple([group.group_id for group in user.groups])
 
             if len(group_ids) == 1:
                 group_ids_str = str(group_ids)[:-2] + ")"
@@ -633,40 +650,25 @@ class RepoLoadController:
 
                 controller = RepoLoadController(session)
 
-                try:
-                    user = kwargs["user"]
-                    group_name = kwargs["group_name"]
-                except KeyError:
-                    return {"status": "Missing argument"}
+                user = kwargs.get("user")
+                group_name = kwargs.get("group_name")
+                if not user or not group_name:
+                    print("Missing argument")
+                    return None
 
                 group_id = controller.convert_group_name_to_id(user.user_id, group_name)
                 if group_id is None:
-                    return {"status": "Group does not exist"}
+                    print("Group does not exist")
+                    return None
 
             query += "\t\t    JOIN augur_operations.user_repos ON augur_data.repo.repo_id = augur_operations.user_repos.repo_id\n"
             query += f"\t\t    WHERE augur_operations.user_repos.group_id = {group_id}\n"
 
         if not count:
-
-            try:
-                order_by = kwargs["order_by"]
-            except KeyError:
-                order_by = "repo_id"
-
-            try:
-                direction = kwargs["direction"]
-            except KeyError:
-                direction = "ASC"
-
-            try:
-                page = kwargs["page"]
-            except KeyError:
-                page = 0
-
-            try:
-                page_size = kwargs["page_size"]
-            except KeyError:
-                page_size = 25
+            order_by = kwargs.get("order_by") or "repo_id"
+            direction = kwargs.get("direction") or "ASC"
+            page = kwargs.get("page") or 0
+            page_size = kwargs.get("page_size") or 25
 
             query += f"\t    ORDER BY {order_by} {direction}\n"
             query += f"\t    LIMIT {page_size}\n"

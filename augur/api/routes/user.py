@@ -21,7 +21,7 @@ from augur.util.repo_load_controller import RepoLoadController
 from augur.api.util import get_bearer_token
 from augur.api.util import get_client_token
 
-from augur.application.db.models import User, UserRepo, UserGroup, UserSessionToken, ClientToken
+from augur.application.db.models import User, UserRepo, UserGroup, UserSessionToken, ClientApplication
 from augur.application.config import get_development_flag
 from augur.tasks.init.redis_connection import redis_connection as redis
 
@@ -33,8 +33,8 @@ Session = sessionmaker(bind=create_database_engine())
 from augur.api.routes import AUGUR_API_VERSION
 
 def api_key_required(fun):
+    # TODO Optionally rate-limit non authenticated users instead of rejecting requests
     def wrapper(*args, **kwargs):
-        # TODO check that API key is valid
 
         client_token = get_client_token()
                     
@@ -43,12 +43,11 @@ def api_key_required(fun):
 
             session = Session()
             try:
-                session.query(ClientToken).filter(ClientToken.token == client_token).one()
+                kwargs["application"] = session.query(ClientApplication).filter(ClientApplication.id == client_token).one()
                 return fun(*args, **kwargs)
             except NoResultFound:
                 pass
 
-        # else: return error JSON
         return {"status": "Unauthorized client"}
     
     wrapper.__name__ = fun.__name__
@@ -58,7 +57,6 @@ def api_key_required(fun):
 """
 @app.route("/path")
 @api_key_required
-@user_login_required
 def priviledged_function():
     stuff
 """
@@ -73,11 +71,6 @@ def generate_upgrade_request():
     return response, 426
 
 def create_routes(server):
-    # TODO This functionality isn't specific to the User endpoints, and should be moved
-    @server.app.errorhandler(405)
-    def unsupported_method(error):
-        return jsonify({"status": "Unsupported method"}), 405
-
     @server.app.route(f"/{AUGUR_API_VERSION}/user/validate", methods=['POST'])
     def validate_user():
         if not development and not request.is_secure:
@@ -124,10 +117,9 @@ def create_routes(server):
 
         return jsonify({"status": "Validated", "code": code})
 
-    @server.app.route(f"/{AUGUR_API_VERSION}/user/generate_session", methods=['POST'])
+    @server.app.route(f"/{AUGUR_API_VERSION}/user/session/generate", methods=['POST'])
     @api_key_required
-    def generate_session():
-        # TODO Validate oauth token
+    def generate_session(application):
         code = request.args.get("code")
 
         username = redis.get(code)
@@ -144,7 +136,7 @@ def create_routes(server):
         expiration = int(time.time()) + seconds_to_expire
 
         session = Session()
-        user_session = UserSessionToken(token=user_session_token, user_id=user.user_id, expiration=expiration)
+        user_session = UserSessionToken(token=user_session_token, user_id=user.user_id, application_id = application.id, expiration=expiration)
 
         session.add(user_session)
         session.commit()
@@ -229,7 +221,7 @@ def create_routes(server):
         return jsonify({"status": "Missing argument"}), 400
 
 
-    @server.app.route(f"/{AUGUR_API_VERSION}/user/add_repo", methods=['GET', 'POST'])
+    @server.app.route(f"/{AUGUR_API_VERSION}/user/repo/add", methods=['GET', 'POST'])
     @login_required
     def add_user_repo():
         if not development and not request.is_secure:
@@ -243,7 +235,7 @@ def create_routes(server):
         return jsonify(result)
 
 
-    @server.app.route(f"/{AUGUR_API_VERSION}/user/add_group", methods=['GET', 'POST'])
+    @server.app.route(f"/{AUGUR_API_VERSION}/user/group/add", methods=['GET', 'POST'])
     @login_required
     def add_user_group():
         if not development and not request.is_secure:
@@ -268,7 +260,7 @@ def create_routes(server):
         return jsonify(result)
 
 
-    @server.app.route(f"/{AUGUR_API_VERSION}/user/add_org", methods=['GET', 'POST'])
+    @server.app.route(f"/{AUGUR_API_VERSION}/user/org/add", methods=['GET', 'POST'])
     @login_required
     def add_user_org():
         if not development and not request.is_secure:
@@ -282,7 +274,7 @@ def create_routes(server):
         return jsonify(result)
 
 
-    @server.app.route(f"/{AUGUR_API_VERSION}/user/remove_repo", methods=['GET', 'POST'])
+    @server.app.route(f"/{AUGUR_API_VERSION}/user/repo/remove", methods=['GET', 'POST'])
     @login_required
     def remove_user_repo():
         if not development and not request.is_secure:
@@ -296,8 +288,7 @@ def create_routes(server):
 
         return jsonify(result)
 
-
-    @server.app.route(f"/{AUGUR_API_VERSION}/user/group_repos", methods=['GET', 'POST'])
+    @server.app.route(f"/{AUGUR_API_VERSION}/user/group/repos", methods=['GET', 'POST'])
     @login_required
     def group_repos():
         """Select repos from a user group by name
@@ -336,9 +327,7 @@ def create_routes(server):
 
         return jsonify(result)
 
-
-
-    @server.app.route(f"/{AUGUR_API_VERSION}/user/group_repo_count", methods=['GET', 'POST'])
+    @server.app.route(f"/{AUGUR_API_VERSION}/user/group/repos/count", methods=['GET', 'POST'])
     @login_required
     def group_repo_count():
         """Count repos from a user group by name
@@ -364,7 +353,6 @@ def create_routes(server):
         result = current_user.group_repo_count(group_name)
         
         return jsonify(result)
-
 
     @server.app.route(f"/{AUGUR_API_VERSION}/user/groups", methods=['GET', 'POST'])
     @login_required
