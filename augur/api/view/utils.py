@@ -161,7 +161,9 @@ def loadReports():
             logging.error(ioErr)
         return False
 
-loadReports()
+if not loadReports():
+    loadReports()
+    
 cache_files_requested = []
 
 """ ----------------------------------------------------------------

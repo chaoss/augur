@@ -4,7 +4,7 @@
     <div class="row justify-content-center">
         {% if repo.repo_id %}
         <h1 id="message">Report for: {{ repo.repo_name|title }}</h1>
-        <p><a href="https://{{ repo.url }}" target="_blank" data-toggle="tooltip" title="opens in new tab">https://{{ repo.url }}</a></p>
+        <p><a href="{{ repo.repo_git }}" target="_blank" data-toggle="tooltip" title="opens in new tab">{{ repo.repo_git }}</a></p>
         {% for report in reports %}
         <h2>{{ report|replace("_", " ")|title }}</h2>
         {% for image in images[report] %}
