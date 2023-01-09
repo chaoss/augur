@@ -90,7 +90,10 @@ def start(disable_collection, development, port):
             start_task.si().apply_async()
 
             celery_command = "celery -A augur.tasks.init.celery_app.celery_app beat -l debug"
-            celery_beat_process = subprocess.Popen(celery_command.split(" "))       
+            celery_beat_process = subprocess.Popen(celery_command.split(" "))    
+
+        else:
+            logger.info("Collection disabled")   
     
     try:
         server.wait()

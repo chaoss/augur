@@ -519,17 +519,15 @@ class RepoLoadController:
     def paginate_repos(self, source, page=0, page_size=25, sort="repo_id", direction="ASC", **kwargs):
 
         if not source:
-            print("Missing arg")
-            # return {"status": "Missing argument"}
+            print("Func: paginate_repos. Error: Source Required")
             return None
 
         if source not in ["all", "user", "group"]:
-            print("invalid source")
-            # return {"status": "Invalid source"}
+            print("Func: paginate_repos. Error: Invalid source")
             return None
 
         if direction and direction != "ASC" and direction != "DESC":
-            print("invalid direction")
+            print("Func: paginate_repos. Error: Invalid direction")
             # return {"status": "Invalid direction"}
             return None
 
@@ -537,12 +535,12 @@ class RepoLoadController:
             page = int(page) if page else 0
             page_size = int(page_size) if page else 25
         except TypeError:
-            print("Page size and page should be integers")
+            print("Func: paginate_repos. Error: Page size and page should be integers")
             # return {"status": "Page size and page should be integers"}
             return None
 
         if page < 0 or page_size < 0:
-            print("Page size and page should be positive")
+            print("Func: paginate_repos. Error: Page size and page should be positive")
             # return {"status": "Page size and page should be postive"}
             return None
 
@@ -550,7 +548,7 @@ class RepoLoadController:
         order_direction = direction if direction else "ASC"
 
         query = self.generate_repo_query(source, count=False, order_by=order_by, direction=order_direction, 
-                                    page=page, page_size=page_size)
+                                    page=page, page_size=page_size, **kwargs)
         if not query:
             return None
 
@@ -574,11 +572,11 @@ class RepoLoadController:
     def get_repo_count(self, source, **kwargs):
 
         if not source:
-            print("Missing argument")
+            print("Func: get_repo_count. Error: Source Required")
             return None
 
         if source not in ["all", "user", "group"]:
-            print("Invalid source")
+            print("Func: get_repo_count. Error: Invalid source")
             return None
 
         user = kwargs.get("user")
@@ -626,7 +624,7 @@ class RepoLoadController:
             
             user = kwargs.get("user")
             if not user:
-                print("Missing argument")
+                print("Func: generate_repo_query. Error: User not passed when trying to get user repos")
                 return None
                 
             group_ids = tuple(group.group_id for group in user.groups)
@@ -651,14 +649,17 @@ class RepoLoadController:
                 controller = RepoLoadController(session)
 
                 user = kwargs.get("user")
+                if not user:
+                    print("Func: generate_repo_query. Error: User not specified")
+
                 group_name = kwargs.get("group_name")
-                if not user or not group_name:
-                    print("Missing argument")
+                if not group_name:
+                    print("Func: generate_repo_query. Error: Group name not specified")
                     return None
 
                 group_id = controller.convert_group_name_to_id(user.user_id, group_name)
                 if group_id is None:
-                    print("Group does not exist")
+                    print("Func: generate_repo_query. Error: Group does not exist")
                     return None
 
             query += "\t\t    JOIN augur_operations.user_repos ON augur_data.repo.repo_id = augur_operations.user_repos.repo_id\n"
