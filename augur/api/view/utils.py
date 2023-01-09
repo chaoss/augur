@@ -1,6 +1,6 @@
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor
-from flask import render_template, flash
+from flask import render_template, flash, url_for
 from .init import *
 from .server import User
 import urllib.request, urllib.error, json, os, math, yaml, urllib3, time, logging, re
