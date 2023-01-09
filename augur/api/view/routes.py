@@ -228,6 +228,8 @@ def create_routes(server):
     @server.app.route('/account/update')
     @login_required
     def user_update_password():
+
+        print(request.form.to_dict())
         if current_user.update_password(request):
             flash(f"Account {current_user.id} successfully updated")
         else:

@@ -630,9 +630,7 @@ class RepoLoadController:
             group_ids = tuple(group.group_id for group in user.groups)
 
             if not group_ids:
-                print("No data")
                 return "No data"
-
 
             if len(group_ids) == 1:
                 group_ids_str = str(group_ids)[:-2] + ")"

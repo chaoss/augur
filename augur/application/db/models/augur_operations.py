@@ -307,6 +307,11 @@ class User(Base):
 
         return {"status": "User deleted"}
 
+    def update_password(self, new_password):
+
+        return self.update_user(passowrd=new_password)
+
+
     def update_user(self, **kwargs):
 
         local_session = get_session()
@@ -318,7 +323,8 @@ class User(Base):
 
             if value in kwargs:  
                 if kwarg_present:
-                    return {"status": "Please pass an email, password, or username, not multiple"}                   
+                    print("Func: update_user. Error: Please pass an email, password, or username, not multiple")
+                    return False                 
 
                 kwarg_present = True
 
@@ -326,27 +332,33 @@ class User(Base):
 
             existing_user = local_session.query(User).filter(User.email == kwargs["email"]).one()
             if existing_user is not None:
-                return jsonify({"status": "Already an account with this email"})
+                print("Func: update_user. Error: Already an account with this email")
+                return False
 
-            user.email = kwargs["email"]
+            self.email = kwargs["email"]
             local_session.commit()
-            return jsonify({"status": "Email Updated"})
+            print("Email Updated")
+            return True
 
         if "password" in kwargs:
-            user.login_hashword = generate_password_hash(kwargs["password"])
+            self.login_hashword = generate_password_hash(kwargs["password"])
             local_session.commit()
-            return jsonify({"status": "Password Updated"})
+            print("Password Updated")
+            return True
 
         if "username" in kwargs:
             existing_user = local_session.query(User).filter(User.login_name == kwargs["username"]).one()
             if existing_user is not None:
-                return jsonify({"status": "Username already taken"})
+                print("Func: update_user. Error: Username already taken")
+                return False
 
-            user.login_name = kwargs["username"]
+            self.login_name = kwargs["username"]
             local_session.commit()
-            return jsonify({"status": "Username Updated"})
+            print("User updated")
+            return True
 
-        return jsonify({"status": "Missing argument"}), 400
+        print("Func: update_user. Error: Missing argument")
+        return False
 
     def add_group(self, group_name):
 
@@ -409,7 +421,7 @@ class User(Base):
 
             repo_load_controller = RepoLoadController(gh_session=session)
 
-            result = repo_load_controller.add_frontend_org(org, user.user_id, group_name)
+            result = repo_load_controller.add_frontend_org(org_url, self.user_id, group_name)
 
             return result
 
