@@ -334,11 +334,4 @@ def insert_facade_contributors(repo_id):
         session.logger.info("Done with inserting and updating facade contributors")
     return
 
-@celery.task
-def facade_grab_contribs(repo_id):
-    logger = logging.getLogger(facade_grab_contribs.__name__)
-    with FacadeSession(logger) as session:
-    
-        grab_committer_list(session,repo_id)
-    
 
