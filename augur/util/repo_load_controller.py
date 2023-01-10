@@ -86,9 +86,12 @@ class RepoLoadController:
             True if repo url is valid and False if not
         """
 
+        if not self.session.oauths.list_of_keys:
+            return False, {"status": "No valid github api keys to retrieve data with"}
+
         owner, repo = parse_repo_url(url)
         if not owner or not repo:
-            return False
+            return False, {"status":"Invalid repo url"}
 
         url = REPO_ENDPOINT.format(owner, repo)
 
@@ -103,9 +106,9 @@ class RepoLoadController:
 
             # if there was an error return False
             if "message" in result.json().keys():
-                return False
+                return False, {"status": f"Github Error: {result.json()['message']}"}
 
-            return True
+            return True, {"status": "Valid repo"}
 
 
     def retrieve_org_repos(self, url: str) -> List[str]:
@@ -123,12 +126,15 @@ class RepoLoadController:
 
         owner = parse_org_url(url)
         if not owner:
-            return []
+            return None, {"status": "Invalid owner url"}
 
         url = ORG_REPOS_ENDPOINT.format(owner)
 
         repos = []
         with GithubTaskSession(logger) as session:
+
+            if not session.oauths.list_of_keys:
+                return None, {"status": "No valid github api keys to retrieve data with"}
 
             for page_data, page in GithubPaginator(url, session.oauths, logger).iter_pages():
 
@@ -139,7 +145,7 @@ class RepoLoadController:
 
         repo_urls = [repo["html_url"] for repo in repos]
 
-        return repo_urls
+        return repo_urls, {"status": "Invalid owner url"}
 
 
     def is_valid_repo_group_id(self, repo_group_id: int) -> bool:
@@ -284,12 +290,9 @@ class RepoLoadController:
 
         """
 
-        # convert group_name to group_id
-        group_id = self.convert_group_name_to_id(user_id, group_name)
-        if group_id is None:
-            return False, {"status": "WARNING: Trying to delete group that does not exist"}
-
-        group = self.session.query(UserGroup).filter(UserGroup.group_id == group_id).one()
+        group = self.session.query(UserGroup).filter(UserGroup.name == group_name, UserGroup.user_id == user_id).first()
+        if not group:
+             return False, {"status": "WARNING: Trying to delete group that does not exist"}
 
         # delete rows from user repos with group_id
         for repo in group.repos:
@@ -361,8 +364,10 @@ class RepoLoadController:
             if group_id is None:
                 return False, {"status": "Invalid group name"}
 
-        if not valid_repo and not self.is_valid_repo(url):
-            return False, {"status": "Invalid repo", "repo_url": url}
+        if not valid_repo:
+            result = self.is_valid_repo(url)
+            if not result[0]:
+                return False, {"status": result[1]["status"], "repo_url": url}
 
         repo_id = self.add_repo_row(url, DEFAULT_REPO_GROUP_IDS[0], "Frontend")
         if not repo_id:
@@ -412,11 +417,11 @@ class RepoLoadController:
         if group_id is None:
             return False, {"status": "Invalid group name"}
 
-        repos = self.retrieve_org_repos(url)
+        result = self.retrieve_org_repos(url)
+        if not result[0]:
+            return False, result[1]
 
-        if not repos:
-            return False, {"status": "Invalid org", "org_url": url}
-
+        repos = result[0]
         # try to get the repo group with this org name
         # if it does not exist create one
         failed_repos = []
@@ -425,7 +430,7 @@ class RepoLoadController:
             result = self.add_frontend_repo(repo, user_id, group_id=group_id, valid_repo=True)
 
             # keep track of all the repos that failed
-            if result["status"] != "Repo Added":
+            if not result[0]:
                 failed_repos.append(repo)
 
         failed_count = len(failed_repos)
@@ -445,7 +450,7 @@ class RepoLoadController:
         url = repo_data["url"]
         repo_group_id = repo_data["repo_group_id"]
 
-        if valid_repo or self.is_valid_repo(url):
+        if valid_repo or self.is_valid_repo(url)[0]:
 
             # if the repo doesn't exist it adds it
             # if the repo does exist it updates the repo_group_id

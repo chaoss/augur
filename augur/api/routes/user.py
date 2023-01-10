@@ -124,13 +124,11 @@ def create_routes(server):
     def generate_session(application):
         code = request.args.get("code")
         if not code:
-            print("Passed empty code")
             return jsonify({"status": "Invalid authorization code"})
 
         username = redis.get(code)
         redis.delete(code)
         if not username:
-            print("Could not find in redis")
             return jsonify({"status": "Invalid authorization code"})
 
         user = User.get_user(username)
@@ -253,7 +251,7 @@ def create_routes(server):
 
         return jsonify(result[1])
 
-    @server.app.route(f"/{AUGUR_API_VERSION}/user/remove_group", methods=['GET', 'POST'])
+    @server.app.route(f"/{AUGUR_API_VERSION}/user/group/remove", methods=['GET', 'POST'])
     @login_required
     def remove_user_group():
         if not development and not request.is_secure:
@@ -288,7 +286,11 @@ def create_routes(server):
 
 
         group_name = request.args.get("group_name")
-        repo_id = request.args.get("repo_id")
+
+        try:
+            repo_id = int(request.args.get("repo_id"))
+        except TypeError:
+            return {"status": "Repo id must be and integer"}
 
         result = current_user.remove_repo(group_name, repo_id)
 
@@ -360,7 +362,7 @@ def create_routes(server):
 
         group_name = request.args.get("group_name")
 
-        result = current_user.group_repo_count(group_name)
+        result = current_user.get_group_repo_count(group_name)
 
         result_dict = result[1]
         if result[0] is not None:
