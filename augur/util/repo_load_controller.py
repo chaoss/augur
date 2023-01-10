@@ -249,7 +249,7 @@ class RepoLoadController:
         """
 
         if not isinstance(user_id, int) or not isinstance(group_name, str):
-            return {"status": "Invalid input"}
+            return False, {"status": "Invalid input"}
 
         user_group_data = {
             "name": group_name,
@@ -259,13 +259,14 @@ class RepoLoadController:
         try:
             result = self.session.insert_data(user_group_data, UserGroup, ["name", "user_id"], return_columns=["group_id"])
         except s.exc.IntegrityError:
-            return {"status": "Error: User id does not exist"}
+            return False, {"status": "Error: User id does not exist"}
 
 
         if result:
-            return {"status": "Group created"}
-        else:
-            return {"status": "Error while creating group"}
+            return True, {"status": "Group created"}
+
+
+        return False, {"status": "Error while creating group"}
 
     def remove_user_group(self, user_id: int, group_name: str) -> dict:
         """ Delete a users group of repos.
@@ -282,7 +283,7 @@ class RepoLoadController:
         # convert group_name to group_id
         group_id = self.convert_group_name_to_id(user_id, group_name)
         if group_id is None:
-            return {"status": "WARNING: Trying to delete group that does not exist"}
+            return False, {"status": "WARNING: Trying to delete group that does not exist"}
 
         group = self.session.query(UserGroup).filter(UserGroup.group_id == group_id).one()
 
@@ -295,7 +296,7 @@ class RepoLoadController:
 
         self.session.commit()
 
-        return {"status": "Group deleted"}
+        return True, {"status": "Group deleted"}
 
 
     def convert_group_name_to_id(self, user_id: int, group_name: str) -> int:
@@ -348,27 +349,27 @@ class RepoLoadController:
         """
 
         if group_name and group_id:
-            return {"status": "Pass only the group name or group id not both"}
+            return False, {"status": "Pass only the group name or group id not both"}
 
         if group_id is None:
 
             group_id = self.convert_group_name_to_id(user_id, group_name)
             if group_id is None:
-                return {"status": "Invalid group name"}
+                return False, {"status": "Invalid group name"}
 
         if not valid_repo and not self.is_valid_repo(url):
-            return {"status": "Invalid repo", "repo_url": url}
+            return False, {"status": "Invalid repo", "repo_url": url}
 
         repo_id = self.add_repo_row(url, DEFAULT_REPO_GROUP_IDS[0], "Frontend")
         if not repo_id:
-            return {"status": "Repo insertion failed", "repo_url": url}
+            return False, {"status": "Repo insertion failed", "repo_url": url}
 
         result = self.add_repo_to_user_group(repo_id, group_id)
 
         if not result:
-            return {"status": "repo_user insertion failed", "repo_url": url}
+            return False, {"status": "repo_user insertion failed", "repo_url": url}
 
-        return {"status": "Repo Added", "repo_url": url}
+        return True, {"status": "Repo Added", "repo_url": url}
 
     def remove_frontend_repo(self, repo_id:int, user_id:int, group_name:str) -> dict:
         """ Remove repo from a users group.
@@ -383,17 +384,17 @@ class RepoLoadController:
         """
 
         if not isinstance(repo_id, int) or not isinstance(user_id, int) or not isinstance(group_name, str):
-            return {"status": "Invalid types"}
+            return False, {"status": "Invalid types"}
 
         group_id = self.convert_group_name_to_id(user_id, group_name)
         if group_id is None:
-            return {"status": "Invalid group name"}
+            return False, {"status": "Invalid group name"}
 
                 # delete rows from user repos with group_id
         self.session.query(UserRepo).filter(UserRepo.group_id == group_id, UserRepo.repo_id == repo_id).delete()
         self.session.commit()
 
-        return {"status": "Repo Removed"}
+        return True, {"status": "Repo Removed"}
 
 
     def add_frontend_org(self, url: List[str], user_id: int, group_name: int):
@@ -405,12 +406,12 @@ class RepoLoadController:
         """
         group_id = self.convert_group_name_to_id(user_id, group_name)
         if group_id is None:
-            return {"status": "Invalid group name"}
+            return False, {"status": "Invalid group name"}
 
         repos = self.retrieve_org_repos(url)
 
         if not repos:
-            return {"status": "Invalid org", "org_url": url}
+            return False, {"status": "Invalid org", "org_url": url}
 
         # try to get the repo group with this org name
         # if it does not exist create one
@@ -426,9 +427,9 @@ class RepoLoadController:
         failed_count = len(failed_repos)
         if failed_count > 0:
             # this should never happen because an org should never return invalid repos
-            return {"status": f"{failed_count} repos failed", "repo_urls": failed_repos, "org_url": url}
+            return False, {"status": f"{failed_count} repos failed", "repo_urls": failed_repos, "org_url": url}
 
-        return {"status": "Org repos added", "org_url": url}
+        return True, {"status": "Org repos added"}
 
     def add_cli_repo(self, repo_data: Dict[str, Any], valid_repo=False):
         """Add list of repos to specified repo_groups
@@ -520,42 +521,39 @@ class RepoLoadController:
 
         if not source:
             print("Func: paginate_repos. Error: Source Required")
-            return None
+            return None, {"status": "Source Required"}
 
         if source not in ["all", "user", "group"]:
             print("Func: paginate_repos. Error: Invalid source")
-            return None
+            return None, {"Invalid source"}
 
         if direction and direction != "ASC" and direction != "DESC":
             print("Func: paginate_repos. Error: Invalid direction")
-            # return {"status": "Invalid direction"}
-            return None
+            return None, {"status": "Invalid direction"}
 
         try:
             page = int(page) if page else 0
             page_size = int(page_size) if page else 25
         except TypeError:
             print("Func: paginate_repos. Error: Page size and page should be integers")
-            # return {"status": "Page size and page should be integers"}
-            return None
+            return None, {"status": "Page size and page should be integers"}
 
         if page < 0 or page_size < 0:
             print("Func: paginate_repos. Error: Page size and page should be positive")
-            # return {"status": "Page size and page should be postive"}
-            return None
+            return None, {"status": "Page size and page should be postive"}
 
         order_by = sort if sort else "repo_id"
         order_direction = direction if direction else "ASC"
 
         query = self.generate_repo_query(source, count=False, order_by=order_by, direction=order_direction, 
                                     page=page, page_size=page_size, **kwargs)
-        if not query:
-            return None
+        if not query[0]:
+            return None, {"status": query[1]["status"]}
 
-        if query == "No data":
-            return []
+        if query[1]["status"] == "No data":
+            return [], {"status": "No data"}
 
-        get_page_of_repos_sql = s.sql.text(query)
+        get_page_of_repos_sql = s.sql.text(query[0])
 
         results = pd.read_sql(get_page_of_repos_sql, create_database_engine())
         results['url'] = results['url'].apply(lambda datum: datum.split('//')[1])
@@ -567,33 +565,33 @@ class RepoLoadController:
 
         data = results.to_dict(orient="records")
 
-        return data 
+        return data, {"status": "success"}
 
     def get_repo_count(self, source, **kwargs):
 
         if not source:
             print("Func: get_repo_count. Error: Source Required")
-            return None
+            return None, {"status": "Source Required"}
 
         if source not in ["all", "user", "group"]:
             print("Func: get_repo_count. Error: Invalid source")
-            return None
+            return None, {"status": "Invalid source"}
 
         user = kwargs.get("user")
         group_name = kwargs.get("group_name")
 
         query = self.generate_repo_query(source, count=True, user=user, group_name=group_name)
-        if not query:
-            return None
+        if not query[0]:
+            return None, query[1]
 
-        if query == "No data":
-            return []
+        if query[1]["status"] == "No data":
+            return 0, {"status": "No data"}
            
-        get_page_of_repos_sql = s.sql.text(query)
+        get_page_of_repos_sql = s.sql.text(query[0])
 
         result = self.session.fetchall_data_from_sql_text(get_page_of_repos_sql)
             
-        return result[0]["count"]
+        return result[0]["count"], {"status": "success"}
 
 
     def generate_repo_query(self, source, count, **kwargs):
@@ -625,12 +623,12 @@ class RepoLoadController:
             user = kwargs.get("user")
             if not user:
                 print("Func: generate_repo_query. Error: User not passed when trying to get user repos")
-                return None
+                return None, {"status": "User not passed when trying to get user repos"}
                 
             group_ids = tuple(group.group_id for group in user.groups)
 
             if not group_ids:
-                return "No data"
+                return None, {"status": "No data"}
 
             if len(group_ids) == 1:
                 group_ids_str = str(group_ids)[:-2] + ")"
@@ -649,16 +647,17 @@ class RepoLoadController:
                 user = kwargs.get("user")
                 if not user:
                     print("Func: generate_repo_query. Error: User not specified")
+                    return None, {"status": "User not specified"}
 
                 group_name = kwargs.get("group_name")
                 if not group_name:
                     print("Func: generate_repo_query. Error: Group name not specified")
-                    return None
+                    return None, {"status": "Group name not specified"}
 
                 group_id = controller.convert_group_name_to_id(user.user_id, group_name)
                 if group_id is None:
                     print("Func: generate_repo_query. Error: Group does not exist")
-                    return None
+                    return None, {"status": "Group does not exists"}
 
             query += "\t\t    JOIN augur_operations.user_repos ON augur_data.repo.repo_id = augur_operations.user_repos.repo_id\n"
             query += f"\t\t    WHERE augur_operations.user_repos.group_id = {group_id}\n"
@@ -673,5 +672,5 @@ class RepoLoadController:
             query += f"\t    LIMIT {page_size}\n"
             query += f"\t    OFFSET {page*page_size};\n"
 
-        return query
+        return query, {"status": "success"}
 

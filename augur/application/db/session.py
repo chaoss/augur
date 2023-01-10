@@ -5,7 +5,6 @@ import sys
 import random
 import logging
 import json
-import httpx
 import sqlalchemy as s
 
 from typing import Optional, List, Union

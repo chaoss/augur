@@ -10,6 +10,8 @@ from augur.application.db.session import DatabaseSession
 from augur.api.routes import AUGUR_API_VERSION
 from augur.api.util import get_bearer_token
 
+import time
+
 login_manager = LoginManager()
 
 def create_routes(server):
@@ -28,7 +30,7 @@ def create_routes(server):
         if AUGUR_API_VERSION in str(request.url_rule):
             return jsonify({"status": "Not Found"}), 404
 
-        return render_template('index.html', title='404', api_url=getSetting('serving')), 404
+        return render_template('index.j2', title='404', api_url=getSetting('serving')), 404
 
     @server.app.errorhandler(405)
     def unsupported_method(error):
@@ -69,7 +71,17 @@ def create_routes(server):
         with DatabaseSession(logger) as session:
 
             token = session.query(UserSessionToken).filter(UserSessionToken.token == token).first()
+            print(token)
             if token:
-                return token.user
+
+                user = token.user
+                user._is_authenticated = True
+                user._is_active = True
+
+                return user
             
         return None
+
+    @server.app.template_filter('as_datetime')
+    def as_datetime(seconds):
+        time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(seconds))

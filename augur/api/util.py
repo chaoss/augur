@@ -85,13 +85,9 @@ def get_token(token_type):
 
     if auth:
         tokens = auth.split(",")
-
-        tokens = filter(lambda x: f"{token_type} " in x, tokens)
-
-        if len(tokens) != 1:
-            return None
-        
-        return tokens[0].replace(f"{token_type} ", "")
+        for token in tokens:
+            if f"{token_type} " in token:
+                return token.replace(f"{token_type}", "").strip()
 
 """ 
     Extract Bearer token from request header

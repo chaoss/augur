@@ -8,6 +8,8 @@ import requests
 import json
 import os
 import base64
+import time
+import secrets
 import pandas as pd
 from flask import request, Response, jsonify, session
 from flask_login import login_user, logout_user, current_user, login_required
@@ -43,7 +45,7 @@ def api_key_required(fun):
 
             session = Session()
             try:
-                kwargs["application"] = session.query(ClientApplication).filter(ClientApplication.id == client_token).one()
+                kwargs["application"] = session.query(ClientApplication).filter(ClientApplication.api_key == client_token).one()
                 return fun(*args, **kwargs)
             except NoResultFound:
                 pass
@@ -113,7 +115,7 @@ def create_routes(server):
         code = secrets.token_hex()
         username = current_user.login_name
 
-        redis.set(token, username, ex=30)
+        redis.set(code, username, ex=30)
 
         return jsonify({"status": "Validated", "code": code})
 
@@ -121,10 +123,14 @@ def create_routes(server):
     @api_key_required
     def generate_session(application):
         code = request.args.get("code")
+        if not code:
+            print("Passed empty code")
+            return jsonify({"status": "Invalid authorization code"})
 
         username = redis.get(code)
         redis.delete(code)
         if not username:
+            print("Could not find in redis")
             return jsonify({"status": "Invalid authorization code"})
 
         user = User.get_user(username)
@@ -172,7 +178,7 @@ def create_routes(server):
 
         result = User.create_user(username, password, email, first_name, last_name, admin)
 
-        return jsonify(result)
+        return jsonify(result[1])
 
     
     @server.app.route(f"/{AUGUR_API_VERSION}/user/remove", methods=['POST', 'DELETE'])
@@ -200,12 +206,12 @@ def create_routes(server):
             if existing_user is not None:
                 return jsonify({"status": "Already an account with this email"})
 
-            user.email = email
+            current_user.email = email
             session.commit()
             return jsonify({"status": "Email Updated"})
 
         if new_password is not None:
-            user.login_hashword = generate_password_hash(new_password)
+            current_user.login_hashword = generate_password_hash(new_password)
             session.commit()
             return jsonify({"status": "Password Updated"})
 
@@ -214,7 +220,7 @@ def create_routes(server):
             if existing_user is not None:
                 return jsonify({"status": "Username already taken"})
 
-            user.login_name = new_login_name
+            current_user.login_name = new_login_name
             session.commit()
             return jsonify({"status": "Username Updated"})
 
@@ -232,7 +238,7 @@ def create_routes(server):
 
         result = current_user.add_repo(group_name, repo)
 
-        return jsonify(result)
+        return jsonify(result[1])
 
 
     @server.app.route(f"/{AUGUR_API_VERSION}/user/group/add", methods=['GET', 'POST'])
@@ -245,7 +251,7 @@ def create_routes(server):
 
         result = current_user.add_group(group_name)
 
-        return jsonify(result)
+        return jsonify(result[1])
 
     @server.app.route(f"/{AUGUR_API_VERSION}/user/remove_group", methods=['GET', 'POST'])
     @login_required
@@ -257,7 +263,7 @@ def create_routes(server):
 
         result = current_user.remove_group(group_name)
 
-        return jsonify(result)
+        return jsonify(result[1])
 
 
     @server.app.route(f"/{AUGUR_API_VERSION}/user/org/add", methods=['GET', 'POST'])
@@ -269,9 +275,9 @@ def create_routes(server):
         org = request.args.get("org_url")
         group_name = request.args.get("group_name")
 
-        result = current_user.add_org(group_name, org_url)
+        result = current_user.add_org(group_name, org)
 
-        return jsonify(result)
+        return jsonify(result[1])
 
 
     @server.app.route(f"/{AUGUR_API_VERSION}/user/repo/remove", methods=['GET', 'POST'])
@@ -286,7 +292,7 @@ def create_routes(server):
 
         result = current_user.remove_repo(group_name, repo_id)
 
-        return jsonify(result)
+        return jsonify(result[1])
 
     @server.app.route(f"/{AUGUR_API_VERSION}/user/group/repos", methods=['GET', 'POST'])
     @login_required
@@ -325,7 +331,11 @@ def create_routes(server):
 
         result = current_user.get_group_repos(group_name, page, page_size, sort, direction)
 
-        return jsonify(result)
+        result_dict = result[1]
+        if result[0] is not None:
+            result_dict.update({"repos": result[0]})
+
+        return jsonify(result_dict)
 
     @server.app.route(f"/{AUGUR_API_VERSION}/user/group/repos/count", methods=['GET', 'POST'])
     @login_required
@@ -351,8 +361,12 @@ def create_routes(server):
         group_name = request.args.get("group_name")
 
         result = current_user.group_repo_count(group_name)
-        
-        return jsonify(result)
+
+        result_dict = result[1]
+        if result[0] is not None:
+            result_dict.update({"repo_count": result[0]})
+
+        return jsonify(result_dict)
 
     @server.app.route(f"/{AUGUR_API_VERSION}/user/groups", methods=['GET', 'POST'])
     @login_required
@@ -373,8 +387,8 @@ def create_routes(server):
         if not development and not request.is_secure:
             return generate_upgrade_request()
 
-        result = current_user.get_groups()
+        result = current_user.get_group_names()
 
-        return jsonify(result)
+        return jsonify({"status": "success", "group_names": result[0]})
 
 

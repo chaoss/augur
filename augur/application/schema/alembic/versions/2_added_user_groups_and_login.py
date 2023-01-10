@@ -104,6 +104,7 @@ def upgrade():
 
     op.create_table('client_applications',
     sa.Column('id', sa.String(), nullable=False),
+    sa.Column('api_key', sa.String(), nullable=False),
     sa.Column('user_id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(), nullable=False),
     sa.Column('redirect_url', sa.String(), nullable=False),
@@ -115,6 +116,7 @@ def upgrade():
     op.create_table('user_session_tokens',
     sa.Column('token', sa.String(), nullable=False),
     sa.Column('user_id', sa.Integer(), nullable=False),
+    sa.Column('created_at', sa.BigInteger(), nullable=True),
     sa.Column('expiration', sa.BigInteger(), nullable=True),
     sa.Column('application_id', sa.String(), nullable=True),
 
@@ -175,18 +177,20 @@ def downgrade():
                 except KeyError:
                     continue
 
-            query_text_array = ["""INSERT INTO "augur_operations"."user_repos" ("repo_id", "user_id") VALUES """]
-            for i, repo_id in enumerate(repos):
-                query_text_array.append(f"({repo_id}, {user_id})")
+            if repos:
 
-                delimiter = ";" if i == len(repos) -1 else ","
+                query_text_array = ["""INSERT INTO "augur_operations"."user_repos" ("repo_id", "user_id") VALUES """]
+                for i, repo_id in enumerate(repos):
+                    query_text_array.append(f"({repo_id}, {user_id})")
 
-                query_text_array.append(delimiter)
+                    delimiter = ";" if i == len(repos) -1 else ","
+
+                    query_text_array.append(delimiter)
 
 
-            query_text = "".join(query_text_array)
+                query_text = "".join(query_text_array)
 
-            session.execute_sql(sa.sql.text(query_text))
+                session.execute_sql(sa.sql.text(query_text))
 
     op.drop_table('user_session_tokens', schema='augur_operations')
     op.drop_table('client_applications', schema='augur_operations')

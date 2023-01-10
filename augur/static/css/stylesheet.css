@@ -54,6 +54,35 @@ body {
     height: 35px;
 }
 
+.content-column {
+    overflow-y: scroll;
+}
+
+.dashboard-content {
+    background-color: var(--color-bg-light);
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.nav-pills .nav-link.active, .nav-pills .show > .nav-link {
+    background-color: var(--color-accent);
+}
+
+.dashboard-sidebar {
+    width: 280px;
+    background-color: var(--color-bg-light) !important;
+}
+
+.dashboard-form-control {
+    border: 1px solid #596280;
+    -webkit-border-radius: 2px;
+    -moz-border-radius: 2px;
+    border-radius: 2px;
+    font-size: .825rem;
+    background: #1A233A;
+    color: #bcd0f7;
+}
+
 .notification-icon {
     height: 30px;
     -webkit-filter: invert(100%);

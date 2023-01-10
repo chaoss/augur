@@ -365,7 +365,7 @@ def renderRepos(view, query, data, sorting = None, rev = False, page = None, fil
         site. Rendering the table module without data displays an error message
     """
     if(data is None):
-        return render_template('index.html', body="repos-" + view, title="Repos")
+        return render_template('index.j2', body="repos-" + view, title="Repos")
 
     # If a query exists and filtering is set to true, attempt to filter the data
     if((query is not None) and filter):
@@ -428,7 +428,7 @@ def render_module(module, **args):
     if not getSetting("valid"):
         args.setdefault("invalid", True)
 
-    return render_template('index.html', **args)
+    return render_template('index.j2', **args)
 
 """ ----------------------------------------------------------------
     No longer used
@@ -436,4 +436,4 @@ def render_module(module, **args):
 # My attempt at a loading page
 def renderLoading(dest, query, request):
     cache_files_requested.append(request)
-    return render_template('index.html', body="loading", title="Loading", d=dest, query_key=query, api_url=getSetting('serving'))
+    return render_template('index.j2', body="loading", title="Loading", d=dest, query_key=query, api_url=getSetting('serving'))

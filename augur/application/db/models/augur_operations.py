@@ -5,6 +5,7 @@ from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.orm import relationship
 from werkzeug.security import generate_password_hash, check_password_hash
 import logging 
+import secrets
 
 from augur.application.db.models.base import Base
 
@@ -270,25 +271,30 @@ class User(Base):
     def create_user(username: str, password: str, email: str, first_name:str, last_name:str, admin=False):
 
         if username is None or password is None or email is None or first_name is None or last_name is None:
-            return {"status": "Missing field"} 
+            return False, {"status": "Missing field"} 
 
         local_session = get_session()
 
         user = local_session.query(User).filter(User.login_name == username).first()
         if user is not None:
-            return {"status": "A User already exists with that username"}
+            return False, {"status": "A User already exists with that username"}
 
         emailCheck = local_session.query(User).filter(User.email == email).first()
         if emailCheck is not None:
-            return {"status": "A User already exists with that email"}
+            return False, {"status": "A User already exists with that email"}
 
         try:
             user = User(login_name = username, login_hashword = generate_password_hash(password), email = email, first_name = first_name, last_name = last_name, tool_source="User API", tool_version=None, data_source="API", admin=admin)
             local_session.add(user)
             local_session.commit()
-            return {"status": "Account successfully created"}
+
+            result = user.add_group(f"{username}_default")[0]
+            if not result:
+                return False, {"status": "Failed to add default group for the user"}
+
+            return True, {"status": "Account successfully created"}
         except AssertionError as exception_message: 
-            return {"Error": f"{exception_message}."}
+            return False, {"Error": f"{exception_message}."}
 
     def delete(self):
 
@@ -305,67 +311,69 @@ class User(Base):
         local_session.delete(self)
         local_session.commit()
 
-        return {"status": "User deleted"}
+        return True, {"status": "User deleted"}
 
-    def update_password(self, new_password):
-
-        return self.update_user(passowrd=new_password)
-
-
-    def update_user(self, **kwargs):
+    def update_password(self, old_password, new_password):
 
         local_session = get_session()
-        
-        valid_kwargs = ["email", "password", "username"]
 
-        kwarg_present = False
-        for value in valid_kwargs:
+        if not old_password or not new_password:
+            print("Need old and new password to update the password")
+            return False,  {"status": "Need old and new password to update the password"}
 
-            if value in kwargs:  
-                if kwarg_present:
-                    print("Func: update_user. Error: Please pass an email, password, or username, not multiple")
-                    return False                 
+        if not check_password_hash(self.login_hashword, old_password):
+            print("Password did not match the users password, unable to update password")
+            return False, {"status": "Password did not match users password"}
 
-                kwarg_present = True
+        self.login_hashword = generate_password_hash(new_password)
+        local_session.commit()
+        # print("Password Updated")
 
-        if "email" in kwargs:
+        return True, {"status": "Password updated"}
 
-            existing_user = local_session.query(User).filter(User.email == kwargs["email"]).one()
-            if existing_user is not None:
-                print("Func: update_user. Error: Already an account with this email")
-                return False
+    def update_email(self, new_email):
 
-            self.email = kwargs["email"]
-            local_session.commit()
-            print("Email Updated")
-            return True
+        local_session = get_session()
 
-        if "password" in kwargs:
-            self.login_hashword = generate_password_hash(kwargs["password"])
-            local_session.commit()
-            print("Password Updated")
-            return True
+        if not new_email:
+            print("Need new email to update the email")
+            return False, {"status": "Missing argument"}
 
-        if "username" in kwargs:
-            existing_user = local_session.query(User).filter(User.login_name == kwargs["username"]).one()
-            if existing_user is not None:
-                print("Func: update_user. Error: Username already taken")
-                return False
+        existing_user = local_session.query(User).filter(User.email == new_email).first()
+        if existing_user is not None:
+            print("Func: update_user. Error: Already an account with this email")
+            return False, {"status": "There is already an account with this email"}
 
-            self.login_name = kwargs["username"]
-            local_session.commit()
-            print("User updated")
-            return True
+        self.email = new_email
+        local_session.commit()
+        # print("Email Updated")
+        return True, {"status": "Email updated"}
 
-        print("Func: update_user. Error: Missing argument")
-        return False
+    def update_username(self, new_username):
+
+        local_session = get_session()
+
+        if not new_username:
+            print("Need new username to update the username")
+            return False, {"status": "Missing argument"}
+
+        existing_user = local_session.query(User).filter(User.login_name == new_username).first()
+        if existing_user is not None:
+            print("Func: update_user. Error: Already an account with this username")
+            return False, {"status": "Username already taken"}
+
+        self.login_name = new_username
+        local_session.commit()
+        # print("Username Updated")
+        return True, {"status": "Username updated"}
+
 
     def add_group(self, group_name):
 
         from augur.util.repo_load_controller import RepoLoadController
 
         if group_name == "default":
-            return {"status": "Reserved Group Name"}
+            return False, {"status": "Reserved Group Name"}
             
         local_session = get_session()
 
@@ -409,6 +417,7 @@ class User(Base):
         repo_load_controller = RepoLoadController(gh_session=local_session)
 
         result = repo_load_controller.remove_frontend_repo(repo_id, self.user_id, group_name)
+        print(result)
 
         return result
 
@@ -435,23 +444,15 @@ class User(Base):
 
         user_groups = controller.get_user_groups(self.user_id)
 
-        return {"groups": user_groups}
+        return user_groups, {"status": "success"}
 
     def get_group_names(self):
 
-        user_groups = self.get_groups()["groups"]
+        user_groups = self.get_groups()[0]
 
         group_names = [group.name for group in user_groups]
 
-        return {"group_names": group_names}
-
-    def query_repos(self):
-
-        from augur.application.db.models.augur_data import Repo
-
-        local_session = get_session()
-
-        return [repo.repo_id for repo in local_session.query(Repo).all()]
+        return group_names, {"status": "success"}
 
 
     def get_repos(self, page=0, page_size=25, sort="repo_id", direction="ASC"):
@@ -500,8 +501,49 @@ class User(Base):
 
         return result
 
+    def invalidate_session(self, token):
 
-    
+        from augur.application.db.session import DatabaseSession
+
+        with DatabaseSession(logger) as session:
+
+                row_count = session.query(UserSessionToken).filter(UserSessionToken.user_id == self.user_id, UserSessionToken.token == token).delete()
+                session.commit()
+
+        return row_count == 1
+
+    def delete_app(self, app_id):
+
+        from augur.application.db.session import DatabaseSession
+
+        with DatabaseSession(logger) as session:
+
+                row_count = session.query(ClientApplication).filter(ClientApplication.user_id == self.user_id, ClientApplication.id == app_id).delete()
+                session.commit()
+
+        return row_count == 1
+
+    def add_app(self, name, redirect_url):
+
+        from augur.application.db.session import DatabaseSession
+
+        with DatabaseSession(logger) as session:
+
+            try:
+                app = ClientApplication(id=secrets.token_hex(16), api_key=secrets.token_hex(), name=name, redirect_url=redirect_url, user_id=self.user_id)
+                session.add(app)
+                session.commit()
+            except Exception as e:
+                print(e)
+                return False
+
+        return True
+
+
+
+
+
+
 
 class UserGroup(Base):
     group_id = Column(BigInteger, primary_key=True)
@@ -550,6 +592,7 @@ class UserSessionToken(Base):
     user_id = Column(ForeignKey("augur_operations.users.user_id", name="user_session_token_user_id_fkey"))
     expiration = Column(BigInteger)
     application_id = Column(ForeignKey("augur_operations.client_applications.id", name="user_session_token_application_id_fkey"), nullable=False)
+    created_at = Column(BigInteger)
 
     user = relationship("User")
     application = relationship("ClientApplication")
@@ -567,8 +610,10 @@ class ClientApplication(Base):
     user_id = Column(ForeignKey("augur_operations.users.user_id", name="client_application_user_id_fkey"), nullable=False)
     name = Column(String, nullable=False)
     redirect_url = Column(String, nullable=False)
+    api_key = Column(String, nullable=False)
 
     user = relationship("User")
+    sessions = relationship("UserSessionToken")
 
     @staticmethod
     def get_by_id(client_id):

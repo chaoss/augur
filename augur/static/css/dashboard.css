@@ -34,7 +34,7 @@ body {
     background-color: var(--color-bg-light) !important;
 }
 
-.form-control {
+.dashboard-form-control {
     border: 1px solid #596280;
     -webkit-border-radius: 2px;
     -moz-border-radius: 2px;
@@ -42,4 +42,24 @@ body {
     font-size: .825rem;
     background: #1A233A;
     color: #bcd0f7;
+}
+
+table {
+    background-color: var(--color-fg);
+    color: var(--color-fg-contrast);
+}
+
+.toast-container {
+    top: 80px !important;
+    right: 16px !important;
+}
+
+.toast {
+    background-color: var(--color-notice);
+    color: var(--color-fg);
+}
+
+#toast-placeholder {
+    display: none;
+    z-index: 100;
 }

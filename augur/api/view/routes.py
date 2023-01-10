@@ -4,7 +4,7 @@ from sqlalchemy.orm.exc import NoResultFound
 from .utils import *
 from flask_login import login_user, logout_user, current_user, login_required
 
-from augur.application.db.models import User, Repo
+from augur.application.db.models import User, Repo, ClientApplication
 from .server import LoginException
 from augur.application.db.session import DatabaseSession
 from augur.tasks.init.redis_connection import redis_connection as redis
@@ -75,12 +75,11 @@ def create_routes(server):
         pagination_offset = config.get_value("frontend", "pagination_offset")
         
         if current_user.is_authenticated:
-            data = current_user.get_repos(page = page, sort = sorting, direction = direction)
-            
-            page_count = (current_user.get_repo_count() or 0) // pagination_offset
+            data = current_user.get_repos(page = page, sort = sorting, direction = direction)[0]
+            page_count = (current_user.get_repo_count()[0] or 0) // pagination_offset
         else:
-            data = get_all_repos(page = page, sort = sorting, direction = direction)
-            page_count = (get_all_repos_count() or 0) // pagination_offset
+            data = get_all_repos(page = page, sort = sorting, direction = direction)[0]
+            page_count = (get_all_repos_count()[0] or 0) // pagination_offset
         
         #if not cacheFileExists("repos.json"):
         #    return renderLoading("repos/views/table", query, "repos.json")
@@ -95,8 +94,13 @@ def create_routes(server):
     @server.app.route('/repos/views/card')
     def repo_card_view():
         query = request.args.get('q')
-        count = get_all_repos_count()
-        data = get_all_repos(page_size=count)
+        if current_user.is_authenticated:
+            count = current_user.get_repo_count()[0]
+            data = current_user.get_repos(page_size = count)[0]
+        else:
+            count = get_all_repos_count()[0]
+            data = get_all_repos(page_size=count)[0]
+
         return renderRepos("card", query, data, filter = True)
 
     """ ----------------------------------------------------------------
@@ -164,11 +168,11 @@ def create_routes(server):
                     admin = request.form.get('admin') or False
 
                     result = User.create_user(username, password, email, first_name, last_name, admin)
-                    if "Error" in result.keys():
+                    if not result[0]:
                         raise LoginException("An error occurred registering your account")
                     else:
                         user = User.get_user(username)
-                        flash(result["status"])
+                        flash(result[1]["status"])
 
                 # Log the user in if the password is valid
                 if user.validate(password) and login_user(user, remember = remember):
@@ -206,36 +210,24 @@ def create_routes(server):
         state = request.args.get("state")
         response_type = request.args.get("response_type")
 
-        if not client_id or response_type != "Code":
+        if not client_id or response_type != "code":
             return render_message("Invalid Request", "Something went wrong. You may need to return to the previous application and make the request again.")
         
         # TODO get application from client id
         client = ClientApplication.get_by_id(client_id)            
         
-        return render_module("authorization", application = client, state = state)
+        return render_module("authorization", app = client, state = state)
 
     @server.app.route('/account/delete')
     @login_required
     def user_delete():
-        if current_user.delete():
+        if current_user.delete()[0]:
             flash(f"Account {current_user.login_name} successfully removed")
             logout_user()
         else:
             flash("An error occurred removing the account")
 
         return redirect(url_for("root"))
-
-    @server.app.route('/account/update')
-    @login_required
-    def user_update_password():
-
-        print(request.form.to_dict())
-        if current_user.update_password(request):
-            flash(f"Account {current_user.id} successfully updated")
-        else:
-            flash("An error occurred updating the account")
-        
-        return redirect(url_for("user_settings"))
 
     """ ----------------------------------------------------------------
     settings:
@@ -244,7 +236,7 @@ def create_routes(server):
     @server.app.route('/account/settings')
     @login_required
     def user_settings():
-        return render_module("settings", title="Settings")
+        return render_template("settings.j2")
 
     """ ----------------------------------------------------------------
     report page:
@@ -266,13 +258,15 @@ def create_routes(server):
         This route returns the default view of the application, which
         is currently defined as the repository table view
     """
-    @server.app.route('/user/group/<group>')
+    @server.app.route('/user/group/')
     @login_required
     def user_group_view():
         group = request.args.get("group")
 
         if not group:
             return render_message("No Group Specified", "You must specify a group to view this page.")
+
+        params = {}
 
         try:
             params["page"] = int(request.args.get('p') or 0)
@@ -293,18 +287,18 @@ def create_routes(server):
 
         pagination_offset = config.get_value("frontend", "pagination_offset")
 
-        data = current_user.get_group_repos(group, **params)
-        page_count = current_user.get_group_repo_count(group) or 0
+        data = current_user.get_group_repos(group, **params)[0]
+        page_count = (current_user.get_group_repo_count(group)[0]) or 0
         page_count //= pagination_offset
 
         if not data:
-            return render_message("Error Loading Group", "Either the group you requested does not exist, or an unspecified error occurred.")
+            return render_message("Error Loading Group", "Either the group you requested does not exist, the group has no repos, or an unspecified error occurred.")
 
         #if not cacheFileExists("repos.json"):
         #    return renderLoading("repos/views/table", query, "repos.json")
 
         # return renderRepos("table", None, data, sort, rev, params.get("page"), True)
-        return render_module("repos-table", title="Repos", repos=data, query_key=query, activePage=params["page"], pages=page_count, offset=pagination_offset, PS="user_group_view", reverse = rev, sorting = params["sort"])
+        return render_module("user-group-repos-table", title="Repos", repos=data, query_key=None, activePage=params["page"], pages=page_count, offset=pagination_offset, PS="user_group_view", reverse = rev, sorting = params.get("sort"), group=group)
 
     """ ----------------------------------------------------------------
     Admin dashboard:
@@ -324,4 +318,4 @@ def create_routes(server):
 
         backend_config = requestJson("config/get", False)
 
-        return render_template('admin-dashboard.html', sections = empty, config = backend_config)
+        return render_template('admin-dashboard.j2', sections = empty, config = backend_config)
