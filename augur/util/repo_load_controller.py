@@ -256,6 +256,10 @@ class RepoLoadController:
             "user_id": user_id
         }
 
+        user_group = self.session.query(UserGroup).filter(UserGroup.user_id == user_id, UserGroup, UserGroup.name == group_name).first()
+        if user_group:
+            return False, {"status": "Group already exists"}
+
         try:
             result = self.session.insert_data(user_group_data, UserGroup, ["name", "user_id"], return_columns=["group_id"])
         except s.exc.IntegrityError:

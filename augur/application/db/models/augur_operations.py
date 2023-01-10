@@ -288,8 +288,8 @@ class User(Base):
             local_session.add(user)
             local_session.commit()
 
-            result = user.add_group(f"{username}_default")[0]
-            if not result:
+            result = user.add_group("default")
+            if not result[0] and result[1]["status"] != "Group already exists":
                 return False, {"status": "Failed to add default group for the user"}
 
             return True, {"status": "Account successfully created"}
@@ -371,9 +371,6 @@ class User(Base):
     def add_group(self, group_name):
 
         from augur.util.repo_load_controller import RepoLoadController
-
-        if group_name == "default":
-            return False, {"status": "Reserved Group Name"}
             
         local_session = get_session()
 
