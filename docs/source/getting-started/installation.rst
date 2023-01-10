@@ -46,6 +46,13 @@ Caching System (Redis)
 * `Mac Installation <https://redis.io/docs/getting-started/installation/install-redis-on-mac-os/>`__
 * `Windows Installation <https://redis.io/docs/getting-started/installation/install-redis-on-windows/>`__
 
+Message Broker (RabbitMQ)
+----------------
+* `Linux Installation <https://www.rabbitmq.com/download.html>`__
+* `Mac Installation <https://www.rabbitmq.com/install-homebrew.html>`__
+* `Windows Installation <https://www.rabbitmq.com/install-windows.html>`__
+
+
 Frontend
 ---------
 If you're interested in using our visualizations, you can optionally install the frontend dependencies:
