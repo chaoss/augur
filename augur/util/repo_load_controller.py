@@ -524,8 +524,6 @@ class RepoLoadController:
         return list(all_repo_ids)
 
 
-
-
     def paginate_repos(self, source, page=0, page_size=25, sort="repo_id", direction="ASC", **kwargs):
 
         if not source:
@@ -574,6 +572,9 @@ class RepoLoadController:
 
         data = results.to_dict(orient="records")
 
+        for row in data:
+            row["repo_name"] = re.search(r"github\.com\/[A-Za-z0-9 \- _]+\/([A-Za-z0-9 \- _ .]+)$", row["url"]).groups()[0]
+
         return data, {"status": "success"}
 
     def get_repo_count(self, source, **kwargs):
@@ -595,8 +596,11 @@ class RepoLoadController:
 
         if query[1]["status"] == "No data":
             return 0, {"status": "No data"}
+
+        # surround query with count query so we just get the count of the rows
+        final_query = f"SELECT count(*) FROM ({query[0]}) a;"
            
-        get_page_of_repos_sql = s.sql.text(query[0])
+        get_page_of_repos_sql = s.sql.text(final_query)
 
         result = self.session.fetchall_data_from_sql_text(get_page_of_repos_sql)
             
@@ -606,10 +610,11 @@ class RepoLoadController:
     def generate_repo_query(self, source, count, **kwargs):
 
         if count:
-            select = "count(*)"
+            # only query for repos ids so the query is faster for getting the count
+            select = "    DISTINCT(augur_data.repo.repo_id)"
         else:
-            select = """    augur_data.repo.repo_id,
-                    augur_data.repo.repo_name,
+
+            select = """    DISTINCT(augur_data.repo.repo_id),
                     augur_data.repo.description,
                     augur_data.repo.repo_git AS url,
                     augur_data.repo.repo_status,
@@ -634,18 +639,12 @@ class RepoLoadController:
                 print("Func: generate_repo_query. Error: User not passed when trying to get user repos")
                 return None, {"status": "User not passed when trying to get user repos"}
                 
-            group_ids = tuple(group.group_id for group in user.groups)
-
-            if not group_ids:
+            if not user.groups:
                 return None, {"status": "No data"}
 
-            if len(group_ids) == 1:
-                group_ids_str = str(group_ids)[:-2] + ")"
-            else:
-                group_ids_str = str(group_ids)
-
             query += "\t\t    JOIN augur_operations.user_repos ON augur_data.repo.repo_id = augur_operations.user_repos.repo_id\n"
-            query += f"\t\t    WHERE augur_operations.user_repos.group_id in {group_ids_str}\n"
+            query += "\t\t    JOIN augur_operations.user_groups ON augur_operations.user_repos.group_id = augur_operations.user_groups.group_id\n"
+            query += f"\t\t    WHERE augur_operations.user_groups.user_id = {user.user_id}\n"
 
         elif source == "group":
 
