@@ -195,9 +195,9 @@ def analyze_commits_in_parallel(queue: list, multithreaded: bool)-> None:
     logger = logging.getLogger(analyze_commits_in_parallel.__name__)
 
     logger.info(f"Got to analysis!")
-
+    session = FacadeSession(logger)
     for commitTuple in queue:
-        session = FacadeSession(logger)
+        
 
         query = session.query(Repo).filter(Repo.repo_id == commitTuple[1])
         repo = execute_session_query(query,'one')
