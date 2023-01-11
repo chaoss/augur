@@ -71,7 +71,6 @@ def create_routes(server):
         with DatabaseSession(logger) as session:
 
             token = session.query(UserSessionToken).filter(UserSessionToken.token == token).first()
-            print(token)
             if token:
 
                 user = token.user

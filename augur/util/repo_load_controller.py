@@ -262,7 +262,7 @@ class RepoLoadController:
             "user_id": user_id
         }
 
-        user_group = self.session.query(UserGroup).filter(UserGroup.user_id == user_id, UserGroup, UserGroup.name == group_name).first()
+        user_group = self.session.query(UserGroup).filter(UserGroup.user_id == user_id, UserGroup.name == group_name).first()
         if user_group:
             return False, {"status": "Group already exists"}
 
