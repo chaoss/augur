@@ -199,13 +199,13 @@ def analyze_commits_in_parallel(queue: list, multithreaded: bool)-> None:
     for commitTuple in queue:
         session = FacadeSession(logger)
 
-        session.query(Repo).filter(Repo.repo_id == commitTuple[1])
+        query = session.query(Repo).filter(Repo.repo_id == commitTuple[1])
         repo = execute_session_query(query,'one')
 
 
         repo_loc = (f"{session.repo_base_directory}{repo.repo_group_id}/{repo.repo_path}{repo.repo_name}/.git")    
 
-        analyze_commit(session, repo_id, repo_loc, commitTuple[0])
+        analyze_commit(session, commitTuple[1], repo_loc, commitTuple[0])
 
     logger.info("Analysis complete")
 
@@ -258,11 +258,11 @@ def generate_analysis_sequence(logger):
 
         repo_ids = [repo['repo_id'] for repo in repos]
 
-        analysis_sequence.append(facade_analysis_init_facade_task.si().on_error(facade_error_handler.s()))
+        analysis_sequence.append(facade_analysis_init_facade_task.si())
 
-        analysis_sequence.append(create_grouped_task_load(dataList=repo_ids,task=grab_comitters).link_error(facade_error_handler.s()))
+        analysis_sequence.append(create_grouped_task_load(dataList=repo_ids,task=grab_comitters))
 
-        analysis_sequence.append(create_grouped_task_load(dataList=repo_ids,task=trim_commits_facade_task).link_error(facade_error_handler.s()))
+        analysis_sequence.append(create_grouped_task_load(dataList=repo_ids,task=trim_commits_facade_task))
 
         all_missing_commits = []
         all_trimmed_commits = []
@@ -325,12 +325,15 @@ def generate_analysis_sequence(logger):
             all_trimmed_commits.extend(trimmed_commits_with_repo_tuple)
         
 
-        analysis_sequence.append(create_grouped_task_load(True,dataList=all_missing_commits,task=analyze_commits_in_parallel).link_error(facade_error_handler.s()))
+        if all_missing_commits:
+            analysis_sequence.append(create_grouped_task_load(True,dataList=all_missing_commits,task=analyze_commits_in_parallel))
 
-        analysis_sequence.append(create_grouped_task_load(dataList=all_trimmed_commits,task=trim_commits_post_analysis_facade_task).link_error(facade_error_handler.s()))
-        analysis_sequence.append(facade_analysis_end_facade_task.si().on_error(facade_error_handler.s()))
+        if all_trimmed_commits:
+            analysis_sequence.append(create_grouped_task_load(dataList=all_trimmed_commits,task=trim_commits_post_analysis_facade_task))
+        
+        analysis_sequence.append(facade_analysis_end_facade_task.si())
     
-    #print(f"Analysis sequence: {analysis_sequence}")
+    logger.info(f"Analysis sequence: {analysis_sequence}")
     return analysis_sequence
 
 
@@ -420,5 +423,6 @@ def generate_facade_chain(logger):
         if not limited_run or (limited_run and rebuild_caches):
             facade_sequence.append(rebuild_unknown_affiliation_and_web_caches_facade_task.si().on_error(facade_error_handler.s()))#rebuild_unknown_affiliation_and_web_caches(session.cfg)
         
+        #logger.info(f"Facade sequence: {facade_sequence}")
         return chain(*facade_sequence)
 
