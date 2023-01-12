@@ -34,6 +34,7 @@ def create_routes(server):
 
     @server.app.errorhandler(405)
     def unsupported_method(error):
+
         if AUGUR_API_VERSION in str(request.url_rule):
             return jsonify({"status": "Unsupported method"}), 405
         
@@ -41,6 +42,12 @@ def create_routes(server):
 
     @login_manager.unauthorized_handler
     def unauthorized():
+
+        token_str = get_bearer_token()
+        token = session.query(UserSessionToken).filter(UserSessionToken.token == token_str).first()
+        if not token:
+            return jsonify({"status": "Session expired"})
+            
         if AUGUR_API_VERSION in str(request.url_rule):
             return jsonify({"status": "Login required"})
 
@@ -70,7 +77,8 @@ def create_routes(server):
 
         with DatabaseSession(logger) as session:
 
-            token = session.query(UserSessionToken).filter(UserSessionToken.token == token).first()
+            current_time = time.time()
+            token = session.query(UserSessionToken).filter(UserSessionToken.token == token, UserSessionToken.expiration <= current_time).first()
             if token:
 
                 user = token.user
