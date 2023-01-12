@@ -12,8 +12,60 @@ This section shows how to install Augur's Python library from the source. If you
 
   3. Multiple, or conflicting versions of PostgreSQL, sometimes due to the absence of a functional `psql` function at the command line.   
 
-General Requirements
-~~~~~~~~~~~~~~~~~~~~
+Operating System Level Services
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Installing `redis-server` and `rabbitmq` are operating system level considerations. 
+
+Caching System (Redis) 
+Augur uses `redis-server` for task and session persistence. 
+----------------
+* `Linux Installation <https://redis.io/docs/getting-started/installation/install-redis-on-linux/>`__
+* `Mac Installation <https://redis.io/docs/getting-started/installation/install-redis-on-mac-os/>`__
+* `Windows Installation <https://redis.io/docs/getting-started/installation/install-redis-on-windows/>`__
+
+Message Broker (RabbitMQ)
+----------------
+Follow the instructions for your operating system. These general steps provide an overview: Augur user `rabbitMQ to stage all of the jobs generated during data collection. It communicates with `celery` to manage and monitor data collection status. To install MQ series: 
+* `Linux Installation <https://www.rabbitmq.com/download.html>`__
+* `Mac Installation <https://www.rabbitmq.com/install-homebrew.html>`__
+* `Windows Installation <https://www.rabbitmq.com/install-windows.html>`__
+
+
+1. `redis-server` : We use `redis-server` for task and session persistence. 
+ - ubuntu: `sudo systemctl install redis-server`. Default configuration is sufficient in most cases. 
+2. `rabbitMQ` : 
+
+To set up rabbitmq for augur you must install it with the relevant package manager
+for your distro. You can find more info on how to install rabbitmq here https://www.rabbitmq.com/download.html.
+
+After installation, you must also set up your rabbitmq instance by running the below commands:
+
+`sudo rabbitmqctl add_user augur password123`
+
+`sudo rabbitmqctl add_vhost augur_vhost` 
+
+.. warning::
+  The `augur_vhost` value for `add_vhost` needs to be unique for every Augur instance running on a server. 
+
+`sudo rabbitmqctl set_user_tags augur augurTag`
+
+`sudo rabbitmqctl set_permissions -p augur_vhost augur ".*" ".*" ".*"``
+
+.. warning::
+  Be sure to send to `augur_vhost` value to whatever you set it to in the previous step. If you have only one instance of augur running, simply use augur_vhost to keep it simple. 
+
+NOTE: it is important to have a static hostname when using rabbitmq as it uses hostname
+to communicate with nodes.
+
+Then, start rabbitmq server with `sudo systemctl start rabbitmq.service`
+
+If your setup of rabbitmq is successful your broker url should look like this:
+
+broker_url = 'amqp://augur:password123@localhost:5672/augur_vhost'
+
+During installation you will be prompted for this broker url. 
+
 
 Backend
 ---------
@@ -39,19 +91,6 @@ Once you've installed Go, follow the appropriate steps for your system to instal
 -  Install gcc OpenMP Support: ``sudo apt-get install libgomp1`` -- Ubuntu 
 
 The ``message_insights_worker`` uses a system-level package called OpenMP. You will need this installed at the system level for that worker to work.
-
-Caching System (Redis)
-----------------
-* `Linux Installation <https://redis.io/docs/getting-started/installation/install-redis-on-linux/>`__
-* `Mac Installation <https://redis.io/docs/getting-started/installation/install-redis-on-mac-os/>`__
-* `Windows Installation <https://redis.io/docs/getting-started/installation/install-redis-on-windows/>`__
-
-Message Broker (RabbitMQ)
-----------------
-* `Linux Installation <https://www.rabbitmq.com/download.html>`__
-* `Mac Installation <https://www.rabbitmq.com/install-homebrew.html>`__
-* `Windows Installation <https://www.rabbitmq.com/install-windows.html>`__
-
 
 Frontend
 ---------
@@ -141,46 +180,6 @@ macOS takes "helpful" measures to prevent Python subprocesses (which Augur uses)
 
 .. warning::
   If you skip this step, you'll likely see all housekeeper jobs randomly exiting for no reason, and the Gunicorn server will not behave nicely either. Skip this step at your own risk!
-
-
-Operating System Level Services Required
-
-1. `redis-server` : We use `redis-server` for task and session persistence. 
- - ubuntu: `sudo systemctl install redis-server`. Default configuration is sufficient in most cases. 
-2. `rabbitMQ` : `rabbitMQ is used to stage all of the jobs generated during data collection. It communicates with `celery` to manage and monitor data collection status. To install MQ series: 
-
-```
-To set up rabbitmq for augur you must install it with the relevant package manager
-for your distro. You can find more info on how to install rabbitmq here https://www.rabbitmq.com/download.html.
-
-After installation, you must also set up your rabbitmq instance by running the below commands:
-
-sudo rabbitmqctl add_user augur password123
-
-sudo rabbitmqctl add_vhost augur_vhost 
-
-.. warning::
-  The `augur_vhost` value for `add_vhost` needs to be unique for every Augur instance running on a server. 
-
-sudo rabbitmqctl set_user_tags augur augurTag
-
-sudo rabbitmqctl set_permissions -p augur_vhost augur ".*" ".*" ".*"
-
-.. warning::
-  Be sure to send to `augur_vhost` value to whatever you set it to in the previous step. If you have only one instance of augur running, simply use augur_vhost to keep it simple. 
-
-NOTE: it is important to have a static hostname when using rabbitmq as it uses hostname
-to communicate with nodes.
-
-Then, start rabbitmq server with sudo systemctl start rabbitmq.service
-
-If your setup of rabbitmq is successful your broker url should look like this:
-
-broker_url = 'amqp://augur:password123@localhost:5672/augur_vhost'
-
-During installation you will be prompted for this broker url. 
-```
- 
 
 
 General Augur Installation Steps (Irrespective of Operating System)
