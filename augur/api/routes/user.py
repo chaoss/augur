@@ -23,7 +23,7 @@ from augur.util.repo_load_controller import RepoLoadController
 from augur.api.util import get_bearer_token
 from augur.api.util import get_client_token
 
-from augur.application.db.models import User, UserRepo, UserGroup, UserSessionToken, ClientApplication
+from augur.application.db.models import User, UserRepo, UserGroup, UserSessionToken, ClientApplication, RefreshToken
 from augur.application.config import get_development_flag
 from augur.tasks.init.redis_connection import redis_connection as redis
 
@@ -151,10 +151,30 @@ def create_routes(server):
     @server.app.route(f"/{AUGUR_API_VERSION}/user/session/refresh")
     @api_key_required
     def refresh_session():
-        refresh_token = request.args.get("refresh_token")
+        refresh_token_str = request.args.get("refresh_token")
 
+        if not refresh_token_str:
+            return jsonify({"status": "Invalid refresh token"})
+
+        session = Session()
+        refresh_token = session.query(RefreshToken).filter(RefreshToken.id == refresh_token_str).first()
         if not refresh_token:
             return jsonify({"status": "Invalid refresh token"})
+
+        user_session = refresh_token.user_session
+        user = user_session.user
+
+        new_user_session = UserSessionToken.create(user.user_id, user_session.application.id)
+        new_refresh_token = RefreshToken.create(new_user_session.token)
+        
+        if refresh_token.delete() != 1:
+            return jsonify({"status": "Error deleting refresh token"})
+
+        if user_session.delete() != 1:
+            return jsonify({"status": "Error deleting user session"})
+
+        return jsonify({"refresh_token": new_refresh_token.id, "session": new_user_session.token})
+
     
     @server.app.route(f"/{AUGUR_API_VERSION}/user/query", methods=['POST'])
     def query_user():

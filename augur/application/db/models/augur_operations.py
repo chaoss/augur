@@ -539,11 +539,6 @@ class User(Base):
         return True
 
 
-
-
-
-
-
 class UserGroup(Base):
     group_id = Column(BigInteger, primary_key=True)
     user_id = Column(Integer, 
@@ -597,6 +592,21 @@ class UserSessionToken(Base):
     user = relationship("User")
     application = relationship("ClientApplication")
 
+    @staticmethod
+    def create(user_id, application_id):
+        import time 
+
+        user_session_token = secrets.token_hex()
+        seconds_to_expire = 86400
+        expiration = int(time.time()) + seconds_to_expire
+
+        local_session = get_session()
+        user_session = UserSessionToken(token=user_session_token, user_id=user_id, application_id = application_id, expiration=expiration)
+
+        local_session.add(user_session)
+        local_session.commit()
+
+        return user_session
 
 class ClientApplication(Base):
     __tablename__ = "client_applications"
@@ -650,6 +660,32 @@ class SubscriptionType(Base):
     name = Column(String, nullable=False)
 
     subscriptions = relationship("Subscription")
+
+
+class RefreshToken(Base):
+    __tablename__ = "refresh_tokens"
+    __table_args__ = (
+        UniqueConstraint('user_session_token', name='refresh_token_user_session_token_id_unique'),
+        {"schema": "augur_operations"}
+    )
+
+    id = Column(String, primary_key=True)
+    user_session_token = Column(ForeignKey("augur_operations.user_session_tokens.token", name="refresh_token_session_token_id_fkey"), nullable=False)
+
+    user_session = relationship("UserSessionToken")
+
+    @staticmethod
+    def create(user_session_token_id):
+
+        refresh_token_id = secrets.token_hex()
+
+        local_session = get_session()
+        refresh_token = RefreshToken(id=refresh_token_id, user_session_token=user_session_token_id)
+
+        local_session.add(refresh_token)
+        local_session.commit()
+
+        return refresh_token
 
 
 
