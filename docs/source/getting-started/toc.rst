@@ -22,12 +22,13 @@ The next section will start with a database setup, and then you can continue wit
 Happy hacking!
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 3
 
-   prerequisites/database 
-   prerequisites/system-level
-   installation/virtual-box
-   installation/installing-augur
+   getting-started/installation/toc
+   deployment/toc
    collecting-data
    frontend
    command-line-interface/toc
+   rest-api
+   docker/toc
+

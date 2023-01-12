@@ -13,7 +13,7 @@ Caution - Multiple, or conflicting versions of PostgreSQL, sometimes lead to the
 
 **Redis-server and rabbitmq are required.** Instructions are next. 
 
-Caching System (Redis) - Augur uses `redis-server` for task and session persistence. 
+Caching System (Redis) - Augur uses ``redis-server`` for task and session persistence. 
 ----------------
 * `Linux Installation <https://redis.io/docs/getting-started/installation/install-redis-on-linux/>`__
 * `Mac Installation <https://redis.io/docs/getting-started/installation/install-redis-on-mac-os/>`__
