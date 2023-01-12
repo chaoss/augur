@@ -137,27 +137,19 @@ def create_routes(server):
         if not user:
             return jsonify({"status": "Invalid user"})
 
-        user_session_token = secrets.token_hex()
         seconds_to_expire = 86400
-        expiration = int(time.time()) + seconds_to_expire
 
-        session = Session()
-        user_session = UserSessionToken(token=user_session_token, user_id=user.user_id, application_id = application.id, expiration=expiration)
-
+        user_session_token = UserSessionToken.create(user.user_id, application.id, seconds_to_expire).token
         refresh_token = RefreshToken.create(user_session_token)
-
-        session.add(user_session)
-        session.commit()
-        session.close()
 
         response = jsonify({"status": "Validated", "username": username, "access_token": user_session_token, "refresh_token" : refresh_token.id, "token_type": "Bearer", "expires": seconds_to_expire})
         response.headers["Cache-Control"] = "no-store"
 
         return response
     
-    @server.app.route(f"/{AUGUR_API_VERSION}/user/session/refresh")
+    @server.app.route(f"/{AUGUR_API_VERSION}/user/session/refresh", methods=["GET", "POST"])
     @api_key_required
-    def refresh_session():
+    def refresh_session(application):
         refresh_token_str = request.args.get("refresh_token")
 
         if not refresh_token_str:
@@ -171,19 +163,20 @@ def create_routes(server):
         if not refresh_token:
             return jsonify({"status": "Invalid refresh token"})
 
+        if refresh_token.user_session.application == application:
+            return jsonify({"status": "Applications do not match"})
+
         user_session = refresh_token.user_session
         user = user_session.user
 
         new_user_session = UserSessionToken.create(user.user_id, user_session.application.id)
         new_refresh_token = RefreshToken.create(new_user_session.token)
         
-        if refresh_token.delete() != 1:
-            return jsonify({"status": "Error deleting refresh token"})
+        session.delete(refresh_token)
+        session.delete(user_session)
+        session.commit()
 
-        if user_session.delete() != 1:
-            return jsonify({"status": "Error deleting user session"})
-
-        return jsonify({"refresh_token": new_refresh_token.id, "access_token": new_user_session.token, "expires": 86400})
+        return jsonify({"status": "Validated", "refresh_token": new_refresh_token.id, "session": new_user_session.token})
 
     
     @server.app.route(f"/{AUGUR_API_VERSION}/user/query", methods=['POST'])
