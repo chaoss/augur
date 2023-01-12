@@ -538,6 +538,33 @@ class User(Base):
 
         return True
 
+    def toggle_group_favorite(self, group_name):
+
+        local_session = get_session()
+
+        group = local_session.query(UserGroup).filter(UserGroup.name == group_name, UserGroup.user_id == self.user_id).first()
+        if not group:
+            return False, {"status": "Group does not exist"}
+
+        group.favorited = not group.favorited
+
+        local_session.commit()
+
+        return True, {"status": "Success"}
+
+    def get_favorite_groups(self):
+
+        local_session = get_session()
+
+        try:
+            groups = local_session.query(UserGroup).filter(UserGroup.user_id == self.user_id, UserGroup.favorited == True).all()
+        except Exception as e:
+            print(f"Error while trying to get favorite groups: {e}")
+            return None, {"status": "Error when trying to get favorite groups"}
+
+        return groups, {"status": "Success"}
+
+
 
 class UserGroup(Base):
     group_id = Column(BigInteger, primary_key=True)
@@ -687,9 +714,3 @@ class RefreshToken(Base):
 
         return refresh_token
 
-
-
-
-
-
-    

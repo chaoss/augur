@@ -462,4 +462,46 @@ def create_routes(server):
 
         return jsonify({"status": "success", "data": data})
 
-        
+
+    @server.app.route(f"/{AUGUR_API_VERSION}/user/group/favorite/toggle", methods=['GET', 'POST'])
+    @login_required
+    def toggle_user_group_favorite():
+        """Toggle the favorite status on a group
+
+        Returns
+        -------
+        dict
+            A dictionairy with key of 'status' that indicates the success or failure of the operation
+        """
+
+        if not development and not request.is_secure:
+            return generate_upgrade_request()
+
+        group_name = request.args.get("group_name")
+
+        result = current_user.toggle_group_favorite(group_name)
+
+        return jsonify(result[1])
+
+    @server.app.route(f"/{AUGUR_API_VERSION}/user/groups/favorites", methods=['GET', 'POST'])
+    @login_required
+    def get_favorite_groups():
+        """Get a list of a users favorite groups
+
+        Returns
+        -------
+        list
+            A list of group names
+        """
+
+        if not development and not request.is_secure:
+            return generate_upgrade_request()
+
+        result = current_user.get_favorite_groups()
+        groups = result[0]
+        if groups is None:
+            return jsonify(result[1])
+
+        group_names = [group.name for group in groups]
+
+        return jsonify({"status": "success", "group_names": group_names})

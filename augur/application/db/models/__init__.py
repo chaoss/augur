@@ -102,5 +102,8 @@ from augur.application.db.models.augur_operations import (
     UserRepo,
     UserGroup,
     UserSessionToken,
-    ClientApplication
+    ClientApplication,
+    Subscription,
+    SubscriptionType,
+    RefreshToken
 )
