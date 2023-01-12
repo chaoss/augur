@@ -148,6 +148,14 @@ def create_routes(server):
        
         return jsonify({"status": "Validated", "username": username, "access_token": user_session_token, "token_type": "Bearer", "expires": seconds_to_expire})
     
+    @server.app.route(f"/{AUGUR_API_VERSION}/user/session/refresh")
+    @api_key_required
+    def refresh_session():
+        refresh_token = request.args.get("refresh_token")
+
+        if not refresh_token:
+            return jsonify({"status": "Invalid refresh token"})
+    
     @server.app.route(f"/{AUGUR_API_VERSION}/user/query", methods=['POST'])
     def query_user():
         if not development and not request.is_secure:
