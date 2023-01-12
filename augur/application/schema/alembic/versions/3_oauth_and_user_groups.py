@@ -1,7 +1,7 @@
-"""Added user groups and login keys
+"""Implemented oauth and user groups
 
-Revision ID: 2
-Revises: 1
+Revision ID: 3
+Revises: 2
 Create Date: 2022-12-19 11:00:37.509132
 
 """
@@ -16,8 +16,8 @@ CLI_USER_ID = 1
 
 
 # revision identifiers, used by Alembic.
-revision = '2'
-down_revision = '1'
+revision = '3'
+down_revision = '2'
 branch_labels = None
 depends_on = None
 
