@@ -129,7 +129,7 @@
                                     {%- set tableHeaders =
                                     [{"title" : "Group"},
                                     {"title" : "Number of repos"},
-                                    {"title" : "Favorite"}
+                                    {"title" : "Favorite"},
                                     {"title" : ""}]
                                     -%}
                                     <div class="display-table rounded w3-animate-opacity">
@@ -148,7 +148,7 @@
                                                 <tr>
                                                     <th scope="row"><a href="{{ url_for('user_group_view') }}?group={{ group.name }}">{{ group.name }}</a></th>
                                                     <td>{{ group.repos | length }}</td>
-                                                    <td><i onclick="toggleFavorite(this)" class="bi {% if group.favorited %} bi-star-fill {% else %} bi-star {% else %}"></i></td>
+                                                    <td><i onclick="toggleFavorite(this)" class="bi {% if group.favorited %} bi-star-fill {% else %} bi-star {% endif %}"></i></td>
                                                     <td><button class="btn btn-outline-primary btn-sm" onclick="delgroup(this, '{{ group.name }}')">Delete</button></td>
                                                 </tr>
                                                 {% endfor %}

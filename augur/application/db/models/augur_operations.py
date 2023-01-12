@@ -620,13 +620,12 @@ class UserSessionToken(Base):
     application = relationship("ClientApplication")
 
     @staticmethod
-    def create(user_id, application_id):
+    def create(user_id, application_id, seconds_to_expire=86400):
         import time 
 
         user_session_token = secrets.token_hex()
-        seconds_to_expire = 86400
         expiration = int(time.time()) + seconds_to_expire
-
+        
         local_session = get_session()
         user_session = UserSessionToken(token=user_session_token, user_id=user_id, application_id = application_id, expiration=expiration)
 
