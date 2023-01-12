@@ -122,9 +122,11 @@ def create_routes(server):
     @server.app.route(f"/{AUGUR_API_VERSION}/user/session/generate", methods=['POST'])
     @api_key_required
     def generate_session(application):
-        code = request.args.get("code")
-        if not code:
+        if not (code := request.args.get("code")):
             return jsonify({"status": "Invalid authorization code"})
+        
+        if request.args.get("grant_type") != "code":
+            return jsonify({"status": "Invalid grant type"})
 
         username = redis.get(code)
         redis.delete(code)
@@ -142,11 +144,16 @@ def create_routes(server):
         session = Session()
         user_session = UserSessionToken(token=user_session_token, user_id=user.user_id, application_id = application.id, expiration=expiration)
 
+        refresh_token = RefreshToken.create(user_session_token)
+
         session.add(user_session)
         session.commit()
         session.close()
-       
-        return jsonify({"status": "Validated", "username": username, "access_token": user_session_token, "token_type": "Bearer", "expires": seconds_to_expire})
+
+        response = jsonify({"status": "Validated", "username": username, "access_token": user_session_token, "refresh_token" : refresh_token.id, "token_type": "Bearer", "expires": seconds_to_expire})
+        response.headers["Cache-Control"] = "no-store"
+
+        return response
     
     @server.app.route(f"/{AUGUR_API_VERSION}/user/session/refresh")
     @api_key_required
@@ -155,6 +162,9 @@ def create_routes(server):
 
         if not refresh_token_str:
             return jsonify({"status": "Invalid refresh token"})
+        
+        if request.args.get("grant_type") != "refresh_token":
+            return jsonify({"status": "Invalid grant type"})
 
         session = Session()
         refresh_token = session.query(RefreshToken).filter(RefreshToken.id == refresh_token_str).first()
