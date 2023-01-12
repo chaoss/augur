@@ -165,7 +165,7 @@ def analyze_commit(session, repo_id, repo_loc, commit):
 			raise e
 
 
-		session.log_activity('Debug',f"Stored commit: {commit}")
+		#session.log_activity('Debug',f"Stored commit: {commit}")
 
 
 ### The real function starts here ###
