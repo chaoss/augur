@@ -14,6 +14,14 @@ Now that you’ve installed Augur’s application server, it’s time to configu
 
     # Terminal Window 2
 
+   # Start celery worker so it can accept tasks 
+   celery -A augur.tasks.init.celery_app.celery_app worker --loglevel=info
+
+
+.. code-block:: bash
+
+    # Terminal Window 3
+
    # To Start Augur: 
    (nohup augur backend start)
 

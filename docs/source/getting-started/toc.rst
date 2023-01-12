@@ -22,13 +22,10 @@ The next section will start with a database setup, and then you can continue wit
 Happy hacking!
 
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 1
 
-   getting-started/installation/toc
-   deployment/toc
+   database
+   installation
    collecting-data
    frontend
    command-line-interface/toc
-   rest-api
-   docker/toc
-
