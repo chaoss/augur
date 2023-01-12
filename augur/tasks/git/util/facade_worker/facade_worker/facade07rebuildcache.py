@@ -135,7 +135,7 @@ def fill_empty_affiliations(session):
             # One last check to see if it's an unmatched academic domain.
 
             if domain[-4:] in '.edu':
-                matches.append({'ca_affiliation':'(Academic)','ca_start_date':'1970-01-01'})
+                matches.append({'ca_affiliation':'(Academic)','ca_start_date':'\'1970-01-01\''})
 
         # Done looking. Now we process any matches that were found.
 
@@ -158,6 +158,7 @@ def fill_empty_affiliations(session):
                 except Exception as e: 
                     session.log_activity('Info', f"Error encountered: {e}")
                     session.log_activity('Info', f"Affiliation insertion failed for {email} ")
+                    session.log_activity('Info', f"Offending query: {update} ")
 
     def discover_alias(email):
 
