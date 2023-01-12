@@ -183,7 +183,7 @@ def create_routes(server):
         if user_session.delete() != 1:
             return jsonify({"status": "Error deleting user session"})
 
-        return jsonify({"refresh_token": new_refresh_token.id, "session": new_user_session.token})
+        return jsonify({"refresh_token": new_refresh_token.id, "access_token": new_user_session.token, "expires": 86400})
 
     
     @server.app.route(f"/{AUGUR_API_VERSION}/user/query", methods=['POST'])
