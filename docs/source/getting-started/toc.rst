@@ -24,8 +24,10 @@ Happy hacking!
 .. toctree::
    :maxdepth: 1
 
-   database
-   installation
+   prerequisites/database 
+   prerequisites/system-level
+   installation/virtual-box
+   installation/installing-augur
    collecting-data
    frontend
    command-line-interface/toc
