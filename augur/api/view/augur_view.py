@@ -43,10 +43,12 @@ def create_routes(server):
     @login_manager.unauthorized_handler
     def unauthorized():
 
-        token_str = get_bearer_token()
-        token = session.query(UserSessionToken).filter(UserSessionToken.token == token_str).first()
-        if not token:
-            return jsonify({"status": "Session expired"})
+        with DatabaseSession(logger) as db_session:
+
+            token_str = get_bearer_token()
+            token = db_session.query(UserSessionToken).filter(UserSessionToken.token == token_str).first()
+            if not token:
+                return jsonify({"status": "Session expired"})
             
         if AUGUR_API_VERSION in str(request.url_rule):
             return jsonify({"status": "Login required"})
