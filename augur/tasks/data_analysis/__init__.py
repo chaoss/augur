@@ -5,10 +5,15 @@ from augur.tasks.data_analysis.insight_worker.tasks import insight_model
 from augur.tasks.data_analysis.message_insights.tasks import message_insight_model
 from augur.tasks.data_analysis.pull_request_analysis_worker.tasks import pull_request_analysis_model
 from augur.application.db.session import DatabaseSession
+from augur.application.db.models import Repo 
 from augur.application.db.util import execute_session_query
+from celery import group, chain, chord, signature
+from augur.tasks.init.celery_app import celery_app as celery
+import logging 
 
+def machine_learning_phase():
 
-def machine_learning_phase(logger):
+    logger = logging.getLogger(machine_learning_phase.__name__)
 
     with DatabaseSession(logger) as session:
         query = session.query(Repo)
@@ -35,4 +40,5 @@ def machine_learning_phase(logger):
         
     task_chain = chain(*ml_tasks)
 
+    #task_chain.apply_async()
     return task_chain

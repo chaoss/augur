@@ -187,11 +187,10 @@ def create_features_for_structured_prediction(df, text_data_column_name, group_b
         X_cur = []
         if label_available: y_cur = []
         for ind, row in group.iterrows():
-            row['tfidf_features']['normalized_num_sentences'] = row['tfidf_features'][
-                                                                    'num_sentences'] / sentence_count  # added
-            row['tfidf_features']['normalized_num_words'] = row['tfidf_features']['num_words'] / word_count  # added
-            row['tfidf_features']['normalized_num_characters'] = row['tfidf_features'][
-                                                                     'num_characters'] / character_count  # added
+
+            row['tfidf_features']['normalized_num_sentences'] = row['tfidf_features']['num_sentences'] / sentence_count if sentence_count != 0 else 0
+            row['tfidf_features']['normalized_num_words'] = row['tfidf_features']['num_words'] / word_count  if word_count != 0 else 0
+            row['tfidf_features']['normalized_num_characters'] = row['tfidf_features']['num_characters'] / character_count  if character_count != 0 else 0
             # print(row)
             X_cur.append(row['tfidf_features'])
             if label_available: y_cur.append(row['majority_type'])

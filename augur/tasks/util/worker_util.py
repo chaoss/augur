@@ -16,8 +16,10 @@ def create_grouped_task_load(*args,processes=8,dataList=[],task=None):
     if not dataList or not task:
         raise AssertionError
     
-    numpyData = np.array(list(dataList))
-    listsSplitForProcesses = np.array_split(numpyData, processes)
+    print(f"Splitting {len(dataList)} items")
+    #numpyData = np.array(list(dataList))
+    listsSplitForProcesses = np.array_split(list(dataList), processes)
+    print("Done splitting items.")
 
     #print("args")
     #print(args)
@@ -53,6 +55,11 @@ def remove_duplicates_by_uniques(data, uniques):
     unique_values = {}
 
     unique_data = []
+
+    #Deal with null data being passed. 
+    if not uniques:
+        return data
+
     for x in data:
 
         # creates a key out of the uniques
