@@ -143,6 +143,46 @@ macOS takes "helpful" measures to prevent Python subprocesses (which Augur uses)
   If you skip this step, you'll likely see all housekeeper jobs randomly exiting for no reason, and the Gunicorn server will not behave nicely either. Skip this step at your own risk!
 
 
+Operating System Level Services Required
+
+1. `redis-server` : We use `redis-server` for task and session persistence. 
+ - ubuntu: `sudo systemctl install redis-server`. Default configuration is sufficient in most cases. 
+2. `rabbitMQ` : `rabbitMQ is used to stage all of the jobs generated during data collection. It communicates with `celery` to manage and monitor data collection status. To install MQ series: 
+
+```
+To set up rabbitmq for augur you must install it with the relevant package manager
+for your distro. You can find more info on how to install rabbitmq here https://www.rabbitmq.com/download.html.
+
+After installation, you must also set up your rabbitmq instance by running the below commands:
+
+sudo rabbitmqctl add_user augur password123
+
+sudo rabbitmqctl add_vhost augur_vhost 
+
+.. warning::
+  The `augur_vhost` value for `add_vhost` needs to be unique for every Augur instance running on a server. 
+
+sudo rabbitmqctl set_user_tags augur augurTag
+
+sudo rabbitmqctl set_permissions -p augur_vhost augur ".*" ".*" ".*"
+
+.. warning::
+  Be sure to send to `augur_vhost` value to whatever you set it to in the previous step. If you have only one instance of augur running, simply use augur_vhost to keep it simple. 
+
+NOTE: it is important to have a static hostname when using rabbitmq as it uses hostname
+to communicate with nodes.
+
+Then, start rabbitmq server with sudo systemctl start rabbitmq.service
+
+If your setup of rabbitmq is successful your broker url should look like this:
+
+broker_url = 'amqp://augur:password123@localhost:5672/augur_vhost'
+
+During installation you will be prompted for this broker url. 
+```
+ 
+
+
 General Augur Installation Steps (Irrespective of Operating System)
 --------------------------------------------------------------
 
