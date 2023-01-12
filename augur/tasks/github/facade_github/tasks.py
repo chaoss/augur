@@ -102,8 +102,6 @@ def process_commit_metadata(session,contributorQueue,repo_id):
         # Use the email found in the commit data if api data is NULL
         emailFromCommitData = contributor['email_raw'] if 'email_raw' in contributor else contributor['email']
 
-        session.logger.info(
-            f"Successfully retrieved data from github for email: {emailFromCommitData}")
 
         # Get name from commit if not found by GitHub
         name_field = contributor['commit_name'] if 'commit_name' in contributor else contributor['name']
@@ -152,7 +150,7 @@ def process_commit_metadata(session,contributorQueue,repo_id):
                 #"data_source": interface.data_source
             }
 
-            session.logger.info(f"{cntrb}")
+            #session.logger.info(f"{cntrb}")
 
         except Exception as e:
             session.logger.info(f"Error when trying to create cntrb: {e}")
