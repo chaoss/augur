@@ -296,15 +296,13 @@ def create_routes(server):
 
         return jsonify(result[1])
 
-    @server.app.route(f"/{AUGUR_API_VERSION}/user/group/repos", methods=['GET', 'POST'])
+    @server.app.route(f"/{AUGUR_API_VERSION}/user/group/repos/", methods=['GET', 'POST'])
     @login_required
     def group_repos():
         """Select repos from a user group by name
 
         Arguments
         ----------
-        username : str
-            The username of the user making the request
         group_name : str
             The name of the group to select
         page : int = 0 -> [>= 0]
@@ -333,9 +331,14 @@ def create_routes(server):
 
         result = current_user.get_group_repos(group_name, page, page_size, sort, direction)
 
+
         result_dict = result[1]
         if result[0] is not None:
-            result_dict.update({"repos": result[0]})
+            
+            for repo in result[0]:
+                repo["base64_url"] = str(repo["base64_url"].decode())
+
+            result_dict.update({"repos": result[0]})        
 
         return jsonify(result_dict)
 
@@ -370,7 +373,7 @@ def create_routes(server):
 
         return jsonify(result_dict)
 
-    @server.app.route(f"/{AUGUR_API_VERSION}/user/groups", methods=['GET', 'POST'])
+    @server.app.route(f"/{AUGUR_API_VERSION}/user/groups/names", methods=['GET', 'POST'])
     @login_required
     def get_user_groups():
         """Get a list of user groups by username
@@ -393,4 +396,32 @@ def create_routes(server):
 
         return jsonify({"status": "success", "group_names": result[0]})
 
+    @server.app.route(f"/{AUGUR_API_VERSION}/user/groups/repos/ids", methods=['GET', 'POST'])
+    @login_required
+    def get_user_groups_and_repos():
+        """Get a list of user groups and their repos
 
+        Returns
+        -------
+        list
+            A list with this strucutre : [{"<group_name>": <list_of_repos}, ...]
+        """
+
+        if not development and not request.is_secure:
+            return generate_upgrade_request()
+
+        result = current_user.get_groups()
+        if not result[0]:
+            return result[1]
+
+        groups = result[0]
+        data = []
+        for group in groups:
+
+            repo_ids = [repo.repo_id for repo in group.repos]
+            data.append({group.name : repo_ids})
+        
+
+        return jsonify({"status": "success", "data": data})
+
+        

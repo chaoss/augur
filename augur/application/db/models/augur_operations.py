@@ -481,6 +481,8 @@ class User(Base):
 
         local_session = get_session()
 
+        print("Get group repos")
+
         result = RepoLoadController(local_session).paginate_repos("group", page, page_size, sort, direction, user=self, group_name=group_name)
 
         return result
@@ -548,6 +550,7 @@ class UserGroup(Base):
                     ForeignKey("augur_operations.users.user_id", name="user_group_user_id_fkey")
     )
     name = Column(String, nullable=False)
+    favorited = Column(Boolean, nullable=False, server_default=text("FALSE"))
     __tablename__ = 'user_groups'
     __table_args__ = (
         UniqueConstraint('user_id', 'name', name='user_group_unique'),
@@ -611,6 +614,7 @@ class ClientApplication(Base):
 
     user = relationship("User")
     sessions = relationship("UserSessionToken")
+    subscriptions = relationship("Subscription")
 
     @staticmethod
     def get_by_id(client_id):
@@ -618,5 +622,38 @@ class ClientApplication(Base):
         local_session = get_session()
 
         return local_session.query(ClientApplication).filter(ClientApplication.id == client_id).first()
+
+
+class Subscription(Base):
+    __tablename__ = "subscriptions"
+    __table_args__ = (
+        {
+            "schema": "augur_operations"
+        }
+    )
+
+    application_id = Column(ForeignKey("augur_operations.client_applications.id", name="subscriptions_application_id_fkey"), primary_key=True)
+    type_id = Column(ForeignKey("augur_operations.subscription_types.id", name="subscriptions_type_id_fkey"), primary_key=True)
+
+    application = relationship("ClientApplication")
+    type = relationship("SubscriptionType")
+
+class SubscriptionType(Base):
+    __tablename__ = "subscription_types"
+    __table_args__ = (
+        UniqueConstraint('name', name='subscription_type_title_unique'),
+        {"schema": "augur_operations"}
+    )
+
+
+    id = Column(BigInteger, primary_key=True)
+    name = Column(String, nullable=False)
+
+    subscriptions = relationship("Subscription")
+
+
+
+
+
 
     
