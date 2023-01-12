@@ -148,7 +148,7 @@
                                                 <tr>
                                                     <th scope="row"><a href="{{ url_for('user_group_view') }}?group={{ group.name }}">{{ group.name }}</a></th>
                                                     <td>{{ group.repos | length }}</td>
-                                                    <td><i onclick="toggleFavorite(this)" class="bi {% if group.favorited %} bi-star-fill {% else %} bi-star {% endif %}"></i></td>
+                                                    <td><i onclick="toggleFavorite(this, '{{ group.name }}')" class="bi {% if group.favorited %} bi-star-fill {% else %} bi-star {% endif %} cursor-pointer"></i></td>
                                                     <td><button class="btn btn-outline-primary btn-sm" onclick="delgroup(this, '{{ group.name }}')">Delete</button></td>
                                                 </tr>
                                                 {% endfor %}
@@ -373,14 +373,20 @@
             button.classList.add("btn-outline-danger");
         }
     }
-    var toggleFavorite = function(button) {
-        if(button.classList.contains("bi-star-fill")) {
-            button.classList.remove("bi-star-fill");
-            button.classList.add("bi-star");
-        } else {
-            button.classList.remove("bi-star");
-            button.classList.add("bi-star-fill");
-        }
+    var toggleFavorite = function(button, group) {
+        fetch("{{ url_for("toggle_user_group_favorite") }}?group_name=" + group)
+            .then((response) => response.json())
+            .then((data) => {
+                if (data.status == "Success") {
+                    if (button.classList.contains("bi-star-fill")) {
+                        button.classList.remove("bi-star-fill");
+                        button.classList.add("bi-star");
+                    } else {
+                        button.classList.remove("bi-star");
+                        button.classList.add("bi-star-fill");
+                    }
+                }
+            });
     }
 </script>
 <script type="text/javascript">
