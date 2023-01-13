@@ -196,8 +196,11 @@ def analyze_commits_in_parallel(queue: list, multithreaded: bool)-> None:
 
     logger.info(f"Got to analysis!")
     session = FacadeSession(logger)
-    for commitTuple in queue:
+    for count, commitTuple in enumerate(queue):
         
+        #Log progress when another quarter of the queue has been processed
+        if (count + 1) % int(len(queue) / 4) == 0:
+            logging.info(f"Progress through current analysis queue is {(count / len(queue)) * 100}%")
 
         query = session.query(Repo).filter(Repo.repo_id == commitTuple[1])
         repo = execute_session_query(query,'one')
@@ -341,6 +344,7 @@ def generate_analysis_sequence(logger):
 def generate_contributor_sequence(logger):
     
     contributor_sequence = []
+    all_repo_ids = []
     with FacadeSession(logger) as session:
         
         #contributor_sequence.append(facade_start_contrib_analysis_task.si())
@@ -349,10 +353,11 @@ def generate_contributor_sequence(logger):
         all_repos = session.fetchall_data_from_sql_text(query)
         #pdb.set_trace()
         #breakpoint()
-        for repo in all_repos:
-            contributor_sequence.append(insert_facade_contributors.si(repo['repo_id']))
+        #for repo in all_repos:
+        #    contributor_sequence.append(insert_facade_contributors.si(repo['repo_id']))
+        all_repo_ids = [repo['repo_id'] for repo in all_repos]
 
-    contrib_group = group(contributor_sequence)
+    contrib_group = create_grouped_task_load(dataList=all_repo_ids,task=insert_facade_contributors)#group(contributor_sequence)
     contrib_group.link_error(facade_error_handler.s())
     return contrib_group#chain(facade_start_contrib_analysis_task.si(), contrib_group)
 
