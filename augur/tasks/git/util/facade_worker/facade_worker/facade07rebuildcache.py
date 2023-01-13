@@ -135,7 +135,7 @@ def fill_empty_affiliations(session):
             # One last check to see if it's an unmatched academic domain.
 
             if domain[-4:] in '.edu':
-                matches.append({'ca_affiliation':'(Academic)','ca_start_date':'\'1970-01-01\''})
+                matches.append({'ca_affiliation':'(Academic)','ca_start_date':'1970-01-01'})
 
         # Done looking. Now we process any matches that were found.
 
@@ -148,7 +148,7 @@ def fill_empty_affiliations(session):
                     f"SET cmt_{attribution}_affiliation = :affiliation "
                     f"WHERE cmt_{attribution}_email = :email "
                     f"AND cmt_{attribution}_affiliation IS NULL "
-                    f"AND cmt_{attribution}_date::date >= {match['ca_start_date']}::date")
+                    f"AND cmt_{attribution}_date::date >= \'{match['ca_start_date']}\'::date")
                     ).bindparams(affiliation=match['ca_affiliation'],email=email)
 
                 session.log_activity('Info', f"attr: {attribution} \nmatch:{match}\nsql: {update}")
