@@ -200,7 +200,7 @@ def analyze_commits_in_parallel(queue: list, multithreaded: bool)-> None:
         
         #Log progress when another quarter of the queue has been processed
         if (count + 1) % int(len(queue) / 4) == 0:
-            logging.info(f"Progress through current analysis queue is {(count / len(queue)) * 100}%")
+            logger.info(f"Progress through current analysis queue is {(count / len(queue)) * 100}%")
 
         query = session.query(Repo).filter(Repo.repo_id == commitTuple[1])
         repo = execute_session_query(query,'one')
