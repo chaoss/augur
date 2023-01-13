@@ -618,6 +618,7 @@ class UserSessionToken(Base):
 
     user = relationship("User")
     application = relationship("ClientApplication")
+    refresh_tokens = relationship("RefreshToken")
 
     @staticmethod
     def create(user_id, application_id, seconds_to_expire=86400):
@@ -633,6 +634,16 @@ class UserSessionToken(Base):
         local_session.commit()
 
         return user_session
+
+    def delete_refresh_tokens(self, session):
+
+        refresh_tokens = self.refresh_tokens
+        for token in refresh_tokens:
+            session.delete(token)
+        session.commit()
+
+        session.delete(self)
+        session.commit()
 
 class ClientApplication(Base):
     __tablename__ = "client_applications"

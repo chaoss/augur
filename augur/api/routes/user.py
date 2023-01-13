@@ -115,15 +115,16 @@ def create_routes(server):
         code = secrets.token_hex()
         username = current_user.login_name
 
-        redis.set(code, username, ex=30)
+        redis.set(code, username, ex=300)
 
         return jsonify({"status": "Validated", "code": code})
 
     @server.app.route(f"/{AUGUR_API_VERSION}/user/session/generate", methods=['POST'])
     @api_key_required
     def generate_session(application):
-        if not (code := request.args.get("code")):
-            return jsonify({"status": "Invalid authorization code"})
+        code = request.args.get("code")
+        if not code:
+            return jsonify({"status": "Missing argument: code"})
         
         if request.args.get("grant_type") != "code":
             return jsonify({"status": "Invalid grant type"})
@@ -138,6 +139,14 @@ def create_routes(server):
             return jsonify({"status": "Invalid user"})
 
         seconds_to_expire = 86400
+
+        with DatabaseSession(logger) as session:
+
+            existing_session = session.query(UserSessionToken).filter(UserSessionToken.user_id == user.user_id, UserSessionToken.application_id == application.id).first()
+            if existing_session:
+                existing_session.delete_refresh_tokens(session)
+
+            
 
         user_session_token = UserSessionToken.create(user.user_id, application.id, seconds_to_expire).token
         refresh_token = RefreshToken.create(user_session_token)

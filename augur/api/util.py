@@ -82,7 +82,6 @@ def register_metric(metadata=None, **kwargs):
 """
 def get_token(token_type):
     auth = request.headers.get("Authorization")
-
     if auth:
         tokens = auth.split(",")
         for token in tokens:
