@@ -59,12 +59,11 @@ def start(disable_collection, development, port):
     with DatabaseSession(logger) as session:
    
         gunicorn_location = os.getcwd() + "/augur/api/gunicorn_conf.py"
-        host = session.config.get_value("Server", "host")
 
         if not port:
             port = session.config.get_value("Server", "port")
 
-        gunicorn_command = f"gunicorn -c {gunicorn_location} -b {host}:{port} --preload augur.api.server:app"
+        gunicorn_command = f"gunicorn -c {gunicorn_location} --preload augur.api.server:app"
         server = subprocess.Popen(gunicorn_command.split(" "))
 
         time.sleep(3)
