@@ -87,6 +87,7 @@ def repo_collect_phase():
             *repo_info_tasks,
             chain(primary_repo_jobs,secondary_repo_jobs,process_contributors.si()),
             generate_facade_chain(logger),
+            create_grouped_task_load(dataList=all_repo_git_identifiers,task=process_dependency_metrics),
             collect_releases.si()
         )
     
