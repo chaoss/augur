@@ -1,12 +1,4 @@
-import python_deps
-import ruby_deps
-import php_deps
-import javascript_deps
-import vb_deps
-import csharp_deps
-import java_deps
-import cpp_deps
-import c_deps
+from augur.tasks.git.dependency_tasks.dependency_util import *
 
 class Dep:
 	def __init__(self, name, language, count):

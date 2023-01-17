@@ -3,6 +3,7 @@ import logging
 import requests
 import json
 from augur.application.db.data_parse import *
+from augur.application.db.models import *
 from augur.application.db.session import DatabaseSession
 from augur.tasks.init.celery_app import engine
 from augur.application.db.util import execute_session_query
