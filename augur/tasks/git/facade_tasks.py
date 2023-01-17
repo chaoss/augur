@@ -251,6 +251,9 @@ def generate_analysis_sequence(logger):
     is interrupted (possibly leading to partial data in the database for the
     commit being analyzed at the time) we can recover.
     """
+
+    
+    
     analysis_sequence = []
 
     with FacadeSession(logger) as session:
@@ -261,11 +264,14 @@ def generate_analysis_sequence(logger):
 
         repo_ids = [repo['repo_id'] for repo in repos]
 
+        #determine amount of celery tasks to run at once in each grouped task load
+        concurrentTasks = int((-1 * (100/(len(repo_ids)+1))) + 100)
+
         analysis_sequence.append(facade_analysis_init_facade_task.si())
 
-        analysis_sequence.append(create_grouped_task_load(dataList=repo_ids,task=grab_comitters))
+        analysis_sequence.append(create_grouped_task_load(dataList=repo_ids,task=grab_comitters,processes=concurrentTasks))
 
-        analysis_sequence.append(create_grouped_task_load(dataList=repo_ids,task=trim_commits_facade_task))
+        analysis_sequence.append(create_grouped_task_load(dataList=repo_ids,task=trim_commits_facade_task,processes=concurrentTasks))
 
         all_missing_commits = []
         all_trimmed_commits = []
@@ -329,10 +335,10 @@ def generate_analysis_sequence(logger):
         
 
         if all_missing_commits:
-            analysis_sequence.append(create_grouped_task_load(True,dataList=all_missing_commits,task=analyze_commits_in_parallel))
+            analysis_sequence.append(create_grouped_task_load(True,dataList=all_missing_commits,task=analyze_commits_in_parallel,processes=concurrentTasks))
 
         if all_trimmed_commits:
-            analysis_sequence.append(create_grouped_task_load(dataList=all_trimmed_commits,task=trim_commits_post_analysis_facade_task))
+            analysis_sequence.append(create_grouped_task_load(dataList=all_trimmed_commits,task=trim_commits_post_analysis_facade_task,processes=concurrentTasks))
         
         analysis_sequence.append(facade_analysis_end_facade_task.si())
     
@@ -367,6 +373,7 @@ def generate_contributor_sequence(logger):
 def generate_facade_chain(logger):
     #raise NotImplemented
 
+    logger.info("Generating facade sequence")
     with FacadeSession(logger) as session:
         
         # Figure out what we need to do
