@@ -21,6 +21,7 @@ from collections import Counter
 
 from augur.tasks.init.celery_app import celery_app as celery
 from augur.application.db.session import DatabaseSession
+from augur.application.config import AugurConfig
 from augur.application.db.models import Repo, RepoClusterMessage, RepoTopic, TopicWord
 from augur.application.db.engine import create_database_engine
 from augur.application.db.util import execute_session_query
@@ -51,13 +52,15 @@ def clustering_model(repo_git: str) -> None:
 
     with DatabaseSession(logger) as session:
 
+        config = AugurConfig(logger, session)
+
         query = session.query(Repo).filter(Repo.repo_git == repo_git)
         repo_id = execute_session_query(query, 'one').repo_id
 
-        num_clusters = session.config.get_value("Clustering_Task", 'num_clusters')
-        max_df = session.config.get_value("Clustering_Task", 'max_df')
-        max_features = session.config.get_value("Clustering_Task", 'max_features')
-        min_df = session.config.get_value("Clustering_Task", 'min_df')
+        num_clusters = config.get_value("Clustering_Task", 'num_clusters')
+        max_df = config.get_value("Clustering_Task", 'max_df')
+        max_features = config.get_value("Clustering_Task", 'max_features')
+        min_df = config.get_value("Clustering_Task", 'min_df')
 
         logger.info(f"Min df: {min_df}. Max df: {max_df}")
 

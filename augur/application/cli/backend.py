@@ -23,6 +23,7 @@ from augur.tasks.init.redis_connection import redis_connection
 from augur.application.db.models import Repo
 from augur.application.db.session import DatabaseSession
 from augur.application.logs import AugurLogger
+from augur.application.config import AugurConfig
 from augur.application.cli import test_connection, test_db_connection 
 
 
@@ -57,18 +58,20 @@ def start(disable_collection, development, port):
 
     
     with DatabaseSession(logger) as session:
+
+        config = AugurConfig(logger, session)
    
         gunicorn_location = os.getcwd() + "/augur/api/gunicorn_conf.py"
 
         if not port:
-            port = session.config.get_value("Server", "port")
+            port = config.get_value("Server", "port")
 
         gunicorn_command = f"gunicorn -c {gunicorn_location} --preload augur.api.server:app"
         server = subprocess.Popen(gunicorn_command.split(" "))
 
         time.sleep(3)
         logger.info('Gunicorn webserver started...')
-        logger.info(f'Augur is running at: http://127.0.0.1:{session.config.get_value("Server", "port")}')
+        logger.info(f'Augur is running at: http://127.0.0.1:{config.get_value("Server", "port")}')
 
         worker_1_process = None
         cpu_worker_process = None
