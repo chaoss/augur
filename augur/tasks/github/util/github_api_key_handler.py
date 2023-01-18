@@ -3,7 +3,6 @@ import time
 
 from typing import Optional, List
 
-from augur.application.db.models import WorkerOauth
 from augur.tasks.util.redis_list import RedisList
 from augur.application.db.session import DatabaseSession
 from augur.application.config import AugurConfig
@@ -25,7 +24,7 @@ class GithubApiKeyHandler():
 
         self.session = session
         self.logger = session.logger
-        self.config = AugurConfig(logger, session)
+        self.config = AugurConfig(self.logger, session)
 
         self.oauth_redis_key = "oauth_keys_list"
 
@@ -55,6 +54,8 @@ class GithubApiKeyHandler():
         Returns:
             Github api keys that are in the database
         """
+        from augur.application.db.models import WorkerOauth
+
         select = WorkerOauth.access_token
         where = [WorkerOauth.access_token != self.config_key, WorkerOauth.platform == 'github']
 

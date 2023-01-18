@@ -7,6 +7,7 @@ import logging
 import json
 from sqlalchemy.orm import Session
 from sqlalchemy.dialects import postgresql
+from sqlalchemy.exc import OperationalError
 
 from typing import Optional, List, Union
 from psycopg2.errors import DeadlockDetected
@@ -168,7 +169,7 @@ class DatabaseSession(Session):
                     with EngineConnection(self.engine) as connection:
                         connection.execute(stmnt)
                         break
-                except s.exc.OperationalError as e:
+                except OperationalError as e:
                     # print(str(e).split("Process")[1].split(";")[0])
                     if isinstance(e.orig, DeadlockDetected):
                         deadlock_detected = True
@@ -207,7 +208,7 @@ class DatabaseSession(Session):
                 with EngineConnection(self.engine) as connection:
                     return_data_tuples = connection.execute(stmnt).fetchall()
                     break
-            except s.exc.OperationalError as e:
+            except OperationalError as e:
                 if isinstance(e.orig, DeadlockDetected):
                     sleep_time = random.choice(sleep_time_list)
                     self.logger.debug(f"Deadlock detected on {table.__table__} table...trying again in {round(sleep_time)} seconds: transaction size: {len(data)}")
