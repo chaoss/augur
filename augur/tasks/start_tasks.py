@@ -19,6 +19,7 @@ from augur.tasks.github.releases.tasks import collect_releases
 from augur.tasks.github.repo_info.tasks import collect_repo_info
 from augur.tasks.github.pull_requests.files_model.tasks import process_pull_request_files
 from augur.tasks.github.pull_requests.commits_model.tasks import process_pull_request_commits
+from augur.tasks.git.dependency_tasks.tasks import process_dependency_metrics
 from augur.tasks.git.facade_tasks import *
 from augur.tasks.db.refresh_materialized_views import *
 # from augur.tasks.data_analysis import *
@@ -87,6 +88,7 @@ def repo_collect_phase():
             *repo_info_tasks,
             chain(primary_repo_jobs,secondary_repo_jobs,process_contributors.si()),
             generate_facade_chain(logger),
+            *create_grouped_task_load(dataList=all_repo_git_identifiers,task=process_dependency_metrics).tasks,
             collect_releases.si()
         )
     

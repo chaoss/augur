@@ -435,6 +435,6 @@ def generate_facade_chain(logger):
         if not limited_run or (limited_run and rebuild_caches):
             facade_sequence.append(rebuild_unknown_affiliation_and_web_caches_facade_task.si().on_error(facade_error_handler.s()))#rebuild_unknown_affiliation_and_web_caches(session.cfg)
         
-        #logger.info(f"Facade sequence: {facade_sequence}")
+        logger.info(f"Facade sequence: {facade_sequence}")
         return chain(*facade_sequence)
 
