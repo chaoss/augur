@@ -116,6 +116,7 @@ def start(disable_collection, development, port):
 
         try:
             clear_redis_caches()
+            clear_rabbitmq_messages()
             
         except RedisConnectionError:
             pass
@@ -129,6 +130,7 @@ def stop():
     _broadcast_signal_to_processes(given_logger=logging.getLogger("augur.cli"))
 
     clear_redis_caches()
+    clear_rabbitmq_messages()
 
 @cli.command('kill')
 def kill():
@@ -138,6 +140,7 @@ def kill():
     _broadcast_signal_to_processes(broadcast_signal=signal.SIGKILL, given_logger=logging.getLogger("augur.cli"))
 
     clear_redis_caches()
+    clear_rabbitmq_messages()
 
 def clear_redis_caches():
     """Clears the redis databases that celery and redis use."""
@@ -146,6 +149,12 @@ def clear_redis_caches():
     celery_purge_command = "celery -A augur.tasks.init.celery_app.celery_app purge -f"
     subprocess.call(celery_purge_command.split(" "))
     redis_connection.flushdb()
+
+def clear_rabbitmq_messages():
+    logger.info("Clearing all messages from celery queue in rabbitmq")
+    rabbitmq_purge_command = "sudo rabbitmqctl purge_queue celery -p augur_vhost"
+    subprocess.call(rabbitmq_purge_command.split(" "))
+
 
 @cli.command('export-env')
 def export_env(config):
