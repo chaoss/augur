@@ -1,4 +1,13 @@
-from augur.tasks.git.dependency_tasks.dependency_util import *
+from augur.tasks.git.dependency_tasks.dependency_util import python_deps
+from augur.tasks.git.dependency_tasks.dependency_util import ruby_deps
+from augur.tasks.git.dependency_tasks.dependency_util import php_deps
+from augur.tasks.git.dependency_tasks.dependency_util import javascript_deps
+from augur.tasks.git.dependency_tasks.dependency_util import vb_deps
+from augur.tasks.git.dependency_tasks.dependency_util import csharp_deps
+from augur.tasks.git.dependency_tasks.dependency_util import java_deps
+from augur.tasks.git.dependency_tasks.dependency_util import cpp_deps
+from augur.tasks.git.dependency_tasks.dependency_util import c_deps
+from augur.tasks.git.dependency_tasks.dependency_util import dependency_calculator
 
 class Dep:
 	def __init__(self, name, language, count):
