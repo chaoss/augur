@@ -4,6 +4,7 @@ from sqlalchemy.dialects.postgresql import TIMESTAMP, UUID
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.orm import relationship
 from werkzeug.security import generate_password_hash, check_password_hash
+from augur.application.db.session import DatabaseSession
 import logging 
 import secrets
 

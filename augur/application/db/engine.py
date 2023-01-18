@@ -5,7 +5,6 @@ import sys
 import logging
 import inspect
 from sqlalchemy import create_engine, event
-from augur.application.logs import initialize_stream_handler
 from augur.application.db.util import catch_operational_error
 
 

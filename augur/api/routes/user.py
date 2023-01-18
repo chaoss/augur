@@ -24,6 +24,7 @@ from augur.api.util import get_bearer_token
 from augur.api.util import get_client_token
 
 from augur.application.db.models import User, UserRepo, UserGroup, UserSessionToken, ClientApplication, RefreshToken
+from augur.application.db.session import DatabaseSession
 from augur.application.config import get_development_flag
 from augur.tasks.init.redis_connection import redis_connection as redis
 

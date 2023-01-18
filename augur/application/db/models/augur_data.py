@@ -23,6 +23,8 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.sql import text
 import logging
 
+from augur.application.db.session import DatabaseSession
+
 from augur.application.db.models.base import Base
 from augur.application import requires_db_session
 
