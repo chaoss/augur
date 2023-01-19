@@ -67,7 +67,6 @@ def init_config(github_api_key, facade_repo_directory, gitlab_api_key, redis_con
 
         default_config = config.default_config
 
-        print(f"Dir {os.getcwd()}")
         phase_names = get_phase_names_without_import()
 
         #Add all phases as enabled by default

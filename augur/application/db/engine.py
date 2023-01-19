@@ -26,7 +26,12 @@ def get_database_string() -> str:
 
     augur_db_environment_var = os.getenv("AUGUR_DB")
 
-    current_dir = os.getcwd()
+    try:
+        current_dir = os.getcwd()
+    except FileNotFoundError:
+        print("\n\nPlease run augur commands in the root directory\n\n")
+        sys.exit()
+
     db_json_file_location = current_dir + "/db.config.json"
     db_json_exists = os.path.exists(db_json_file_location)
 

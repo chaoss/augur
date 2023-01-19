@@ -56,18 +56,21 @@ def start(disable_collection, development, port):
         os.environ["AUGUR_DEV"] = "1"
         logger.info("Starting in development mode")
 
-    gunicorn_location = os.getcwd() + "/augur/api/gunicorn_conf.py"
+    try:
+        gunicorn_location = os.getcwd() + "/augur/api/gunicorn_conf.py"
+    except FileNotFoundError:
+        logger.error("\n\nPlease run augur commands in the root directory\n\n")
+
+    db_session = DatabaseSession(logger)
+    config = AugurConfig(logger, db_session)
+    host = config.get_value("Server", "host")
 
     if not port:
-
-        db_session = DatabaseSession(logger)
-        config = AugurConfig(logger, db_session)
         port = config.get_value("Server", "port")
-        db_session.invalidate()
+        
+    db_session.invalidate()
 
-
-    print("Creating gunicorn app")
-    gunicorn_command = f"gunicorn -c {gunicorn_location} --preload augur.api.server:app"
+    gunicorn_command = f"gunicorn -c {gunicorn_location} -b {host}:{port} --preload augur.api.server:app"
     server = subprocess.Popen(gunicorn_command.split(" "))
 
     time.sleep(3)

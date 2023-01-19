@@ -52,7 +52,12 @@ logger = logging.getLogger(__name__)
 def get_database_args_from_env():
 
     db_str = os.getenv("AUGUR_DB")
-    db_json_file_location = os.getcwd() + "/db.config.json"
+    try:
+        db_json_file_location = os.getcwd() + "/db.config.json"
+    except FileNotFoundError:
+        logger.error("\n\nPlease run augur commands in the root directory\n\n")
+        sys.exit()
+
     db_json_exists = os.path.exists(db_json_file_location)
 
     if not db_str and not db_json_exists:

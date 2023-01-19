@@ -9,7 +9,7 @@ from tests.test_applicaton.test_repo_load_controller.helper import *
 from augur.application.db.models import UserRepo
 
 logger = logging.getLogger(__name__)
-VALID_ORG = {"org": "CDCgov", "repo_count": 248}
+VALID_ORG = {"org": "CDCgov", "repo_count": 249}
 DEFAULT_REPO_GROUP_ID = 1
 
 
