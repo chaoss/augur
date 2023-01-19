@@ -11,6 +11,7 @@ import logging
 import secrets
 
 from augur.application.db.models import Repo
+from augur.application.db.session import DatabaseSession
 from augur.application.db.models.base import Base
 DEFAULT_REPO_GROUP_ID = 1
 
@@ -274,8 +275,8 @@ class User(Base):
         self._is_anoymous = val
 
     @staticmethod
-    def exists(username):
-        return User.get_user(username) is not None
+    def exists(session, username):
+        return User.get_user(session, username) is not None
 
     def get_id(self):
         return self.login_name
@@ -301,31 +302,33 @@ class User(Base):
             return None
                 
     @staticmethod
-    def create_user(session, username: str, password: str, email: str, first_name:str, last_name:str, admin=False):
+    def create_user(username: str, password: str, email: str, first_name:str, last_name:str, admin=False):
 
         if username is None or password is None or email is None or first_name is None or last_name is None:
             return False, {"status": "Missing field"} 
 
-        user = session.query(User).filter(User.login_name == username).first()
-        if user is not None:
-            return False, {"status": "A User already exists with that username"}
+        with DatabaseSession(logger) as session:
 
-        emailCheck = session.query(User).filter(User.email == email).first()
-        if emailCheck is not None:
-            return False, {"status": "A User already exists with that email"}
+            user = session.query(User).filter(User.login_name == username).first()
+            if user is not None:
+                return False, {"status": "A User already exists with that username"}
 
-        try:
-            user = User(login_name = username, login_hashword = generate_password_hash(password), email = email, first_name = first_name, last_name = last_name, tool_source="User API", tool_version=None, data_source="API", admin=admin)
-            session.add(user)
-            session.commit()
+            emailCheck = session.query(User).filter(User.email == email).first()
+            if emailCheck is not None:
+                return False, {"status": "A User already exists with that email"}
 
-            result = user.add_group("default")
-            if not result[0] and result[1]["status"] != "Group already exists":
-                return False, {"status": "Failed to add default group for the user"}
+            try:
+                user = User(login_name = username, login_hashword = generate_password_hash(password), email = email, first_name = first_name, last_name = last_name, tool_source="User API", tool_version=None, data_source="API", admin=admin)
+                session.add(user)
+                session.commit()
 
-            return True, {"status": "Account successfully created"}
-        except AssertionError as exception_message: 
-            return False, {"Error": f"{exception_message}."}
+                result = user.add_group(session, "default")
+                if not result[0] and result[1]["status"] != "Group already exists":
+                    return False, {"status": "Failed to add default group for the user"}
+
+                return True, {"status": "Account successfully created"}
+            except AssertionError as exception_message: 
+                return False, {"Error": f"{exception_message}."}
 
     def delete(self, session):
 
@@ -363,6 +366,7 @@ class User(Base):
         if not new_email:
             print("Need new email to update the email")
             return False, {"status": "Missing argument"}
+        
 
         existing_user = session.query(User).filter(User.email == new_email).first()
         if existing_user is not None:
@@ -371,7 +375,7 @@ class User(Base):
 
         self.email = new_email
         session.commit()
-        # print("Email Updated")
+
         return True, {"status": "Email updated"}
 
     def update_username(self, session, new_username):
@@ -387,37 +391,42 @@ class User(Base):
 
         self.login_name = new_username
         session.commit()
-        # print("Username Updated")
+
         return True, {"status": "Username updated"}
 
 
-    def add_group(self, session, group_name):
-            
-        result = UserGroup.insert(session, self.user_id, group_name)
+    def add_group(self, group_name):
+
+        with DatabaseSession(logger) as session:
+            result = UserGroup.insert(session, self.user_id, group_name)
 
         return result
 
-    def remove_group(self, session, group_name):
-        
-        result = UserGroup.delete(session, self.user_id, group_name)
+    def remove_group(self, group_name):
+
+        with DatabaseSession(logger) as session:
+            result = UserGroup.delete(session, self.user_id, group_name)
 
         return result
 
-    def add_repo(self, session, group_name, repo_url):
-        
+    def add_repo(self, group_name, repo_url):
+
+        with DatabaseSession(logger) as session:
             result = UserRepo.add(session, repo_url, self.user_id, group_name)
 
-            return result
+        return result
 
     def remove_repo(self, session, group_name, repo_id):
-        
-        result = UserRepo.delete(session, repo_id, self.user_id, group_name)
+
+        with DatabaseSession(logger) as session:
+            result = UserRepo.delete(session, repo_id, self.user_id, group_name)
 
         return result
 
-    def add_org(self, session, group_name, org_url):
+    def add_org(self, group_name, org_url):
 
-        result = UserRepo.add_org_repos(session, org_url, self.user_id, group_name)
+        with DatabaseSession(logger) as session:
+            result = UserRepo.add_org_repos(session, org_url, self.user_id, group_name)
 
         return result
 
@@ -434,77 +443,82 @@ class User(Base):
         return group_names, {"status": "success"}
 
 
-    def get_repos(self, session, page=0, page_size=25, sort="repo_id", direction="ASC"):
+    def get_repos(self, page=0, page_size=25, sort="repo_id", direction="ASC"):
 
         from augur.util.repo_load_controller import RepoLoadController
 
-        result = RepoLoadController(session).paginate_repos("user", page, page_size, sort, direction, user=self)
+        with DatabaseSession(logger) as session:
+            result = RepoLoadController(session).paginate_repos("user", page, page_size, sort, direction, user=self)
 
         return result
 
-    def get_repo_count(self, session):
-
+    def get_repo_count(self):
         from augur.util.repo_load_controller import RepoLoadController
 
-        result = RepoLoadController(session).get_repo_count(source="user", user=self)
-
-        return result
-
-
-    def get_group_repos(self, session, group_name, page=0, page_size=25, sort="repo_id", direction="ASC"):
-
-        from augur.util.repo_load_controller import RepoLoadController
-
-        result = RepoLoadController(session).paginate_repos("group", page, page_size, sort, direction, user=self, group_name=group_name)
+        with DatabaseSession(logger) as session:
+            result = RepoLoadController(session).get_repo_count(source="user", user=self)
 
         return result
 
 
-    def get_group_repo_count(self, session, group_name):
-
+    def get_group_repos(self, group_name, page=0, page_size=25, sort="repo_id", direction="ASC"):
         from augur.util.repo_load_controller import RepoLoadController
-        
-        controller = RepoLoadController(session)
+
+        with DatabaseSession(logger) as session:
+            result = RepoLoadController(session).paginate_repos("group", page, page_size, sort, direction, user=self, group_name=group_name)
+
+        return result
+
+
+    def get_group_repo_count(self, group_name):
+        from augur.util.repo_load_controller import RepoLoadController
+
+        with DatabaseSession(logger) as session:
+            controller = RepoLoadController(session)
 
         result = controller.get_repo_count(source="group", group_name=group_name, user=self)
 
         return result
 
-    def invalidate_session(self, session, token):
+    def invalidate_session(self, token):
 
-        row_count = session.query(UserSessionToken).filter(UserSessionToken.user_id == self.user_id, UserSessionToken.token == token).delete()
-        session.commit()
-
-        return row_count == 1
-
-    def delete_app(self, session, app_id):
-
-        row_count = session.query(ClientApplication).filter(ClientApplication.user_id == self.user_id, ClientApplication.id == app_id).delete()
-        session.commit()
-
-        return row_count == 1
-
-    def add_app(self, session, name, redirect_url):
-
-        try:
-            app = ClientApplication(id=secrets.token_hex(16), api_key=secrets.token_hex(), name=name, redirect_url=redirect_url, user_id=self.user_id)
-            session.add(app)
+        with DatabaseSession(logger) as session:
+            row_count = session.query(UserSessionToken).filter(UserSessionToken.user_id == self.user_id, UserSessionToken.token == token).delete()
             session.commit()
-        except Exception as e:
-            print(e)
-            return False
+
+        return row_count == 1
+
+    def delete_app(self, app_id):
+
+        with DatabaseSession(logger) as session:
+            row_count = session.query(ClientApplication).filter(ClientApplication.user_id == self.user_id, ClientApplication.id == app_id).delete()
+            session.commit()
+
+        return row_count == 1
+
+    def add_app(self, name, redirect_url):
+
+        with DatabaseSession(logger) as session:
+            try:
+                app = ClientApplication(id=secrets.token_hex(16), api_key=secrets.token_hex(), name=name, redirect_url=redirect_url, user_id=self.user_id)
+                session.add(app)
+                session.commit()
+            except Exception as e:
+                print(e)
+                return False
 
         return True
 
-    def toggle_group_favorite(self, session, group_name):
+    def toggle_group_favorite(self, group_name):
 
-        group = session.query(UserGroup).filter(UserGroup.name == group_name, UserGroup.user_id == self.user_id).first()
-        if not group:
-            return False, {"status": "Group does not exist"}
+        with DatabaseSession(logger) as session:
+            group = session.query(UserGroup).filter(UserGroup.name == group_name, UserGroup.user_id == self.user_id).first()
+            if not group:
+                return False, {"status": "Group does not exist"}
 
-        group.favorited = not group.favorited
+            group.favorited = not group.favorited
 
-        session.commit()
+            session.commit()
 
         return True, {"status": "Success"}
 
