@@ -265,7 +265,8 @@ def generate_analysis_sequence(logger):
         repo_ids = [repo['repo_id'] for repo in repos]
 
         #determine amount of celery tasks to run at once in each grouped task load
-        concurrentTasks = int((-1 * (20/(len(repo_ids)+1))) + 20)
+        concurrentTasks = int((-1 * (15/(len(repo_ids)+1))) + 15)
+        logger.info(f"Scheduling concurrent layers {concurrentTasks} tasks at a time.")
 
         analysis_sequence.append(facade_analysis_init_facade_task.si())
 
