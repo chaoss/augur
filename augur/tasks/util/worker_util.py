@@ -16,8 +16,10 @@ def create_grouped_task_load(*args,processes=8,dataList=[],task=None):
     if not dataList or not task:
         raise AssertionError
     
-    numpyData = np.array(list(dataList))
-    listsSplitForProcesses = np.array_split(numpyData, processes)
+    print(f"Splitting {len(dataList)} items")
+    #numpyData = np.array(list(dataList))
+    listsSplitForProcesses = np.array_split(list(dataList), processes)
+    print("Done splitting items.")
 
     #print("args")
     #print(args)
@@ -26,6 +28,8 @@ def create_grouped_task_load(*args,processes=8,dataList=[],task=None):
     jobs = group(task_list)
 
     return jobs
+
+
 
 def wait_child_tasks(ids_list):
     for task_id in ids_list:

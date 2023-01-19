@@ -71,6 +71,9 @@ default_config = {
                 "cache_group": 0, 
                 "connection_string": "redis://127.0.0.1:6379/"
             },
+            "RabbitMQ": {
+                "connection_string": "amqp://augur:password123@localhost:5672/augur_vhost"
+            },
             "Tasks": {
                 "collection_interval": 2592000
             },
@@ -176,6 +179,11 @@ class AugurConfig():
         Returns:
             The value from config if found, and None otherwise
         """
+
+        # TODO temporary until added to the DB schema
+        if section_name == "frontend" and setting_name == "pagination_offset":
+            return 25
+
         try:
             query = self.session.query(Config).filter(Config.section_name == section_name, Config.setting_name == setting_name)
             config_setting = execute_session_query(query, 'one')
