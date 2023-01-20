@@ -19,7 +19,7 @@ from collections import OrderedDict
 from textblob import TextBlob
 from collections import Counter
 
-from augur.tasks.init.celery_app import celery_app as celery
+from augur.tasks.init.celery_app import celery_app as celery, engine
 from augur.application.db.session import DatabaseSession
 from augur.application.config import AugurConfig
 from augur.application.db.models import Repo, RepoClusterMessage, RepoTopic, TopicWord
@@ -50,8 +50,7 @@ def clustering_model(repo_git: str) -> None:
     tool_version = '0.2.0'
     data_source = 'Augur Collected Messages'
 
-    # TODO: Should this be using the celery engine?
-    with DatabaseSession(logger) as session:
+    with DatabaseSession(logger, engine) as session:
 
         config = AugurConfig(logger, session)
 
@@ -168,7 +167,7 @@ def clustering_model(repo_git: str) -> None:
         'tool_version': tool_version,
         'data_source': data_source
     }
-    with DatabaseSession(logger) as session:
+    with DatabaseSession(logger, engine) as session:
         repo_cluster_messages_obj = RepoClusterMessage(**record)
         session.add(repo_cluster_messages_obj)
         session.commit()
@@ -196,7 +195,7 @@ def clustering_model(repo_git: str) -> None:
         prediction = lda_model.transform(count_matrix_cur_repo)
 
         logger.debug('for loop for vocab')
-        with DatabaseSession(logger) as session:
+        with DatabaseSession(logger, engine) as session:
             for i, prob_vector in enumerate(prediction):
                 # repo_id = msg_df.loc[i]['repo_id']
                 for i, prob in enumerate(prob_vector):
@@ -369,7 +368,7 @@ def train_model(logger, max_df, min_df, max_features, ngram_range, num_clusters,
     # twid = self.db.execute(key_sequence_words_sql)
     # logger.info("twid variable is: {}".format(twid))
     # insert topic list into database
-    with DatabaseSession(logger) as session:
+    with DatabaseSession(logger, engine) as session:
         topic_id = 1
         for topic in topic_list:
             # twid = self.get_max_id('topic_words', 'topic_words_id') + 1

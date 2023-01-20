@@ -29,7 +29,7 @@ from augur.tasks.github.facade_github.tasks import *
 
 from augur.tasks.util.worker_util import create_grouped_task_load
 
-from augur.tasks.init.celery_app import celery_app as celery
+from augur.tasks.init.celery_app import celery_app as celery, engine
 
 
 from augur.application.db import data_parse
@@ -74,8 +74,8 @@ def grab_comitters(repo_id,platform="github"):
     logger = logging.getLogger(grab_comitters.__name__)
 
     try:
-        # TODO: Session doesn't appear to ever be closed
-        grab_committer_list(GithubTaskSession(logger), repo_id,platform)
+        # TODO: Is this session ever closed?
+        grab_committer_list(GithubTaskSession(logger, engine), repo_id,platform)
     except Exception as e:
         logger.error(f"Could not grab committers from github endpoint!\n Reason: {e} \n Traceback: {''.join(traceback.format_exception(None, e, e.__traceback__))}")
         

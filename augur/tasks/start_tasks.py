@@ -22,7 +22,7 @@ from augur.tasks.github.pull_requests.commits_model.tasks import process_pull_re
 from augur.tasks.git.facade_tasks import *
 from augur.tasks.db.refresh_materialized_views import *
 # from augur.tasks.data_analysis import *
-from augur.tasks.init.celery_app import celery_app as celery
+from augur.tasks.init.celery_app import celery_app as celery, engine
 from celery.result import allow_join_result
 from augur.application.logs import AugurLogger
 from augur.application.config import AugurConfig
@@ -144,8 +144,7 @@ def start_task():
     logger = logging.getLogger(start_task.__name__)
 
     #Get phase options from the config
-    # TODO: Should this be using the celery engine?
-    with DatabaseSession(logger) as session:
+    with DatabaseSession(logger, engine) as session:
         config = AugurConfig(logger, session)
         phase_options = config.get_section("Task_Routine")
 

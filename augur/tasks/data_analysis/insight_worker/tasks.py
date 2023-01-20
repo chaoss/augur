@@ -13,7 +13,7 @@ import datetime
 from sklearn.ensemble import IsolationForest
 import warnings
 
-from augur.tasks.init.celery_app import celery_app as celery
+from augur.tasks.init.celery_app import celery_app as celery, engine
 from augur.application.db.session import DatabaseSession
 from augur.application.config import AugurConfig
 from augur.application.db.models import Repo, ChaossMetricStatus, RepoInsight, RepoInsightsRecord
@@ -39,8 +39,7 @@ def insight_model(repo_git: str) -> None:
     metrics = {"issues-new": "issues", "code-changes": "commit_count", "code-changes-lines": "added",
                 "reviews": "pull_requests", "contributors-new": "new_contributors"}
 
-    # TODO: Should this be using the celery engine?
-    with DatabaseSession(logger) as session:
+    with DatabaseSession(logger, engine) as session:
 
         config = AugurConfig(logger, session)
 
@@ -247,7 +246,7 @@ def insight_model(repo_git: str) -> None:
                     "data_source": data_source
                 }
 
-                with DatabaseSession(logger) as session:
+                with DatabaseSession(logger, engine) as session:
                     repo_insight_record_obj = RepoInsightsRecord(**record)
                     session.add(repo_insight_record_obj)
                     session.commit()
@@ -292,7 +291,7 @@ def insight_model(repo_git: str) -> None:
                     "data_source": data_source
                 }
 
-                with DatabaseSession(logger) as session:
+                with DatabaseSession(logger, engine) as session:
                     repo_insight_obj = RepoInsight(**data_point)
                     session.add(repo_insight_obj)
                     session.commit()
@@ -468,7 +467,7 @@ def confidence_interval_insights(logger):
                             "data_source": data_source
                         }
 
-                        with DatabaseSession(logger) as session:
+                        with DatabaseSession(logger, engine) as session:
                             repo_insight_obj = RepoInsightsRecord(**record)
                             session.add(repo_insight_obj)
                             session.commit()
@@ -499,7 +498,7 @@ def confidence_interval_insights(logger):
                                     "tool_version": tool_version,
                                     "data_source": data_source
                                 }
-                                with DatabaseSession(logger) as session:
+                                with DatabaseSession(logger, engine) as session:
                                     repo_insight_obj = RepoInsight(**data_point)
                                     session.add(repo_insight_obj)
                                     session.commit()
@@ -736,7 +735,7 @@ def update_metrics(api_host, api_port, tool_source, tool_version, logger):
             "tool_version": tool_version,
             "data_source": metric['data_source']
         }
-        with DatabaseSession(logger) as session:
+        with DatabaseSession(logger, engine) as session:
             cms_tuple = ChaossMetricStatus(**cms_tuple)
             session.add(cms_tuple)
             session.commit()

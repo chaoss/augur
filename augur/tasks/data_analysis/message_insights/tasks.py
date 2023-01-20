@@ -11,7 +11,7 @@ from sklearn.ensemble import IsolationForest
 from augur.tasks.data_analysis.message_insights.message_novelty import novelty_analysis
 from augur.tasks.data_analysis.message_insights.message_sentiment import get_senti_score
 
-from augur.tasks.init.celery_app import celery_app as celery
+from augur.tasks.init.celery_app import celery_app as celery, engine
 from augur.application.db.session import DatabaseSession
 from augur.application.config import AugurConfig
 from augur.application.db.models import Repo, MessageAnalysis, MessageAnalysisSummary
@@ -37,8 +37,7 @@ def message_insight_model(repo_git: str) -> None:
     now = datetime.datetime.utcnow()
     run_id = int(now.timestamp())+5
 
-    # TODO: Should this be using the celery engine?
-    with DatabaseSession(logger) as session:
+    with DatabaseSession(logger, engine) as session:
 
         config = AugurConfig(logger, session)
 
@@ -185,7 +184,7 @@ def message_insight_model(repo_git: str) -> None:
         logger.info('Begin message_analysis data insertion...')
         logger.info(f'{df_message.shape[0]} data records to be inserted')
 
-        with DatabaseSession(logger) as session:
+        with DatabaseSession(logger, engine) as session:
 
             for row in df_message.itertuples(index=False):
                 try:

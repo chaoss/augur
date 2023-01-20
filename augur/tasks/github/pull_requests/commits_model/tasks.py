@@ -2,7 +2,7 @@ import logging
 import traceback
 from augur.application.db.session import DatabaseSession
 from augur.tasks.github.pull_requests.commits_model.core import *
-from augur.tasks.init.celery_app import celery_app as celery
+from augur.tasks.init.celery_app import celery_app as celery, engine
 from augur.application.db.util import execute_session_query
 
 
@@ -10,8 +10,7 @@ from augur.application.db.util import execute_session_query
 def process_pull_request_commits(repo_git: str) -> None:
     logger = logging.getLogger(process_pull_request_commits.__name__)
 
-    # TODO: Should this be using the celery engine?
-    with DatabaseSession(logger) as session:
+    with DatabaseSession(logger, engine) as session:
         query = session.query(Repo).filter(Repo.repo_git == repo_git)
         repo = execute_session_query(query, 'one')
         try:
