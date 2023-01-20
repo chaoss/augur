@@ -456,14 +456,17 @@ def create_routes(server):
             return {"status": "Missing argument columns"}
 
         # split list by , and remove whitespaces from edges
+        
+        valid_columns = []
         columns =  columns.split(",")
         for column in columns:
 
             if column.isspace() or column == "":
-                columns.remove(column)
                 continue
 
-            column = column.strip()
+            valid_columns.append(column.strip())
+
+        print(valid_columns)
 
 
         data = []
@@ -476,7 +479,7 @@ def create_routes(server):
             for repo in repos:
 
                 repo_dict = {}
-                for column in columns:
+                for column in valid_columns:
                     try:
                         repo_dict[column] = getattr(repo, column)
                     except AttributeError:
