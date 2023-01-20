@@ -59,7 +59,6 @@ def create_routes(server):
 
     @login_manager.user_loader
     def load_user(user_id):
-
         user = User.get_user(user_id)
 
         if not user:
@@ -76,16 +75,12 @@ def create_routes(server):
 
     @login_manager.request_loader
     def load_user_request(request):
-
         print(f"Current time of user request: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))}")
         token = get_bearer_token()
-        print(f"Bearer token: {token}")
-
         with DatabaseSession(logger) as session:
 
             current_time = int(time.time())
             token = session.query(UserSessionToken).filter(UserSessionToken.token == token, UserSessionToken.expiration >= current_time).first()
-            print(f"Token: {token}")
             if token:
 
                 print("Valid user")
