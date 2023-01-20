@@ -10,6 +10,7 @@ def detect_github_repo_move(repo_git_identifiers : str) -> None:
     logger = logging.getLogger(detect_github_repo_move.__name__)
 
     logger.info(f"Starting repo_move operation with {repo_git_identifiers}")
+    # TODO: Should this be using the celery engine?
     with GithubTaskSession(logger) as session:
         #Ping each repo with the given repo_git to make sure
         #that they are still in place. 

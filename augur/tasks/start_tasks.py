@@ -144,6 +144,7 @@ def start_task():
     logger = logging.getLogger(start_task.__name__)
 
     #Get phase options from the config
+    # TODO: Should this be using the celery engine?
     with DatabaseSession(logger) as session:
         config = AugurConfig(logger, session)
         phase_options = config.get_section("Task_Routine")

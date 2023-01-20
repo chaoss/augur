@@ -6,6 +6,7 @@ from augur.tasks.init.celery_app import celery_app as celery, engine
 from augur.application.db.data_parse import *
 from augur.tasks.github.util.github_paginator import GithubPaginator, hit_api
 from augur.tasks.github.util.github_task_session import GithubTaskSession
+from augur.application.db.session import DatabaseSession
 from augur.tasks.github.util.util import get_owner_repo
 from augur.tasks.util.worker_util import remove_duplicate_dicts
 from augur.application.db.models import PullRequest, Message, PullRequestReview, PullRequestLabel, PullRequestReviewer, PullRequestEvent, PullRequestMeta, PullRequestAssignee, PullRequestReviewMessageRef, Issue, IssueEvent, IssueLabel, IssueAssignee, PullRequestMessageRef, IssueMessageRef, Contributor, Repo
@@ -19,8 +20,7 @@ def collect_events(repo_git: str):
 
     logger = logging.getLogger(collect_events.__name__)
     
-        # define GithubTaskSession to handle insertions, and store oauth keys 
-    with GithubTaskSession(logger) as session:
+    with DatabaseSession(logger, engine) as session:
 
         query = session.query(Repo).filter(Repo.repo_git == repo_git)
         repo_obj = execute_session_query(query, 'one')
@@ -50,7 +50,6 @@ def retrieve_all_event_data(repo_git: str, logger):
 
     url = f"https://api.github.com/repos/{owner}/{repo}/issues/events"
     
-        # define GithubTaskSession to handle insertions, and store oauth keys 
     with GithubTaskSession(logger, engine) as session:
     
         # returns an iterable of all issues at this url (this essentially means you can treat the issues variable as a list of the issues)
@@ -85,7 +84,7 @@ def process_events(events, task_name, repo_id, logger):
     issue_event_dicts = []
     contributors = []
 
-    with GithubTaskSession(logger, engine) as session:
+    with DatabaseSession(logger, engine) as session:
 
         not_mapable_event_count = 0
         event_len = len(events)

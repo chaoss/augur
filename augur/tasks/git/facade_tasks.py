@@ -74,6 +74,7 @@ def grab_comitters(repo_id,platform="github"):
     logger = logging.getLogger(grab_comitters.__name__)
 
     try:
+        # TODO: Session doesn't appear to ever be closed
         grab_committer_list(GithubTaskSession(logger), repo_id,platform)
     except Exception as e:
         logger.error(f"Could not grab committers from github endpoint!\n Reason: {e} \n Traceback: {''.join(traceback.format_exception(None, e, e.__traceback__))}")
@@ -184,6 +185,7 @@ def analyze_commits_in_parallel(queue: list, repo_id: int, repo_location: str, m
 
     #create new session for celery thread.
     logger = logging.getLogger(analyze_commits_in_parallel.__name__)
+    # TODO: Is this session ever closed?
     session = FacadeSession(logger)
 
     logger.info(f"Got to analysis!")
@@ -197,6 +199,7 @@ def analyze_commits_in_parallel(queue: list, repo_id: int, repo_location: str, m
 @celery.task
 def nuke_affiliations_facade_task():
     logger = logging.getLogger(nuke_affiliations_facade_task.__name__)
+    # TODO: Is this session ever closed?
     session = FacadeSession(logger)
 
     nuke_affiliations(session)

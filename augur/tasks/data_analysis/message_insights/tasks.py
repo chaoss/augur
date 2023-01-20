@@ -37,6 +37,7 @@ def message_insight_model(repo_git: str) -> None:
     now = datetime.datetime.utcnow()
     run_id = int(now.timestamp())+5
 
+    # TODO: Should this be using the celery engine?
     with DatabaseSession(logger) as session:
 
         config = AugurConfig(logger, session)

@@ -50,6 +50,7 @@ def clustering_model(repo_git: str) -> None:
     tool_version = '0.2.0'
     data_source = 'Augur Collected Messages'
 
+    # TODO: Should this be using the celery engine?
     with DatabaseSession(logger) as session:
 
         config = AugurConfig(logger, session)

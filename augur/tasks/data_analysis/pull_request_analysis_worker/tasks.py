@@ -32,6 +32,7 @@ def pull_request_analysis_model(repo_git: str) -> None:
 
     insight_days = 200
 
+    # TODO: Should this be using the celery engine?
     with DatabaseSession(logger) as session:
 
         config = AugurConfig(logger, session)

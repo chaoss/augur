@@ -99,6 +99,7 @@ def contributor_breadth_model() -> None:
         # source_cntrb_repos seemed like not exactly what the variable is for; its a list of actions for
         # each Github gh_login value already in our database
 
+        # TODO: Should this be using the celery db engine?
         with DatabaseSession(logger) as session:
             cntrb_events = []
             for page_data, page in GithubPaginator(repo_cntrb_url, session.oauths, logger).iter_pages():

@@ -39,6 +39,7 @@ def insight_model(repo_git: str) -> None:
     metrics = {"issues-new": "issues", "code-changes": "commit_count", "code-changes-lines": "added",
                 "reviews": "pull_requests", "contributors-new": "new_contributors"}
 
+    # TODO: Should this be using the celery engine?
     with DatabaseSession(logger) as session:
 
         config = AugurConfig(logger, session)

@@ -25,6 +25,7 @@ def refresh_materialized_views():
                 REFRESH MATERIALIZED VIEW augur_data.explorer_libyear_summary with data;
     """)
 
+    # TODO: Should this be using the celery engine?
     with DatabaseSession(logger) as session:
 
         session.execute_sql(refresh_view_query)

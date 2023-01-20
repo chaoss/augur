@@ -22,6 +22,8 @@ def pull_request_commits_model(repo_id,logger):
         """).bindparams(repo_id=repo_id)
     pr_urls = []
     #pd.read_sql(pr_number_sql, self.db, params={})
+
+    # TODO: Is this session ever closed?
     session = GithubTaskSession(logger)
     pr_urls = session.fetchall_data_from_sql_text(pr_url_sql)#session.execute_sql(pr_number_sql).fetchall()
     

@@ -1,6 +1,6 @@
 import logging
 import traceback
-from augur.tasks.github.util.github_task_session import GithubTaskSession
+from augur.application.db.session import DatabaseSession
 from augur.tasks.github.pull_requests.files_model.core import *
 from augur.tasks.init.celery_app import celery_app as celery
 from augur.application.db.util import execute_session_query
@@ -9,7 +9,8 @@ from augur.application.db.util import execute_session_query
 def process_pull_request_files(repo_git: str) -> None:
     logger = logging.getLogger(process_pull_request_files.__name__)
 
-    with GithubTaskSession(logger) as session:
+    # TODO: Should this be using the celery engine?
+    with DatabaseSession(logger) as session:
         query = session.query(Repo).filter(Repo.repo_git == repo_git)
         repo = execute_session_query(query, 'one')
         try:

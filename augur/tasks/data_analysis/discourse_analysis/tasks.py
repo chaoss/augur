@@ -40,6 +40,7 @@ def discourse_analysis_model(repo_git: str) -> None:
     tool_version = '0.1.0'
     data_source = 'Analysis of Issue/PR Messages'
 
+    # TODO: Should this be using the celery engine?
     with DatabaseSession(logger) as session:
 
         query = session.query(Repo).filter(Repo.repo_git == repo_git)
