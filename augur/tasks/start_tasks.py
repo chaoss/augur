@@ -5,7 +5,8 @@ import logging
 import json
 import os
 from enum import Enum
-
+import math
+import numpy as np
 #from celery.result import AsyncResult
 from celery import signature
 from celery import group, chain, chord, signature
@@ -59,6 +60,9 @@ def repo_collect_phase():
     issue_dependent_tasks = []
     #repo_info should run in a group
     repo_info_tasks = []
+
+    np_clustered_array = []
+
     #A chain is needed for each repo.
     with DatabaseSession(logger) as session:
         query = session.query(Repo)
@@ -66,36 +70,75 @@ def repo_collect_phase():
 
 
         all_repo_git_identifiers = [repo.repo_git for repo in repos]
+        #Cluster each repo in groups of 100.
+        np_clustered_array = np.array_split(all_repo_git_identifiers,math.ceil(len(arr)/100))
 
+        first_pass = np_clustered_array.pop(0).tolist()
         #Pool the tasks for collecting repo info. 
-        repo_info_tasks = create_grouped_task_load(dataList=all_repo_git_identifiers, task=collect_repo_info).tasks
+        repo_info_tasks = create_grouped_task_load(dataList=first_pass, task=collect_repo_info).tasks
 
         #pool the repo collection jobs that should be ran first and have deps. 
         primary_repo_jobs = group(
-            *create_grouped_task_load(dataList=all_repo_git_identifiers, task=collect_issues).tasks,
-            *create_grouped_task_load(dataList=all_repo_git_identifiers, task=collect_pull_requests).tasks
+            *create_grouped_task_load(dataList=first_pass, task=collect_issues).tasks,
+            *create_grouped_task_load(dataList=first_pass, task=collect_pull_requests).tasks
         )
 
         secondary_repo_jobs = group(
-            *create_grouped_task_load(dataList=all_repo_git_identifiers, task=collect_events).tasks,
-            *create_grouped_task_load(dataList=all_repo_git_identifiers,task=collect_github_messages).tasks,
-            *create_grouped_task_load(dataList=all_repo_git_identifiers, task=process_pull_request_files).tasks,
-            *create_grouped_task_load(dataList=all_repo_git_identifiers, task=process_pull_request_commits).tasks
+            *create_grouped_task_load(dataList=first_pass, task=collect_events).tasks,
+            *create_grouped_task_load(dataList=first_pass,task=collect_github_messages).tasks,
+            *create_grouped_task_load(dataList=first_pass, task=process_pull_request_files).tasks,
+            *create_grouped_task_load(dataList=first_pass, task=process_pull_request_commits).tasks
         )
         
 
         repo_task_group = group(
             *repo_info_tasks,
             chain(primary_repo_jobs,secondary_repo_jobs,process_contributors.si()),
-            generate_facade_chain(logger),
-            *create_grouped_task_load(dataList=all_repo_git_identifiers,task=process_dependency_metrics).tasks,
+            generate_facade_chain(logger,first_pass),
+            *create_grouped_task_load(dataList=first_pass,task=process_dependency_metrics).tasks,
             collect_releases.si()
         )
     
     result = chain(repo_task_group, refresh_materialized_views.si()).apply_async()
     
     with allow_join_result():
-        return result.get()
+        result.wait()
+
+    if len(np_clustered_array) == 0:
+        return
+    
+
+    for cluster in np_clustered_array:
+        additionalPass = cluster.tolist()
+        #Pool the tasks for collecting repo info. 
+        repo_info_tasks = create_grouped_task_load(dataList=additionalPass, task=collect_repo_info).tasks
+
+        #pool the repo collection jobs that should be ran first and have deps. 
+        primary_repo_jobs = group(
+            *create_grouped_task_load(dataList=additionalPass, task=collect_issues).tasks,
+            *create_grouped_task_load(dataList=additionalPass, task=collect_pull_requests).tasks
+        )
+
+        secondary_repo_jobs = group(
+            *create_grouped_task_load(dataList=additionalPass, task=collect_events).tasks,
+            *create_grouped_task_load(dataList=additionalPass,task=collect_github_messages).tasks,
+            *create_grouped_task_load(dataList=additionalPass, task=process_pull_request_files).tasks,
+            *create_grouped_task_load(dataList=additionalPass, task=process_pull_request_commits).tasks
+        )
+        
+        repo_task_group = group(
+            *repo_info_tasks,
+            chain(primary_repo_jobs,secondary_repo_jobs,process_contributors.si()),
+            generate_facade_chain(logger,additionalPass),
+            *create_grouped_task_load(dataList=additionalPass,task=process_dependency_metrics).tasks
+        )
+
+        result = chain(repo_task_group, refresh_materialized_views.si()).apply_async()
+    
+        with allow_join_result():
+            result.wait()
+
+    return 
 
 
 DEFINED_COLLECTION_PHASES = [prelim_phase, repo_collect_phase]

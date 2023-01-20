@@ -1,6 +1,6 @@
 import time
 import logging
-
+import traceback
 
 from augur.tasks.github.pull_requests.core import extract_data_from_pr_list
 from augur.tasks.init.celery_app import celery_app as celery, engine

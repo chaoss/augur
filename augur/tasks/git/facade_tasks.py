@@ -241,7 +241,7 @@ def rebuild_unknown_affiliation_and_web_caches_facade_task():
 
 
 
-def generate_analysis_sequence(logger):
+def generate_analysis_sequence(logger,repo_git_identifiers):
     """Run the analysis by looping over all active repos. For each repo, we retrieve
     the list of commits which lead to HEAD. If any are missing from the database,
     they are filled in. Then we check to see if any commits in the database are
@@ -257,7 +257,8 @@ def generate_analysis_sequence(logger):
     analysis_sequence = []
 
     with FacadeSession(logger) as session:
-        repo_list = s.sql.text("""SELECT repo_id,repo_group_id,repo_path,repo_name FROM repo """)
+        repo_list = s.sql.text("""SELECT repo_id,repo_group_id,repo_path,repo_name FROM repo 
+        WHERE repo_git IN :values""").bindparams(values=tuple(repo_git_identifiers))
         repos = session.fetchall_data_from_sql_text(repo_list)
 
         start_date = session.get_setting('start_date')
@@ -348,14 +349,15 @@ def generate_analysis_sequence(logger):
 
 
 
-def generate_contributor_sequence(logger):
+def generate_contributor_sequence(logger,repo_git_identifiers):
     
     contributor_sequence = []
     all_repo_ids = []
     with FacadeSession(logger) as session:
         
         #contributor_sequence.append(facade_start_contrib_analysis_task.si())
-        query = s.sql.text("""SELECT repo_id FROM repo""")
+        query = s.sql.text("""SELECT repo_id FROM repo
+        WHERE repo_git IN :values""").bindparams(values=tuple(repo_git_identifiers))
 
         all_repos = session.fetchall_data_from_sql_text(query)
         #pdb.set_trace()
@@ -371,7 +373,7 @@ def generate_contributor_sequence(logger):
 
 
 
-def generate_facade_chain(logger):
+def generate_facade_chain(logger,repo_git_identifiers):
     #raise NotImplemented
 
     logger.info("Generating facade sequence")
@@ -400,28 +402,28 @@ def generate_facade_chain(logger):
         facade_sequence = []
 
         if not limited_run or (limited_run and delete_marked_repos):
-            git_repo_cleanup(session)
+            git_repo_cleanup(session,repo_git_identifiers)
 
         if not limited_run or (limited_run and clone_repos):
-            git_repo_initialize(session)
+            git_repo_initialize(session,repo_git_identifiers)
 
         if not limited_run or (limited_run and check_updates):
-            check_for_repo_updates(session)
+            check_for_repo_updates(session,repo_git_identifiers)
 
         if force_updates:
-            force_repo_updates(session)#facade_sequence.append(force_repo_updates_facade_task.si())
+            force_repo_updates(session,repo_git_identifiers)#facade_sequence.append(force_repo_updates_facade_task.si())
 
         if not limited_run or (limited_run and pull_repos):
-            git_repo_updates(session)#facade_sequence.append(git_repo_updates_facade_task.si())
+            git_repo_updates(session,repo_git_identifiers)#facade_sequence.append(git_repo_updates_facade_task.si())
 
         if force_analysis:
-            force_repo_analysis(session)#facade_sequence.append(force_repo_analysis_facade_task.si())
+            force_repo_analysis(session,repo_git_identifiers)#facade_sequence.append(force_repo_analysis_facade_task.si())
 
         #Generate commit analysis task order.
-        facade_sequence.extend(generate_analysis_sequence(logger))
+        facade_sequence.extend(generate_analysis_sequence(logger,repo_git_identifiers))
 
         #Generate contributor analysis task group.
-        facade_sequence.append(generate_contributor_sequence(logger))
+        facade_sequence.append(generate_contributor_sequence(logger,repo_git_identifiers))
 
         if nuke_stored_affiliations:
             facade_sequence.append(nuke_affiliations_facade_task.si().on_error(facade_error_handler.s()))#nuke_affiliations(session.cfg)

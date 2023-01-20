@@ -39,9 +39,9 @@ import configparser
 import sqlalchemy as s
 from .facade02utilitymethods import update_repo_log, trim_commit, store_working_author, trim_author  
 from augur.application.db.models.augur_data import *
-from augur.application.db.util import execute_session_query
+from augur.application.db.util import execute_session_query, convert_orm_list_to_dict_list
 
-def git_repo_initialize(session, repo_group_id=None):
+def git_repo_initialize(session, repo_git_identifiers,repo_group_id=None):
 
     # Select any new git repos so we can set up their locations and git clone
     new_repos = []
@@ -49,18 +49,21 @@ def git_repo_initialize(session, repo_group_id=None):
         session.update_status('Fetching non-cloned repos')
         session.log_activity('Info','Fetching non-cloned repos')
 
-        query = s.sql.text("""SELECT repo_id,repo_group_id,repo_git FROM repo WHERE repo_status LIKE 'New%'""")
-        
+        #query = s.sql.text("""SELECT repo_id,repo_group_id,repo_git FROM repo WHERE repo_status LIKE 'New%'""")
+        query = session.query(Repo).filter(
+		Repo.repo_git.in_(repo_git_identifiers),'New' in Repo.repo_status)
         
         #Get data as a list of dicts
-        new_repos = session.fetchall_data_from_sql_text(query)#list(cfg.cursor)
+        result = execute_session_query(query,'all')#session.fetchall_data_from_sql_text(query)#list(cfg.cursor)
+        new_repos = convert_orm_list_to_dict_list(result)
     else:
         session.update_status(f"Fetching repos with repo group id: {repo_group_id}")
         session.log_activity('Info',f"Fetching repos with repo group id: {repo_group_id}")
 
         #query = s.sql.text("""SELECT repo_id,repo_group_id,repo_git FROM repo WHERE repo_status LIKE 'New%'""")
          
-        query = session.query(Repo).filter('New' in Repo.repo_status)
+        query = query = session.query(Repo).filter(
+		Repo.repo_git.in_(repo_git_identifiers),'New' in Repo.repo_status)
         result = execute_session_query(query, 'all')
 
         for repo in result:
@@ -188,7 +191,7 @@ def git_repo_initialize(session, repo_group_id=None):
     session.log_activity('Info', f"Fetching new repos (complete)")
 
     
-def check_for_repo_updates(session):
+def check_for_repo_updates(session,repo_git_identifiers):
 
      
 
@@ -200,11 +203,25 @@ def check_for_repo_updates(session):
 
     update_frequency = session.get_setting('update_frequency')
 
-    get_initialized_repos = s.sql.text("""SELECT repo_id FROM repo WHERE repo_status NOT LIKE 'New%' 
-        AND repo_status != 'Delete' 
-        AND repo_status != 'Analyze' AND repo_status != 'Empty'""")
-     
-    repos = session.fetchall_data_from_sql_text(get_initialized_repos)#list(cfg.cursor)
+    #get_initialized_repos = s.sql.text("""SELECT repo_id FROM repo WHERE repo_status NOT LIKE 'New%' 
+    #    AND repo_status != 'Delete' 
+    #    AND repo_status != 'Analyze' AND repo_status != 'Empty'""")
+    # 
+    repos = []#session.fetchall_data_from_sql_text(get_initialized_repos)#list(cfg.cursor)
+
+    query = query = session.query(Repo).filter(
+		Repo.repo_git.in_(repo_git_identifiers),'New' in Repo.repo_status)
+    result = execute_session_query(query, 'all')
+
+    for repo in result:
+        repo_dict = repo.__dict__
+        try:
+            del repo_dict['_sa_instance_state']
+        except:
+            pass
+         
+        repos.append(repo_dict)
+
 
     for repo in repos:
 
@@ -242,7 +259,8 @@ def check_for_repo_updates(session):
         SELECT repo.ctid FROM repo LEFT JOIN repo a ON repo.repo_group_id=a.repo_group_id
         AND repo.repo_status='Update'
         AND repo.repo_status != 'Analyze' 
-        AND repo.repo_status != 'Empty')""")
+        AND repo.repo_status != 'Empty')
+        AND repo.repo_git IN :values""").bindparams(values=tuple(repo_git_identifiers))
 
     # ("UPDATE repos r LEFT JOIN repos s ON r.projects_id=s.projects_id "
     #     "SET r.status='Update' WHERE s.status='Update' AND "
@@ -253,7 +271,7 @@ def check_for_repo_updates(session):
 
     session.log_activity('Info','Checking repos to update (complete)')
 
-def force_repo_updates(session):
+def force_repo_updates(session,repo_git_identifiers):
 
 # Set the status of all non-new repos to "Update".
 
@@ -261,12 +279,13 @@ def force_repo_updates(session):
     session.log_activity('Info','Forcing repos to update')
 
     get_repo_ids = s.sql.text("""UPDATE repo SET repo_status='Update' WHERE repo_status
-        NOT LIKE 'New%' AND repo_status!='Delete' AND repo_status !='Empty'""")
+        NOT LIKE 'New%' AND repo_status!='Delete' AND repo_status !='Empty'
+        AND repo_git IN :values""").bindparams(values=tuple(repo_git_identifiers))
     session.execute_sql(get_repo_ids)
 
     session.log_activity('Info','Forcing repos to update (complete)')
 
-def force_repo_analysis(session):
+def force_repo_analysis(session,repo_git_identifiers):
 
 # Set the status of all non-new repos to "Analyze".
 
@@ -274,25 +293,28 @@ def force_repo_analysis(session):
     session.log_activity('Info','Forcing repos to be analyzed')
 
     set_to_analyze = s.sql.text("""UPDATE repo SET repo_status='Analyze' WHERE repo_status
-        NOT LIKE 'New%' AND repo_status!='Delete' AND repo_status != 'Empty'""")
+        NOT LIKE 'New%' AND repo_status!='Delete' AND repo_status != 'Empty'
+        AND repo_git IN :values""").bindparams(values=tuple(repo_git_identifiers))
      
      
     session.execute_sql(set_to_analyze)
 
     session.log_activity('Info','Forcing repos to be analyzed (complete)')
 
-def git_repo_updates(session):
+def git_repo_updates(session,repo_git_identifiers):
 
 # Update existing repos
 
     session.update_status('Updating repos')
     session.log_activity('Info','Updating existing repos')
 
-    query = s.sql.text("""SELECT repo_id,repo_group_id,repo_git,repo_name,repo_path FROM repo WHERE
-        repo_status='Update'""")
-     
+    #query = s.sql.text("""SELECT repo_id,repo_group_id,repo_git,repo_name,repo_path FROM repo WHERE
+    #    repo_status='Update'""")
+    query = query = session.query(Repo).filter(
+		Repo.repo_git.in_(repo_git_identifiers),Repo.repo_status == 'Update')
+    result = execute_session_query(query, 'all')
 
-    existing_repos = session.fetchall_data_from_sql_text(query)#list(cfg.cursor)
+    existing_repos = convert_orm_list_to_dict_list(result)#session.fetchall_data_from_sql_text(query)#list(cfg.cursor)
 
     for row in existing_repos:
         session.log_activity('Verbose',f"Attempting to update {row['repo_git']}")#['git'])
