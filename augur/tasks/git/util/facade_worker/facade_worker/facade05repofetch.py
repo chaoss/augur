@@ -44,26 +44,25 @@ from augur.application.db.util import execute_session_query, convert_orm_list_to
 def git_repo_initialize(session, repo_git_identifiers,repo_group_id=None):
 
     # Select any new git repos so we can set up their locations and git clone
+    # Select any new git repos so we can set up their locations and git clone
     new_repos = []
     if repo_group_id is None:
         session.update_status('Fetching non-cloned repos')
         session.log_activity('Info','Fetching non-cloned repos')
 
-        #query = s.sql.text("""SELECT repo_id,repo_group_id,repo_git FROM repo WHERE repo_status LIKE 'New%'""")
-        query = session.query(Repo).filter(
-		Repo.repo_git.in_(repo_git_identifiers),'New' in Repo.repo_status)
+        query = s.sql.text("""SELECT repo_id,repo_group_id,repo_git FROM repo WHERE repo_status LIKE 'New%'
+            AND repo_git IN :values""").bindparams(values=tuple(repo_git_identifiers))
+        
         
         #Get data as a list of dicts
-        result = execute_session_query(query,'all')#session.fetchall_data_from_sql_text(query)#list(cfg.cursor)
-        new_repos = convert_orm_list_to_dict_list(result)
+        new_repos = session.fetchall_data_from_sql_text(query)#list(cfg.cursor)
     else:
         session.update_status(f"Fetching repos with repo group id: {repo_group_id}")
         session.log_activity('Info',f"Fetching repos with repo group id: {repo_group_id}")
 
         #query = s.sql.text("""SELECT repo_id,repo_group_id,repo_git FROM repo WHERE repo_status LIKE 'New%'""")
          
-        query = query = session.query(Repo).filter(
-		Repo.repo_git.in_(repo_git_identifiers),'New' in Repo.repo_status)
+        query = session.query(Repo).filter('New' in Repo.repo_status)
         result = execute_session_query(query, 'all')
 
         for repo in result:
@@ -203,24 +202,13 @@ def check_for_repo_updates(session,repo_git_identifiers):
 
     update_frequency = session.get_setting('update_frequency')
 
-    #get_initialized_repos = s.sql.text("""SELECT repo_id FROM repo WHERE repo_status NOT LIKE 'New%' 
-    #    AND repo_status != 'Delete' 
-    #    AND repo_status != 'Analyze' AND repo_status != 'Empty'""")
-    # 
-    repos = []#session.fetchall_data_from_sql_text(get_initialized_repos)#list(cfg.cursor)
+    get_initialized_repos = s.sql.text("""SELECT repo_id FROM repo WHERE repo_status NOT LIKE 'New%' 
+        AND repo_status != 'Delete' 
+        AND repo_status != 'Analyze' AND repo_status != 'Empty'
+        AND repo_git IN :values""").bindparams(values=tuple(repo_git_identifiers))
+    
+    repos = session.fetchall_data_from_sql_text(get_initialized_repos)#list(cfg.cursor)
 
-    query = query = session.query(Repo).filter(
-		Repo.repo_git.in_(repo_git_identifiers),'New' in Repo.repo_status)
-    result = execute_session_query(query, 'all')
-
-    for repo in result:
-        repo_dict = repo.__dict__
-        try:
-            del repo_dict['_sa_instance_state']
-        except:
-            pass
-         
-        repos.append(repo_dict)
 
 
     for repo in repos:

@@ -48,7 +48,7 @@ def convert_orm_list_to_dict_list(result):
         except:
             pass
         
-        new_list.append(repo_dict)
+        new_list.append(row_dict)
     
     return new_list
 

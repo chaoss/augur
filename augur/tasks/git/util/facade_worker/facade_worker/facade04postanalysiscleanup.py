@@ -38,6 +38,7 @@ import xlsxwriter
 import configparser
 import sqlalchemy as s
 from augur.application.db.util import execute_session_query
+from augur.application.db.models import *
 
 def git_repo_cleanup(session,repo_git_identifiers):
 

@@ -71,7 +71,7 @@ def repo_collect_phase():
 
         all_repo_git_identifiers = [repo.repo_git for repo in repos]
         #Cluster each repo in groups of 100.
-        np_clustered_array = np.array_split(all_repo_git_identifiers,math.ceil(len(arr)/100))
+        np_clustered_array = np.array_split(all_repo_git_identifiers,math.ceil(len(all_repo_git_identifiers)/100))
 
         first_pass = np_clustered_array.pop(0).tolist()
         #Pool the tasks for collecting repo info. 
