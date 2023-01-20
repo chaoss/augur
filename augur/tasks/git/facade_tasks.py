@@ -131,8 +131,10 @@ def trim_commits_facade_task(repo_id_list):
 @celery.task
 def trim_commits_post_analysis_facade_task(repo_ids):
     logger = logging.getLogger(trim_commits_post_analysis_facade_task.__name__)
+    
 
     session = FacadeSession(logger)
+    start_date = session.get_setting('start_date')
     def update_analysis_log(repos_id,status):
 
         # Log a repo's analysis status
@@ -244,9 +246,11 @@ def analyze_commits_in_parallel(repo_ids, multithreaded: bool)-> None:
     #create new session for celery thread.
     logger = logging.getLogger(analyze_commits_in_parallel.__name__)
     session = FacadeSession(logger)
+    start_date = session.get_setting('start_date')
 
     for repo_id in repo_ids:
         session.logger.info(f"Generating sequence for repo {repo_id}")
+        
 
         query = session.query(Repo).filter(Repo.repo_id == repo_id)
         repo = execute_session_query(query, 'one')
