@@ -311,7 +311,7 @@ def analyze_commits_in_parallel(repo_ids, multithreaded: bool)-> None:
             if (count + 1) % int(len(queue) / 4) == 0:
                 logger.info(f"Progress through current analysis queue is {(count / len(queue)) * 100}%")
 
-            query = session.query(Repo).filter(Repo.repo_id == commitTuple)
+            query = session.query(Repo).filter(Repo.repo_id == repo_id)
             repo = execute_session_query(query,'one')
 
 
@@ -320,6 +320,7 @@ def analyze_commits_in_parallel(repo_ids, multithreaded: bool)-> None:
             analyze_commit(session, repo_id, repo_loc, commitTuple)
 
     logger.info("Analysis complete")
+    return
 
 @celery.task
 def nuke_affiliations_facade_task():
