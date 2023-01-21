@@ -24,8 +24,8 @@ def get_release_inf(session, repo_id, release, tag_only):
         else:
             author = release["author"]
 
-            name = author.get("name", "")
-            company = author.get("company", "")
+            name = author.get("name") or ""
+            company = author.get("company") or ""
             author = name + '_' + company
 
 
@@ -49,9 +49,9 @@ def get_release_inf(session, repo_id, release, tag_only):
 
             tagger = release["target"]["tagger"]
 
-            date = tagger.get("date", "")
-            name = tagger.get("name", "") 
-            email = tagger.get("email", "")
+            date = tagger.get("date") or ""
+            name = tagger.get("name") or ""
+            email = tagger.get("email") or ""
             
             author = name + "_" + email
 
