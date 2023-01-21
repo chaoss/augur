@@ -64,8 +64,8 @@ class DatabaseEngine():
 
         self._engine.dispose()
 
-    def close(self):
-        self._engine.close()
+    def dispose(self):
+        self._engine.dispose()
 
     @property
     def engine(self):
