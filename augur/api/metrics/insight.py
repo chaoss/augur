@@ -8,6 +8,7 @@ import pandas as pd
 from augur.api.util import register_metric
 
 from augur.application.db.engine import DatabaseEngine
+engine = DatabaseEngine(connection_pool_size=1).engine
 
 @register_metric(type="repo_group_only")
 def top_insights(repo_group_id, num_repos=6):
@@ -29,6 +30,5 @@ def top_insights(repo_group_id, num_repos=6):
             LIMIT :num_repos
         )
     """)
-    with DatabaseEngine(connection_pool_size=1) as engine:
-        results = pd.read_sql(topInsightsSQL, engine, params={'repo_group_id': repo_group_id, 'num_repos': num_repos})
-        return results
+    results = pd.read_sql(topInsightsSQL, engine, params={'repo_group_id': repo_group_id, 'num_repos': num_repos})
+    return results

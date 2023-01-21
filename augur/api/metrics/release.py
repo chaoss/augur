@@ -9,6 +9,7 @@ import pandas as pd
 from augur.api.util import register_metric
 
 from augur.application.db.engine import DatabaseEngine
+engine = DatabaseEngine(connection_pool_size=1).engine
 
 @register_metric()
 def releases(repo_group_id, repo_id=None, period='day', begin_date=None, end_date=None):
@@ -50,8 +51,8 @@ def releases(repo_group_id, repo_id=None, period='day', begin_date=None, end_dat
             ORDER BY releases.release_published_at DESC
         """)
 
-        with DatabaseEngine(connection_pool_size=1) as engine:
-            results = pd.read_sql(releases_SQL, engine,
+        
+        results = pd.read_sql(releases_SQL, engine,
                                 params={'period': period, 'repo_group_id': repo_group_id,
                                         'begin_date': begin_date, 'end_date': end_date })
         return results
@@ -80,8 +81,8 @@ def releases(repo_group_id, repo_id=None, period='day', begin_date=None, end_dat
             ORDER BY releases.release_published_at DESC
         """)
 
-        with DatabaseEngine(connection_pool_size=1) as engine:
-            results = pd.read_sql(releases_SQL, engine,
+        
+        results = pd.read_sql(releases_SQL, engine,
                                 params={'period': period, 'repo_id': repo_id,
                                         'begin_date': begin_date, 'end_date': end_date})
         return results
@@ -127,8 +128,8 @@ def tag_only_releases(repo_group_id, repo_id=None, period='day', begin_date=None
             ORDER BY releases.release_published_at DESC
         """)
 
-        with DatabaseEngine(connection_pool_size=1) as engine:
-            results = pd.read_sql(releases_SQL, engine,
+        
+        results = pd.read_sql(releases_SQL, engine,
                                 params={'period': period, 'repo_group_id': repo_group_id,
                                         'begin_date': begin_date, 'end_date': end_date })
         return results
@@ -150,10 +151,9 @@ def tag_only_releases(repo_group_id, repo_id=None, period='day', begin_date=None
             ORDER BY releases.release_published_at DESC
         """)
 
-        with DatabaseEngine(connection_pool_size=1) as engine:
-            results = pd.read_sql(releases_SQL, engine,
-                                params={'period': period, 'repo_id': repo_id,
-                                        'begin_date': begin_date, 'end_date': end_date})
+        results = pd.read_sql(releases_SQL, engine,
+                            params={'period': period, 'repo_id': repo_id,
+                                    'begin_date': begin_date, 'end_date': end_date})
         return results
 
 def create_release_metrics(metrics):

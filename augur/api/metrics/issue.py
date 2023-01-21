@@ -9,6 +9,7 @@ import pandas as pd
 from augur.api.util import register_metric
 
 from augur.application.db.engine import DatabaseEngine
+engine = DatabaseEngine(connection_pool_size=1).engine
 
 @register_metric()
 def issues_first_time_opened(repo_group_id, repo_id=None, period='day', begin_date=None, end_date=None):
@@ -28,59 +29,57 @@ def issues_first_time_opened(repo_group_id, repo_id=None, period='day', begin_da
     if not end_date:
         end_date = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
-    with DatabaseEngine(connection_pool_size=1) as engine:
-
-        if repo_id:
-            issueNewContributor = s.sql.text("""
+    if repo_id:
+        issueNewContributor = s.sql.text("""
+            SELECT
+                date_trunc(:period, new_date::DATE) as issue_date,
+                COUNT(gh_user_id),
+                repo_name
+            FROM (
                 SELECT
-                    date_trunc(:period, new_date::DATE) as issue_date,
-                    COUNT(gh_user_id),
+                    gh_user_id,
+                    MIN(issues.created_at) AS new_date,
                     repo_name
-                FROM (
-                    SELECT
-                        gh_user_id,
-                        MIN(issues.created_at) AS new_date,
-                        repo_name
-                    FROM
-                        issues JOIN repo ON issues.repo_id = repo.repo_id
-                    WHERE
-                        issues.repo_id = :repo_id
-                        AND issues.pull_request IS NULL
-                        AND issues.created_at BETWEEN :begin_date AND :end_date
-                    GROUP BY gh_user_id, repo_name
-                ) as abc
-                GROUP BY issue_date, repo_name
-                ORDER BY issue_date
-            """)
-            results = pd.read_sql(issueNewContributor, engine, params={'repo_id': repo_id, 'period': period,
-                                                                        'begin_date': begin_date, 'end_date': end_date})
-        else:
-            issueNewContributor = s.sql.text("""
+                FROM
+                    issues JOIN repo ON issues.repo_id = repo.repo_id
+                WHERE
+                    issues.repo_id = :repo_id
+                    AND issues.pull_request IS NULL
+                    AND issues.created_at BETWEEN :begin_date AND :end_date
+                GROUP BY gh_user_id, repo_name
+            ) as abc
+            GROUP BY issue_date, repo_name
+            ORDER BY issue_date
+        """)
+        results = pd.read_sql(issueNewContributor, engine, params={'repo_id': repo_id, 'period': period,
+                                                                    'begin_date': begin_date, 'end_date': end_date})
+    else:
+        issueNewContributor = s.sql.text("""
+            SELECT
+                repo.repo_id,
+                repo_name,
+                date_trunc(:period, new_date::DATE) as issue_date,
+                COUNT(gh_user_id)
+            FROM (
                 SELECT
-                    repo.repo_id,
-                    repo_name,
-                    date_trunc(:period, new_date::DATE) as issue_date,
-                    COUNT(gh_user_id)
-                FROM (
-                    SELECT
-                        repo_id,
-                        gh_user_id,
-                        MIN(created_at) AS new_date
-                    FROM
-                        issues
-                    WHERE
-                        issues.pull_request IS NULL 
-                        AND repo_id in (SELECT repo_id FROM repo WHERE repo_group_id=:repo_group_id)
-                        AND created_at BETWEEN :begin_date AND :end_date
-                    GROUP BY gh_user_id, repo_id
-                ) as abc, repo
-                WHERE repo.repo_id= abc.repo_id
-                GROUP BY repo.repo_id, issue_date
-                ORDER BY issue_date
-            """)
-            results = pd.read_sql(issueNewContributor, engine,
-                                params={'repo_group_id': repo_group_id, 'period': period,
-                                        'begin_date': begin_date, 'end_date': end_date})
+                    repo_id,
+                    gh_user_id,
+                    MIN(created_at) AS new_date
+                FROM
+                    issues
+                WHERE
+                    issues.pull_request IS NULL 
+                    AND repo_id in (SELECT repo_id FROM repo WHERE repo_group_id=:repo_group_id)
+                    AND created_at BETWEEN :begin_date AND :end_date
+                GROUP BY gh_user_id, repo_id
+            ) as abc, repo
+            WHERE repo.repo_id= abc.repo_id
+            GROUP BY repo.repo_id, issue_date
+            ORDER BY issue_date
+        """)
+        results = pd.read_sql(issueNewContributor, engine,
+                            params={'repo_group_id': repo_group_id, 'period': period,
+                                    'begin_date': begin_date, 'end_date': end_date})
     return results
 
 @register_metric()
@@ -101,52 +100,50 @@ def issues_first_time_closed(repo_group_id, repo_id=None, period='day', begin_da
     if not end_date:
         end_date = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
-    with DatabaseEngine(connection_pool_size=1) as engine:
-
-        if repo_id:
-            issuesClosedSQL = s.sql.text("""
-                SELECT date_trunc(:period, new_date::DATE) AS issue_date,
-                    COUNT(cntrb_id),
-                    repo_name
-                FROM (
-                        SELECT issue_events.cntrb_id, MIN(issue_events.created_at) AS new_date, repo_name
-                        FROM issue_events,
-                            repo,
-                            issues
-                        WHERE repo.repo_id = :repo_id
-                        AND action = 'closed'
-                        AND repo.repo_id = issues.repo_id
-                        AND issues.pull_request IS NULL 
-                        AND issues.issue_id = issue_events.issue_id
-                        And issue_events.created_at BETWEEN :begin_date AND :end_date
-                        GROUP BY issue_events.cntrb_id, repo_name
-                    ) AS iss_close
-                GROUP BY issue_date, repo_name
-            """)
-            results = pd.read_sql(issuesClosedSQL, engine, params={'repo_id': repo_id, 'period': period,
-                                                                    'begin_date': begin_date, 'end_date': end_date})
-        else:
-            issuesClosedSQL = s.sql.text("""
-                SELECT date_trunc(:period, new_date::DATE) AS issue_date,
-                    COUNT(cntrb_id),
-                    repo_name, repo_id
-                FROM (
-                        SELECT issue_events.cntrb_id, MIN(issue_events.created_at) AS new_date, repo_name, repo.repo_id
-                        FROM issue_events,
-                            repo,
-                            issues
-                        WHERE repo.repo_group_id = :repo_group_id
-                        AND issues.pull_request IS NULL 
-                        AND action = 'closed'
-                        AND repo.repo_id = issues.repo_id
-                        AND issues.issue_id = issue_events.issue_id
-                        And issue_events.created_at BETWEEN :begin_date AND :end_date
-                        GROUP BY issue_events.cntrb_id, repo.repo_id, repo_name
-                    ) AS iss_close
-                GROUP BY repo_id, repo_name,issue_date
-            """)
-            results = pd.read_sql(issuesClosedSQL, engine, params={'repo_group_id': repo_group_id, 'period': period,
-                                                                    'begin_date': begin_date, 'end_date': end_date})
+    if repo_id:
+        issuesClosedSQL = s.sql.text("""
+            SELECT date_trunc(:period, new_date::DATE) AS issue_date,
+                COUNT(cntrb_id),
+                repo_name
+            FROM (
+                    SELECT issue_events.cntrb_id, MIN(issue_events.created_at) AS new_date, repo_name
+                    FROM issue_events,
+                        repo,
+                        issues
+                    WHERE repo.repo_id = :repo_id
+                    AND action = 'closed'
+                    AND repo.repo_id = issues.repo_id
+                    AND issues.pull_request IS NULL 
+                    AND issues.issue_id = issue_events.issue_id
+                    And issue_events.created_at BETWEEN :begin_date AND :end_date
+                    GROUP BY issue_events.cntrb_id, repo_name
+                ) AS iss_close
+            GROUP BY issue_date, repo_name
+        """)
+        results = pd.read_sql(issuesClosedSQL, engine, params={'repo_id': repo_id, 'period': period,
+                                                                'begin_date': begin_date, 'end_date': end_date})
+    else:
+        issuesClosedSQL = s.sql.text("""
+            SELECT date_trunc(:period, new_date::DATE) AS issue_date,
+                COUNT(cntrb_id),
+                repo_name, repo_id
+            FROM (
+                    SELECT issue_events.cntrb_id, MIN(issue_events.created_at) AS new_date, repo_name, repo.repo_id
+                    FROM issue_events,
+                        repo,
+                        issues
+                    WHERE repo.repo_group_id = :repo_group_id
+                    AND issues.pull_request IS NULL 
+                    AND action = 'closed'
+                    AND repo.repo_id = issues.repo_id
+                    AND issues.issue_id = issue_events.issue_id
+                    And issue_events.created_at BETWEEN :begin_date AND :end_date
+                    GROUP BY issue_events.cntrb_id, repo.repo_id, repo_name
+                ) AS iss_close
+            GROUP BY repo_id, repo_name,issue_date
+        """)
+        results = pd.read_sql(issuesClosedSQL, engine, params={'repo_group_id': repo_group_id, 'period': period,
+                                                                'begin_date': begin_date, 'end_date': end_date})
 
     return results
 
@@ -168,44 +165,42 @@ def issues_new(repo_group_id, repo_id=None, period='day', begin_date=None, end_d
 
     issues_new_SQL = ''
 
-    with DatabaseEngine(connection_pool_size=1) as engine:
+    if not repo_id:
+        issues_new_SQL = s.sql.text("""
+            SELECT
+                issues.repo_id,
+                repo_name,
+                date_trunc(:period, issues.created_at::DATE) as date,
+                COUNT(issue_id) as issues
+            FROM issues JOIN repo ON issues.repo_id = repo.repo_id
+            WHERE issues.repo_id IN (SELECT repo_id FROM repo WHERE repo_group_id = :repo_group_id)
+            AND issues.created_at BETWEEN to_timestamp(:begin_date, 'YYYY-MM-DD HH24:MI:SS') AND to_timestamp(:end_date, 'YYYY-MM-DD HH24:MI:SS')
+            AND issues.pull_request IS NULL
+            GROUP BY issues.repo_id, date, repo_name
+            ORDER BY issues.repo_id, date
+        """)
 
-        if not repo_id:
-            issues_new_SQL = s.sql.text("""
-                SELECT
-                    issues.repo_id,
-                    repo_name,
-                    date_trunc(:period, issues.created_at::DATE) as date,
-                    COUNT(issue_id) as issues
-                FROM issues JOIN repo ON issues.repo_id = repo.repo_id
-                WHERE issues.repo_id IN (SELECT repo_id FROM repo WHERE repo_group_id = :repo_group_id)
-                AND issues.created_at BETWEEN to_timestamp(:begin_date, 'YYYY-MM-DD HH24:MI:SS') AND to_timestamp(:end_date, 'YYYY-MM-DD HH24:MI:SS')
-                AND issues.pull_request IS NULL
-                GROUP BY issues.repo_id, date, repo_name
-                ORDER BY issues.repo_id, date
-            """)
+        results = pd.read_sql(issues_new_SQL, engine, params={'repo_group_id': repo_group_id, 'period': period,
+                                                            'begin_date': begin_date, 'end_date': end_date})
 
-            results = pd.read_sql(issues_new_SQL, engine, params={'repo_group_id': repo_group_id, 'period': period,
-                                                                'begin_date': begin_date, 'end_date': end_date})
+        return results
 
-            return results
+    else:
+        issues_new_SQL = s.sql.text("""
+            SELECT
+                repo_name,
+                date_trunc(:period, issues.created_at::DATE) as date,
+                COUNT(issue_id) as issues
+            FROM issues JOIN repo ON issues.repo_id = repo.repo_id
+            WHERE issues.repo_id = :repo_id
+            AND issues.created_at BETWEEN to_timestamp(:begin_date, 'YYYY-MM-DD HH24:MI:SS') AND to_timestamp(:end_date, 'YYYY-MM-DD HH24:MI:SS')
+            AND issues.pull_request IS NULL
+            GROUP BY date, repo_name
+            ORDER BY date;
+        """)
 
-        else:
-            issues_new_SQL = s.sql.text("""
-                SELECT
-                    repo_name,
-                    date_trunc(:period, issues.created_at::DATE) as date,
-                    COUNT(issue_id) as issues
-                FROM issues JOIN repo ON issues.repo_id = repo.repo_id
-                WHERE issues.repo_id = :repo_id
-                AND issues.created_at BETWEEN to_timestamp(:begin_date, 'YYYY-MM-DD HH24:MI:SS') AND to_timestamp(:end_date, 'YYYY-MM-DD HH24:MI:SS')
-                AND issues.pull_request IS NULL
-                GROUP BY date, repo_name
-                ORDER BY date;
-            """)
-
-            results = pd.read_sql(issues_new_SQL, engine, params={'repo_id': repo_id, 'period': period,
-                                                                'begin_date': begin_date, 'end_date': end_date})
+        results = pd.read_sql(issues_new_SQL, engine, params={'repo_id': repo_id, 'period': period,
+                                                            'begin_date': begin_date, 'end_date': end_date})
         return results
 
 @register_metric()
@@ -224,46 +219,44 @@ def issues_active(repo_group_id, repo_id=None, period='day', begin_date=None, en
     if not end_date:
         end_date = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
-    with DatabaseEngine(connection_pool_size=1) as engine:
+    if not repo_id:
+        issues_active_SQL = s.sql.text("""
+            SELECT
+                issues.repo_id,
+                repo_name,
+                date_trunc(:period, issue_events.created_at) as date,
+                COUNT(issues.issue_id) AS issues
+            FROM issues, repo, issue_events
+            WHERE issues.issue_id = issue_events.issue_id
+            AND issues.repo_id = repo.repo_id
+            AND issues.repo_id IN (SELECT repo_id FROM repo WHERE repo_group_id = :repo_group_id)
+            AND issue_events.created_at BETWEEN to_timestamp(:begin_date, 'YYYY-MM-DD HH24:MI:SS') AND to_timestamp(:end_date, 'YYYY-MM-DD HH24:MI:SS')
+            and issues.pull_request IS NULL
+            GROUP BY issues.repo_id, date, repo_name
+            ORDER BY issues.repo_id, date
+        """)
 
-        if not repo_id:
-            issues_active_SQL = s.sql.text("""
-                SELECT
-                    issues.repo_id,
-                    repo_name,
-                    date_trunc(:period, issue_events.created_at) as date,
-                    COUNT(issues.issue_id) AS issues
-                FROM issues, repo, issue_events
-                WHERE issues.issue_id = issue_events.issue_id
-                AND issues.repo_id = repo.repo_id
-                AND issues.repo_id IN (SELECT repo_id FROM repo WHERE repo_group_id = :repo_group_id)
-                AND issue_events.created_at BETWEEN to_timestamp(:begin_date, 'YYYY-MM-DD HH24:MI:SS') AND to_timestamp(:end_date, 'YYYY-MM-DD HH24:MI:SS')
-                and issues.pull_request IS NULL
-                GROUP BY issues.repo_id, date, repo_name
-                ORDER BY issues.repo_id, date
-            """)
+        results = pd.read_sql(issues_active_SQL, engine, params={'repo_group_id': repo_group_id, 'period':period,
+                                                                'begin_date': begin_date, 'end_date':end_date})
+                                                                
+    else:
+        issues_active_SQL = s.sql.text("""
+            SELECT
+                repo_name,
+                date_trunc(:period, issue_events.created_at) as date,
+                COUNT(issues.issue_id) AS issues
+            FROM issues, repo, issue_events
+            WHERE issues.issue_id = issue_events.issue_id
+            AND issues.repo_id = repo.repo_id
+            AND issues.repo_id = :repo_id
+            AND issue_events.created_at BETWEEN to_timestamp(:begin_date, 'YYYY-MM-DD HH24:MI:SS') AND to_timestamp(:end_date, 'YYYY-MM-DD HH24:MI:SS')
+            AND issues.pull_request IS NULL
+            GROUP BY date, repo_name
+            ORDER BY date
+        """)
 
-            results = pd.read_sql(issues_active_SQL, engine, params={'repo_group_id': repo_group_id, 'period':period,
-                                                                    'begin_date': begin_date, 'end_date':end_date})
-                                                                    
-        else:
-            issues_active_SQL = s.sql.text("""
-                SELECT
-                    repo_name,
-                    date_trunc(:period, issue_events.created_at) as date,
-                    COUNT(issues.issue_id) AS issues
-                FROM issues, repo, issue_events
-                WHERE issues.issue_id = issue_events.issue_id
-                AND issues.repo_id = repo.repo_id
-                AND issues.repo_id = :repo_id
-                AND issue_events.created_at BETWEEN to_timestamp(:begin_date, 'YYYY-MM-DD HH24:MI:SS') AND to_timestamp(:end_date, 'YYYY-MM-DD HH24:MI:SS')
-                AND issues.pull_request IS NULL
-                GROUP BY date, repo_name
-                ORDER BY date
-            """)
-
-            results = pd.read_sql(issues_active_SQL, engine, params={'repo_id': repo_id, 'period':period,
-                                                'begin_date': begin_date, 'end_date':end_date})
+        results = pd.read_sql(issues_active_SQL, engine, params={'repo_id': repo_id, 'period':period,
+                                            'begin_date': begin_date, 'end_date':end_date})
     return results
 
 @register_metric()
@@ -282,45 +275,43 @@ def issues_closed(repo_group_id, repo_id=None, period='day', begin_date=None, en
     if not end_date:
         end_date = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
-    with DatabaseEngine(connection_pool_size=1) as engine:
+    if not repo_id:
+        issues_closed_SQL = s.sql.text("""
+            SELECT
+                issues.repo_id,
+                repo_name,
+                date_trunc(:period, closed_at::DATE) as date,
+                COUNT(issue_id) as issues
+            FROM issues JOIN repo ON issues.repo_id = repo.repo_id
+            WHERE issues.repo_id IN (SELECT repo_id FROM repo WHERE repo_group_id = :repo_group_id)
+            AND closed_at IS NOT NULL
+            AND closed_at BETWEEN to_timestamp(:begin_date, 'YYYY-MM-DD HH24:MI:SS') AND to_timestamp(:end_date, 'YYYY-MM-DD HH24:MI:SS')
+            AND issues.pull_request IS NULL
+            GROUP BY issues.repo_id, date, repo_name
+            ORDER BY issues.repo_id, date
+        """)
 
-        if not repo_id:
-            issues_closed_SQL = s.sql.text("""
-                SELECT
-                    issues.repo_id,
-                    repo_name,
-                    date_trunc(:period, closed_at::DATE) as date,
-                    COUNT(issue_id) as issues
-                FROM issues JOIN repo ON issues.repo_id = repo.repo_id
-                WHERE issues.repo_id IN (SELECT repo_id FROM repo WHERE repo_group_id = :repo_group_id)
-                AND closed_at IS NOT NULL
-                AND closed_at BETWEEN to_timestamp(:begin_date, 'YYYY-MM-DD HH24:MI:SS') AND to_timestamp(:end_date, 'YYYY-MM-DD HH24:MI:SS')
-                AND issues.pull_request IS NULL
-                GROUP BY issues.repo_id, date, repo_name
-                ORDER BY issues.repo_id, date
-            """)
+        results = pd.read_sql(issues_closed_SQL, engine, params={'repo_group_id': repo_group_id, 'period': period,
+                                                                'begin_date': begin_date, 'end_date': end_date})
 
-            results = pd.read_sql(issues_closed_SQL, engine, params={'repo_group_id': repo_group_id, 'period': period,
-                                                                    'begin_date': begin_date, 'end_date': end_date})
+    else:
+        issues_closed_SQL = s.sql.text("""
+            SELECT
+                repo_name,
+                date_trunc(:period, closed_at::DATE) as date,
+                COUNT(issue_id) as issues
+            FROM issues JOIN repo ON issues.repo_id = repo.repo_id
+            WHERE issues.repo_id = :repo_id
+            AND closed_at IS NOT NULL
+            AND closed_at BETWEEN to_timestamp(:begin_date, 'YYYY-MM-DD HH24:MI:SS') AND to_timestamp(:end_date, 'YYYY-MM-DD HH24:MI:SS')
+            AND issues.pull_request IS NULL
+            GROUP BY date, repo_name
+            ORDER BY date;
+        """)
 
-        else:
-            issues_closed_SQL = s.sql.text("""
-                SELECT
-                    repo_name,
-                    date_trunc(:period, closed_at::DATE) as date,
-                    COUNT(issue_id) as issues
-                FROM issues JOIN repo ON issues.repo_id = repo.repo_id
-                WHERE issues.repo_id = :repo_id
-                AND closed_at IS NOT NULL
-                AND closed_at BETWEEN to_timestamp(:begin_date, 'YYYY-MM-DD HH24:MI:SS') AND to_timestamp(:end_date, 'YYYY-MM-DD HH24:MI:SS')
-                AND issues.pull_request IS NULL
-                GROUP BY date, repo_name
-                ORDER BY date;
-            """)
+        results = pd.read_sql(issues_closed_SQL, engine, params={'repo_id': repo_id, 'period': period,
+                                                                'begin_date': begin_date, 'end_date': end_date})
 
-            results = pd.read_sql(issues_closed_SQL, engine, params={'repo_id': repo_id, 'period': period,
-                                                                    'begin_date': begin_date, 'end_date': end_date})
-    
     return results
 
 @register_metric()
@@ -357,11 +348,9 @@ def issue_duration(repo_group_id, repo_id=None, begin_date=None, end_date=None):
             ORDER BY repo_id, issue_id
         """)
 
-        with DatabaseEngine(connection_pool_size=1) as engine:
-
-            results = pd.read_sql(issue_duration_SQL, engine, params={'repo_group_id': repo_group_id,
-                                                                    'begin_date': begin_date,
-                                                                    'end_date': end_date})
+        results = pd.read_sql(issue_duration_SQL, engine, params={'repo_group_id': repo_group_id,
+                                                                'begin_date': begin_date,
+                                                                'end_date': end_date})
         results['duration'] = results['duration'].astype(str)
         return results
 
@@ -383,11 +372,9 @@ def issue_duration(repo_group_id, repo_id=None, begin_date=None, end_date=None):
             ORDER BY issue_id;
         """)
 
-        with DatabaseEngine(connection_pool_size=1) as engine:
-
-            results = pd.read_sql(issue_duration_SQL, engine, params={'repo_id': repo_id,
-                                                                    'begin_date': begin_date,
-                                                                    'end_date': end_date})
+        results = pd.read_sql(issue_duration_SQL, engine, params={'repo_id': repo_id,
+                                                                'begin_date': begin_date,
+                                                                'end_date': end_date})
         results['duration'] = results['duration'].astype(str)
         return results
 
@@ -431,11 +418,9 @@ def issue_participants(repo_group_id, repo_id=None, begin_date=None, end_date=No
             ORDER BY issues.repo_id, issues.created_at
         """)
 
-        with DatabaseEngine(connection_pool_size=1) as engine:
-
-            result = pd.read_sql(issue_participants_SQL, engine, params={'repo_group_id': repo_group_id,
-                                                                        'begin_date': begin_date,
-                                                                        'end_date': end_date})
+        result = pd.read_sql(issue_participants_SQL, engine, params={'repo_group_id': repo_group_id,
+                                                                    'begin_date': begin_date,
+                                                                    'end_date': end_date})
         return result
     else:
         issue_participants_SQL = s.sql.text("""
@@ -461,11 +446,9 @@ def issue_participants(repo_group_id, repo_id=None, begin_date=None, end_date=No
             ORDER BY issues.created_at
         """)
 
-        with DatabaseEngine(connection_pool_size=1) as engine:
-
-            result = pd.read_sql(issue_participants_SQL, engine, params={'repo_id': repo_id,
-                                                                        'begin_date': begin_date,
-                                                                        'end_date': end_date})
+        result = pd.read_sql(issue_participants_SQL, engine, params={'repo_id': repo_id,
+                                                                    'begin_date': begin_date,
+                                                                    'end_date': end_date})
         return result
 
 @register_metric()
@@ -486,9 +469,8 @@ def issue_backlog(repo_group_id, repo_id=None):
             GROUP BY issues.repo_id, repo_name
             ORDER BY issues.repo_id
         """)
-        with DatabaseEngine(connection_pool_size=1) as engine:
-            result = pd.read_sql(issue_backlog_SQL, engine, params={'repo_group_id': repo_group_id})
-            return result
+        result = pd.read_sql(issue_backlog_SQL, engine, params={'repo_group_id': repo_group_id})
+        return result
 
     else:
         issue_backlog_SQL = s.sql.text("""
@@ -500,9 +482,8 @@ def issue_backlog(repo_group_id, repo_id=None):
             GROUP BY repo_name
         """)
 
-        with DatabaseEngine(connection_pool_size=1) as engine:
-            result = pd.read_sql(issue_backlog_SQL, engine, params={'repo_id': repo_id})
-            return result
+        result = pd.read_sql(issue_backlog_SQL, engine, params={'repo_id': repo_id})
+        return result
 
 @register_metric()
 def issue_throughput(repo_group_id, repo_id=None):
@@ -529,9 +510,8 @@ def issue_throughput(repo_group_id, repo_id=None):
             AND table1.repo_id = repo.repo_id
         """)
 
-        with DatabaseEngine(connection_pool_size=1) as engine:
-            results = pd.read_sql(issue_throughput_SQL, engine, params={'repo_group_id': repo_group_id})
-            return results
+        results = pd.read_sql(issue_throughput_SQL, engine, params={'repo_group_id': repo_group_id})
+        return results
 
     else:
         issue_throughput_SQL = s.sql.text("""
@@ -546,9 +526,8 @@ def issue_throughput(repo_group_id, repo_id=None):
             WHERE table1.repo_id = repo.repo_id
         """)
 
-        with DatabaseEngine(connection_pool_size=1) as engine:
-            result = pd.read_sql(issue_throughput_SQL, engine, params={'repo_id': repo_id})
-            return result
+        result = pd.read_sql(issue_throughput_SQL, engine, params={'repo_id': repo_id})
+        return result
 
 @register_metric()
 def issues_open_age(repo_group_id, repo_id=None, period='day', begin_date=None, end_date=None):
@@ -596,10 +575,9 @@ def issues_open_age(repo_group_id, repo_id=None, period='day', begin_date=None, 
             ORDER BY open_date DESC
         """)
 
-    with DatabaseEngine(connection_pool_size=1) as engine:
-        results = pd.read_sql(openAgeSQL, engine,
-                                params={'repo_id': repo_id, 'repo_group_id': repo_group_id,
-                                'period': period, 'begin_date':begin_date, 'end_date':end_date})
+    results = pd.read_sql(openAgeSQL, engine,
+                            params={'repo_id': repo_id, 'repo_group_id': repo_group_id,
+                            'period': period, 'begin_date':begin_date, 'end_date':end_date})
 
     return results
 
@@ -657,12 +635,11 @@ def issues_closed_resolution_duration(repo_group_id, repo_id=None, period='day',
             ORDER BY gh_issue_number
         """)
 
-    with DatabaseEngine(connection_pool_size=1) as engine:
-        results = pd.read_sql(issueSQL, engine,
-                                params={'repo_id': repo_id,
-                                'repo_group_id': repo_group_id,
-                                'period': period, 'begin_date':begin_date,
-                                'end_date':end_date})
+    results = pd.read_sql(issueSQL, engine,
+                            params={'repo_id': repo_id,
+                            'repo_group_id': repo_group_id,
+                            'period': period, 'begin_date':begin_date,
+                            'end_date':end_date})
 
     return results
 
@@ -690,11 +667,10 @@ def average_issue_resolution_time(repo_group_id, repo_id=None):
             ORDER BY issues.repo_id
         """)
 
-        with DatabaseEngine(connection_pool_size=1) as engine:
 
-            results = pd.read_sql(avg_issue_resolution_SQL, engine,
-                                params={'repo_group_id': repo_group_id})
-            return results
+        results = pd.read_sql(avg_issue_resolution_SQL, engine,
+                            params={'repo_group_id': repo_group_id})
+        return results
 
     else:
         avg_issue_resolution_SQL = s.sql.text("""
@@ -708,11 +684,9 @@ def average_issue_resolution_time(repo_group_id, repo_id=None):
             GROUP BY repo.repo_name
         """)
 
-        with DatabaseEngine(connection_pool_size=1) as engine:
-
-            results = pd.read_sql(avg_issue_resolution_SQL, engine,
-                                params={'repo_id': repo_id})
-            return results
+        results = pd.read_sql(avg_issue_resolution_SQL, engine,
+                            params={'repo_id': repo_id})
+        return results
 
 @register_metric()
 def issues_maintainer_response_duration(repo_group_id, repo_id=None, begin_date=None, end_date=None):
@@ -784,8 +758,7 @@ def issues_maintainer_response_duration(repo_group_id, repo_id=None, begin_date=
             group by repo_id, repo_name
         """)
 
-    with DatabaseEngine(connection_pool_size=1) as engine:
-        results = pd.read_sql(issuesSQL, engine, params={'repo_id': repo_id, 'repo_group_id': repo_group_id,'begin_date': begin_date, 'end_date': end_date})
+    results = pd.read_sql(issuesSQL, engine, params={'repo_id': repo_id, 'repo_group_id': repo_group_id,'begin_date': begin_date, 'end_date': end_date})
 
     return results
 
@@ -808,9 +781,8 @@ def open_issues_count(repo_group_id, repo_id=None):
             GROUP BY date, repo_groups.rg_name
             ORDER BY date
         """)
-        with DatabaseEngine(connection_pool_size=1) as engine:
-            results = pd.read_sql(openIssueCountSQL, engine, params={'repo_group_id': repo_group_id})
-            return results
+        results = pd.read_sql(openIssueCountSQL, engine, params={'repo_group_id': repo_group_id})
+        return results
     else:
         openIssueCountSQL = s.sql.text("""
             SELECT repo.repo_id, count(issue_id) AS open_count, date_trunc('week', issues.created_at) AS DATE, repo_name
@@ -823,9 +795,8 @@ def open_issues_count(repo_group_id, repo_id=None):
             GROUP BY date, repo.repo_id
             ORDER BY date
         """)
-        with DatabaseEngine(connection_pool_size=1) as engine:
-            results = pd.read_sql(openIssueCountSQL, engine, params={'repo_id': repo_id})
-            return results
+        results = pd.read_sql(openIssueCountSQL, engine, params={'repo_id': repo_id})
+        return results
 
 
 @register_metric()
@@ -847,9 +818,8 @@ def closed_issues_count(repo_group_id, repo_id=None):
             GROUP BY date, repo_groups.rg_name
             ORDER BY date
         """)
-        with DatabaseEngine(connection_pool_size=1) as engine:
-            results = pd.read_sql(closedIssueCountSQL, engine, params={'repo_group_id': repo_group_id})
-            return results
+        results = pd.read_sql(closedIssueCountSQL, engine, params={'repo_group_id': repo_group_id})
+        return results
     else:
         closedIssueCountSQL = s.sql.text("""
             SELECT repo.repo_id, count(issue_id) AS closed_count, date_trunc('week', issues.created_at) AS DATE, repo_name
@@ -862,9 +832,8 @@ def closed_issues_count(repo_group_id, repo_id=None):
             GROUP BY date, repo.repo_id
             ORDER BY date
         """)
-        with DatabaseEngine(connection_pool_size=1) as engine:
-            results = pd.read_sql(closedIssueCountSQL, engine, params={'repo_id': repo_id})
-            return results
+        results = pd.read_sql(closedIssueCountSQL, engine, params={'repo_id': repo_id})
+        return results
 
 @register_metric()
 def issue_comments_mean(repo_group_id, repo_id=None, group_by='week'):
@@ -925,10 +894,9 @@ def issue_comments_mean(repo_group_id, repo_id=None, group_by='week'):
         else:
             raise ValueError("Incorrect value for 'group_by'")
 
-        with DatabaseEngine(connection_pool_size=1) as engine:
-            results = pd.read_sql(issue_comments_mean_std_SQL, engine,
-                                params={'repo_group_id': repo_group_id})
-            return results
+        results = pd.read_sql(issue_comments_mean_std_SQL, engine,
+                            params={'repo_group_id': repo_group_id})
+        return results
 
     else:
         if group_by == 'week':
@@ -979,10 +947,9 @@ def issue_comments_mean(repo_group_id, repo_id=None, group_by='week'):
         else:
             raise ValueError("Incorrect value for 'group_by'")
 
-        with DatabaseEngine(connection_pool_size=1) as engine:
-            results = pd.read_sql(issue_comments_mean_std_SQL, engine,
-                                params={'repo_id': repo_id})
-            return results
+        results = pd.read_sql(issue_comments_mean_std_SQL, engine,
+                            params={'repo_id': repo_id})
+        return results
 
 @register_metric()
 def issue_comments_mean_std(repo_group_id, repo_id=None, group_by='week'):
@@ -1011,12 +978,11 @@ def issue_comments_mean_std(repo_group_id, repo_id=None, group_by='week'):
             ORDER BY repo_id, date
         """)
 
-        with DatabaseEngine(connection_pool_size=1) as engine:
 
-            results = pd.read_sql(issue_comments_mean_std_SQL, engine,
-                                params={'repo_group_id': repo_group_id,
-                                        'group_by': group_by})
-            return results
+        results = pd.read_sql(issue_comments_mean_std_SQL, engine,
+                            params={'repo_group_id': repo_group_id,
+                                    'group_by': group_by})
+        return results
 
     else:
         issue_comments_mean_std_SQL = s.sql.text("""
@@ -1041,11 +1007,9 @@ def issue_comments_mean_std(repo_group_id, repo_id=None, group_by='week'):
             ORDER BY date
         """)
 
-        with DatabaseEngine(connection_pool_size=1) as engine:
-
-            results = pd.read_sql(issue_comments_mean_std_SQL, engine,
-                                params={'repo_id': repo_id, 'group_by': group_by})
-            return results
+        results = pd.read_sql(issue_comments_mean_std_SQL, engine,
+                            params={'repo_id': repo_id, 'group_by': group_by})
+        return results
 
 @register_metric()
 def abandoned_issues(repo_group_id, repo_id=None, period='day', begin_date=None, end_date=None):
@@ -1094,7 +1058,6 @@ def abandoned_issues(repo_group_id, repo_id=None, period='day', begin_date=None,
             '''
         )
 
-    with DatabaseEngine(connection_pool_size=1) as engine:
-        results = pd.read_sql(abandonedSQL, engine, params={'repo_id': repo_id, 'repo_group_id': repo_group_id, 'period': period,
-                                                                    'begin_date': begin_date, 'end_date': end_date})
-        return results
+    results = pd.read_sql(abandonedSQL, engine, params={'repo_id': repo_id, 'repo_group_id': repo_group_id, 'period': period,
+                                                                'begin_date': begin_date, 'end_date': end_date})
+    return results

@@ -5,6 +5,7 @@ import pandas as pd
 from augur.api.util import register_metric
 
 from augur.application.db.engine import DatabaseEngine
+engine = DatabaseEngine(connection_pool_size=1).engine
 
 @register_metric(type="toss") 
 def toss_pull_request_acceptance_rate(repo_id, begin_date=None, end_date=None, group_by='week'):
@@ -56,10 +57,10 @@ def toss_pull_request_acceptance_rate(repo_id, begin_date=None, end_date=None, g
             repo_id
             ) opened ON merged.repo_id = opened.repo_id
     """)
-    with DatabaseEngine(connection_pool_size=1) as engine:
-        results = pd.read_sql(pr_acceptance_rate_sql, engine, params={'repo_id': repo_id, 'group_by': group_by,
-                                                        'begin_date': begin_date, 'end_date': end_date})
-        return results
+    
+    results = pd.read_sql(pr_acceptance_rate_sql, engine, params={'repo_id': repo_id, 'group_by': group_by,
+                                                    'begin_date': begin_date, 'end_date': end_date})
+    return results
 
 
 @register_metric(type="toss")
@@ -88,8 +89,8 @@ def toss_review_duration(repo_id, begin_date=None, end_date=None):
             AND pr_created_at BETWEEN :begin_date
             AND :end_date
     """)
-    with DatabaseEngine(connection_pool_size=1) as engine:
-        results = pd.read_sql(pr_acceptance_rate_sql, engine, params={'repo_id': repo_id,
+    
+    results = pd.read_sql(pr_acceptance_rate_sql, engine, params={'repo_id': repo_id,
                                                         'begin_date': begin_date, 'end_date': end_date})
     if results.iloc[0]['duration'] is None:
         results.iloc[0]['duration'] = -1
@@ -119,6 +120,6 @@ def toss_repo_info(repo_id):
         repo_info.data_collection_date DESC
     LIMIT 1;
     """)
-    with DatabaseEngine(connection_pool_size=1) as engine:
-        results = pd.read_sql(license_file_sql, engine, params={'repo_id': repo_id})
-        return results
+    
+    results = pd.read_sql(license_file_sql, engine, params={'repo_id': repo_id})
+    return results

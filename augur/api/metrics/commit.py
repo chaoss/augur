@@ -10,6 +10,8 @@ from augur.api.util import register_metric
 
 from augur.application.db.engine import DatabaseEngine
 
+engine = DatabaseEngine(connection_pool_size=1).engine
+
 @register_metric()
 def committers(repo_group_id, repo_id=None, begin_date=None, end_date=None, period='month'):
     """
@@ -90,12 +92,10 @@ def committers(repo_group_id, repo_id=None, begin_date=None, end_date=None, peri
             """
         )
 
-    with DatabaseEngine(connection_pool_size=1) as engine:
+    results = pd.read_sql(committersSQL, engine, params={'repo_id': repo_id, 
+        'repo_group_id': repo_group_id,'begin_date': begin_date, 'end_date': end_date, 'period':period})
 
-        results = pd.read_sql(committersSQL, engine, params={'repo_id': repo_id, 
-            'repo_group_id': repo_group_id,'begin_date': begin_date, 'end_date': end_date, 'period':period})
-
-        return results
+    return results
 
 @register_metric()
 def annual_commit_count_ranked_by_new_repo_in_repo_group(repo_group_id, repo_id=None, begin_date=None, end_date=None, period='month'):
@@ -169,10 +169,9 @@ def annual_commit_count_ranked_by_new_repo_in_repo_group(repo_group_id, repo_id=
             ORDER BY YEAR ASC
         """.format(table, period))
 
-    with DatabaseEngine(connection_pool_size=1) as engine:
-        results = pd.read_sql(cdRgNewrepRankedCommitsSQL, engine, params={'repo_id': repo_id, 
-            'repo_group_id': repo_group_id,'begin_date': begin_date, 'end_date': end_date})
-        return results
+    results = pd.read_sql(cdRgNewrepRankedCommitsSQL, engine, params={'repo_id': repo_id, 
+        'repo_group_id': repo_group_id,'begin_date': begin_date, 'end_date': end_date})
+    return results
 
 @register_metric()
 def annual_commit_count_ranked_by_repo_in_repo_group(repo_group_id, repo_id=None, timeframe=None):
@@ -268,10 +267,9 @@ def annual_commit_count_ranked_by_repo_in_repo_group(repo_group_id, repo_id=None
                 LIMIT 10
             """)
 
-    with DatabaseEngine(connection_pool_size=1) as engine:
-        results = pd.read_sql(cdRgTpRankedCommitsSQL, engine, params={ "repo_group_id": repo_group_id,
-        "repo_id": repo_id})
-        return results
+    results = pd.read_sql(cdRgTpRankedCommitsSQL, engine, params={ "repo_group_id": repo_group_id,
+    "repo_id": repo_id})
+    return results
 
 @register_metric()
 def top_committers(repo_group_id, repo_id=None, year=None, threshold=0.8):
@@ -290,32 +288,30 @@ def top_committers(repo_group_id, repo_id=None, year=None, threshold=0.8):
     if year is None:
         year = datetime.datetime.now().year
 
+    if not repo_id:
+        total_commits_SQL = s.sql.text("""
+            SELECT SUM(patches)::int
+            FROM
+                (SELECT repo_group_id, email, year, patches
+                FROM dm_repo_group_annual
+                WHERE year = :year AND repo_group_id = :repo_group_id
+                ORDER BY patches DESC) a
+        """)
 
-    with DatabaseEngine(connection_pool_size=1) as engine:
-        if not repo_id:
-            total_commits_SQL = s.sql.text("""
-                SELECT SUM(patches)::int
-                FROM
-                    (SELECT repo_group_id, email, year, patches
-                    FROM dm_repo_group_annual
-                    WHERE year = :year AND repo_group_id = :repo_group_id
-                    ORDER BY patches DESC) a
-            """)
+        results = pd.read_sql(total_commits_SQL, engine,
+                            params={'year': year, 'repo_group_id': repo_group_id})
+    else:
+        total_commits_SQL = s.sql.text("""
+            SELECT SUM(patches)::int
+            FROM
+                (SELECT repo_id, email, year, patches
+                FROM dm_repo_annual
+                WHERE year = :year AND repo_id = :repo_id
+                ORDER BY patches DESC) a
+        """)
 
-            results = pd.read_sql(total_commits_SQL, engine,
-                                params={'year': year, 'repo_group_id': repo_group_id})
-        else:
-            total_commits_SQL = s.sql.text("""
-                SELECT SUM(patches)::int
-                FROM
-                    (SELECT repo_id, email, year, patches
-                    FROM dm_repo_annual
-                    WHERE year = :year AND repo_id = :repo_id
-                    ORDER BY patches DESC) a
-            """)
-
-            results = pd.read_sql(total_commits_SQL, engine,
-                                params={'year': year, 'repo_id': repo_id})
+        results = pd.read_sql(total_commits_SQL, engine,
+                            params={'year': year, 'repo_id': repo_id})
 
     if not results.iloc[0]['sum']:
         return pd.DataFrame()
@@ -323,45 +319,44 @@ def top_committers(repo_group_id, repo_id=None, year=None, threshold=0.8):
     total_commits = int(results.iloc[0]['sum'])
     threshold_commits = round(threshold * total_commits)
 
-    with DatabaseEngine(connection_pool_size=1) as engine:
-        if not repo_id:
-            committers_SQL = s.sql.text("""
-                SELECT
-                    a.repo_group_id,
-                    rg_name AS repo_group_name,
-                    a.email,
-                    SUM(a.patches)::int AS commits
-                FROM
-                    (SELECT repo_group_id, email, year, patches
-                    FROM dm_repo_group_annual
-                    WHERE year = :year AND repo_group_id = :repo_group_id
-                    ORDER BY patches DESC) a, repo_groups
-                WHERE a.repo_group_id = repo_groups.repo_group_id
-                GROUP BY a.repo_group_id, repo_group_name, a.email
-                ORDER BY commits DESC
-            """)
+    if not repo_id:
+        committers_SQL = s.sql.text("""
+            SELECT
+                a.repo_group_id,
+                rg_name AS repo_group_name,
+                a.email,
+                SUM(a.patches)::int AS commits
+            FROM
+                (SELECT repo_group_id, email, year, patches
+                FROM dm_repo_group_annual
+                WHERE year = :year AND repo_group_id = :repo_group_id
+                ORDER BY patches DESC) a, repo_groups
+            WHERE a.repo_group_id = repo_groups.repo_group_id
+            GROUP BY a.repo_group_id, repo_group_name, a.email
+            ORDER BY commits DESC
+        """)
 
-            results = pd.read_sql(committers_SQL, engine,
-                                params={'year': year, 'repo_group_id': repo_group_id})
-        else:
-            committers_SQL = s.sql.text("""
-                SELECT
-                    a.repo_id,
-                    repo.repo_name,
-                    a.email,
-                    SUM(a.patches)::int AS commits
-                FROM
-                    (SELECT repo_id, email, year, patches
-                    FROM dm_repo_annual
-                    WHERE year = :year AND repo_id = :repo_id
-                    ORDER BY patches DESC) a, repo
-                WHERE a.repo_id = repo.repo_id
-                GROUP BY a.repo_id, repo.repo_name, a.email
-                ORDER BY commits DESC
-            """)
+        results = pd.read_sql(committers_SQL, engine,
+                            params={'year': year, 'repo_group_id': repo_group_id})
+    else:
+        committers_SQL = s.sql.text("""
+            SELECT
+                a.repo_id,
+                repo.repo_name,
+                a.email,
+                SUM(a.patches)::int AS commits
+            FROM
+                (SELECT repo_id, email, year, patches
+                FROM dm_repo_annual
+                WHERE year = :year AND repo_id = :repo_id
+                ORDER BY patches DESC) a, repo
+            WHERE a.repo_id = repo.repo_id
+            GROUP BY a.repo_id, repo.repo_name, a.email
+            ORDER BY commits DESC
+        """)
 
-            results = pd.read_sql(committers_SQL, engine,
-                                params={'year': year, 'repo_id': repo_id})
+        results = pd.read_sql(committers_SQL, engine,
+                            params={'year': year, 'repo_id': repo_id})
 
     cumsum = 0
     for i, row in results.iterrows():
