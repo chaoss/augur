@@ -31,7 +31,8 @@ github_tasks = ['augur.tasks.github.contributors.tasks',
                 'augur.tasks.github.pull_requests.files_model.tasks',
                 'augur.tasks.github.pull_requests.commits_model.tasks']
 
-git_tasks = ['augur.tasks.git.facade_tasks']
+git_tasks = ['augur.tasks.git.facade_tasks',
+            'augur.tasks.git.dependency_tasks.tasks']
 
 data_analysis_tasks = ['augur.tasks.data_analysis.message_insights.tasks',
                        'augur.tasks.data_analysis.clustering_worker.tasks',
@@ -139,9 +140,9 @@ def init_worker(**kwargs):
 
     global engine
 
-    from augur.application.db.engine import create_database_engine
+    from augur.application.db.engine import DatabaseEngine
 
-    engine = create_database_engine()
+    engine = DatabaseEngine().engine
 
 
 @worker_process_shutdown.connect
