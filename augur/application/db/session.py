@@ -5,7 +5,6 @@ import sys
 import random
 import logging
 import json
-import httpx
 import sqlalchemy as s
 
 from typing import Optional, List, Union
@@ -14,8 +13,8 @@ from psycopg2.errors import DeadlockDetected
 # from augur.tasks.util.random_key_auth import RandomKeyAuth
 from augur.application.config import AugurConfig
 from augur.application.db.models import Platform
-from augur.tasks.util.worker_util import remove_duplicate_dicts, remove_duplicate_naturals
-from augur.application.db.util import get_connection
+from augur.application.db.engine import EngineConnection
+from augur.tasks.util.worker_util import remove_duplicate_dicts, remove_duplicates_by_uniques
 
 
 def remove_null_characters_from_string(string):
@@ -84,15 +83,17 @@ class DatabaseSession(s.orm.Session):
     
     def execute_sql(self, sql_text):
 
-        connection = get_connection(self.engine)
-        return_data = connection.execute(sql_text)
-        connection.close()
-        
-        return return_data
+        with EngineConnection(self.engine) as connection:
+            return_data = connection.execute(sql_text)  
+
+            return return_data
 
     def fetchall_data_from_sql_text(self,sql_text):
-        result = self.execute_sql(sql_text).fetchall()
-        return [dict(zip(row.keys(), row)) for row in result]
+
+        with EngineConnection(self.engine) as connection:
+
+            result = connection.execute(sql_text)  .fetchall()
+            return [dict(zip(row.keys(), row)) for row in result]
 
     def insert_data(self, data: Union[List[dict], dict], table, natural_keys: List[str], return_columns: Optional[List[str]] = None, string_fields: Optional[List[str]] = None, on_conflict_update:bool = True) -> Optional[List[dict]]:
 
@@ -117,8 +118,7 @@ class DatabaseSession(s.orm.Session):
 
         # remove any duplicate data 
         # this only counts something as a duplicate if every field is the same
-        data = remove_duplicate_dicts(data)
-        data = remove_duplicate_naturals(data,natural_keys)
+        data = remove_duplicates_by_uniques(data, natural_keys)
 
         # remove null data from string fields
         if string_fields and isinstance(string_fields, list):
@@ -166,15 +166,14 @@ class DatabaseSession(s.orm.Session):
         deadlock_detected = False
 
 
-        connection = get_connection(self.engine)
-
         # if there is no data to return then it executes the insert then returns nothing
         if not return_columns:
 
             while attempts < 10:
                 try:
-                    connection.execute(stmnt)
-                    break
+                    with EngineConnection(self.engine) as connection:
+                        connection.execute(stmnt)
+                        break
                 except s.exc.OperationalError as e:
                     # print(str(e).split("Process")[1].split(";")[0])
                     if isinstance(e.orig, DeadlockDetected):
@@ -186,8 +185,17 @@ class DatabaseSession(s.orm.Session):
                         attempts += 1
                         continue
                     
-                    connection.close()
                     raise e
+
+                except Exception as e:
+                    if(len(data) == 1):
+                        raise e
+                    else:
+                        first_half = data[:len(data)//2]
+                        second_half = data[len(data)//2:]
+
+                        self.insert_data(first_half, natural_keys, return_columns, string_fields, on_conflict_update)
+                        self.insert_data(second_half, natural_keys, return_columns, string_fields, on_conflict_update)
 
             else:
                 self.logger.error("Unable to insert data in 10 attempts")
@@ -196,14 +204,15 @@ class DatabaseSession(s.orm.Session):
             if deadlock_detected is True:
                 self.logger.error("Made it through even though Deadlock was detected")
                     
-            return None
+            return "success"
         
 
         # othewise it gets the requested return columns and returns them as a list of dicts
         while attempts < 10:
             try:
-                return_data_tuples = connection.execute(stmnt).fetchall()
-                break
+                with EngineConnection(self.engine) as connection:
+                    return_data_tuples = connection.execute(stmnt).fetchall()
+                    break
             except s.exc.OperationalError as e:
                 if isinstance(e.orig, DeadlockDetected):
                     sleep_time = random.choice(sleep_time_list)
@@ -213,15 +222,21 @@ class DatabaseSession(s.orm.Session):
                     attempts += 1
                     continue   
 
-                connection.close()
                 raise e
+
+            except Exception as e:
+                if(len(data) == 1):
+                    raise e
+                else:
+                    first_half = data[:len(data)//2]
+                    second_half = data[len(data)//2:]
+
+                    self.insert_data(first_half, natural_keys, return_columns, string_fields, on_conflict_update)
+                    self.insert_data(second_half, natural_keys, return_columns, string_fields, on_conflict_update)
 
         else:
             self.logger.error("Unable to insert and return data in 10 attempts")
-            connection.close()
             return None
-
-        connection.close()
 
         if deadlock_detected is True:
             self.logger.error("Made it through even though Deadlock was detected")

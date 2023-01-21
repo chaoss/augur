@@ -14,12 +14,12 @@ def catch_operational_error(func):
             time.sleep(240)
         try:
             return func()
-        except OperationalError:
-            pass
+        except OperationalError as e:
+            print(f"ERROR: {e}")
 
         attempts += 1
 
-    raise Exeption("Unable to Resolve Operational Error")
+    raise Exception("Unable to Resolve Operational Error")
 
 
 def execute_session_query(query, query_type="all"):
@@ -37,12 +37,18 @@ def execute_session_query(query, query_type="all"):
     return catch_operational_error(func)
 
 
-def get_connection(engine):
 
-    func = engine.connect
+def convert_orm_list_to_dict_list(result):
+    new_list = []
 
-    return catch_operational_error(func)
-
-
-
+    for row in result:
+        row_dict = row.__dict__
+        try:
+            del row_dict['_sa_instance_state']
+        except:
+            pass
+        
+        new_list.append(row_dict)
+    
+    return new_list
 

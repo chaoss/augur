@@ -8,6 +8,8 @@ from sqlalchemy import create_engine, event
 from sqlalchemy.engine.base import Engine
 from sqlalchemy.pool import NullPool
 from augur.application.logs import initialize_stream_handler
+from augur.application.db.util import catch_operational_error
+
 
 logger = logging.getLogger("engine")
 initialize_stream_handler(logger, logging.ERROR)
@@ -107,10 +109,25 @@ class DatabaseEngine():
         return engine
 
 
-            
+class EngineConnection():
 
+    def __init__(self, engine):
+        self.connection = self.get_connection(engine)
 
+    def __enter__(self):
+        return self.connection
 
+    def __exit__(self, exception_type, exception_value, exception_traceback):
+
+        self.connection.close()
+
+    def get_connection(self, engine):
+
+        func = engine.connect
+
+        return catch_operational_error(func)
+
+        
 
 
 

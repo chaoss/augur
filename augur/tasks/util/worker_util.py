@@ -16,8 +16,10 @@ def create_grouped_task_load(*args,processes=8,dataList=[],task=None):
     if not dataList or not task:
         raise AssertionError
     
-    numpyData = np.array(list(dataList))
-    listsSplitForProcesses = np.array_split(numpyData, processes)
+    print(f"Splitting {len(dataList)} items")
+    #numpyData = np.array(list(dataList))
+    listsSplitForProcesses = np.array_split(list(dataList), processes)
+    print("Done splitting items.")
 
     #print("args")
     #print(args)
@@ -26,6 +28,8 @@ def create_grouped_task_load(*args,processes=8,dataList=[],task=None):
     jobs = group(task_list)
 
     return jobs
+
+
 
 def wait_child_tasks(ids_list):
     for task_id in ids_list:
@@ -42,8 +46,39 @@ def remove_duplicate_dicts(data: List[dict]) -> List[dict]:
 
     Returns:
         list of unique dicts
+
+    Note:
+        The dicts must be perfectly the same meaning the field and data must be exactly the same to be removed
     """
     return [dict(y) for y in set(tuple(x.items()) for x in data)]
+
+def remove_duplicates_by_uniques(data, uniques):
+
+    unique_values = {}
+
+    unique_data = []
+
+    #Deal with null data being passed. 
+    if not uniques:
+        return data
+
+    for x in data:
+
+        # creates a key out of the uniques
+        key = "_".join([str(x[unique]) for unique in uniques])
+
+        # if a KeyError does not occur then a dict with those values has already been processed
+        # if a KeyError occurs a dict with those values has not been found yet
+        try:
+            unique_values[key]
+            continue
+        except KeyError:
+            unique_values[key] = 1
+            unique_data.append(x)
+
+    return unique_data
+
+
 
 
 def remove_duplicate_naturals(data, natural_keys):

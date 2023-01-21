@@ -7,6 +7,7 @@ import datetime
 import sqlalchemy as s
 import pandas as pd
 from augur.api.util import register_metric
+import uuid 
 
 from augur.application.db.engine import DatabaseEngine
 

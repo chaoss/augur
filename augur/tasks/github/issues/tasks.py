@@ -18,27 +18,32 @@ from augur.application.db.util import execute_session_query
 development = get_development_flag()
 
 @celery.task
-def collect_issues(repo_git: str) -> None:
+def collect_issues(repo_git_identifiers: [str]) -> None:
 
     logger = logging.getLogger(collect_issues.__name__)
-    owner, repo = get_owner_repo(repo_git)
+    
+    for repo_git in repo_git_identifiers:
+        try:
+            owner, repo = get_owner_repo(repo_git)
 
-    # define GithubTaskSession to handle insertions, and store oauth keys 
-    with GithubTaskSession(logger) as session:
-        
-        query = session.query(Repo).filter(Repo.repo_git == repo_git)
-        repo_obj = execute_session_query(query, 'one')
-        repo_id = repo_obj.repo_id
-        
+            # define GithubTaskSession to handle insertions, and store oauth keys 
+            with GithubTaskSession(logger) as session:
 
-    issue_data = retrieve_all_issue_data(repo_git, logger)
+                query = session.query(Repo).filter(Repo.repo_git == repo_git)
+                repo_obj = execute_session_query(query, 'one')
+                repo_id = repo_obj.repo_id
 
-    if issue_data:
 
-        process_issues(issue_data, f"{owner}/{repo}: Issue task", repo_id, logger)
+            issue_data = retrieve_all_issue_data(repo_git, logger)
 
-    else:
-        logger.info(f"{owner}/{repo} has no issues")
+            if issue_data:
+            
+                process_issues(issue_data, f"{owner}/{repo}: Issue task", repo_id, logger)
+
+            else:
+                logger.info(f"{owner}/{repo} has no issues")
+        except Exception as e:
+            logger.error(f"Could not collect issues for repo {repo_git}\n Reason: {e} \n Traceback: {''.join(traceback.format_exception(None, e, e.__traceback__))}")
 
 
 def retrieve_all_issue_data(repo_git, logger) -> None:

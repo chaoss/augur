@@ -16,9 +16,17 @@ from augur.application.db.util import execute_session_query
 
 def get_release_inf(session, repo_id, release, tag_only):
     if not tag_only:
-        name = "" if release['author']['name'] is None else release['author']['name']
-        company = "" if release['author']['company'] is None else release['author']['company']
-        author = name + '_' + company
+
+        if release['author'] is None:
+            author = 'No Author Available.'
+            name = "N/A"
+            company = "N/A"
+        else:
+            name = "" if release['author']['name'] is None else release['author']['name']
+            company = "" if release['author']['company'] is None else release['author']['company']
+            author = name + '_' + company
+
+
         release_inf = {
             'release_id': release['id'],
             'repo_id': repo_id,
@@ -40,7 +48,7 @@ def get_release_inf(session, repo_id, release, tag_only):
                 name = release['target']['tagger']['name']
             else:
                 name = ""
-            if 'email' in release['target']['tagger']:
+            if 'email' in release['target']['tagger'] and release['target']['tagger']['email']:
                 email = '_' + release['target']['tagger']['email']
             else:
                 email = ""
@@ -176,7 +184,7 @@ def releases_model(session, repo_git, repo_id):
         session.logger.info(f"Ran into problem when fetching data for repo {repo_git}: {e}")
         return
 
-    session.logger.info("repository value is: {}\n".format(data))
+    #session.logger.info("repository value is: {}\n".format(data))
     if 'releases' in data:
         if 'edges' in data['releases'] and data['releases']['edges']:
             for n in data['releases']['edges']:
