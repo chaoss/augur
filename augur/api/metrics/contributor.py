@@ -44,7 +44,7 @@ def contributors(repo_group_id, repo_id=None, period='day', begin_date=None, end
 
     if repo_id:
         contributorsSQL = s.sql.text("""
-        SELECT id                           AS user_id,
+        SELECT id::text                           AS user_id,
                 SUM(commits)                 AS commits,
                 SUM(issues)                  AS issues,
                 SUM(commit_comments)         AS commit_comments,
@@ -131,7 +131,7 @@ def contributors(repo_group_id, repo_id=None, period='day', begin_date=None, end
                                                                 'begin_date': begin_date, 'end_date': end_date})
     else:
         contributorsSQL = s.sql.text("""
-        SELECT id                           AS user_id,
+        SELECT id::text                           AS user_id,
                 SUM(commits)                 AS commits,
                 SUM(issues)                  AS issues,
                 SUM(commit_comments)         AS commit_comments,
