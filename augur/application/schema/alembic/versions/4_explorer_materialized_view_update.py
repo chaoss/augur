@@ -55,7 +55,7 @@ def add_materialized_views_15(upgrade=True):
         drop materialized view if exists augur_data.explorer_libyear_detail; 
         drop materialized view if exists augur_data.explorer_new_contributors;
         drop materialized view if exists augur_data.api_get_all_repo_prs;
-        drop materialized view if exists augur_data.explorer_libyear_summary;"""))
+        drop materialized view if exists augur_data.explorer_libyear_summar;"""))
 
         conn.execute(text("""
         create materialized view api_get_all_repo_prs as 
@@ -65,7 +65,7 @@ def add_materialized_views_15(upgrade=True):
         GROUP BY pull_requests.repo_id;"""))
 
         conn.execute(text("""
-        create materialized view explorer_entry_list as
+        create materialized view augur_data.explorer_entry_list as
 
         SELECT DISTINCT r.repo_git,
             r.repo_id,
