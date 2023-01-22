@@ -573,35 +573,12 @@ def add_materialized_views_13(upgrade=True):
         drop materialized view if exists augur_data.explorer_entry_list; 
         drop materialized view if exists augur_data.explorer_libyear_all; 
         drop materialized view if exists augur_data.explorer_libyear_detail; 
-        drop materialized view if exists augur_data.explorer_new_contributors;
-        drop materialized view if exists augur_data.api_get_all_repo_prs;
-        drop materialized view if exists drop materialized view if exists augur_data.explorer_libyear_summary;"""))
+        drop materialized view if exists augur_data.explorer_new_contributors;""")) 
 
+
+        conn = op.get_bind()
         conn.execute(text("""
-        create materialized view explorer_entry_list as
 
-        SELECT DISTINCT r.repo_git,
-            r.repo_id,
-            r.repo_name,
-            rg.rg_name
-           FROM (augur_data.repo r
-             JOIN augur_data.repo_groups rg ON ((rg.repo_group_id = r.repo_group_id)))
-          ORDER BY rg.rg_name;""")
-
-        conn.execute(text("""
-        create materialized view augur_data.explorer_commits_and_committers_daily_count as
-        SELECT repo.repo_id,
-            repo.repo_name,
-            commits.cmt_committer_date,
-            count(commits.cmt_id) AS num_of_commits,
-            count(DISTINCT commits.cmt_committer_raw_email) AS num_of_unique_committers
-        FROM (augur_data.commits
-            LEFT JOIN augur_data.repo ON ((repo.repo_id = commits.repo_id)))
-        GROUP BY repo.repo_id, repo.repo_name, commits.cmt_committer_date
-        ORDER BY repo.repo_id, commits.cmt_committer_date;"""))
-
-
-        conn.execute(text("""
         create materialized view augur_data.explorer_commits_and_committers_daily_count as
         SELECT repo.repo_id,
             repo.repo_name,
@@ -677,17 +654,17 @@ def add_materialized_views_13(upgrade=True):
 
         conn.execute(text("""
 
-        create materialized view augur_data.explorer_new_contributors as
-        SELECT x.cntrb_id,
-            x.created_at,
-            x.month,
-            x.year,
-            x.repo_id,
-            x.repo_name,
-            x.full_name,
-            x.login,
-            x.rank
-        FROM ( SELECT b.cntrb_id,
+    create materialized view augur_data.explorer_new_contributors as
+    SELECT x.cntrb_id,
+        x.created_at,
+        x.month,
+        x.year,
+        x.repo_id,
+        x.repo_name,
+        x.full_name,
+        x.login,
+        x.rank
+    FROM ( SELECT b.cntrb_id,
                 b.created_at,
                 b.month,
                 b.year,
