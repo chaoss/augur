@@ -660,7 +660,7 @@ def add_materialized_views_15(upgrade=True):
         conn.execute(text("""drop materialized view if exists augur_data.explorer_libyear_detail;"""))
         conn.execute(text("""drop materialized view if exists augur_data.explorer_libyear_summary;"""))
         conn.execute(text("""drop materialized view if exists augur_data.explorer_new_contributors;"""))
-        conn.execute(text("""drop materialized view if exists augur_data.api_get_all_repo_prs;""")))
+        conn.execute(text("""drop materialized view if exists augur_data.api_get_all_repo_prs;"""))
 
 def set_repo_name_path_null_14(upgrade=True):
     
