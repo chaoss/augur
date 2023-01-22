@@ -73,7 +73,7 @@ def add_materialized_views_15(upgrade=True):
             rg.rg_name
            FROM (augur_data.repo r
              JOIN augur_data.repo_groups rg ON ((rg.repo_group_id = r.repo_group_id)))
-          ORDER BY rg.rg_name;""")
+          ORDER BY rg.rg_name;"""))
 
         conn.execute(text("""
         create materialized view augur_data.explorer_commits_and_committers_daily_count as
