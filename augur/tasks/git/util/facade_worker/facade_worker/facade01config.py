@@ -45,6 +45,7 @@ from psycopg2.errors import DeadlockDetected
 
 from augur.tasks.github.util.github_task_session import *
 from augur.application.logs import AugurLogger
+from augur.application.config import AugurConfig
 from logging import Logger
 
 logger = logging.getLogger(__name__)
@@ -114,7 +115,8 @@ class FacadeSession(GithubTaskSession):
         self.repos_processed = 0
         super().__init__(logger=logger)
         # Figure out what we need to do
-        worker_options = self.config.get_section("Facade")
+        
+        worker_options = AugurConfig(logger, self).get_section("Facade")
 
         self.limited_run = worker_options["limited_run"]
         self.delete_marked_repos = worker_options["delete_marked_repos"]

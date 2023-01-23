@@ -125,7 +125,8 @@ def start(disable_collection, development, port):
             clear_redis_caches()
             connection_string = ""
             with DatabaseSession(logger) as session:
-                connection_string = session.config.get_section("RabbitMQ")['connection_string']
+                config = AugurConfig(logger, session)
+                connection_string = config.get_section("RabbitMQ")['connection_string']
 
             clear_rabbitmq_messages(connection_string)
             
@@ -144,7 +145,8 @@ def stop():
     clear_redis_caches()
     connection_string = ""
     with DatabaseSession(logger) as session:
-        connection_string = session.config.get_section("RabbitMQ")['connection_string']
+        config = AugurConfig(logger, session)
+        connection_string = config.get_section("RabbitMQ")['connection_string']
 
     clear_rabbitmq_messages(connection_string)
 
@@ -160,7 +162,8 @@ def kill():
 
     connection_string = ""
     with DatabaseSession(logger) as session:
-        connection_string = session.config.get_section("RabbitMQ")['connection_string']
+        config = AugurConfig(logger, session)
+        connection_string = config.get_section("RabbitMQ")['connection_string']
 
     clear_rabbitmq_messages(connection_string)
 

@@ -229,8 +229,7 @@ def insert_facade_contributors(repo_id_list):
     logger = logging.getLogger(insert_facade_contributors.__name__)
 
     with GithubTaskSession(logger, engine) as session:
-        session.logger.info(
-            "Beginning process to insert contributors from facade commits for repo w entry info: {}\n".format(repo_id))
+        
 
         # Get all of the commit data's emails and names from the commit table that do not appear
         # in the contributors table or the contributors_aliases table.
@@ -338,5 +337,4 @@ def insert_facade_contributors(repo_id_list):
     
             session.logger.info("Done with inserting and updating facade contributors")
     return
-
 
