@@ -188,13 +188,6 @@ def trim_commits_post_analysis_facade_task(repo_ids):
 
         session.log_activity('Debug',f"Commits missing from repo {repo_id}: {len(missing_commits)}")
         
-        if len(missing_commits) > 0:
-            #session.log_activity('Info','Type of missing_commits: %s' % type(missing_commits))
-
-            #encode the repo_id with the commit.
-            commits_with_repo_tuple = [(commit,repo_id) for commit in list(missing_commits)]
-            #Get all missing commits into one large list to split into task pools
-            all_missing_commits.extend(commits_with_repo_tuple)
         
         # Find commits which are out of the analysis range
 
@@ -349,6 +342,47 @@ def rebuild_unknown_affiliation_and_web_caches_facade_task():
     with FacadeSession(logger) as session:
         rebuild_unknown_affiliation_and_web_caches(session)
 
+@celery.task
+def force_repo_analysis_facade_task(repo_git_identifiers):
+    logger = logging.getLogger(force_repo_analysis_facade_task.__name__)
+
+    with FacadeSession(logger) as session:
+        force_repo_analysis(session, repo_git_identifiers)
+
+@celery.task
+def git_repo_cleanup_facade_task(repo_git_identifiers):
+    logger = logging.getLogger(git_repo_cleanup_facade_task.__name__)
+
+    with FacadeSession(logger) as session:
+        git_repo_cleanup(session, repo_git_identifiers)
+
+@celery.task
+def git_repo_initialize_facade_task(repo_git_identifiers):
+    logger = logging.getLogger(git_repo_initialize_facade_task.__name__)
+
+    with FacadeSession(logger) as session:
+        git_repo_initialize(session, repo_git_identifiers)
+
+@celery.task
+def check_for_repo_updates_facade_task(repo_git_identifiers):
+    logger = logging.getLogger(check_for_repo_updates_facade_task.__name__)
+
+    with FacadeSession(logger) as session:
+        check_for_repo_updates(session, repo_git_identifiers)
+
+@celery.task
+def force_repo_updates_facade_task(repo_git_identifiers):
+    logger = logging.getLogger(force_repo_updates_facade_task.__name__)
+
+    with FacadeSession(logger) as session:
+        force_repo_updates(session, repo_git_identifiers)
+
+@celery.task
+def git_repo_updates_facade_task(repo_git_identifiers):
+    logger = logging.getLogger(git_repo_updates_facade_task.__name__)
+
+    with FacadeSession(logger) as session:
+        git_repo_updates(session, repo_git_identifiers)
 
 
 def generate_analysis_sequence(logger,repo_git_identifiers):
@@ -450,22 +484,22 @@ def generate_facade_chain(logger,repo_git_identifiers):
         facade_sequence = []
 
         if not limited_run or (limited_run and delete_marked_repos):
-            git_repo_cleanup(session,repo_git_identifiers)
+            facade_sequence.append(git_repo_cleanup_facade_task.si(repo_git_identifiers))#git_repo_cleanup(session,repo_git_identifiers)
 
         if not limited_run or (limited_run and clone_repos):
-            git_repo_initialize(session,repo_git_identifiers)
+            facade_sequence.append(git_repo_initialize_facade_task.si(repo_git_identifiers))#git_repo_initialize(session,repo_git_identifiers)
 
         if not limited_run or (limited_run and check_updates):
-            check_for_repo_updates(session,repo_git_identifiers)
+            facade_sequence.append(check_for_repo_updates_facade_task.si(repo_git_identifiers))#check_for_repo_updates(session,repo_git_identifiers)
 
         if force_updates:
-            force_repo_updates(session,repo_git_identifiers)#facade_sequence.append(force_repo_updates_facade_task.si())
+            facade_sequence.append(force_repo_updates_facade_task.si(repo_git_identifiers))
 
         if not limited_run or (limited_run and pull_repos):
-            git_repo_updates(session,repo_git_identifiers)#facade_sequence.append(git_repo_updates_facade_task.si())
+            facade_sequence.append(git_repo_updates_facade_task.si(repo_git_identifiers))
 
         if force_analysis:
-            force_repo_analysis(session,repo_git_identifiers)#facade_sequence.append(force_repo_analysis_facade_task.si())
+            facade_sequence.append(force_repo_analysis_facade_task.si(repo_git_identifiers))
 
         #Generate commit analysis task order.
         facade_sequence.extend(generate_analysis_sequence(logger,repo_git_identifiers))
