@@ -18,18 +18,19 @@ from sqlalchemy.sql import text
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.exc import NoResultFound
 from augur.application.db.session import DatabaseSession
+from augur.tasks.github.util.github_task_session import GithubTaskSession
+from augur.util.repo_load_controller import RepoLoadController
 from augur.api.util import get_bearer_token
 from augur.api.util import get_client_token
 
 from augur.application.db.models import User, UserRepo, UserGroup, UserSessionToken, ClientApplication, RefreshToken
-from augur.application.db.session import DatabaseSession
 from augur.application.config import get_development_flag
 from augur.tasks.init.redis_connection import redis_connection as redis
 
 logger = logging.getLogger(__name__)
 development = get_development_flag()
-from augur.application.db.engine import create_database_engine
-Session = sessionmaker(bind=create_database_engine())
+from augur.application.db.engine import DatabaseEngine
+Session = sessionmaker(bind=DatabaseEngine().engine)
 
 from augur.api.routes import AUGUR_API_VERSION
 
@@ -77,14 +78,17 @@ def create_routes(server):
         if not development and not request.is_secure:
             return generate_upgrade_request()
 
-        session = Session()
+        
         username = request.args.get("username")
         password = request.args.get("password")
         if username is None or password is None:
             # https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400
             return jsonify({"status": "Missing argument"}), 400
 
+        session = Session()
         user = session.query(User).filter(User.login_name == username).first()
+        session.close()
+
         if user is None:
             return jsonify({"status": "Invalid username"})
 
@@ -92,9 +96,102 @@ def create_routes(server):
         if checkPassword == False:
             return jsonify({"status": "Invalid password"})
 
+
         login_user(user)
 
         return jsonify({"status": "Validated"})
+
+    @server.app.route(f"/{AUGUR_API_VERSION}/user/logout", methods=['POST'])
+    @login_required
+    def logout_user_func():
+        if not development and not request.is_secure:
+            return generate_upgrade_request()
+
+        if logout_user():
+            return jsonify({"status": "Logged out"})
+
+        return jsonify({"status": "Error when logging out"})
+
+    
+    @server.app.route(f"/{AUGUR_API_VERSION}/user/authorize", methods=['POST', 'GET'])
+    @login_required
+    def user_authorize():
+        code = secrets.token_hex()
+        username = current_user.login_name
+
+        redis.set(code, username, ex=300)
+
+        return jsonify({"status": "Validated", "code": code})
+
+    @server.app.route(f"/{AUGUR_API_VERSION}/user/session/generate", methods=['POST'])
+    @api_key_required
+    def generate_session(application):
+        code = request.args.get("code")
+        if not code:
+            return jsonify({"status": "Missing argument: code"})
+        
+        if request.args.get("grant_type") != "code":
+            return jsonify({"status": "Invalid grant type"})
+
+        username = redis.get(code)
+        redis.delete(code)
+        if not username:
+            return jsonify({"status": "Invalid authorization code"})
+
+        user = User.get_user(username)
+        if not user:
+            return jsonify({"status": "Invalid user"})
+
+        seconds_to_expire = 86400
+
+        with DatabaseSession(logger) as session:
+
+            existing_session = session.query(UserSessionToken).filter(UserSessionToken.user_id == user.user_id, UserSessionToken.application_id == application.id).first()
+            if existing_session:
+                existing_session.delete_refresh_tokens(session)
+
+            
+
+        user_session_token = UserSessionToken.create(user.user_id, application.id, seconds_to_expire).token
+        refresh_token = RefreshToken.create(user_session_token)
+
+        response = jsonify({"status": "Validated", "username": username, "access_token": user_session_token, "refresh_token" : refresh_token.id, "token_type": "Bearer", "expires": seconds_to_expire})
+        response.headers["Cache-Control"] = "no-store"
+
+        return response
+    
+    @server.app.route(f"/{AUGUR_API_VERSION}/user/session/refresh", methods=["GET", "POST"])
+    @api_key_required
+    def refresh_session(application):
+        refresh_token_str = request.args.get("refresh_token")
+
+        if not refresh_token_str:
+            return jsonify({"status": "Invalid refresh token"})
+        
+        if request.args.get("grant_type") != "refresh_token":
+            return jsonify({"status": "Invalid grant type"})
+
+        session = Session()
+        refresh_token = session.query(RefreshToken).filter(RefreshToken.id == refresh_token_str).first()
+        if not refresh_token:
+            return jsonify({"status": "Invalid refresh token"})
+
+        if refresh_token.user_session.application == application:
+            return jsonify({"status": "Applications do not match"})
+
+        user_session = refresh_token.user_session
+        user = user_session.user
+
+        new_user_session = UserSessionToken.create(user.user_id, user_session.application.id)
+        new_refresh_token = RefreshToken.create(new_user_session.token)
+        
+        session.delete(refresh_token)
+        session.delete(user_session)
+        session.commit()
+
+        return jsonify({"status": "Validated", "refresh_token": new_refresh_token.id, "access_token": new_user_session.token, "expires": 86400})
+
+    
 
     @server.app.route(f"/{AUGUR_API_VERSION}/user/logout", methods=['POST'])
     @login_required
@@ -241,15 +338,18 @@ def create_routes(server):
         if email is not None:
             existing_user = session.query(User).filter(User.email == email).one()
             if existing_user is not None:
+                session = Session()
                 return jsonify({"status": "Already an account with this email"})
 
             current_user.email = email
             session.commit()
+            session = Session()
             return jsonify({"status": "Email Updated"})
 
         if new_password is not None:
             current_user.login_hashword = generate_password_hash(new_password)
             session.commit()
+            session = Session()
             return jsonify({"status": "Password Updated"})
 
         if new_login_name is not None:
@@ -259,6 +359,7 @@ def create_routes(server):
 
             current_user.login_name = new_login_name
             session.commit()
+            session = Session()
             return jsonify({"status": "Username Updated"})
 
         return jsonify({"status": "Missing argument"}), 400
@@ -435,34 +536,98 @@ def create_routes(server):
 
         return jsonify({"status": "success", "group_names": result[0]})
 
-    @server.app.route(f"/{AUGUR_API_VERSION}/user/groups/repos/ids", methods=['GET', 'POST'])
+    @server.app.route(f"/{AUGUR_API_VERSION}/user/groups/repos/", methods=['GET', 'POST'])
     @login_required
     def get_user_groups_and_repos():
-        """Get a list of user groups and their repos
+        """Get a list of user groups and their repos"""
+
+        if not development and not request.is_secure:
+            return generate_upgrade_request()
+
+        columns = request.args.get("columns")
+        if not columns:
+            return {"status": "Missing argument columns"}
+
+        # split list by , and remove whitespaces from edges
+
+        valid_columns = []
+        columns =  columns.split(",")
+        for column in columns:
+
+            if column.isspace() or column == "":
+                continue
+
+            valid_columns.append(column.strip())
+
+        print(valid_columns)
+
+
+        data = []
+        groups = current_user.groups
+        for group in groups:
+
+            repos = [repo.repo for repo in group.repos]
+
+            group_repo_dicts = []
+            for repo in repos:
+
+                repo_dict = {}
+                for column in valid_columns:
+                    try:
+                        repo_dict[column] = getattr(repo, column)
+                    except AttributeError:
+                        return {"status": f"'{column}' is not a valid repo column"}
+
+                group_repo_dicts.append(repo_dict)
+
+            group_data = {"repos": group_repo_dicts, "favorited": group.favorited}
+            data.append({group.name: group_data})
+
+        return jsonify({"status": "success", "data": data})
+
+
+    @server.app.route(f"/{AUGUR_API_VERSION}/user/group/favorite/toggle", methods=['GET', 'POST'])
+    @login_required
+    def toggle_user_group_favorite():
+        """Toggle the favorite status on a group
 
         Returns
         -------
-        list
-            A list with this strucutre : [{"<group_name>": <list_of_repos}, ...]
+        dict
+            A dictionairy with key of 'status' that indicates the success or failure of the operation
         """
 
         if not development and not request.is_secure:
             return generate_upgrade_request()
 
-        result = current_user.get_groups()
-        if not result[0]:
-            return result[1]
+        group_name = request.args.get("group_name")
 
+        result = current_user.toggle_group_favorite(group_name)
+
+        return jsonify(result[1])
+
+    @server.app.route(f"/{AUGUR_API_VERSION}/user/groups/favorites", methods=['GET', 'POST'])
+    @login_required
+    def get_favorite_groups():
+        """Get a list of a users favorite groups
+
+        Returns
+        -------
+        list
+            A list of group names
+        """
+
+        if not development and not request.is_secure:
+            return generate_upgrade_request()
+
+        result = current_user.get_favorite_groups()
         groups = result[0]
-        data = []
-        for group in groups:
+        if groups is None:
+            return jsonify(result[1])
 
-            repo_ids = [repo.repo_id for repo in group.repos]
-            data.append({group.name : repo_ids})
-        
+        group_names = [group.name for group in groups]
 
-        return jsonify({"status": "success", "data": data})
-
+        return jsonify({"status": "success", "group_names": group_names})
 
     @server.app.route(f"/{AUGUR_API_VERSION}/user/group/favorite/toggle", methods=['GET', 'POST'])
     @login_required

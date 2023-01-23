@@ -20,6 +20,52 @@ ORG_REPOS_ENDPOINT = "https://api.github.com/orgs/{}/repos?per_page=100"
 DEFAULT_REPO_GROUP_IDS = [1, 10]
 CLI_USER_ID = 1
 
+def parse_repo_url(url: str) -> tuple:
+    """ Gets the owner and repo from a url.
+
+    Args:
+        url: Github url
+
+    Returns:
+        Tuple of owner and repo. Or a tuple of None and None if the url is invalid.
+    """
+
+    if url.endswith(".github") or url.endswith(".github.io") or url.endswith(".js"):
+
+        result = re.search(r"https?:\/\/github\.com\/([A-Za-z0-9 \- _]+)\/([A-Za-z0-9 \- _ \.]+)(.git)?\/?$", url)
+    else:
+
+        result = re.search(r"https?:\/\/github\.com\/([A-Za-z0-9 \- _]+)\/([A-Za-z0-9 \- _]+)(.git)?\/?$", url)
+
+    if not result:
+        return None, None
+
+    capturing_groups = result.groups()
+
+
+    owner = capturing_groups[0]
+    repo = capturing_groups[1]
+
+    return owner, repo
+
+def parse_org_url(url):
+    """ Gets the owner from a org url.
+
+    Args:
+        url: Github org url
+
+    Returns:
+        Org name. Or None if the url is invalid.
+    """
+
+    result = re.search(r"https?:\/\/github\.com\/([A-Za-z0-9 \- _]+)\/?$", url)
+
+    if not result:
+        return None
+
+    # if the result is not None then the groups should be valid so we don't worry about index errors here
+    return result.groups()[0]
+
 
 class RepoLoadController:
 
@@ -170,6 +216,7 @@ class RepoLoadController:
             
         return result[0]["count"], {"status": "success"}
 
+        return query, {"status": "success"}
 
     def generate_repo_query(self, source, count, **kwargs):
 

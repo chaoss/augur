@@ -22,8 +22,10 @@ def get_release_inf(session, repo_id, release, tag_only):
             name = "N/A"
             company = "N/A"
         else:
-            name = "" if release['author']['name'] is None else release['author']['name']
-            company = "" if release['author']['company'] is None else release['author']['company']
+            author = release["author"]
+
+            name = author.get("name") or "nobody"
+            company = author.get("company") or "nocompany"
             author = name + '_' + company
 
 
@@ -47,11 +49,11 @@ def get_release_inf(session, repo_id, release, tag_only):
             if 'name' in release['target']['tagger']:
                 name = release['target']['tagger']['name']
             else:
-                name = ""
-            if 'email' in release['target']['tagger']:
+                name = "nobody"
+            if 'email' in release['target']['tagger'] and release['target']['tagger']['email']:
                 email = '_' + release['target']['tagger']['email']
             else:
-                email = ""
+                email = "noemail"
             author = name + email
             if 'date' in release['target']['tagger']:
                 date = release['target']['tagger']['date']
@@ -184,7 +186,7 @@ def releases_model(session, repo_git, repo_id):
         session.logger.info(f"Ran into problem when fetching data for repo {repo_git}: {e}")
         return
 
-    session.logger.info("repository value is: {}\n".format(data))
+    #session.logger.info("repository value is: {}\n".format(data))
     if 'releases' in data:
         if 'edges' in data['releases'] and data['releases']['edges']:
             for n in data['releases']['edges']:

@@ -16,30 +16,36 @@ platform_id = 1
 
 
 @celery.task
-def collect_events(repo_git: str):
+def collect_events(repo_git_identifiers: [str]):
 
     logger = logging.getLogger(collect_events.__name__)
     
     with DatabaseSession(logger, engine) as session:
 
-        query = session.query(Repo).filter(Repo.repo_git == repo_git)
-        repo_obj = execute_session_query(query, 'one')
-        repo_id = repo_obj.repo_id
+        for repo_git in repo_git_identifiers:
 
-        owner, repo = get_owner_repo(repo_git)
+            try:
+                
+                query = session.query(Repo).filter(Repo.repo_git == repo_git)
+                repo_obj = execute_session_query(query, 'one')
+                repo_id = repo_obj.repo_id
 
-        logger.info(f"Collecting Github events for {owner}/{repo}")
+                owner, repo = get_owner_repo(repo_git)
 
-        url = f"https://api.github.com/repos/{owner}/{repo}/issues/events"
+                logger.info(f"Collecting Github events for {owner}/{repo}")
 
-    event_data = retrieve_all_event_data(repo_git, logger)
+                url = f"https://api.github.com/repos/{owner}/{repo}/issues/events"
 
-    if event_data:
+                event_data = retrieve_all_event_data(repo_git, logger)
 
-        process_events(event_data, f"{owner}/{repo}: Event task", repo_id, logger)
+                if event_data:
+                
+                    process_events(event_data, f"{owner}/{repo}: Event task", repo_id, logger)
 
-    else:
-        logger.info(f"{owner}/{repo} has no events")
+                else:
+                    logger.info(f"{owner}/{repo} has no events")
+            except Exception as e:
+                logger.error(f"Could not collect events for {repo_git}\n Reason: {e} \n Traceback: {''.join(traceback.format_exception(None, e, e.__traceback__))}")
 
 
 def retrieve_all_event_data(repo_git: str, logger):
