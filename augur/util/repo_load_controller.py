@@ -7,7 +7,7 @@ import base64
 
 from typing import List, Any, Dict
 
-from augur.application.db.engine import create_database_engine
+from augur.application.db.engine import DatabaseEngine
 from augur.application.db.models import Repo, UserRepo, RepoGroup, UserGroup, User
 from augur.application.db.models.augur_operations import retrieve_org_repos
 from augur.application.db.util import execute_session_query
@@ -172,7 +172,10 @@ class RepoLoadController:
 
         get_page_of_repos_sql = s.sql.text(query[0])
 
-        results = pd.read_sql(get_page_of_repos_sql, create_database_engine())
+        with DatabaseEngine(connection_pool_size=1) as engine:
+
+            results = pd.read_sql(get_page_of_repos_sql, engine)
+
         results['url'] = results['url'].apply(lambda datum: datum.split('//')[1])
 
         b64_urls = []

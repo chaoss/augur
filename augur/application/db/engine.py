@@ -7,12 +7,8 @@ import inspect
 from sqlalchemy import create_engine, event
 from sqlalchemy.engine.base import Engine
 from sqlalchemy.pool import NullPool
-from augur.application.logs import initialize_stream_handler
 from augur.application.db.util import catch_operational_error
 
-
-# logger = logging.getLogger("engine")
-# initialize_stream_handler(logger, logging.ERROR)
 
 def get_database_string() -> str:
     """Get database string from env or file
