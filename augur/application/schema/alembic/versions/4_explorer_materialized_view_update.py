@@ -21,13 +21,13 @@ depends_on = None
 
 def upgrade():
 
-    add_update_materialized_views_15()
+    add_materialized_views_15()
 
 def downgrade():
 
     upgrade=False
 
-    add_update_materialized_views_15(upgrade)
+    add_materialized_views_15(upgrade)
 
 def add_materialized_views_15(upgrade=True):
 
