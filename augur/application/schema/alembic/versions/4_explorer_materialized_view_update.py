@@ -33,13 +33,6 @@ def add_update_materialized_views_15(upgrade=True):
 
    add_materialized_views_15()
 
-
-def downgrade():
-
-    upgrade=False
-
-    add_materialized_views_15(upgrade)
-
 def add_materialized_views_15(upgrade=True):
 
     if upgrade:
@@ -661,23 +654,3 @@ def add_materialized_views_15(upgrade=True):
         conn.execute(text("""drop materialized view if exists augur_data.explorer_libyear_summary;"""))
         conn.execute(text("""drop materialized view if exists augur_data.explorer_new_contributors;"""))
         conn.execute(text("""drop materialized view if exists augur_data.api_get_all_repo_prs;"""))
-
-def set_repo_name_path_null_14(upgrade=True):
-    
-    if upgrade:
-        op.create_foreign_key("cmt_ght_author_cntrb_id_fk", 'commits', 'contributors', ['cmt_ght_author_id'], ['cntrb_id'], source_schema='augur_data', referent_schema='augur_data')
-        op.alter_column('releases', 'release_id',
-                existing_type=sa.CHAR(length=64),
-                type_=sa.CHAR(length=256),
-                existing_nullable=False,
-                existing_server_default=sa.text('nextval(\'"augur_data".releases_release_id_seq\'::regclass)'),
-                schema='augur_data')
-
-    else:
-        op.alter_column('releases', 'release_id',
-               existing_type=sa.CHAR(length=256),
-               type_=sa.CHAR(length=128),
-               existing_nullable=False,
-               existing_server_default=sa.text('nextval(\'"augur_data".releases_release_id_seq\'::regclass)'),
-               schema='augur_data')
-        op.drop_constraint("cmt_ght_author_cntrb_id_fk", 'commits', schema='augur_data', type_='foreignkey')
