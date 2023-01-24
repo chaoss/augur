@@ -55,7 +55,7 @@ def get_release_inf(session, repo_id, release, tag_only):
 
             author = name + "_" + email
         else:
-            author = "nobody"
+            author = ""
             date = ""
         release_inf = {
             'release_id': release['id'],
