@@ -58,7 +58,7 @@ def add_materialized_views_15(upgrade=True):
         drop materialized view if exists augur_data.explorer_libyear_summar;"""))
 
         conn.execute(text("""
-        create materialized view api_get_all_repo_prs as 
+        create materialized view augur_data.api_get_all_repo_prs as 
         SELECT pull_requests.repo_id,
         count(*) AS pull_requests_all_time
         FROM augur_data.pull_requests
