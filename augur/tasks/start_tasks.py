@@ -70,8 +70,8 @@ def repo_collect_phase():
 
 
         all_repo_git_identifiers = [repo.repo_git for repo in repos]
-        #Cluster each repo in groups of 50.
-        np_clustered_array = np.array_split(all_repo_git_identifiers,math.ceil(len(all_repo_git_identifiers)/50))
+        #Cluster each repo in groups of 80.
+        np_clustered_array = np.array_split(all_repo_git_identifiers,math.ceil(len(all_repo_git_identifiers)/80))
 
         first_pass = np_clustered_array.pop(0).tolist()
 
