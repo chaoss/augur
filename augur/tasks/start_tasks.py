@@ -96,8 +96,7 @@ def repo_collect_phase():
         repo_task_group = group(
             *repo_info_tasks,
             chain(primary_repo_jobs,secondary_repo_jobs,process_contributors.si()),
-            generate_facade_chain(logger,first_pass),
-            *create_grouped_task_load(dataList=first_pass,task=process_dependency_metrics).tasks,
+            chain(generate_facade_chain(logger,first_pass),create_grouped_task_load(dataList=first_pass,task=process_dependency_metrics)),
             collect_releases.si()
         )
     
