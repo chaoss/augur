@@ -13,6 +13,7 @@ def collect_releases():
         repos = execute_session_query(query, 'all')
 
         for repo in repos:
+            releases_model(session, repo.repo_git, repo.repo_id)
             try:
                 releases_model(session, repo.repo_git, repo.repo_id)
             except Exception as e:
