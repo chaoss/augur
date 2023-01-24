@@ -29,10 +29,6 @@ def downgrade():
 
     add_update_materialized_views_15(upgrade)
 
-def add_update_materialized_views_15(upgrade=True):
-
-   add_materialized_views_15()
-
 def add_materialized_views_15(upgrade=True):
 
     if upgrade:
