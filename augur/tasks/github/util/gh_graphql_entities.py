@@ -196,7 +196,7 @@ class GraphQlPageCollection(collections.abc.Sequence):
             except:
                 response_data = json.loads(json.dumps(result.text))
             
-            self.logger.info(f"api return: {response_data}")
+            #self.logger.info(f"api return: {response_data}")
 
             if type(response_data) == dict:
                 err = process_dict_response(self.logger, result, response_data)
