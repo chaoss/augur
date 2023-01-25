@@ -22,19 +22,10 @@ def collect_events(repo_git_identifiers: [str]):
     
     with DatabaseSession(logger, engine) as session:
 
-<<<<<<< HEAD
-    for repo_git in repo_git_identifiers:
-
-        try:
-            # define GithubTaskSession to handle insertions, and store oauth keys 
-            with GithubTaskSession(logger) as session:
-            
-=======
         for repo_git in repo_git_identifiers:
 
             try:
                 
->>>>>>> origin/andrew/test-user-api
                 query = session.query(Repo).filter(Repo.repo_git == repo_git)
                 repo_obj = execute_session_query(query, 'one')
                 repo_id = repo_obj.repo_id
@@ -45,18 +36,6 @@ def collect_events(repo_git_identifiers: [str]):
 
                 url = f"https://api.github.com/repos/{owner}/{repo}/issues/events"
 
-<<<<<<< HEAD
-            event_data = retrieve_all_event_data(repo_git, logger)
-
-            if event_data:
-            
-                process_events(event_data, f"{owner}/{repo}: Event task", repo_id, logger)
-
-            else:
-                logger.info(f"{owner}/{repo} has no events")
-        except Exception as e:
-            logger.error(f"Could not collect events for {repo_git}\n Reason: {e} \n Traceback: {''.join(traceback.format_exception(None, e, e.__traceback__))}")
-=======
                 event_data = retrieve_all_event_data(repo_git, logger)
 
                 if event_data:
@@ -67,7 +46,6 @@ def collect_events(repo_git_identifiers: [str]):
                     logger.info(f"{owner}/{repo} has no events")
             except Exception as e:
                 logger.error(f"Could not collect events for {repo_git}\n Reason: {e} \n Traceback: {''.join(traceback.format_exception(None, e, e.__traceback__))}")
->>>>>>> origin/andrew/test-user-api
 
 
 def retrieve_all_event_data(repo_git: str, logger):
