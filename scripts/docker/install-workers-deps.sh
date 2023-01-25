@@ -8,3 +8,6 @@ do
 	/opt/venv/bin/pip install .
 	cd $OLD
 done
+
+# install nltk
+/opt/venv/bin/python -m nltk.downloader all
