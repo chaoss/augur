@@ -24,9 +24,10 @@ from augur.tasks.git.dependency_tasks.tasks import process_dependency_metrics
 from augur.tasks.git.facade_tasks import *
 from augur.tasks.db.refresh_materialized_views import *
 # from augur.tasks.data_analysis import *
-from augur.tasks.init.celery_app import celery_app as celery
+from augur.tasks.init.celery_app import celery_app as celery, engine
 from celery.result import allow_join_result
 from augur.application.logs import AugurLogger
+from augur.application.config import AugurConfig
 from augur.application.db.session import DatabaseSession
 from augur.tasks.init.celery_app import engine
 from augur.application.db.util import execute_session_query
@@ -207,8 +208,8 @@ def start_task():
     logger = logging.getLogger(start_task.__name__)
 
     #Get phase options from the config
-    with DatabaseSession(logger) as session:
-        config = session.config
+    with DatabaseSession(logger, engine) as session:
+        config = AugurConfig(logger, session)
         phase_options = config.get_section("Task_Routine")
 
     #Get list of enabled phases 
