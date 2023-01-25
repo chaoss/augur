@@ -49,11 +49,7 @@ def get_release_inf(session, repo_id, release, tag_only):
             if 'name' in release['target']['tagger']:
                 name = release['target']['tagger']['name']
             else:
-<<<<<<< HEAD
-                name = ""
-=======
                 name = "nobody"
->>>>>>> origin/andrew/test-user-api
             if 'email' in release['target']['tagger'] and release['target']['tagger']['email']:
                 email = '_' + release['target']['tagger']['email']
             else:
