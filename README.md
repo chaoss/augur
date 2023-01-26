@@ -6,6 +6,8 @@
 ## NEW RELEASE ALERT!
 [If you want to jump right in, updated docker build/compose and bare metal installation instructions are available here](docs/new-install.md)
 
+New Requirement: `rabbitmq`
+
 Augur is now releasing a dramatically improved new version to the main branch. It is also available here: https://github.com/chaoss/augur/releases/tag/v0.44.0
 - The `main` branch is a stable version of our new architecture, which features:
   - Dramatic improvement in the speed of large scale data collection (10,000+ repos). All data is obtained for 10k+ repos within a week
