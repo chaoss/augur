@@ -29,98 +29,21 @@ from celery.result import allow_join_result
 from augur.application.logs import AugurLogger
 from augur.application.config import AugurConfig
 from augur.application.db.session import DatabaseSession
-from augur.tasks.init.celery_app import engine
+from augur.application.db.engine import DatabaseEngine
 from augur.application.db.util import execute_session_query
 from logging import Logger
 
 CELERY_GROUP_TYPE = type(group())
 CELERY_CHAIN_TYPE = type(chain())
 
-<<<<<<< HEAD
-=======
-
-# class syntax
-class CollectionState(Enum):
-    SUCCESS = "Success"
-    PENDING = "Pending"
-    ERROR = "Error"
-    COLLECTING = "Collecting"
-
-"""
-@celery.task(bind=True)
-def collection_task_wrapper(self,*args,**kwargs):
-    task = kwargs.pop('task')
-
-    task(*args,**kwargs)
-
-    return self.request.id
-"""
-
-@celery.task
-def task_success(repo_git):
-
-    from augur.tasks.init.celery_app import engine
-
-    logger = logging.getLogger(task_success.__name__)
-
-    logger.info(f"Repo '{repo_git}' succeeded")
-
-    with DatabaseSession(logger, engine) as session:
-
-        repo = Repo.get_by_repo_git(session, repo_git)
-        if not repo:
-            raise Exception(f"Task with repo_git of {repo_git} but could not be found in Repo table")
-
-        collection_status = repo.collection_status[0]
-
-        collection_status.status = CollectionState.SUCCESS.value
-        collection_status.data_last_collected = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        collection_status.task_id = None
-
-        session.commit()
-
-@celery.task
-def task_failed(request,exc,traceback):
-
-    from augur.tasks.init.celery_app import engine
-
-    logger = logging.getLogger(task_failed.__name__)
-    
-    with DatabaseSession(logger,engine) as session:
-        query = session.query(CollectionStatus).filter(CollectionStatus.task_id == request.id)
-
-        collectionRecord = execute_session_query(query,'one')
-
-        print(f"chain: {request.chain}")
-        #Make sure any further execution of tasks dependent on this one stops.
-        try:
-            #Replace the tasks queued ahead of this one in a chain with None.
-            request.chain = None
-        except AttributeError:
-            pass #Task is not part of a chain. Normal so don't log.
-        except Exception as e:
-            logger.error(f"Could not mutate request chain! \n Error: {e}")
-        
-        if collectionRecord.status == CollectionState.COLLECTING.value:
-            # set status to Error in db
-            collectionRecord.status = CollectionStatus.ERROR
-            session.commit()
-
-            # log traceback to error file
-            session.logger.error(f"Task {request.id} raised exception: {exc}\n{traceback}")
-    
-    
-
-
->>>>>>> ba6d24bd5 (Improve database connections')
 #Predefine phases. For new phases edit this and the config to reflect.
 #The domain of tasks ran should be very explicit.
 @celery.task
 def prelim_phase():
 
     logger = logging.getLogger(prelim_phase.__name__)
-    
-    with DatabaseSession(logger) as session:
+    job = None
+    with DatabaseEngine() as engine, DatabaseSession(logger, engine) as session:
         query = session.query(Repo)
         repos = execute_session_query(query, 'all')
         repo_git_list = [repo.repo_git for repo in repos]
@@ -142,10 +65,9 @@ def repo_collect_phase():
     np_clustered_array = []
 
     #A chain is needed for each repo.
-    with DatabaseSession(logger) as session:
+    with DatabaseEngine() as engine, DatabaseSession(logger, engine) as session:
         query = session.query(Repo)
         repos = execute_session_query(query, 'all')
-
 
         all_repo_git_identifiers = [repo.repo_git for repo in repos]
         #Cluster each repo in groups of 80.
@@ -281,6 +203,8 @@ class AugurTaskRoutine:
 
 @celery.task
 def start_task():
+
+    from augur.tasks.init.celery_app import engine
 
     logger = logging.getLogger(start_task.__name__)
 
