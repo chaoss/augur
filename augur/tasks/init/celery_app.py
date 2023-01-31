@@ -79,7 +79,7 @@ celery_app.conf.task_annotations = None
 # allow workers to be restarted remotely
 celery_app.conf.worker_pool_restarts = True
 
-celery_app.broker_heartbeat = None
+celery_app.conf.broker_heartbeat = None
 
 
 
