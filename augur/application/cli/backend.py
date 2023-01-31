@@ -86,8 +86,8 @@ def start(disable_collection, development, port):
             logger.info("Deleting old task schedule")
             os.remove("celerybeat-schedule.db")
 
-        worker_1 = f"celery -A augur.tasks.init.celery_app.celery_app worker -P eventlet -l info --concurrency=100 --without-mingle --without-gossip --without-heartbeat -n {uuid.uuid4().hex}@%h"
-        cpu_worker = f"celery -A augur.tasks.init.celery_app.celery_app worker -l info --concurrency=20 --without-mingle --without-gossip --without-heartbeat -n {uuid.uuid4().hex}@%h -Q cpu"
+        worker_1 = f"celery -A augur.tasks.init.celery_app.celery_app worker -P eventlet -l info --concurrency=100 --without-mingle --without-gossip -n {uuid.uuid4().hex}@%h"
+        cpu_worker = f"celery -A augur.tasks.init.celery_app.celery_app worker -l info --concurrency=20 --without-mingle --without-gossip -n {uuid.uuid4().hex}@%h -Q cpu"
         worker_1_process = subprocess.Popen(worker_1.split(" "))
 
         cpu_worker_process = subprocess.Popen(cpu_worker.split(" "))

@@ -79,8 +79,6 @@ celery_app.conf.task_annotations = None
 # allow workers to be restarted remotely
 celery_app.conf.worker_pool_restarts = True
 
-celery_app.conf.broker_heartbeat = None
-
 
 
 def split_tasks_into_groups(augur_tasks: List[str]) -> Dict[str, List[str]]:
