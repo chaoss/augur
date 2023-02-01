@@ -324,10 +324,9 @@ def analyze_commits_in_parallel(repo_ids, multithreaded: bool)-> None:
 @celery.task
 def nuke_affiliations_facade_task():
     logger = logging.getLogger(nuke_affiliations_facade_task.__name__)
-    # TODO: Is this session ever closed?
-    session = FacadeSession(logger)
-
-    nuke_affiliations(session)
+    
+    with FacadeSession(logger) as session:
+        nuke_affiliations(session)
 
 @celery.task
 def fill_empty_affiliations_facade_task():
