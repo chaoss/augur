@@ -57,9 +57,9 @@ BACKEND_URL = f'{redis_conn_string}{redis_db_number+1}'
 celery_app = Celery('tasks', broker=BROKER_URL, backend=BACKEND_URL, include=tasks)
 
 # define the queues that tasks will be put in (by default tasks are put in celery queue)
-celery_app.conf.task_routes = {
-    'augur.tasks.git.facade_tasks.*': {'queue': 'cpu'}
-}
+# celery_app.conf.task_routes = {
+#     'augur.tasks.start_tasks.*': {'queue': 'scheduling'}
+# }
 
 #Setting to be able to see more detailed states of running tasks
 celery_app.conf.task_track_started = True
@@ -156,24 +156,6 @@ def shutdown_worker(**kwargs):
     global engine
     if engine:
         logger.info('Closing database connectionn for worker')
-        engine.dispose()
-
-
-@eventlet_pool_started.connect
-def init_eventlet_worker(**kwargs):
-
-    global engine
-
-    from augur.application.db.engine import DatabaseEngine
-
-    engine = DatabaseEngine(pool_size=40, max_overflow=50, pool_timeout=60).engine
-    logger.info(f"Creating database engine for worker. Engine: {id(engine)}")
-
-@eventlet_pool_postshutdown.connect
-def shutdown_eventlet_worker(**kwargs):
-    global engine
-    if engine:
-        logger.info(f'Closing database connectionn for worker. Engine {id(engine)}')
         engine.dispose()
 
 
