@@ -9,7 +9,7 @@ from .server import LoginException
 from augur.tasks.init.redis_connection import redis_connection as redis
 from augur.application.util import *
 from augur.application.config import AugurConfig
-from ..server import app, session as db_session
+from ..server import app, db_session
 
 logger = logging.getLogger(__name__)
 

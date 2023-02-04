@@ -322,9 +322,9 @@ def get_server_cache(config, cache_manager) -> Cache:
 
 
 logger = AugurLogger("server").get_logger()
-session = DatabaseSession(logger)
-augur_config = AugurConfig(logger, session)
-engine = session.engine
+db_session = DatabaseSession(logger)
+augur_config = AugurConfig(logger, db_session)
+engine = db_session.engine
 
 template_dir = str(Path(__file__).parent.parent / "templates")
 static_dir = str(Path(__file__).parent.parent / "static")
@@ -347,7 +347,6 @@ app.config['WTF_CSRF_ENABLED'] = False
 logger.debug("Creating API routes...")
 create_metrics()
 
-@app.route('/')
 @app.route('/ping')
 @app.route('/status')
 @app.route('/healthcheck')
@@ -372,6 +371,11 @@ def status():
                     mimetype="application/json")
 
 from .routes import *
+
+# import frontend routes
+from .view.augur_view import *
+from .view.routes import *
+from .view.api import *
 
 cache_manager = create_cache_manager()
 server_cache = get_server_cache(augur_config, cache_manager)

@@ -5,7 +5,7 @@ from .url_converters import *
 from .init import logger
 
 # from .server import User
-from ..server import app, session as db_session
+from ..server import app, db_session
 from augur.application.db.models import User, UserSessionToken
 from augur.api.routes import AUGUR_API_VERSION
 from augur.api.util import get_bearer_token
