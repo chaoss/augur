@@ -112,7 +112,7 @@ def get_metric_files() -> List[str]:
     return metric_files
     
 # NOTE: Paramater on=None removed, since it is not used in the function Aug 18, 2022 - Andrew Brain
-def transform(func: Any, args: Any=None, kwargs: dict=None, repo_url_base: str=None, orient: str ='records',
+def route_transform(func: Any, args: Any=None, kwargs: dict=None, repo_url_base: str=None, orient: str ='records',
     group_by: str=None, aggregate: str='sum', resample=None, date_col: str='date') -> str:
     """Call a metric function and apply data transformations.
 
@@ -193,7 +193,7 @@ def flaskify(function: Any) -> Any:
     if cache_manager:
         def cache_generated_function(*args, **kwargs):
             def heavy_lifting():
-                return transform(function, args, kwargs, **request.args.to_dict())
+                return route_transform(function, args, kwargs, **request.args.to_dict())
             body = server_cache.get(key=str(request.url), createfunc=heavy_lifting)
             return Response(response=body,
                             status=200,
@@ -204,7 +204,7 @@ def flaskify(function: Any) -> Any:
 
     def generated_function(*args, **kwargs):
         kwargs.update(request.args.to_dict())
-        return Response(response=transform(function, args, kwargs, **request.args.to_dict()),
+        return Response(response=route_transform(function, args, kwargs, **request.args.to_dict()),
                         status=200,
                         mimetype="application/json")
     generated_function.__name__ = function.__name__
@@ -234,7 +234,7 @@ def routify(func: Any, endpoint_type: str) -> Any:
         # this function call takes the arguments specified when the endpoint is pinged
         # and calls the actual function in the metrics folder and then returns the result
         # NOTE: This also converts the data into json if the function returns a pandas dataframe or dict
-        data =  transform(func, args, kwargs)
+        data =  route_transform(func, args, kwargs)
 
 
         # this is where the Response is created for all the metrics 
