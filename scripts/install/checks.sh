@@ -40,8 +40,8 @@ if [[ $? -eq 1 ]]; then
   check_python_version "python3"
   if [[ $? -eq 1 ]]; then
     echo "Insufficient Python version installed to `which python3`."
-    echo "Please install Python 3.6 or higher to either python or python3."
-    echo "Python 3.6 and higher can be found here: https://www.python.org/downloads/"
+    echo "Please install Python 3.7 or higher to either python or python3."
+    echo "Python 3.7 and higher can be found here: https://www.python.org/downloads/"
     exit 1
   fi
 fi

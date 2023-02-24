@@ -31,7 +31,7 @@ setup(
         'click==8.0.3',
         'scipy>=1.7.3',
         'sklearn==0.0',
-        'numpy>=1.21.0', 
+        'numpy== 1.21.6', 
     ],
     entry_points={
         'console_scripts': [
@@ -44,5 +44,8 @@ setup(
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10',
     ]
 )
