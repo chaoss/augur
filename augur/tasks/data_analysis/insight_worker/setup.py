@@ -31,7 +31,7 @@ setup(
         'click==8.0.3',
         'scipy>=1.7.3',
         'sklearn==0.0',
-        'numpy== 1.21.6', 
+        'numpy== 1.23.5', 
     ],
     entry_points={
         'console_scripts': [
