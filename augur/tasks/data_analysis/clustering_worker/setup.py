@@ -29,7 +29,7 @@ setup(
         'psycopg2-binary==2.9.3',
         #'sklearn==0.0.0',
         'scikit-learn==1.1.3',
-        'numpy==1.21.0',
+        'numpy==1.21.6',
         'nltk==3.6.6',
         'seaborn==0.11.1',
         'pandas==1.3.5',
@@ -41,5 +41,8 @@ setup(
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10',
     ]
 )

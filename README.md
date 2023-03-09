@@ -36,7 +36,7 @@ For more information on [how to get involved on the CHAOSS website](https://chao
 
 ## Collecting Data
 
-Augur supports Python3.6 through Python3.9 on all platforms. Python3.10 and above do not yet work because of machine learning worker dependencies. On OSX, you can create a Python 3.9 environment this way: `python3.9 -m venv path/to/venv`.
+Augur supports Python3.7 through Python3.10 on all platforms. Python3.11 and above do not yet work because of machine learning worker dependencies. On OSX, you can create a Python 3.10 environment this way: `python3.10 -m venv path/to/venv`.
 
 Augur's main focus is to measure the overall health and sustainability of open source projects.
 

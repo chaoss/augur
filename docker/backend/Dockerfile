@@ -1,5 +1,5 @@
 #SPDX-License-Identifier: MIT
-FROM python:3.8.11-slim-buster
+FROM python:3.10-slim-buster
 
 LABEL maintainer="outdoors@acm.org"
 LABEL version="0.44.2"
@@ -13,6 +13,8 @@ RUN set -x \
         bash \
         curl \
         gcc \
+        libc6-dev \
+        linux-libc-dev \
         python3-pip \
         wget \
         postgresql-client \
