@@ -14,40 +14,79 @@ We default to this version of Ubuntu for the moment because Augur does not yet s
 ## Pre-Requisite Operating System Level Packages
 Here we ensure your system is up to date, install required python libraries, install postgresql, and install our queuing infrastrucutre, which is composed of redis-server and rabbitmq-server
 
-### Executable
-```shell 
-sudo apt update && 
-sudo apt upgrade && 
-sudo apt install software-properties-common && 
-sudo apt install python3-dev && 
-sudo apt install python3.8-venv &&
-sudo apt install postgresql postgresql-contrib postgresql-client && 
-sudo apt install build-essential && 
-sudo apt install redis-server &&  
-sudo apt install erlang && 
-sudo apt install rabbitmq-server && 
-sudo snap install go --classic && 
-sudo apt install nginx && 
-sudo apt install firefox-geckodriver
-```
+### Ubuntu OS
+These commands work on a pure Ubuntu OS, or a WSL running an Ubuntu Instance
 
-### Annotated
-```shell 
-sudo apt update && 
-sudo apt upgrade && 
-sudo apt install software-properties-common && 
-sudo apt install python3-dev && 
-sudo apt install python3.8-venv &&
-sudo apt install postgresql postgresql-contrib postgresql-client && 
-sudo apt install build-essential && 
-sudo apt install redis-server &&  # required 
-sudo apt install erlang && # required
-sudo apt install rabbitmq-server && #required
-sudo snap install go --classic && #required: Go Needs to be version 1.19.x or higher. Snap is the package manager that gets you to the right version. Classic enables it to actually be installed at the correct version.
-sudo apt install nginx && # required for hosting
-sudo apt install firefox-geckodriver # required for visualization API 
-```
+	#### Executable
+	```shell 
+	sudo apt update && 
+	sudo apt upgrade && 
+	sudo apt install software-properties-common && 
+	sudo apt install python3-dev && 
+	sudo apt install python3.8-venv &&
+	sudo apt install postgresql postgresql-contrib postgresql-client && 
+	sudo apt install build-essential && 
+	sudo apt install redis-server &&  
+	sudo apt install erlang && 
+	sudo apt install rabbitmq-server && 
+	sudo snap install go --classic && 
+	sudo apt install nginx && 
+	sudo apt install firefox-geckodriver
+	```
 
+	#### Annotated
+	```shell 
+	sudo apt update && 
+	sudo apt upgrade && 
+	sudo apt install software-properties-common && 
+	sudo apt install python3-dev && 
+	sudo apt install python3.8-venv &&
+	sudo apt install postgresql postgresql-contrib postgresql-client && 
+	sudo apt install build-essential && 
+	sudo apt install redis-server &&  # required 
+	sudo apt install erlang && # required
+	sudo apt install rabbitmq-server && #required
+	sudo snap install go --classic && #required: Go Needs to be version 1.19.x or higher. Snap is the package manager that gets you to the right version. Classic enables it to actually be installed at the correct version.
+	sudo apt install nginx && # required for hosting
+	sudo apt install firefox-geckodriver # required for visualization API 
+	```
+### Mac OS
+These commands are intended to work on a Mac OS and are written with the assumption that you have Homebrew installed. If you don't, please install using the steps outlined on the [homebrew documentation](https://docs.brew.sh/Installation) page.
+
+	#### Executable
+	```shell 
+	brew update && 
+	brew upgrade && 
+	brew install software-properties-common && 
+	brew install python3-dev && 
+	brew install python3.8-venv &&
+	brew install postgresql postgresql-contrib postgresql-client && 
+	brew install build-essential && 
+	brew install redis-server &&  
+	brew install erlang && 
+	brew install rabbitmq-server && 
+	brew install golang &&
+	brew install nginx && 
+	brew install firefox-geckodriver
+	```
+	
+	#### Annotated
+	```shell 
+	brew update && 
+	brew upgrade && 
+	brew install software-properties-common && 
+	brew install python3-dev && 
+	brew install python3.8-venv &&
+	brew install postgresql postgresql-contrib postgresql-client && 
+	brew install build-essential && 
+	brew install redis-server &&  # required 
+	brew install erlang && # required
+	brew install rabbitmq-server && #required
+	brew install golang && #required: Go Needs to be version 1.19.x or higher. Homebrew 
+	brew install nginx && # required for hosting
+	brew install firefox-geckodriver # required for visualization API 
+	```
+	
 ## Git Configuration
 There are some Git configuration parameters that help when you are cloning repos over time, and a platform prompts you for credentials when it finds a repo is deleted:
 ```shell 
