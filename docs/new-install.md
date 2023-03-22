@@ -15,7 +15,7 @@ We default to this version of Ubuntu for the moment because Augur does not yet s
 Here we ensure your system is up to date, install required python libraries, install postgresql, and install our queuing infrastrucutre, which is composed of redis-server and rabbitmq-server
 
 ### Ubuntu OS
-These commands work on a pure Ubuntu OS, or a WSL running an Ubuntu Instance
+These commands work on a pure Ubuntu OS, or a WSL running an Ubuntu Instance.
 
 	#### Executable
 	```shell 
@@ -82,7 +82,7 @@ These commands are intended to work on a Mac OS and are written with the assumpt
 	brew install redis-server &&  # required 
 	brew install erlang && # required
 	brew install rabbitmq-server && #required
-	brew install golang && #required: Go Needs to be version 1.19.x or higher. Homebrew 
+	brew install golang && #required: Go Needs to be version 1.19.x or higher. Homebrew installs the latest stable version for you. Run the `go version` command to know what version has been installed for you. 
 	brew install nginx && # required for hosting
 	brew install firefox-geckodriver # required for visualization API 
 	```
