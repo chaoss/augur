@@ -1,16 +1,13 @@
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor
 from flask import render_template, flash, url_for, Flask
-from .init import *
 from .server import User
 from ..server import app, db_session
 from augur.application.config import AugurConfig
 import urllib.request, urllib.error, json, os, math, yaml, urllib3, time, logging, re
+from .init import logger, init_logging
 
 init_logging()
-
-from .init import logger
-
 config = AugurConfig(logger, db_session)
 
 def parse_url(url):
