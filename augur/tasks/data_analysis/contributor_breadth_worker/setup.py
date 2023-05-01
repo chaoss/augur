@@ -22,7 +22,7 @@ setup(
     description="Augur worker that collects the repos people have contirbuted to",
     packages=find_packages(),
     install_requires=[
-        'Flask==2.0.2',
+        'Flask==2.3.2',
         'Flask-Cors==3.0.10',
         'Flask-Login==0.5.0',
         'Flask-WTF==1.0.0',
