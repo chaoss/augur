@@ -33,7 +33,7 @@ setup(
         'pandas==1.5.3',
         'emoji==1.2.0',
         'joblib==1.0.1',
-        'xgboost==1.4.2',
+        'xgboost==1.7.5',
         'scipy>=1.10.1'
     ],
     classifiers=[
