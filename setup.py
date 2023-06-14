@@ -41,14 +41,14 @@ setup(
         "SQLAlchemy==1.3.23", # 1.4.40
         "itsdangerous==2.0.1", # 2.1.2
         'Jinja2~=3.0.3',
-        "Flask==2.0.2", # 2.2.2
+        "Flask==2.3.2", # 2.2.2
         "Flask-Cors==3.0.10",
-        "Flask-Login==0.5.0",
+        "Flask-Login==0.6.2",
         "Flask-WTF==1.0.0",
-        "pandas==1.3.5", # 1.4.3
-        "numpy==1.22", # 1.23.2
-        "requests==2.28.0", # 2.28.1
-        "psycopg2-binary==2.9.3", #2.9.3 what is pscopg-binary 3.0.16
+        "pandas==1.5.3", # 1.4.3
+        "numpy==1.24.2", # 1.23.2
+        "requests==2.28.2", # 2.28.1
+        "psycopg2-binary==2.9.6", #2.9.3 what is pscopg-binary 3.0.16
         "click==8.0.3", # 8.1.3
         "psutil==5.8.0", # 5.9.1
         "gunicorn==20.1.0", # 20.1.0
@@ -62,8 +62,8 @@ setup(
         "partd >= 0.3.10", # 1.3.0
         "distributed >= 2021.03.0", # 2022.8.1
         "nltk==3.6.6", # 3.7
-        "h5py~=3.6.0", # 3.7
-        "scipy==1.7.3", # 1.9.0
+        "h5py~=3.8.0", # 3.7
+        "scipy==1.10.1", # 1.9.0
         "blinker==1.4", # 1.5
         "protobuf<3.22", # 4.21.5
         "slack==0.0.2", # 0.0.2
@@ -85,15 +85,15 @@ setup(
     ],
     extras_require={
         "dev": [
-            "tox==3.24.4", # 3.25.1
-            "pytest==6.2.5", # 7.1.2
+            "tox==4.6.0", # 3.25.1
+            "pytest==7.3.2", # 7.1.2
             "toml >= 0.10.2", # 0.10.2
             "ipdb==0.13.9", # 0.13.9
             "sphinx==4.2.0", # 5.1.1
             "sphinx_rtd_theme==1.0.0", # 1.0.0
-            "sphinxcontrib-openapi==0.7.0", # 0.7.0
+            "sphinxcontrib-openapi==0.8.1", # 0.7.0
             "sphinxcontrib-redoc==1.6.0", # 1.6.0
-            "docutils==0.17.1" # 0.19
+            "docutils==0.20.1" # 0.19
         ]
     },
     entry_points={
