@@ -81,7 +81,8 @@ setup(
         "pylint==2.15.5",
         "dnspython==2.2.1",
         "Werkzeug>=2.3.3",
-        "pylint==2.15.5"
+        "pylint==2.15.5",
+        "cmake>=3.26.4"
     ],
     extras_require={
         "dev": [

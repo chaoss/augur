@@ -36,16 +36,16 @@ setup(
         'nltk==3.6.6',
         'pandas==1.5.3',
         'emoji==1.2.0',
-        'Keras<2.9.0rc0',
+        'Keras<2.14, >=2.13.1rc0',
         'Keras-Preprocessing==1.1.2',
-        'tensorflow==2.8.0',
+        'tensorflow>=2.13.0rc1',
         "h5py~=3.8.0", # 3.7
         'scikit-image==0.19.1',
         'joblib==1.0.1',
-        'xgboost',
+        'xgboost==1.7.5',
         'bs4==0.0.1',
         'xlrd==2.0.1',
-        'gensim==4.2.0'
+        'gensim~=4.3.1'
     ],
     classifiers=[
         'Development Status :: 3 - Alpha',
