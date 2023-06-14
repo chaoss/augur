@@ -52,6 +52,11 @@ CREATE SCHEMA toss_specific;
 
 ALTER SCHEMA toss_specific OWNER TO augur;
 
+-- Name: Postgres version 15 needs explicit access to the public schema
+
+grant usage on schema public to augur; 
+grant select on all tables in schema public to augur; 
+
 --
 -- Name: refresh_aggregates(); Type: PROCEDURE; Schema: augur_data; Owner: augur
 --
