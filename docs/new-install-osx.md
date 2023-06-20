@@ -101,7 +101,7 @@ If your setup of rabbitmq is successful your broker url should look like this:
 
 **broker_url = `amqp://augur:password123@localhost:5672/augur_vhost`**
 
-
+You will be asked for the broker URL on install of Augur. You can copy and paste the line above if you created the users and virtual hosts under "Broker Configuration", above. 
 
 ## Things to start before augur later
 ```shell
