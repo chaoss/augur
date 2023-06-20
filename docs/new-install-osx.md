@@ -53,7 +53,7 @@ sudo apt install geckodriver;
 
 
 ### RabbitMQ Configuration
-The default timeout for RabbitMQ needs to be set on Ubuntu 22.x. 
+The default timeout for RabbitMQ needs to be set.
 ```shell
 sudo vi /opt/homebrew/etc/rabbitmq/advanced.config
 ```
@@ -62,6 +62,41 @@ Add this one line to that file (the period at the end matters):
 ```shell
 [ {rabbit, [ {consumer_timeout, undefined} ]} ].
 ```
+
+### Rabbitmq Broker Configuration
+You have to setup a specific user, and broker host for your augur instance. You can accomplish this by running the below commands:
+```shell
+sudo rabbitmq-plugins enable rabbitmq_management;
+sudo rabbitmqctl add_user augur password123;
+sudo rabbitmqctl add_vhost augur_vhost;
+sudo rabbitmqctl set_user_tags augur augurTag administrator;
+sudo rabbitmqctl set_permissions -p augur_vhost augur ".*" ".*" ".*";
+```
+
+### Updating your Path: Necessary for rabbitmq on OSX
+#### for macOS Intel
+`export PATH=$PATH:/usr/local/sbin`
+#### for Apple Silicon
+`export PATH=$PATH:/opt/homebrew/sbin`
+
+*** These should be added to your .zshrc or other environment file loaded when you open a terminal ***
+#### for macOS Intel
+`export PATH=$PATH:/usr/local/sbin:$PATH`
+#### for Apple Silicon
+`export PATH=$PATH:/opt/homebrew/sbin:$PATH`
+
+- We need rabbitmq_management so we can purge our own queues with an API call 
+- We need a user
+- We need a vhost
+- We then set permissions 
+
+NOTE: it is important to have a static hostname when using rabbitmq as it uses hostname to communicate with nodes.
+
+If your setup of rabbitmq is successful your broker url should look like this:
+
+**broker_url = `amqp://augur:password123@localhost:5672/augur_vhost`**
+
+
 
 ## Things to start before augur later
 ```shell
@@ -123,41 +158,6 @@ Now type `exit` to log off the postgres user, and `exit` a SECOND time to log of
 exit
 exit 
 ```
-
-## Rabbitmq Broker Configuration
-You have to setup a specific user, and broker host for your augur instance. You can accomplish this by running the below commands:
-```shell
-sudo rabbitmq-plugins enable rabbitmq_management;
-sudo rabbitmqctl add_user augur password123;
-sudo rabbitmqctl add_vhost augur_vhost;
-sudo rabbitmqctl set_user_tags augur augurTag administrator;
-sudo rabbitmqctl set_permissions -p augur_vhost augur ".*" ".*" ".*";
-```
-
-### Updating your Path: Necessary for rabbitmq on OSX
-#### for macOS Intel
-`export PATH=$PATH:/usr/local/sbin`
-#### for Apple Silicon
-`export PATH=$PATH:/opt/homebrew/sbin`
-
-*** These should be added to your .zshrc or other environment file loaded when you open a terminal ***
-#### for macOS Intel
-`export PATH=$PATH:/usr/local/sbin:$PATH`
-#### for Apple Silicon
-`export PATH=$PATH:/opt/homebrew/sbin:$PATH`
-
-
-
-- We need rabbitmq_management so we can purge our own queues with an API call 
-- We need a user
-- We need a vhost
-- We then set permissions 
-
-NOTE: it is important to have a static hostname when using rabbitmq as it uses hostname to communicate with nodes.
-
-If your setup of rabbitmq is successful your broker url should look like this:
-
-**broker_url = `amqp://augur:password123@localhost:5672/augur_vhost`**
 
 ### RabbitMQ Developer Note:
 These are the queues we create: 
