@@ -255,8 +255,16 @@ Then you create a file for the server you want Augur to run under in the locatio
 #### For MacOS Intel: 
 This gist explains where sites-enabled is: `https://gist.github.com/jimothyGator/5436538`
 
+Logs for nginx should go in this directory: 
+
+`mkdir /Library/Logs/nginx`
+
+`/Library/Logs/nginx`
+
 #### For Apple Silicon: 
 There is no `sites-enabled` directory. Server configurations go here: `/opt/homebrew/etc/nginx/servers`
+
+Logs for nginx should go in this directory: `/opt/homebrew/var/log/nginx`
 
 ```
 server {
