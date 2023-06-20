@@ -247,10 +247,16 @@ maxmemory 20GB
 
 **Consequences** : If the settings are too low for Redis, Augur's maintainer team has observed cases where collection appears to stall. (TEAM: This is a working theory as of 3/10/2023 for Ubuntu 22.x, based on EC2 experiments.)
 
-## (OPTIONAL: NOT FOR DEV: Proxying Augur through Nginx
+## (OPTIONAL: NOT FOR DEV: Proxying Augur through Nginx)
 Assumes nginx is installed. 
 
 Then you create a file for the server you want Augur to run under in the location of your `sites-enabled` directory for nginx. In this example, Augur is running on port 5038: (the long timeouts on the settings page is for when a user adds a large number of repos or orgs in a single session to prevent timeouts from nginx)
+
+#### For MacOS Intel: 
+This gist explains where sites-enabled is: `https://gist.github.com/jimothyGator/5436538`
+
+#### For Apple Silicon: 
+There is no `sites-enabled` directory. Server configurations go here: `/opt/homebrew/etc/nginx/servers`
 
 ```
 server {
@@ -285,6 +291,7 @@ Install Certbot:
 brew update;
 brew upgrade;
 brew install certbot;
+brew install openssl; 
 brew install brew install python-typing-extensions
 ```
 
