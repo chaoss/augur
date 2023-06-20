@@ -172,29 +172,29 @@ These are the queues we create:
 
 The endpoints to hit to purge queues on exit are: 
 ```
-curl -i -u augur:password123 -XDELETE http://localhost:15672/api/queues/AugurB/celery
+curl -i -u augur:password123 -XDELETE http://localhost:15672/api/queues/augur_vhost/celery
 
-curl -i -u augur:password123 -XDELETE http://localhost:15672/api/queues/AugurB/secondary
+curl -i -u augur:password123 -XDELETE http://localhost:15672/api/queues/augur_vhost/secondary
 
-curl -i -u augur:password123 -XDELETE http://localhost:15672/api/queues/AugurB/scheduling
+curl -i -u augur:password123 -XDELETE http://localhost:15672/api/queues/augur_vhost/scheduling
 ```
 
 We provide this functionality to limit, as far as possible, the need for sudo privileges on the Augur operating system user.  With sudo, you can accomplish the same thing with (Given a vhost named AugurB [case sensitive]): 
 
 1. To list the queues
 ```
- sudo rabbitmqctl list_queues -p AugurB name messages consumers
+rabbitmqctl list_queues -p AugurB name messages consumers
 ```
 
 2. To empty the queues, simply execute the command for your queues. Below are the 3 queues that Augur creates for you: 
 ```
- sudo rabbitmqctl purge_queue celery -p AugurB
- sudo rabbitmqctl purge_queue secondary -p AugurB
- sudo rabbitmqctl purge_queue scheduling -p AugurB
+rabbitmqctl purge_queue celery -p augur_vhost
+rabbitmqctl purge_queue secondary -p augur_vhost
+rabbitmqctl purge_queue scheduling -p augur_vhost
 ```
 
 
-Where AugurB is the vhost. The management API at port 15672 will only exist if you have already installed the rabbitmq_management plugin. 
+Where augur_vhost is the vhost. The management API at port 15672 will only exist if you have already installed the rabbitmq_management plugin. 
 
 **During Augur installation, you will be prompted for this broker_url**
 
