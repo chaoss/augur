@@ -47,10 +47,10 @@ brew install redis ;
 brew install postgresql@14 ;
 brew install python3-yq ; 
 brew install python@3.11 ;
-sudo apt install postgresql@14 ; 
+brew install postgresql@14 ; 
 brew install go ; #required: Go Needs to be version 1.19.x or higher.
-sudo apt install nginx ; # required for hosting
-sudo apt install geckodriver; 
+brew install nginx ; # required for hosting
+brew install geckodriver; 
 
 # You will almost certainly need to reboot after this. 
 ```
