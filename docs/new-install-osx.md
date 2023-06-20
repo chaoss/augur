@@ -122,6 +122,20 @@ sudo rabbitmqctl set_user_tags augur augurTag administrator;
 sudo rabbitmqctl set_permissions -p augur_vhost augur ".*" ".*" ".*";
 ```
 
+### Updating your Path: Necessary for rabbitmq on OSX
+#### for macOS Intel
+export PATH=$PATH:/usr/local/sbin
+#### for Apple Silicon
+export PATH=$PATH:/opt/homebrew/sbin
+
+*** These should be added to your .zshrc or other environment file loaded when you open a terminal ***
+#### for macOS Intel
+export PATH=$PATH:/usr/local/sbin:$PATH
+#### for Apple Silicon
+export PATH=$PATH:/opt/homebrew/sbin:$PATH
+
+
+
 - We need rabbitmq_management so we can purge our own queues with an API call 
 - We need a user
 - We need a vhost
