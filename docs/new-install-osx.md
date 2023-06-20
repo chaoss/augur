@@ -65,8 +65,8 @@ Add this one line to that file (the period at the end matters):
 
 ## Things to start before augur later
 ```shell
-brew services start rabbitmq ;
-brew services start redis;
+sudo brew services start rabbitmq ;
+sudo brew services start redis;
 brew services start postgresql@14;
 ```
 
