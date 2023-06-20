@@ -8,6 +8,8 @@ xcode-select --install
 
 *WARNING: rabbitmq, redis, and postgresql will, by default, set themselves up to automatically start when your computer starts. This can be a significant battery drain if you are on battery and not using Augur. For those reasons, go into your system preferences, startup items menu (wherever it is now, because Apple changes it more than Zoolander changes outfits), and turn those "autostart" options off. :)*
 
+*NOTE: If you do not shutoff rabbitmq and redis at the command line before shutting down, they will restart themselves anyway on restart. `brew services start rabbitmq ;brew services start redis;`*
+
 ### You also need to install these libraries if you are using apple silicon as of June, 2023
 brew install gfortran;
 brew install llvm;
