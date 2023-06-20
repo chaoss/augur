@@ -136,15 +136,15 @@ sudo rabbitmqctl set_permissions -p augur_vhost augur ".*" ".*" ".*";
 
 ### Updating your Path: Necessary for rabbitmq on OSX
 #### for macOS Intel
-export PATH=$PATH:/usr/local/sbin
+`export PATH=$PATH:/usr/local/sbin`
 #### for Apple Silicon
-export PATH=$PATH:/opt/homebrew/sbin
+`export PATH=$PATH:/opt/homebrew/sbin`
 
 *** These should be added to your .zshrc or other environment file loaded when you open a terminal ***
 #### for macOS Intel
-export PATH=$PATH:/usr/local/sbin:$PATH
+`export PATH=$PATH:/usr/local/sbin:$PATH`
 #### for Apple Silicon
-export PATH=$PATH:/opt/homebrew/sbin:$PATH
+`export PATH=$PATH:/opt/homebrew/sbin:$PATH`
 
 
 
