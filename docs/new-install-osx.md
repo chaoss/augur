@@ -65,12 +65,24 @@ Add this one line to that file (the period at the end matters):
 
 ## Things to start before augur later
 ```shell
-sudo brew services start rabbitmq ;
-sudo brew services start redis;
+brew services start rabbitmq ;
+brew services start redis;
 brew services start postgresql@14;
 ```
+### If Issues Starting rabbitmq
+If you get this error: 
+```
+brew services start rabbitmq
+Bootstrap failed: 5: Input/output error
+Try re-running the command as root for richer errors.
+Error: Failure while executing; `/bin/launchctl bootstrap gui/501 /Users/sean/Library/LaunchAgents/homebrew.mxcl.rabbitmq.plist` exited with 5.
+```
 
-
+Execute this command: 
+```
+launchctl unload -w /Users/sean/Library/LaunchAgents/homebrew.mxcl.rabbitmq.plist
+```
+Replace the specific path with the one after `/Users/sean/Library/LaunchAgents/` in your error message. This was tested on Apple Silicon. 
 
 ## Git Configuration
 There are some Git configuration parameters that help when you are cloning repos over time, and a platform prompts you for credentials when it finds a repo is deleted:
