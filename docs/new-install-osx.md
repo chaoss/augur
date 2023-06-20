@@ -129,11 +129,6 @@ sudo rabbitmqctl set_permissions -p augur_vhost augur ".*" ".*" ".*";
 
 NOTE: it is important to have a static hostname when using rabbitmq as it uses hostname to communicate with nodes.
 
-RabbitMQ's server can then be started from systemd:
-```shell
-sudo systemctl start rabbitmq-server
-```
-
 If your setup of rabbitmq is successful your broker url should look like this:
 
 **broker_url = `amqp://augur:password123@localhost:5672/augur_vhost`**
