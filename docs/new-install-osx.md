@@ -282,15 +282,15 @@ server {
 ### (OPTIONAL: NOT FOR DEV) Setting up SSL (https)
 Install Certbot: 
 ```
-sudo apt update &&
-sudo apt upgrade &&
-sudo apt install certbot &&
-sudo apt-get install python3-certbot-nginx
+brew update;
+brew upgrade;
+brew install certbot;
+brew install brew install python-typing-extensions
 ```
 
 Generate a certificate for the specific domain for which you have a file already in the sites-enabled directory for nginx (located at `/etc/nginx/sites-enabled` on Ubuntu): 
 ```
- sudo certbot -v --nginx  -d ai.chaoss.io
+ brew certbot -v --nginx  -d ai.chaoss.io
 ```
 
 In the example file above. Your resulting nginx sites-enabled file will look like this: 
