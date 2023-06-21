@@ -294,7 +294,7 @@ server {
 ```
 
 ### (OPTIONAL: NOT FOR DEV) Setting up SSL (https)
-Install Certbot: 
+Install Certbot: **NOTE: certbot does not currently run on Apple Silicon, as it is looking for information in MacOS Intel directories**
 ```
 brew update;
 brew upgrade;
