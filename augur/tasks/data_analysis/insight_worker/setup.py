@@ -22,16 +22,16 @@ setup(
     description="Augur Worker that discovers and stores data anomalies",
     packages=find_packages(exclude=('tests',)),
     install_requires=[
-        'Flask==2.0.2',
+        'Flask==2.3.2',
         'Flask-Cors==3.0.10',
-        'Flask-Login==0.5.0',
+        'Flask-Login==0.6.2',
         'Flask-WTF==1.0.0',
-        'requests==2.28.0',
-        'psycopg2-binary==2.9.3',
-        'click==8.0.3',
-        'scipy>=1.7.3',
+        'requests==2.28.2',
+        'psycopg2-binary==2.9.6',
+        "click <=9.0, >=8.1.3", # 8.1.3
+        'scipy>=1.10.1',
         'sklearn==0.0',
-        'numpy==1.22.0', 
+        'numpy==1.24.2'
     ],
     entry_points={
         'console_scripts': [
