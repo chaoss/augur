@@ -31,10 +31,10 @@ sudo snap install go --classic && #required: Go Needs to be version 1.19.x or hi
 sudo apt install nginx && # required for hosting
 sudo add-apt-repository ppa:mozillateam/firefox-next &&
 sudo apt install firefox=115.0~b9+build1-0ubuntu0.22.04.1
-sudo apt install firefox-geckodriver
-
 # You will almost certainly need to reboot after this. 
 ```
+
+If the firefox build does not install, try  `sudo apt install firefox-geckodriver`
 
 ### RabbitMQ Configuration
 The default timeout for RabbitMQ needs to be set on Ubuntu 22.x. 
@@ -71,6 +71,9 @@ CREATE DATABASE augur;
 CREATE USER augur WITH ENCRYPTED PASSWORD 'password';
 GRANT ALL PRIVILEGES ON DATABASE augur TO augur;
 ```
+CREATE DATABASE augur;
+ALTER USER augur WITH ENCRYPTED PASSWORD 'mcguire18';
+GRANT ALL PRIVILEGES ON DATABASE augur TO augur;
 
 **If you're using PostgreSQL 15 or later**, default database permissions will prevent Augur's installer from configuring the database. Add one last line after the above to fix this:
 ```sql
@@ -117,7 +120,8 @@ sudo systemctl start rabbitmq-server
 
 If your setup of rabbitmq is successful your broker url should look like this:
 
-**broker_url = `    `**
+**broker_url = `amqp://augur:password123@localhost:5672/augur_vhost`**
+
 
 ### RabbitMQ Developer Note:
 These are the queues we create: 
@@ -138,7 +142,7 @@ We provide this functionality to limit, as far as possible, the need for sudo pr
 
 1. To list the queues
 ```
- sudo rabbitmqctl list_queues -p AugurB name messages consumers
+ sudo rabbitmqctl list_queues -p augur_vhost name messages consumers
 ```
 
 2. To empty the queues, simply execute the command for your queues. Below are the 3 queues that Augur creates for you: 
