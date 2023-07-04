@@ -1,7 +1,7 @@
 ## Augur Setup
 
-# Ubuntu 22.x
-We default to this version of Ubuntu for the moment because Augur does not yet support python3.10, which is the default version of python3.x distributed with Ubuntu 22.0x.x
+## Ubuntu Version: 22.x
+The python3.10 package is not available by default for installation on Ubuntu 20.x. 
 
 ## Git Platform Requirements (Things to have setup prior to initiating installation.)
 1. Obtain a GitHub Access Token: https://github.com/settings/tokens
@@ -30,7 +30,6 @@ sudo apt install rabbitmq-server && #required
 sudo snap install go --classic && #required: Go Needs to be version 1.19.x or higher. Snap is the package manager that gets you to the right version. Classic enables it to actually be installed at the correct version.
 sudo apt install nginx && # required for hosting
 sudo add-apt-repository ppa:mozillateam/firefox-next &&
-sudo apt install firefox=111.0~b8+build1-0ubuntu0.22.04.1 &&
 sudo apt install firefox=115.0~b9+build1-0ubuntu0.22.04.1
 sudo apt install firefox-geckodriver
 
