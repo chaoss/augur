@@ -39,13 +39,21 @@ def clustering_task():
     with DatabaseSession(logger, engine) as session:
         query = session.query(Repo)
         repos = execute_session_query(query, 'all')
-    
+        config = AugurConfig(logger, session)
+        starting_clusters = config.get_value("Clustering_Task", 'num_clusters') 
 
         for repo in repos:
-            clustering_model(repo.repo_git, logger, engine, session)
+            try_clusters = starting_clusters
+            while(try_clusters > 5):
+                try:
+                    clustering_model(repo.repo_git, logger, engine, session, try_clusters)
+                    break
+                except Exception as e:
+                    logger.info(f'Clusters Error: {e}')
+                    try_clusters = try_clusters/2
 
 
-def clustering_model(repo_git: str,logger,engine, session) -> None:
+def clustering_model(repo_git: str,logger,engine, session, num_clusters=0) -> None:
 
     logger.info(f"Starting clustering analysis for {repo_git}")
 
@@ -66,7 +74,8 @@ def clustering_model(repo_git: str,logger,engine, session) -> None:
     query = session.query(Repo).filter(Repo.repo_git == repo_git)
     repo_id = execute_session_query(query, 'one').repo_id
 
-    num_clusters = config.get_value("Clustering_Task", 'num_clusters')
+    if num_clusters == 0:
+        num_clusters = config.get_value("Clustering_Task", 'num_clusters')
     max_df = config.get_value("Clustering_Task", 'max_df')
     max_features = config.get_value("Clustering_Task", 'max_features')
     min_df = config.get_value("Clustering_Task", 'min_df')
