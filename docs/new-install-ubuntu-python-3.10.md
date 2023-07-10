@@ -1,7 +1,7 @@
 ## Augur Setup
 
-# Ubuntu 22.x
-We default to this version of Ubuntu for the moment because Augur does not yet support python3.10, which is the default version of python3.x distributed with Ubuntu 22.0x.x
+## Ubuntu Version: 22.x
+The python3.10 package is not available by default for installation on Ubuntu 20.x. 
 
 ## Git Platform Requirements (Things to have setup prior to initiating installation.)
 1. Obtain a GitHub Access Token: https://github.com/settings/tokens
@@ -19,6 +19,7 @@ Here we ensure your system is up to date, install required python libraries, ins
 sudo apt update && 
 sudo apt upgrade && 
 sudo apt install software-properties-common && 
+sudo apt install python3.10 &&
 sudo apt install python3-dev && 
 sudo apt install python3.10-venv &&
 sudo apt install postgresql postgresql-contrib postgresql-client && 
@@ -29,11 +30,11 @@ sudo apt install rabbitmq-server && #required
 sudo snap install go --classic && #required: Go Needs to be version 1.19.x or higher. Snap is the package manager that gets you to the right version. Classic enables it to actually be installed at the correct version.
 sudo apt install nginx && # required for hosting
 sudo add-apt-repository ppa:mozillateam/firefox-next &&
-sudo apt install firefox=115.0~b2+build1-0ubuntu0.22.04.1 &&
-sudo apt install firefox-geckodriver
-
+sudo apt install firefox=115.0~b9+build1-0ubuntu0.22.04.1
 # You will almost certainly need to reboot after this. 
 ```
+
+If the firefox build does not install, try  `sudo apt install firefox-geckodriver`
 
 ### RabbitMQ Configuration
 The default timeout for RabbitMQ needs to be set on Ubuntu 22.x. 
@@ -49,9 +50,9 @@ Add this one line to that file (the period at the end matters):
 ## Git Configuration
 There are some Git configuration parameters that help when you are cloning repos over time, and a platform prompts you for credentials when it finds a repo is deleted:
 ```shell 
-    git config --global diff.renames true
-    git config --global diff.renameLimit 200000
-    git config --global credential.helper cache
+    git config --global diff.renames true &&
+    git config --global diff.renameLimit 200000 &&
+    git config --global credential.helper cache &&
     git config --global credential.helper 'cache --timeout=9999999999999'
 ```
 
@@ -70,6 +71,9 @@ CREATE DATABASE augur;
 CREATE USER augur WITH ENCRYPTED PASSWORD 'password';
 GRANT ALL PRIVILEGES ON DATABASE augur TO augur;
 ```
+CREATE DATABASE augur;
+ALTER USER augur WITH ENCRYPTED PASSWORD 'mcguire18';
+GRANT ALL PRIVILEGES ON DATABASE augur TO augur;
 
 **If you're using PostgreSQL 15 or later**, default database permissions will prevent Augur's installer from configuring the database. Add one last line after the above to fix this:
 ```sql
@@ -118,6 +122,7 @@ If your setup of rabbitmq is successful your broker url should look like this:
 
 **broker_url = `amqp://augur:password123@localhost:5672/augur_vhost`**
 
+
 ### RabbitMQ Developer Note:
 These are the queues we create: 
 - celery (the main queue)
@@ -126,29 +131,29 @@ These are the queues we create:
 
 The endpoints to hit to purge queues on exit are: 
 ```
-curl -i -u augur:password123 -XDELETE http://localhost:15672/api/queues/AugurB/celery
+curl -i -u augur:password123 -XDELETE http://localhost:15672/api/queues/augur_vhost/celery
 
-curl -i -u augur:password123 -XDELETE http://localhost:15672/api/queues/AugurB/secondary
+curl -i -u augur:password123 -XDELETE http://localhost:15672/api/queues/augur_vhost/secondary
 
-curl -i -u augur:password123 -XDELETE http://localhost:15672/api/queues/AugurB/scheduling
+curl -i -u augur:password123 -XDELETE http://localhost:15672/api/queues/augur_vhost/scheduling
 ```
 
 We provide this functionality to limit, as far as possible, the need for sudo privileges on the Augur operating system user.  With sudo, you can accomplish the same thing with (Given a vhost named AugurB [case sensitive]): 
 
 1. To list the queues
 ```
- sudo rabbitmqctl list_queues -p AugurB name messages consumers
+ sudo rabbitmqctl list_queues -p augur_vhost name messages consumers
 ```
 
 2. To empty the queues, simply execute the command for your queues. Below are the 3 queues that Augur creates for you: 
 ```
- sudo rabbitmqctl purge_queue celery -p AugurB
- sudo rabbitmqctl purge_queue secondary -p AugurB
- sudo rabbitmqctl purge_queue scheduling -p AugurB
+ sudo rabbitmqctl purge_queue celery -p augur_vhost
+ sudo rabbitmqctl purge_queue secondary -p augur_vhost
+ sudo rabbitmqctl purge_queue scheduling -p augur_vhost
 ```
 
 
-Where AugurB is the vhost. The management API at port 15672 will only exist if you have already installed the rabbitmq_management plugin. 
+Where augur_vhost is the vhost. The management API at port 15672 will only exist if you have already installed the rabbitmq_management plugin. 
 
 **During Augur installation, you will be prompted for this broker_url**
 
@@ -308,7 +313,7 @@ redis.exceptions.ConnectionError: Error 111 connecting to 127.0.0.1:6379. Connec
 
 **COMMAND**: 
 ```
-sudo hugeadm --thp-never &&
+sudo  &&
 sudo echo never > /sys/kernel/mm/transparent_hugepage/enabled
 ```
 
