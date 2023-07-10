@@ -16,16 +16,17 @@ from augur.application.config import AugurConfig
 
 logger = AugurLogger("augur").get_logger()
 
-def get_args(args: MultiDict, defaults: Dict[str, str]) -> Dict[str, str]:
+def get_args(args: MultiDict, defaults: Dict[str, int]) -> Dict[str, int]:
     """
     Read from the provided `request.args` object, based on defaults.
 
-    Every key in `defaults` is checked on `args`. If that argument is empty string or not provided (None), the default
-    is selected. So if you have `?foo=bar` and `defaults` is `{"foo": "baz"}`, the resulting dict would be
-    `{"foo": "bar"}`. If instead you had `?bingo=bongos` and the same `defaults`, the resulting dict would be identical
-    to `defaults`.
+    Every key in `defaults` is checked on `args`. If that argument is not provided (None), the default is selected.
+    So if you have `?foo=12345` and `defaults` is `{"foo": 67890}`, the resulting dict would be `{"foo": 12345}`.
+    If instead you had `?bingo=bongos` and the same `defaults`, the resulting dict would be identical to `defaults`.
+
+    If the value is pulled from the URL query, it will be cast to int, and ValueError is thrown if that fails
     """
-    return {k: args.get(k) or v for k, v in defaults}
+    return {k: args.get(k, default=v, type=int) for k, v in defaults.items()}
 
 def limit_args(args: Dict[str, int], limits: Dict[str, Tuple[int, int]]) -> bool:
     """
@@ -34,10 +35,7 @@ def limit_args(args: Dict[str, int], limits: Dict[str, Tuple[int, int]]) -> bool
 
     The list of arguments checked is the list of keys in `limits`.
     """
-    try:
-        return all([limits[key][0] <= args[key] <= limits[key][1] for key in limits])
-    except Exception:
-        return False
+    return all([limits[key][0] <= args[key] <= limits[key][1] for key in limits])
 
 @app.route('/{}/repo-groups'.format(AUGUR_API_VERSION))
 def get_all_repo_groups(): #TODO: make this name automatic - wrapper?
@@ -57,16 +55,15 @@ def get_all_repos():
 
     # Sanitize query
     # TODO: sanitization is inferior to solutions that make unsafe user input impossible
-    query = get_args(request.args, {"page": "1", "count": "20"})
     try:
-        query = {k: int(v) for k, v in query}
+        query = get_args(request.args, {"page": 1, "count": 20})
         assert(limit_args(query, {"page": (1, 4000), "count": (1, 50)}))
     except ValueError:
-        return Response(response='{"status": "Illegal pagination query: values must be integers"}',
+        return Response(response='{"status": "Invalid query: page and (optionally) count must be integers"}',
                         status=400,
                         mimetype='application/json')
     except AssertionError:
-        return Response(response='{"status": "Illegal pagination query: page must be 1-4000, count must be 1-50"}',
+        return Response(response='{"status": "Invalid query: page must be between 1 and 4000, count between 1 and 50"}',
                         status=400,
                         mimetype='application/json')
 
@@ -98,7 +95,7 @@ def get_all_repos():
         LIMIT :len OFFSET :off
     """)
     results = pd.read_sql(get_all_repos_sql, engine, params={
-        "lim": query["count"],
+        "len": query["count"],
         "off": query["count"] * (query["page"] - 1)
     })
     results['url'] = results['url'].apply(lambda datum: datum.split('//')[1])
