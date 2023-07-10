@@ -15,7 +15,7 @@ from augur.application.db.util import catch_operational_error
 
 def parse_database_string(db_string) -> str:
     """Parse database string into the following components:
-        username, password, host, port, database 
+        username, password, host, port, database
     """
 
     match = re.match(r"postgresql\+psycopg2:\/\/(?P<username>[a-zA-Z0-9_]+):(?P<password>[^@]+)@(?P<host>[^:]+):(?P<port>\d+)\/(?P<database>\w+)", db_string)
@@ -55,9 +55,9 @@ def get_database_string() -> str:
     """Get database string from env or file
 
     Note:
-        If environment variable is defined the function 
-            will use that as the database string. And if the 
-            environment variable is not defined, it will use the 
+        If environment variable is defined the function
+            will use that as the database string. And if the
+            environment variable is not defined, it will use the
             db.config.json file to get the database string
 
     Returns:
@@ -91,15 +91,15 @@ def get_database_string() -> str:
 
     return db_conn_string
 
-def create_database_engine(url, **kwargs):  
-    """Create sqlalchemy database engine 
+def create_database_engine(url, **kwargs) -> Engine:
+    """Create sqlalchemy database engine
 
     Note:
         A new database engine is created each time the function is called
 
     Returns:
         sqlalchemy database engine
-    """ 
+    """
 
     engine = create_engine(url, **kwargs)
 
@@ -138,11 +138,11 @@ class DatabaseEngine():
         self._engine.dispose()
 
     @property
-    def engine(self):
+    def engine(self) -> Engine:
         return self._engine
 
 
-    def create_database_engine(self, **kwargs):  
+    def create_database_engine(self, **kwargs) -> Engine:
 
 
         db_conn_string = get_database_string()
@@ -166,8 +166,3 @@ class EngineConnection():
         func = engine.connect
 
         return catch_operational_error(func)
-
-        
-
-
-

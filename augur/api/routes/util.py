@@ -1,10 +1,14 @@
 #SPDX-License-Identifier: MIT
+from augur.api.routes import AUGUR_API_VERSION
+from ..server import app, engine
+
 import base64
 import sqlalchemy as s
 import pandas as pd
 import json
-from flask import Response
-import logging
+from typing import Dict, Tuple
+from flask import Response, request
+from werkzeug.datastructures import MultiDict
 
 from augur.application.db.session import DatabaseSession
 from augur.application.logs import AugurLogger
@@ -12,9 +16,28 @@ from augur.application.config import AugurConfig
 
 logger = AugurLogger("augur").get_logger()
 
-from augur.api.routes import AUGUR_API_VERSION
-from ..server import app, engine
+def get_args(args: MultiDict, defaults: Dict[str, str]) -> Dict[str, str]:
+    """
+    Read from the provided `request.args` object, based on defaults.
 
+    Every key in `defaults` is checked on `args`. If that argument is empty string or not provided (None), the default
+    is selected. So if you have `?foo=bar` and `defaults` is `{"foo": "baz"}`, the resulting dict would be
+    `{"foo": "bar"}`. If instead you had `?bingo=bongos` and the same `defaults`, the resulting dict would be identical
+    to `defaults`.
+    """
+    return {k: args.get(k) or v for k, v in defaults}
+
+def limit_args(args: Dict[str, int], limits: Dict[str, Tuple[int, int]]) -> bool:
+    """
+    Checks that each argument is within given bounds, inclusive both ends. If `limits` is `{"foo": (123, 456)}` then
+    `args["foo"]` must exist and be some n such that 123<=n<=456. If any argument fails this check, the result is False.
+
+    The list of arguments checked is the list of keys in `limits`.
+    """
+    try:
+        return all([limits[key][0] <= args[key] <= limits[key][1] for key in limits])
+    except Exception:
+        return False
 
 @app.route('/{}/repo-groups'.format(AUGUR_API_VERSION))
 def get_all_repo_groups(): #TODO: make this name automatic - wrapper?
@@ -31,6 +54,21 @@ def get_all_repo_groups(): #TODO: make this name automatic - wrapper?
 
 @app.route('/{}/repos'.format(AUGUR_API_VERSION))
 def get_all_repos():
+
+    # Sanitize query
+    # TODO: sanitization is inferior to solutions that make unsafe user input impossible
+    query = get_args(request.args, {"page": "1", "count": "20"})
+    try:
+        query = {k: int(v) for k, v in query}
+        assert(limit_args(query, {"page": (1, 4000), "count": (1, 50)}))
+    except ValueError:
+        return Response(response='{"status": "Illegal pagination query: values must be integers"}',
+                        status=400,
+                        mimetype='application/json')
+    except AssertionError:
+        return Response(response='{"status": "Illegal pagination query: page must be 1-4000, count must be 1-50"}',
+                        status=400,
+                        mimetype='application/json')
 
     get_all_repos_sql = s.sql.text("""
         SELECT
@@ -52,13 +90,17 @@ def get_all_repos():
             (select * from api_get_all_repos_issues) b
             on
             repo.repo_id = b.repo_id
-            left outer join 
-            (select * from api_get_all_repo_prs) c 
-            on repo.repo_id=c.repo_id 
+            left outer join
+            (select * from api_get_all_repo_prs) c
+            on repo.repo_id=c.repo_id
             JOIN repo_groups ON repo_groups.repo_group_id = repo.repo_group_id
         order by repo_name
+        LIMIT :len OFFSET :off
     """)
-    results = pd.read_sql(get_all_repos_sql,  engine)
+    results = pd.read_sql(get_all_repos_sql, engine, params={
+        "lim": query["count"],
+        "off": query["count"] * (query["page"] - 1)
+    })
     results['url'] = results['url'].apply(lambda datum: datum.split('//')[1])
 
     b64_urls = []
@@ -91,9 +133,9 @@ def get_repos_in_repo_group(repo_group_id):
             (select * from api_get_all_repos_issues) b
             on
             repo.repo_id = b.repo_id
-            left outer join 
-            (select * from api_get_all_repo_prs) c 
-            on repo.repo_id=c.repo_id                 
+            left outer join
+            (select * from api_get_all_repo_prs) c
+            on repo.repo_id=c.repo_id
             JOIN repo_groups ON repo_groups.repo_group_id = repo.repo_group_id
         WHERE
             repo_groups.repo_group_id = :repo_group_id
