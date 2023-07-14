@@ -16,6 +16,12 @@ from augur.application.config import AugurConfig
 
 logger = AugurLogger("augur").get_logger()
 
+# Magic number configuration for pagination
+PAGE_DEFAULT = 1
+PAGE_MINMAX = (1, 4000)
+COUNT_DEFAULT = 20
+COUNT_MINMAX = (1, 50)
+
 def get_args(args: MultiDict, defaults: Dict[str, int]) -> Dict[str, int]:
     """
     Read from the provided `request.args` object, based on defaults.
@@ -37,14 +43,53 @@ def limit_args(args: Dict[str, int], limits: Dict[str, Tuple[int, int]]) -> bool
     """
     return all([limits[key][0] <= args[key] <= limits[key][1] for key in limits])
 
+def paginate(args: MultiDict) -> Tuple[int, int] | Response:
+    """
+    Sanitize pagination URL parameters and generate the LIMIT and OFFSET values for a paginated SQL query.
+    If the parameters are invalid, a response is made with an appropriate error in the JSON body.
+    If the parameters are valid, a tuple is returned. The first item is LIMIT, the second is OFFSET.
+    """
+
+    # Sanitize query
+    # TODO: sanitization is inferior to solutions that make unsafe user input impossible
+    try:
+        query = get_args(request.args, {"page": PAGE_DEFAULT, "count": COUNT_DEFAULT})
+        assert(limit_args(query, {"page": PAGE_MINMAX, "count": COUNT_MINMAX}))
+    except ValueError:
+        return Response(response='{"status": "Invalid query: page and (optionally) count must be integers"}',
+                        status=400,
+                        mimetype='application/json')
+    except AssertionError:
+        return Response(response=('{"status": "Invalid query: '
+                                 f'page must be between {PAGE_MINMAX[0]} and {PAGE_MINMAX[1]}, '
+                                 f'count between {COUNT_MINMAX[0]} and {COUNT_MINMAX[0]}"}}'),
+                        status=400,
+                        mimetype='application/json')
+
+    # If a Response hasn't been made yet, the query has been parsed successfully
+    return (query["count"], query["count"] * (query["page"] - 1))
+
 @app.route('/{}/repo-groups'.format(AUGUR_API_VERSION))
 def get_all_repo_groups(): #TODO: make this name automatic - wrapper?
+
+    # Handle pagination in the URL parameters
+    params = paginate(request.args)
+
+    # If the param validation fails, `paginate` generates an HTTP response which we now give to Flask
+    if isinstance(params, Response):
+        return params
+
+    # If the param validation succeeds, `paginate` generates the integers for the LIMIT/OFFSET query, which we now use
     repoGroupsSQL = s.sql.text("""
         SELECT *
         FROM repo_groups
         ORDER BY rg_name
+        LIMIT :len OFFSET :off
     """)
-    results = pd.read_sql(repoGroupsSQL,  engine)
+    results = pd.read_sql(repoGroupsSQL,  engine, params={
+        "len": params[0],
+        "off": params[1]
+    })
     data = results.to_json(orient="records", date_format='iso', date_unit='ms')
     return Response(response=data,
                     status=200,
@@ -53,20 +98,14 @@ def get_all_repo_groups(): #TODO: make this name automatic - wrapper?
 @app.route('/{}/repos'.format(AUGUR_API_VERSION))
 def get_all_repos():
 
-    # Sanitize query
-    # TODO: sanitization is inferior to solutions that make unsafe user input impossible
-    try:
-        query = get_args(request.args, {"page": 1, "count": 20})
-        assert(limit_args(query, {"page": (1, 4000), "count": (1, 50)}))
-    except ValueError:
-        return Response(response='{"status": "Invalid query: page and (optionally) count must be integers"}',
-                        status=400,
-                        mimetype='application/json')
-    except AssertionError:
-        return Response(response='{"status": "Invalid query: page must be between 1 and 4000, count between 1 and 50"}',
-                        status=400,
-                        mimetype='application/json')
+    # Handle pagination in the URL parameters
+    params = paginate(request.args)
 
+    # If the param validation fails, `paginate` generates an HTTP response which we now give to Flask
+    if isinstance(params, Response):
+        return params
+
+    # If the param validation succeeds, `paginate` generates the integers for the LIMIT/OFFSET query, which we now use
     get_all_repos_sql = s.sql.text("""
         SELECT
             repo.repo_id,
@@ -95,8 +134,8 @@ def get_all_repos():
         LIMIT :len OFFSET :off
     """)
     results = pd.read_sql(get_all_repos_sql, engine, params={
-        "len": query["count"],
-        "off": query["count"] * (query["page"] - 1)
+        "len": params[0],
+        "off": params[1]
     })
     results['url'] = results['url'].apply(lambda datum: datum.split('//')[1])
 
@@ -112,6 +151,15 @@ def get_all_repos():
 
 @app.route('/{}/repo-groups/<repo_group_id>/repos'.format(AUGUR_API_VERSION))
 def get_repos_in_repo_group(repo_group_id):
+
+    # Handle pagination in the URL parameters
+    params = paginate(request.args)
+
+    # If the param validation fails, `paginate` generates an HTTP response which we now give to Flask
+    if isinstance(params, Response):
+        return params
+
+    # If the param validation succeeds, `paginate` generates the integers for the LIMIT/OFFSET query, which we now use
     repos_in_repo_groups_SQL = s.sql.text("""
         SELECT
             repo.repo_id,
@@ -137,9 +185,14 @@ def get_repos_in_repo_group(repo_group_id):
         WHERE
             repo_groups.repo_group_id = :repo_group_id
         ORDER BY repo.repo_git
+        LIMIT :len OFFSET :off
     """)
 
-    results = pd.read_sql(repos_in_repo_groups_SQL, engine, params={'repo_group_id': repo_group_id})
+    results = pd.read_sql(repos_in_repo_groups_SQL, engine, params={
+        'repo_group_id': repo_group_id,
+        "len": params[0],
+        "off": params[1]
+    })
     data = results.to_json(orient="records", date_format='iso', date_unit='ms')
     return Response(response=data,
                     status=200,
