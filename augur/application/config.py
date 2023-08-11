@@ -88,7 +88,7 @@ default_config = {
                 "max_df": 0.9,
                 "max_features": 1000,
                 "min_df": 0.1,
-                "num_clusters": 4
+                "num_clusters": 200
             },
             "Insight_Task": {
                 # TODO: How to store metrics in database config?
@@ -100,11 +100,11 @@ default_config = {
                 "anomaly_days": 14
             },
             "Task_Routine": {
-                "prelim_phase": 1,
-                "primary_repo_collect_phase": 1,
-                "secondary_repo_collect_phase": 1,
-                "facade_phase": 1,
-                "machine_learning_phase": 0
+                "prelim_phase": 0,
+                "primary_repo_collect_phase": 0,
+                "secondary_repo_collect_phase": 0,
+                "facade_phase": 0,
+                "machine_learning_phase": 1
             }
         }
 

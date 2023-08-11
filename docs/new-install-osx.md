@@ -1,7 +1,31 @@
 ## Augur Setup
 
-## Ubuntu Version: 22.x
-The python3.10 package is not available by default for installation on Ubuntu 20.x. 
+# OSX: Note: This has **ONLY** been tested on Apple Silicon with Python 3.11 at this time
+## For OSX You Need to make sure to install XCode Command line tools: 
+```shell
+xcode-select --install
+```
+
+*WARNING: rabbitmq, redis, and postgresql will, by default, set themselves up to automatically start when your computer starts. This can be a significant battery drain if you are on battery and not using Augur. For those reasons, go into your system preferences, startup items menu (wherever it is now, because Apple changes it more than Zoolander changes outfits), and turn those "autostart" options off. :)*
+
+*NOTE: If you do not shutoff rabbitmq and redis at the command line before shutting down, they will restart themselves anyway on restart. `brew services stop rabbitmq ;brew services stop redis;`*
+
+### You also need to install these libraries if you are using apple silicon as of June, 2023
+brew install gfortran;
+brew install llvm;
+echo 'export PATH="/opt/homebrew/opt/llvm/bin:$PATH"' >> ~/.zshrc;
+brew install Pkg-config;
+brew install openblas;
+
+### Add these lines to your .zshrc file: 
+```shell
+export LDFLAGS="-L/opt/homebrew/opt/llvm/lib"
+export CPPFLAGS="-I/opt/homebrew/opt/llvm/include"
+export LDFLAGS="-L/opt/homebrew/opt/openblas/lib "$LDFLAGS
+export CPPFLAGS="-I/opt/homebrew/opt/openblas/include "$CPPFLAGS
+export PKG_CONFIG_PATH="/opt/homebrew/opt/openblas/lib/pkgconfig"
+
+```
 
 ## Git Platform Requirements (Things to have setup prior to initiating installation.)
 1. Obtain a GitHub Access Token: https://github.com/settings/tokens
@@ -16,30 +40,26 @@ Here we ensure your system is up to date, install required python libraries, ins
 
 ### Executable
 ```shell 
-sudo apt update && 
-sudo apt upgrade && 
-sudo apt install software-properties-common && 
-sudo apt install python3.10 &&
-sudo apt install python3-dev && 
-sudo apt install python3.10-venv &&
-sudo apt install postgresql postgresql-contrib postgresql-client && 
-sudo apt install build-essential && 
-sudo apt install redis-server &&  # required 
-sudo apt install erlang && # required
-sudo apt install rabbitmq-server && #required
-sudo snap install go --classic && #required: Go Needs to be version 1.19.x or higher. Snap is the package manager that gets you to the right version. Classic enables it to actually be installed at the correct version.
-sudo apt install nginx && # required for hosting
-sudo add-apt-repository ppa:mozillateam/firefox-next &&
-sudo apt install firefox=115.0~b9+build1-0ubuntu0.22.04.1
+brew update ; 
+brew upgrade ; 
+brew install rabbitmq ; 
+brew install redis ;
+brew install postgresql@14 ;
+brew install python3-yq ; 
+brew install python@3.11 ;
+brew install postgresql@14 ; 
+brew install go ; #required: Go Needs to be version 1.19.x or higher.
+brew install nginx ; # required for hosting
+brew install geckodriver; 
+
 # You will almost certainly need to reboot after this. 
 ```
 
-If the firefox build does not install, try  `sudo apt install firefox-geckodriver`
 
 ### RabbitMQ Configuration
-The default timeout for RabbitMQ needs to be set on Ubuntu 22.x. 
+The default timeout for RabbitMQ needs to be set.
 ```shell
-sudo vi /etc/rabbitmq/advanced.config
+sudo vi /opt/homebrew/etc/rabbitmq/advanced.config
 ```
 
 Add this one line to that file (the period at the end matters): 
@@ -47,22 +67,77 @@ Add this one line to that file (the period at the end matters):
 [ {rabbit, [ {consumer_timeout, undefined} ]} ].
 ```
 
+### Rabbitmq Broker Configuration
+You have to setup a specific user, and broker host for your augur instance. You can accomplish this by running the below commands:
+```shell
+rabbitmq-plugins enable rabbitmq_management;
+rabbitmqctl add_user augur password123;
+rabbitmqctl add_vhost augur_vhost;
+rabbitmqctl set_user_tags augur augurTag administrator;
+rabbitmqctl set_permissions -p augur_vhost augur ".*" ".*" ".*";
+```
+
+### Updating your Path: Necessary for rabbitmq on OSX
+#### for macOS Intel
+`export PATH=$PATH:/usr/local/sbin`
+#### for Apple Silicon
+`export PATH=$PATH:/opt/homebrew/sbin`
+
+***These should be added to your .zshrc or other environment file loaded when you open a terminal***
+
+#### for macOS Intel
+`export PATH=$PATH:/usr/local/sbin:$PATH`
+#### for Apple Silicon
+`export PATH=$PATH:/opt/homebrew/sbin:$PATH`
+
+- We need rabbitmq_management so we can purge our own queues with an API call 
+- We need a user
+- We need a vhost
+- We then set permissions 
+
+NOTE: it is important to have a static hostname when using rabbitmq as it uses hostname to communicate with nodes.
+
+If your setup of rabbitmq is successful your broker url should look like this:
+
+**broker_url = `amqp://augur:password123@localhost:5672/augur_vhost`**
+
+You will be asked for the broker URL on install of Augur. You can copy and paste the line above (`amqp://augur:password123@localhost:5672/augur_vhost`) if you created the users and virtual hosts under "Broker Configuration", above. 
+
+## Things to start before augur later
+```shell
+brew services start rabbitmq ;
+brew services start redis;
+brew services start postgresql@14;
+```
+### If Issues Starting rabbitmq
+If you get this error: 
+```
+brew services start rabbitmq
+Bootstrap failed: 5: Input/output error
+Try re-running the command as root for richer errors.
+Error: Failure while executing; `/bin/launchctl bootstrap gui/501 /Users/sean/Library/LaunchAgents/homebrew.mxcl.rabbitmq.plist` exited with 5.
+```
+
+Execute this command: 
+```
+launchctl unload -w /Users/sean/Library/LaunchAgents/homebrew.mxcl.rabbitmq.plist
+```
+Replace the specific path with the one after `/Users/sean/Library/LaunchAgents/` in your error message. This was tested on Apple Silicon. 
+
 ## Git Configuration
 There are some Git configuration parameters that help when you are cloning repos over time, and a platform prompts you for credentials when it finds a repo is deleted:
 ```shell 
-    git config --global diff.renames true &&
-    git config --global diff.renameLimit 200000 &&
-    git config --global credential.helper cache &&
-    git config --global credential.helper 'cache --timeout=9999999999999'
+    git config --global diff.renames true;
+    git config --global diff.renameLimit 200000;
+    git config --global credential.helper cache;
+    git config --global credential.helper 'cache --timeout=9999999999999';
 ```
 
 
 ## Postgresql Configuration
 Create a PostgreSQL database for Augur to use
 ```shell
-sudo su - &&
-su - postgres &&
-psql
+... really varies depending how you installed postgres. TBD
 ```
 
 Then, from within the resulting postgresql shell: 
@@ -70,13 +145,6 @@ Then, from within the resulting postgresql shell:
 CREATE DATABASE augur;
 CREATE USER augur WITH ENCRYPTED PASSWORD 'password';
 GRANT ALL PRIVILEGES ON DATABASE augur TO augur;
-```
-CREATE DATABASE augur;
-ALTER USER augur WITH ENCRYPTED PASSWORD 'mcguire18';
-GRANT ALL PRIVILEGES ON DATABASE augur TO augur;
-
-**If you're using PostgreSQL 15 or later**, default database permissions will prevent Augur's installer from configuring the database. Add one last line after the above to fix this:
-```sql
 GRANT ALL ON SCHEMA public TO augur;
 ```
 
@@ -95,33 +163,6 @@ Now type `exit` to log off the postgres user, and `exit` a SECOND time to log of
 exit
 exit 
 ```
-
-## Rabbitmq Broker Configuration
-You have to setup a specific user, and broker host for your augur instance. You can accomplish this by running the below commands:
-```shell
-sudo rabbitmq-plugins enable rabbitmq_management &&
-sudo rabbitmqctl add_user augur password123 &&
-sudo rabbitmqctl add_vhost augur_vhost &&
-sudo rabbitmqctl set_user_tags augur augurTag administrator &&
-sudo rabbitmqctl set_permissions -p augur_vhost augur ".*" ".*" ".*"
-```
-
-- We need rabbitmq_management so we can purge our own queues with an API call 
-- We need a user
-- We need a vhost
-- We then set permissions 
-
-NOTE: it is important to have a static hostname when using rabbitmq as it uses hostname to communicate with nodes.
-
-RabbitMQ's server can then be started from systemd:
-```shell
-sudo systemctl start rabbitmq-server
-```
-
-If your setup of rabbitmq is successful your broker url should look like this:
-
-**broker_url = `amqp://augur:password123@localhost:5672/augur_vhost`**
-
 
 ### RabbitMQ Developer Note:
 These are the queues we create: 
@@ -142,113 +183,20 @@ We provide this functionality to limit, as far as possible, the need for sudo pr
 
 1. To list the queues
 ```
- sudo rabbitmqctl list_queues -p augur_vhost name messages consumers
+rabbitmqctl list_queues -p AugurB name messages consumers
 ```
 
 2. To empty the queues, simply execute the command for your queues. Below are the 3 queues that Augur creates for you: 
 ```
- sudo rabbitmqctl purge_queue celery -p augur_vhost
- sudo rabbitmqctl purge_queue secondary -p augur_vhost
- sudo rabbitmqctl purge_queue scheduling -p augur_vhost
+rabbitmqctl purge_queue celery -p augur_vhost
+rabbitmqctl purge_queue secondary -p augur_vhost
+rabbitmqctl purge_queue scheduling -p augur_vhost
 ```
 
 
 Where augur_vhost is the vhost. The management API at port 15672 will only exist if you have already installed the rabbitmq_management plugin. 
 
 **During Augur installation, you will be prompted for this broker_url**
-
-## Proxying Augur through Nginx
-Assumes nginx is installed. 
-
-Then you create a file for the server you want Augur to run under in the location of your `sites-enabled` directory for nginx. In this example, Augur is running on port 5038: (the long timeouts on the settings page is for when a user adds a large number of repos or orgs in a single session to prevent timeouts from nginx)
-
-```
-server {
-        server_name  ai.chaoss.io;
-
-        location /api/unstable/ {
-                proxy_pass http://ai.chaoss.io:5038;
-                proxy_set_header Host $host;
-        }
-
-        location / {
-                proxy_pass http://127.0.0.1:5038;
-        }
-
-        location /settings {
-
-                proxy_read_timeout 800;
-                proxy_connect_timeout 800;
-                proxy_send_timeout 800;
-        }
-
-        error_log /var/log/nginx/augurview.osshealth.error.log;
-        access_log /var/log/nginx/augurview.osshealth.access.log;
-
-}
-
-```
-
-### Setting up SSL (https)
-Install Certbot: 
-```
-sudo apt update &&
-sudo apt upgrade &&
-sudo apt install certbot &&
-sudo apt-get install python3-certbot-nginx
-```
-
-Generate a certificate for the specific domain for which you have a file already in the sites-enabled directory for nginx (located at `/etc/nginx/sites-enabled` on Ubuntu): 
-```
- sudo certbot -v --nginx  -d ai.chaoss.io
-```
-
-In the example file above. Your resulting nginx sites-enabled file will look like this: 
-
-```
-server {
-        server_name  ai.chaoss.io;
-
-        location /api/unstable/ {
-                proxy_pass http://ai.chaoss.io:5038;
-                proxy_set_header Host $host;
-        }
-
-   location / {
-      proxy_pass http://127.0.0.1:5038;
-   }
-
-   location /settings {
-
-                proxy_read_timeout 800;
-                proxy_connect_timeout 800;
-                proxy_send_timeout 800;
-   }
-
-        error_log /var/log/nginx/augurview.osshealth.error.log;
-        access_log /var/log/nginx/augurview.osshealth.access.log;
-
-    listen 443 ssl; # managed by Certbot
-    ssl_certificate /etc/letsencrypt/live/ai.chaoss.io/fullchain.pem; # managed by Certbot
-    ssl_certificate_key /etc/letsencrypt/live/ai.chaoss.io/privkey.pem; # managed by Certbot
-    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
-    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
-
-}
-
-server {
-    if ($host = ai.chaoss.io) {
-        return 301 https://$host$request_uri;
-    } # managed by Certbot
-
-
-        listen 80;
-        server_name  ai.chaoss.io;
-    return 404; # managed by Certbot
-
-
-}
-```
 
 ## Installing and Configuring Augur!
 Create a Python Virtual Environment `python3 -m venv ~/virtual-env-directory` 
@@ -299,6 +247,113 @@ maxmemory 20GB
 
 **Consequences** : If the settings are too low for Redis, Augur's maintainer team has observed cases where collection appears to stall. (TEAM: This is a working theory as of 3/10/2023 for Ubuntu 22.x, based on EC2 experiments.)
 
+## (OPTIONAL: NOT FOR DEV: Proxying Augur through Nginx)
+Assumes nginx is installed. 
+
+Then you create a file for the server you want Augur to run under in the location of your `sites-enabled` directory for nginx. In this example, Augur is running on port 5038: (the long timeouts on the settings page is for when a user adds a large number of repos or orgs in a single session to prevent timeouts from nginx)
+
+#### For MacOS Intel: 
+This gist explains where sites-enabled is: `https://gist.github.com/jimothyGator/5436538`
+
+Logs for nginx should go in this directory: 
+
+`mkdir /Library/Logs/nginx`
+
+`/Library/Logs/nginx`
+
+#### For Apple Silicon: 
+There is no `sites-enabled` directory. Server configurations go here: `/opt/homebrew/etc/nginx/servers`
+
+Logs for nginx should go in this directory: `/opt/homebrew/var/log/nginx`
+
+```
+server {
+        server_name  ai.chaoss.io;
+
+        location /api/unstable/ {
+                proxy_pass http://ai.chaoss.io:5038;
+                proxy_set_header Host $host;
+        }
+
+        location / {
+                proxy_pass http://127.0.0.1:5038;
+        }
+
+        location /settings {
+
+                proxy_read_timeout 800;
+                proxy_connect_timeout 800;
+                proxy_send_timeout 800;
+        }
+
+        error_log /var/log/nginx/augurview.osshealth.error.log;
+        access_log /var/log/nginx/augurview.osshealth.access.log;
+
+}
+
+```
+
+### (OPTIONAL: NOT FOR DEV) Setting up SSL (https)
+Install Certbot: **NOTE: certbot does not currently run on Apple Silicon, as it is looking for information in MacOS Intel directories**
+```
+brew update;
+brew upgrade;
+brew install certbot;
+brew install openssl; 
+brew install brew install python-typing-extensions
+```
+
+Generate a certificate for the specific domain for which you have a file already in the sites-enabled directory for nginx (located at `/etc/nginx/sites-enabled` on Ubuntu): 
+```
+ brew certbot -v --nginx  -d ai.chaoss.io
+```
+
+In the example file above. Your resulting nginx sites-enabled file will look like this: 
+
+```
+server {
+        server_name  ai.chaoss.io;
+
+        location /api/unstable/ {
+                proxy_pass http://ai.chaoss.io:5038;
+                proxy_set_header Host $host;
+        }
+
+   location / {
+      proxy_pass http://127.0.0.1:5038;
+   }
+
+   location /settings {
+
+                proxy_read_timeout 800;
+                proxy_connect_timeout 800;
+                proxy_send_timeout 800;
+   }
+
+        error_log /var/log/nginx/augurview.osshealth.error.log;
+        access_log /var/log/nginx/augurview.osshealth.access.log;
+
+    listen 443 ssl; # managed by Certbot
+    ssl_certificate /etc/letsencrypt/live/ai.chaoss.io/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/ai.chaoss.io/privkey.pem; # managed by Certbot
+    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+
+}
+
+server {
+    if ($host = ai.chaoss.io) {
+        return 301 https://$host$request_uri;
+    } # managed by Certbot
+
+
+        listen 80;
+        server_name  ai.chaoss.io;
+    return 404; # managed by Certbot
+
+
+}
+```
 
 #### Possible EC2 Configuration Requirements
 
@@ -313,7 +368,7 @@ redis.exceptions.ConnectionError: Error 111 connecting to 127.0.0.1:6379. Connec
 
 **COMMAND**: 
 ```
-sudo  &&
+sudo hugeadm --thp-never &&
 sudo echo never > /sys/kernel/mm/transparent_hugepage/enabled
 ```
 
