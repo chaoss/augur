@@ -131,3 +131,4 @@ GSoC 2018 participants
 -----------------------
 - `Keanu Nichols <https://github.com/kmn5409/>`_
 
+Hi, I am excited to learn S/W engineering!
