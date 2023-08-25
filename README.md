@@ -30,7 +30,7 @@ This can paint a picture of a project’s focus and gain insight into the potent
 We are a [CHAOSS](https://chaoss.community) project, and many of our
 metrics are implementations of the metrics defined by our awesome community. You can find a full list of them [here](https://chaoss.community/metrics/).
 
-For more information on [how to get involved on the CHAOSS website](https://chaoss.community/participate/).
+For more information on [how to get involved, here is the CHAOSS website](https://chaoss.community/participate/).
 
 ## Collecting Data
 
