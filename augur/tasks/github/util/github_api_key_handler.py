@@ -32,7 +32,7 @@ class GithubApiKeyHandler():
         self.logger = session.logger
         self.config = AugurConfig(self.logger, session)
 
-        self.oauth_redis_key = "oauth_keys_list"
+        self.oauth_redis_key = "github_oauth_keys_list"
 
         self.redis_key_list = RedisList(self.oauth_redis_key)
 

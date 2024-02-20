@@ -19,7 +19,8 @@ from urllib.parse import urlparse
 from datetime import datetime
 
 from augur import instance_id
-from augur.tasks.start_tasks import augur_collection_monitor, CollectionState, create_collection_status_records
+from augur.tasks.util.collection_state import CollectionState
+from augur.tasks.start_tasks import augur_collection_monitor, create_collection_status_records
 from augur.tasks.git.facade_tasks import clone_repos
 from augur.tasks.data_analysis.contributor_breadth_worker.contributor_breadth_worker import contributor_breadth_model
 from augur.tasks.init.redis_connection import redis_connection 
@@ -91,9 +92,12 @@ def start(disable_collection, development, port):
             logger.info("Deleting old task schedule")
             os.remove("celerybeat-schedule.db")
 
-    celery_beat_process = None
-    celery_command = "celery -A augur.tasks.init.celery_app.celery_app beat -l debug"
-    celery_beat_process = subprocess.Popen(celery_command.split(" "))    
+    with DatabaseSession(logger) as db_session:
+        config = AugurConfig(logger, db_session)
+        log_level = config.get_value("Logging", "log_level")
+        celery_beat_process = None
+        celery_command = f"celery -A augur.tasks.init.celery_app.celery_app beat -l {log_level.lower()}"
+        celery_beat_process = subprocess.Popen(celery_command.split(" "))    
 
     if not disable_collection:
 

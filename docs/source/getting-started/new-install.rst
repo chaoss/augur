@@ -44,7 +44,7 @@ Executable
    sudo snap install go --classic && #required: Go Needs to be version 1.19.x or higher. Snap is the package manager that gets you to the right version. Classic enables it to actually be installed at the correct version.
    sudo apt install nginx && # required for hosting
    sudo add-apt-repository ppa:mozillateam/firefox-next &&
-   sudo apt install firefox=115.0~b2+build1-0ubuntu0.22.04.1 &&
+   sudo apt install firefox=121.0~b7+build1-0ubuntu0.22.04.1 &&
    sudo apt install firefox-geckodriver
 
    # You will almost certainly need to reboot after this. 
@@ -503,7 +503,7 @@ killing.
 Docker
 ~~~~~~
 
-1. Make sure docker, and docker-compose are both installed
+1. Make sure docker, and docker compose are both installed
 2. Modify the ``environment.txt`` file in the root of the repository to
    include your GitHub and GitLab API keys.
 3. If you are already running postgresql on your server you have two
@@ -515,7 +515,7 @@ Docker
       values for your local, non-docker-container database.
 
 4. ``sudo docker build -t augur-new -f docker/backend/Dockerfile .``
-5. ``sudo docker-compose --env-file ./environment.txt --file docker-compose.yml up``
+5. ``sudo docker compose --env-file ./environment.txt --file docker-compose.yml up``
    to run the database in a Docker Container or
-   ``sudo docker-compose --env-file ./environment.txt --file docker-compose.yml up``
+   ``sudo docker compose --env-file ./environment.txt --file docker-compose.yml up``
    to connect to an already running database.
