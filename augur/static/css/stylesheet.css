@@ -125,10 +125,6 @@ body {
     overflow: auto;
 }
 
-.display-table th {
-    word-wrap: normal;
-}
-
 .paginationActive {
     background-color: var(--color-accent-dark);
     border-color: var(--color-accent-dark);

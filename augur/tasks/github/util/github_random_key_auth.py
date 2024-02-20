@@ -3,7 +3,6 @@
 from augur.tasks.util.random_key_auth import RandomKeyAuth
 from augur.tasks.github.util.github_api_key_handler import GithubApiKeyHandler
 from augur.application.db.session import DatabaseSession
-import random 
 
 
 class GithubRandomKeyAuth(RandomKeyAuth):
@@ -17,7 +16,6 @@ class GithubRandomKeyAuth(RandomKeyAuth):
     
         # gets the github api keys from the database via the GithubApiKeyHandler
         github_api_keys = GithubApiKeyHandler(session).keys
-        #github_api_keys = random.sample(github_api_keys, len(github_api_keys))
 
         if not github_api_keys:
             print("Failed to find github api keys. This is usually because your key has expired")

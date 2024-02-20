@@ -1,8 +1,8 @@
 #SPDX-License-Identifier: MIT
-FROM postgres:14
+FROM postgres:12
 
 LABEL maintainer="outdoors@acm.org"
-LABEL version="0.62.4"
+LABEL version="0.51.1"
 
 ENV POSTGRES_DB "test"
 ENV POSTGRES_USER "augur"

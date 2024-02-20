@@ -29,12 +29,12 @@ setup(
         'psycopg2-binary==2.9.3',
         'sklearn==0.0',
         'nltk==3.6.6',
-        'numpy==1.26.0',
-        'pandas==1.5.3',
+        'numpy==1.22.0',
+        'pandas==1.3.5',
         'emoji==1.2.0',
-        'joblib==1.2.0',
+        'joblib==1.0.1',
         'xgboost==1.4.2',
-        'scipy>=1.10.0'
+        'scipy==1.7.3'
     ],
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',

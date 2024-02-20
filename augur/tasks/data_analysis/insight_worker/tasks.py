@@ -134,16 +134,13 @@ def insight_model(repo_git: str,logger,engine,session) -> None:
             WHERE repo_insights.ri_metric = to_delete.ri_metric
             AND repo_insights.ri_field = to_delete.ri_field
     """)
-
-    with engine.connect as conn:
-        result = conn.execute(delete_points_SQL, repo_id=repo_id, min_date=min_date)
+    result = engine.execute(delete_points_SQL, repo_id=repo_id, min_date=min_date)
 
     # get table values to check for dupes later on
 
 
     table_values_sql = s.sql.text("""SELECT * FROM repo_insights_records WHERE repo_id={}""".format(repo_id))
-    with engine.connect() as conn:
-        insight_table_values = pd.read_sql(table_values_sql,conn, params={})
+    insight_table_values = pd.read_sql(table_values_sql, engine, params={})
 
     to_model_columns = df.columns[0:len(metrics) + 1]
 
@@ -260,7 +257,7 @@ def insight_model(repo_git: str,logger,engine,session) -> None:
                         repo_insight_record_obj.ri_id))
 
                 # Send insight to Jonah for slack bot
-                send_insight(record, abs(next_recent_anomaly.iloc[0][metric] - mean), logger,engine)
+                send_insight(record, abs(next_recent_anomaly.iloc[0][metric] - mean), logger)
 
                 insight_count += 1
             else:
@@ -529,8 +526,8 @@ def send_insight(insight, units_from_mean, logger, engine):
             FROM repo, repo_groups
             WHERE repo_id = {}
         """.format(insight['repo_id']))
-        with engine.connect() as conn:
-            repo = pd.read_sql(repoSQL, conn, params={}).iloc[0]
+
+        repo = pd.read_sql(repoSQL, engine, params={}).iloc[0]
 
         begin_date = datetime.datetime.now() - datetime.timedelta(days=anomaly_days)
         dict_date = insight['ri_date'].strftime("%Y-%m-%d %H:%M:%S")
@@ -568,8 +565,7 @@ def clear_insights(repo_id, new_endpoint, new_field, logger):
                 AND ri_field = '{}'
     """.format(repo_id, new_endpoint, new_field)
     try:
-        with engine.connect() as conn:
-            result = conn.execute(deleteSQL)
+        result = engine.execute(deleteSQL)
     except Exception as e:
         logger.info("Error occured deleting insight slot: {}".format(e))
 
@@ -586,8 +582,7 @@ def clear_insights(repo_id, new_endpoint, new_field, logger):
                 AND ri_field = '{}'
     """.format(repo_id, new_endpoint, new_field)
     try:
-        with engine.connect() as conn:
-            result = conn.execute(deleteSQL)
+        result = engine.execute(deleteSQL)
     except Exception as e:
         logger.info("Error occured deleting insight slot: {}".format(e))
 
@@ -607,8 +602,7 @@ def clear_insight(repo_id, new_score, new_metric, new_field, logger):
         AND ri_field = '{}'
         ORDER BY ri_score DESC
     """.format(repo_id, new_metric, new_field))
-    with engine.connect() as conn:
-        rec = json.loads(pd.read_sql(recordSQL, conn, params={}).to_json(orient='records'))
+    rec = json.loads(pd.read_sql(recordSQL, engine, params={}).to_json(orient='records'))
     logger.info("recordsql: {}, \n{}".format(recordSQL, rec))
     # If new score is higher, continue with deletion
     if len(rec) > 0:
@@ -629,8 +623,7 @@ def clear_insight(repo_id, new_score, new_metric, new_field, logger):
                             AND ri_field = '{}'
                 """.format(record['repo_id'], record['ri_metric'], record['ri_field'])
                 try:
-                    with engine.connect() as conn:
-                        result = conn.execute(deleteSQL)
+                    result = engine.execute(deleteSQL)
                 except Exception as e:
                     logger.info("Error occured deleting insight slot: {}".format(e))
     else:
@@ -644,8 +637,7 @@ def clear_insight(repo_id, new_score, new_metric, new_field, logger):
         WHERE repo_id = {}
         ORDER BY ri_score ASC
     """.format(repo_id))
-    with engine.connect() as conn:
-        ins = json.loads(pd.read_sql(insightSQL, conn, params={}).to_json(orient='records'))
+    ins = json.loads(pd.read_sql(insightSQL, engine, params={}).to_json(orient='records'))
     logger.info("This repos insights: {}".format(ins))
 
     # Determine if inisghts need to be deleted based on if there are more insights than we want stored,
@@ -683,8 +675,7 @@ def clear_insight(repo_id, new_score, new_metric, new_field, logger):
                     AND ri_metric = '{}'
         """.format(insight['repo_id'], insight['ri_metric'])
         try:
-            with engine.connect() as conn:
-                result = conn.execute(deleteSQL)
+            result = engine.execute(deleteSQL)
         except Exception as e:
             logger.info("Error occured deleting insight slot: {}".format(e))
 
@@ -753,9 +744,7 @@ def filter_duplicates(cols, tables, og_data, logger, engine):
         colSQL = s.sql.text("""
             SELECT {} FROM {}
             """.format(col, table_str))
-        
-        with engine.connect() as conn:
-            values = pd.read_sql(colSQL, conn, params={})
+        values = pd.read_sql(colSQL, engine, params={})
 
         for obj in og_data:
             if values.isin([obj[cols[col]]]).any().any():

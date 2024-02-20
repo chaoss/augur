@@ -1,8 +1,4 @@
-"""
-Defines the api routes for the augur views
-"""
 import logging
-import math
 from flask import Flask, render_template, render_template_string, request, abort, jsonify, redirect, url_for, session, flash
 from sqlalchemy.orm.exc import NoResultFound
 from .utils import *
@@ -41,9 +37,9 @@ logo:
 def logo(brand=None):
     if brand is None:
         return redirect(url_for('static', filename='img/augur_logo.png'))
-    if "augur" in brand:
+    elif "augur" in brand:
         return logo(None)
-    if "chaoss" in brand:
+    elif "chaoss" in brand:
         return redirect(url_for('static', filename='img/Chaoss_Logo_white.png'))
     return ""
 
@@ -79,16 +75,10 @@ def repo_table_view():
     
     if current_user.is_authenticated:
         data = current_user.get_repos(page = page, sort = sorting, direction = direction, search=query)[0]
-        repos_count = (current_user.get_repo_count(search = query)[0] or 0)
+        page_count = (current_user.get_repo_count(search = query)[0] or 0) // pagination_offset
     else:
         data = get_all_repos(page = page, sort = sorting, direction = direction, search=query)[0]
-        repos_count = (get_all_repos_count(search = query)[0] or 0)
-
-    page_count = math.ceil(repos_count / pagination_offset) - 1
-    
-    if not data:
-        data = None
-
+        page_count = (get_all_repos_count(search = query)[0] or 0) // pagination_offset
 
     return render_module("repos-table", title="Repos", repos=data, query_key=query, activePage=page, pages=page_count, offset=pagination_offset, PS="repo_table_view", reverse = rev, sorting = sorting)
 

@@ -25,9 +25,7 @@ def commit_collection_status():  # TODO: make this name automatic - wrapper?
 		AND
 			c.facade_status = 'Success';
     """)
-
-    with engine.connect() as conn:
-        results = pd.read_sql(commit_collection_sql,  conn)
+    results = pd.read_sql(commit_collection_sql,  engine)
     data = results.to_json(
         orient="records", date_format='iso', date_unit='ms')
     return Response(response=data,
@@ -88,9 +86,7 @@ def issue_collection_status():  # TODO: make this name automatic - wrapper?
             ) D
         WHERE d.issues_enabled = 'true';
     """)
-
-    with engine.connect() as conn:
-        results = pd.read_sql(issue_collection_sql,  conn)
+    results = pd.read_sql(issue_collection_sql,  engine)
     data = results.to_json(
         orient="records", date_format='iso', date_unit='ms')
     parsed_data = json.loads(data)
@@ -160,9 +156,7 @@ def pull_request_collection_status():  # TODO: make this name automatic - wrappe
         ORDER BY
             ratio_abs;
     """)
-
-    with engine.connect() as conn:
-        results = pd.read_sql(pull_request_collection_sql,  conn)
+    results = pd.read_sql(pull_request_collection_sql,  engine)
     data = results.to_json(
         orient="records", date_format='iso', date_unit='ms')
     parsed_data = json.loads(data)
