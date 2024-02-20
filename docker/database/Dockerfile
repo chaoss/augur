@@ -10,4 +10,4 @@ ENV POSTGRES_PASSWORD "augur"
 
 EXPOSE 5432
 
-COPY ./docker/database/augur-new-schema.sql /docker-entrypoint-initdb.d/
+COPY ./docker/database/augur-new-schema-2.sql /docker-entrypoint-initdb.d/
