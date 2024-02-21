@@ -35,7 +35,7 @@ services:
       - "RABBIT_MQ_DEFAULT_PASSWORD=${AUGUR_RABBITMQ_PASSWORD:-password123}"
 
   augur:
-    image: augur-new:latest
+    image: augur_backend:v0.62.5
     build:
       context: .
       dockerfile: ./docker/backend/Dockerfile
