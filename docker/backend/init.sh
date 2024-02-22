@@ -19,4 +19,4 @@ if [[ -f /repos.csv ]]; then
    augur db add-repos /repos.csv
 fi
 
-exec augur backend start
+exec bash -c 'source /opt/venv/bin/activate' && augur backend start
