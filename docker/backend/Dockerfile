@@ -58,4 +58,4 @@ COPY ./docker/backend/entrypoint.sh /
 COPY ./docker/backend/init.sh /
 RUN chmod +x /entrypoint.sh /init.sh
 ENTRYPOINT ["/entrypoint.sh"]
-CMD /init.sh
+CMD ["bash", "-c", "/init.sh && augur backend start"]
