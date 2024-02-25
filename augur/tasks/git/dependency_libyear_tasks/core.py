@@ -58,7 +58,7 @@ def generate_deps_libyear_data(session, repo_id, path):
                 'requirement' : dep['requirement'],
                 'type' : dep['type'],
                 'package_manager' : dep['package'],
-                'current_verion' : dep['current_version'],
+                'current_version' : dep['current_version'],
                 'latest_version' : dep['latest_version'],
                 'current_release_date' : dep['current_release_date'],
                 'latest_release_date' : dep['latest_release_date'],
@@ -72,8 +72,8 @@ def generate_deps_libyear_data(session, repo_id, path):
             #result = self.db.execute(self.repo_deps_libyear_table.insert().values(repo_deps))
             #self.logger.info(f"Added dep: {result.inserted_primary_key}")
             #insert_statement = s.sql.text("""
-            #    INSERT INTO "repo_deps_libyear" ("repo_id","name","requirement","type","package_manager","current_verion","latest_version","current_release_date","latest_release_date","libyear","tool_source","tool_version","data_source","data_collection_date")
-            #    VALUES (:repo_id, :name,:requirement,:type,:package_manager,:current_verion,:latest_version,:current_release_date,:latest_release_date,:libyear,:tool_source,:tool_version,:data_source, :data_collection_date)
+            #    INSERT INTO "repo_deps_libyear" ("repo_id","name","requirement","type","package_manager","current_version","latest_version","current_release_date","latest_release_date","libyear","tool_source","tool_version","data_source","data_collection_date")
+            #    VALUES (:repo_id, :name,:requirement,:type,:package_manager,:current_version,:latest_version,:current_release_date,:latest_release_date,:libyear,:tool_source,:tool_version,:data_source, :data_collection_date)
             #""").bindparams(**repo_deps)
 #
             #session.execute_sql(insert_statement)

@@ -2306,7 +2306,7 @@
 #     }
 
 
-# # TODO: typo in field current_verion
+# # TODO: typo in field current_version
 # class RepoDepsLibyear(Base):
 #     repo_deps_libyear_id = Column(BigInteger, primary_key=True, nullable=False)
 #     repo_id = Column(
@@ -2316,7 +2316,7 @@
 #     requirement = Column(String())
 #     type = Column(String())
 #     package_manager = Column(String())
-#     current_verion = Column(String())
+#     current_version = Column(String())
 #     latest_version = Column(String())
 #     current_release_date = Column(String())
 #     latest_release_date = Column(String())
