@@ -208,7 +208,7 @@ def get_repos_for_user_group_name(user_group_name):
         SELECT repo.repo_id as repo_id, repo.repo_git as repo_git, repo.repo_group_id as repo_group_id
         FROM user_repos 
         JOIN user_groups ON user_groups.group_id=user_repos.group_id 
-        JOIN repo ON repo.repo_id"="user_repos"."repo_id" WHERE name LIKE ':user_group_name'
+        JOIN repo ON repo.repo_id=user_repos.repo_id WHERE name LIKE :user_group_name
     """)
 
     with engine.connect() as conn:
