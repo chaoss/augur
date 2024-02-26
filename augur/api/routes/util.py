@@ -202,6 +202,26 @@ def get_group_by_name(rg_name):
                     status=200,
                     mimetype="application/json")
 
+@app.route('/{}/user-groups/<user_group_name>/repos'.format(AUGUR_API_VERSION))
+def get_repos_for_user_group_name(user_group_name):
+    get_repos_for_user_group_name_SQL = s.sql.text("""
+        SELECT repo.repo_id as repo_id, repo.repo_git as repo_git, repo.repo_group_id as repo_group_id
+        FROM user_repos 
+        JOIN user_groups ON user_groups.group_id=user_repos.group_id 
+        JOIN repo ON repo.repo_id"="user_repos"."repo_id" WHERE name LIKE ':user_group_name'
+    """)
+
+    with engine.connect() as conn:
+        results = pd.read_sql(
+            get_repos_for_user_group_name_SQL, conn, params={'user_group_name': user_group_name})
+    
+    data = results.to_json(orient="records", date_format='iso',date_unit='ms')
+
+    return Response(response=data,
+                    status=200,
+                    mimetype='application/json')
+
+
 @app.route('/{}/dosocs/repos'.format(AUGUR_API_VERSION))
 def get_repos_for_dosocs():
     get_repos_for_dosocs_SQL = s.sql.text("""
