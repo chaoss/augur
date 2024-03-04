@@ -440,7 +440,7 @@ class User(Base):
 
     def add_group(self, group_name):
 
-        with DatabaseSession(logger) as session:
+        with DatabaseSession(logger, engine=get_engine()) as session:
             result = UserGroup.insert(session, self.user_id, group_name)
 
         return result
@@ -541,7 +541,7 @@ class User(Base):
 
         from augur.util.repo_load_controller import RepoLoadController
 
-        with DatabaseSession(logger) as session:
+        with DatabaseSession(logger, engine=get_engine()) as session:
             result = RepoLoadController(session).paginate_repos("user", page, page_size, sort, direction, user=self, search=search)
 
         return result
@@ -549,7 +549,7 @@ class User(Base):
     def get_repo_count(self, search = None):
         from augur.util.repo_load_controller import RepoLoadController
 
-        with DatabaseSession(logger) as session:
+        with DatabaseSession(logger, engine=get_engine()) as session:
             result = RepoLoadController(session).get_repo_count(source="user", user=self, search = search)
 
         return result
@@ -558,7 +558,7 @@ class User(Base):
     def get_group_repos(self, group_name, page=0, page_size=25, sort="repo_id", direction="ASC", search=None):
         from augur.util.repo_load_controller import RepoLoadController
 
-        with DatabaseSession(logger) as session:
+        with DatabaseSession(logger, engine=get_engine()) as session:
             result = RepoLoadController(session).paginate_repos("group", page, page_size, sort, direction, user=self, group_name=group_name, search=search)
 
         return result
@@ -567,7 +567,7 @@ class User(Base):
     def get_group_repo_count(self, group_name, search = None):
         from augur.util.repo_load_controller import RepoLoadController
 
-        with DatabaseSession(logger) as session:
+        with DatabaseSession(logger, engine=get_engine()) as session:
             controller = RepoLoadController(session)
 
         result = controller.get_repo_count(source="group", group_name=group_name, user=self, search=search)
@@ -585,7 +585,7 @@ class User(Base):
 
     def delete_app(self, app_id):
 
-        with DatabaseSession(logger) as session:
+        with get_session() as session:
             row_count = session.query(ClientApplication).filter(ClientApplication.user_id == self.user_id, ClientApplication.id == app_id).delete()
             session.commit()
 
@@ -603,17 +603,19 @@ class User(Base):
 
         return True
 
-    def toggle_group_favorite(self, session: Session, group_name):
+    def toggle_group_favorite(self, group_name):
 
-        group = session.query(UserGroup).filter(UserGroup.name == group_name, UserGroup.user_id == self.user_id).first()
-        if not group:
-            return False, {"status": "Group does not exist"}
+        with get_session() as session:
 
-        group.favorited = not group.favorited
+            group = session.query(UserGroup).filter(UserGroup.name == group_name, UserGroup.user_id == self.user_id).first()
+            if not group:
+                return False, {"status": "Group does not exist"}
 
-        session.commit()
+            group.favorited = not group.favorited
 
-        return True, {"status": "Success"}
+            session.commit()
+
+            return True, {"status": "Success"}
 
     def get_favorite_groups(self, session: Session):
 

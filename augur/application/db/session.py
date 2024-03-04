@@ -52,7 +52,7 @@ class DatabaseSession(Session):
         self.engine_created = False
 
         if self.engine is None:
-            self.logger.debug("Passing engine will be required soon")
+            self.logger.warn("Passing engine will be required soon")
             from augur.application.db.engine import DatabaseEngine
 
             self.engine_created = True
