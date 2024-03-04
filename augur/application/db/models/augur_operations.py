@@ -2,6 +2,7 @@
 from sqlalchemy import BigInteger, SmallInteger, Column, Index, Integer, String, Table, text, UniqueConstraint, Boolean, ForeignKey, update, CheckConstraint
 from sqlalchemy.dialects.postgresql import TIMESTAMP
 from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
+from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import relationship
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -13,12 +14,14 @@ import traceback
 
 from augur.application.db.models import Repo, RepoGroup
 from augur.application.db.session import DatabaseSession
+from augur.application.db import get_session, get_engine
+from augur.tasks.github.util.github_task_session import GithubTaskSession
 from augur.application.db.models.base import Base
 
 FRONTEND_REPO_GROUP_NAME = "Frontend Repos"
 logger = logging.getLogger(__name__)
 
-def retrieve_owner_repos(session, owner: str) -> List[str]:
+def retrieve_owner_repos(session: GithubTaskSession, owner: str) -> List[str]:
     """Get the repos for an org.
 
     Note:
@@ -319,7 +322,7 @@ class User(Base):
         return result
 
     @staticmethod
-    def get_user(session, username: str):
+    def get_user(session: Session, username: str):
 
         if not isinstance(username, str):
             return None
@@ -331,7 +334,7 @@ class User(Base):
             return None
 
     @staticmethod
-    def get_by_id(session, user_id: int):
+    def get_by_id(session: Session, user_id: int):
 
         if not isinstance(user_id, int):
             return None
@@ -346,8 +349,8 @@ class User(Base):
 
         if username is None or password is None or email is None or first_name is None or last_name is None:
             return False, {"status": "Missing field"}
-
-        with DatabaseSession(logger) as session:
+            
+        with get_session() as session:
 
             user = session.query(User).filter(User.login_name == username).first()
             if user is not None:
@@ -370,7 +373,7 @@ class User(Base):
             except AssertionError as exception_message:
                 return False, {"Error": f"{exception_message}."}
 
-    def delete(self, session):
+    def delete(self, session: Session):
 
         for group in self.groups:
             user_repos_list = group.repos
@@ -401,7 +404,7 @@ class User(Base):
 
         return True, {"status": "Password updated"}
 
-    def update_email(self, session, new_email):
+    def update_email(self, session: Session, new_email):
 
         if not new_email:
             print("Need new email to update the email")
@@ -418,7 +421,7 @@ class User(Base):
 
         return True, {"status": "Email updated"}
 
-    def update_username(self, session, new_username):
+    def update_username(self, session: Session, new_username):
 
         if not new_username:
             print("Need new username to update the username")
@@ -444,10 +447,11 @@ class User(Base):
 
     def remove_group(self, group_name):
 
-        with DatabaseSession(logger) as session:
+        with get_session() as session:
+
             result = UserGroup.delete(session, self.user_id, group_name)
 
-        return result
+            return result
 
     def add_github_repo(self, group_name, repo_url):
 
@@ -473,13 +477,13 @@ class User(Base):
 
         return result
 
-
     def remove_repo(self, group_name, repo_id):
 
-        with DatabaseSession(logger) as session:
+        with get_session() as session:
+
             result = UserRepo.delete(session, repo_id, self.user_id, group_name)
 
-        return result
+            return result
 
     def add_github_org(self, group_name, org_url):
 
@@ -572,11 +576,12 @@ class User(Base):
 
     def invalidate_session(self, token):
 
-        with DatabaseSession(logger) as session:
+        with get_session() as session:
+
             row_count = session.query(UserSessionToken).filter(UserSessionToken.user_id == self.user_id, UserSessionToken.token == token).delete()
             session.commit()
 
-        return row_count == 1
+            return row_count == 1
 
     def delete_app(self, app_id):
 
@@ -586,33 +591,31 @@ class User(Base):
 
         return row_count == 1
 
-    def add_app(self, name, redirect_url):
+    def add_app(self, session: Session, name, redirect_url):
 
-        with DatabaseSession(logger) as session:
-            try:
-                app = ClientApplication(id=secrets.token_hex(16), api_key=secrets.token_hex(), name=name, redirect_url=redirect_url, user_id=self.user_id)
-                session.add(app)
-                session.commit()
-            except Exception as e:
-                print(e)
-                return False
+        try:
+            app = ClientApplication(id=secrets.token_hex(16), api_key=secrets.token_hex(), name=name, redirect_url=redirect_url, user_id=self.user_id)
+            session.add(app)
+            session.commit()
+        except Exception as e:
+            print(e)
+            return False
 
         return True
 
-    def toggle_group_favorite(self, group_name):
+    def toggle_group_favorite(self, session: Session, group_name):
 
-        with DatabaseSession(logger) as session:
-            group = session.query(UserGroup).filter(UserGroup.name == group_name, UserGroup.user_id == self.user_id).first()
-            if not group:
-                return False, {"status": "Group does not exist"}
+        group = session.query(UserGroup).filter(UserGroup.name == group_name, UserGroup.user_id == self.user_id).first()
+        if not group:
+            return False, {"status": "Group does not exist"}
 
-            group.favorited = not group.favorited
+        group.favorited = not group.favorited
 
-            session.commit()
+        session.commit()
 
         return True, {"status": "Success"}
 
-    def get_favorite_groups(self, session):
+    def get_favorite_groups(self, session: Session):
 
         try:
             groups = session.query(UserGroup).filter(UserGroup.user_id == self.user_id, UserGroup.favorited == True).all()
@@ -645,7 +648,7 @@ class UserGroup(Base):
     repos = relationship("UserRepo", back_populates="group")
 
     @staticmethod
-    def insert(session, user_id:int, group_name:str) -> dict:
+    def insert(session: DatabaseSession, user_id:int, group_name:str) -> dict:
         """Add a group to the user.
 
         Args
@@ -685,7 +688,7 @@ class UserGroup(Base):
         return False, {"status": "Error while creating group"}
 
     @staticmethod
-    def delete(session, user_id: int, group_name: str) -> dict:
+    def delete(session: Session, user_id: int, group_name: str) -> dict:
         """ Delete a users group of repos.
 
         Args:
@@ -713,7 +716,7 @@ class UserGroup(Base):
         return True, {"status": "Group deleted"}
 
     @staticmethod
-    def convert_group_name_to_id(session, user_id: int, group_name: str) -> int:
+    def convert_group_name_to_id(session: Session, user_id: int, group_name: str) -> int:
         """Convert a users group name to the database group id.
 
         Args:
@@ -756,7 +759,7 @@ class UserRepo(Base):
     group = relationship("UserGroup", back_populates="repos")
 
     @staticmethod
-    def insert(session, repo_id: int, group_id:int = 1) -> bool:
+    def insert(session: DatabaseSession, repo_id: int, group_id:int = 1) -> bool:
         """Add a repo to a user in the user_repos table.
 
         Args:
@@ -784,7 +787,7 @@ class UserRepo(Base):
         return data[0]["group_id"] == group_id and data[0]["repo_id"] == repo_id
     
     @staticmethod
-    def add_gitlab_repo(session, url: List[str], user_id: int, group_name=None, group_id=None, from_org_list=False, repo_group_id=None) -> dict:
+    def add_gitlab_repo(session: DatabaseSession, url: List[str], user_id: int, group_name=None, group_id=None, from_org_list=False, repo_group_id=None) -> dict:
         """Add repo to the user repo table
 
         Args:
@@ -844,7 +847,7 @@ class UserRepo(Base):
         return True, {"status": "Repo Added", "repo_url": url}
 
     @staticmethod
-    def add_github_repo(session, url: List[str], user_id: int, group_name=None, group_id=None, from_org_list=False, repo_type=None, repo_group_id=None) -> dict:
+    def add_github_repo(session: DatabaseSession, url: List[str], user_id: int, group_name=None, group_id=None, from_org_list=False, repo_type=None, repo_group_id=None) -> dict:
         """Add repo to the user repo table
 
         Args:
@@ -909,7 +912,7 @@ class UserRepo(Base):
         return True, {"status": "Repo Added", "repo_url": url}
 
     @staticmethod
-    def delete(session, repo_id:int, user_id:int, group_name:str) -> dict:
+    def delete(session: Session, repo_id:int, user_id:int, group_name:str) -> dict:
         """ Remove repo from a users group.
 
         Args:
@@ -935,7 +938,7 @@ class UserRepo(Base):
         return True, {"status": "Repo Removed"}
 
     @staticmethod
-    def add_github_org_repos(session, url: List[str], user_id: int, group_name: int):
+    def add_github_org_repos(session: GithubTaskSession, url: List[str], user_id: int, group_name: int):
         """Add list of orgs and their repos to a users repos.
 
         Args:
@@ -1027,7 +1030,7 @@ class UserSessionToken(Base):
     refresh_tokens = relationship("RefreshToken", back_populates="user_session")
 
     @staticmethod
-    def create(session, user_id, application_id, seconds_to_expire=86400):
+    def create(session: Session, user_id, application_id, seconds_to_expire=86400):
         import time
 
         user_session_token = secrets.token_hex()
@@ -1040,7 +1043,7 @@ class UserSessionToken(Base):
 
         return user_session
 
-    def delete_refresh_tokens(self, session):
+    def delete_refresh_tokens(self, session: Session):
 
         refresh_tokens = self.refresh_tokens
         for token in refresh_tokens:
@@ -1072,7 +1075,7 @@ class ClientApplication(Base):
         return isinstance(other, ClientApplication) and str(self.id) == str(other.id)
 
     @staticmethod
-    def get_by_id(session, client_id):
+    def get_by_id(session: Session, client_id):
         return session.query(ClientApplication).filter(ClientApplication.id == client_id).first()
 
 class Subscription(Base):
@@ -1116,7 +1119,7 @@ class RefreshToken(Base):
     user_session = relationship("UserSessionToken", back_populates="refresh_tokens")
 
     @staticmethod
-    def create(session, user_session_token_id):
+    def create(session: Session, user_session_token_id):
 
         refresh_token_id = secrets.token_hex()
 
@@ -1224,7 +1227,7 @@ class CollectionStatus(Base):
     repo = relationship("Repo", back_populates="collection_status")
 
     @staticmethod
-    def insert(session, repo_id):
+    def insert(session: DatabaseSession, repo_id):
         from augur.tasks.github.util.util import get_repo_weight_by_issue
         from augur.tasks.util.worker_util import calculate_date_weight_from_timestamps
 

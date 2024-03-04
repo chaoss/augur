@@ -14,7 +14,6 @@ from augur.application.db.session import DatabaseSession
 from ..server import app
 
 logger = logging.getLogger(__name__)
-development = get_development_flag()
 
 from augur.api.routes import AUGUR_API_VERSION
 
@@ -28,6 +27,9 @@ def generate_upgrade_request():
 
 @app.route(f"/{AUGUR_API_VERSION}/config/get", methods=['GET', 'POST'])
 def get_config():
+
+    development = get_development_flag(current_app.engine)
+
     if not development and not request.is_secure:
         return generate_upgrade_request()
 
@@ -40,6 +42,9 @@ def get_config():
 
 @app.route(f"/{AUGUR_API_VERSION}/config/update", methods=['POST'])
 def update_config():
+
+    development = get_development_flag(current_app.engine)
+
     if not development and not request.is_secure:
         return generate_upgrade_request()
 

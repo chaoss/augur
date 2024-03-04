@@ -6,7 +6,7 @@ import os
 import re
 import beaker
 
-from flask import request, jsonify
+from flask import request, jsonify, current_app
 
 from augur.application.db import get_session
 from functools import wraps
@@ -14,7 +14,6 @@ from sqlalchemy.orm.exc import NoResultFound
 from augur.application.config import get_development_flag
 from augur.application.db.models import ClientApplication
 
-development = get_development_flag()
 
 __ROOT = os.path.abspath(os.path.dirname(__file__))
 def get_data_path(path):
@@ -151,7 +150,7 @@ def generate_upgrade_request():
 def ssl_required(fun):
     @wraps(fun)
     def wrapper(*args, **kwargs):
-        if not development and not request.is_secure:
+        if not get_development_flag(current_app.engine) and not request.is_secure:
             return generate_upgrade_request()
         return fun(*args, **kwargs)
     

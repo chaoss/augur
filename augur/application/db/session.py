@@ -4,21 +4,21 @@ from sqlalchemy.orm import Session
 from sqlalchemy.dialects import postgresql
 from sqlalchemy.exc import OperationalError
 
-from typing import Optional, List, Union
+from typing import Optional, List, Union, Dict, Any
 from psycopg2.errors import DeadlockDetected
 
 # from augur.tasks.util.random_key_auth import RandomKeyAuth
 from augur.tasks.util.worker_util import remove_duplicates_by_uniques
 
 
-def remove_null_characters_from_string(string):
+def remove_null_characters_from_string(string: str) -> str:
 
     if string:
         return string.replace("\x00", "\uFFFD")
 
     return string
 
-def remove_null_characters_from_strings_in_dict(data, fields):
+def remove_null_characters_from_strings_in_dict(data: Dict[str, str], fields: List[str]) -> Dict[str, str]:
 
     for field in fields:
 
@@ -35,7 +35,7 @@ def remove_null_characters_from_strings_in_dict(data, fields):
 
     return data
 
-def remove_null_characters_from_list_of_dicts(data_list, fields):
+def remove_null_characters_from_list_of_dicts(data_list: List[Dict[str, str]], fields: List[str]) -> List[Dict[str, str]]:
 
     for value in data_list:
         value = remove_null_characters_from_strings_in_dict(value, fields)

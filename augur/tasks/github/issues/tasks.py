@@ -15,7 +15,6 @@ from augur.application.db.models import Issue, IssueLabel, IssueAssignee, Contri
 from augur.application.config import get_development_flag
 from augur.application.db.util import execute_session_query
 
-development = get_development_flag()
 
 @celery.task(base=AugurCoreRepoCollectionTask)
 def collect_issues(repo_git : str) -> int:
@@ -168,7 +167,7 @@ def process_issues(issues, task_name, repo_id, logger, augur_db) -> None:
     except IntegrityError as e:
         logger.error(f"Ran into integrity error:{e} \n Offending data: \n{issue_dicts}")
 
-        if development:
+        if get_development_flag(augur_db.engine):
             raise e
     # loop through the issue_return_data so it can find the labels and 
     # assignees that corelate to the issue that was inserted labels 

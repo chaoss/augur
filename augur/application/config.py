@@ -6,13 +6,13 @@ import os
 from augur.application.db.models import Config 
 from augur.application.db.util import execute_session_query
 
-def get_development_flag_from_config():
+def get_development_flag_from_config(engine):
     
     from logging import getLogger
     from augur.application.db.session import DatabaseSession
 
     logger = getLogger(__name__)
-    with DatabaseSession(logger) as session:
+    with DatabaseSession(logger, engine=engine) as session:
 
         config = AugurConfig(logger, session)
 
@@ -23,8 +23,9 @@ def get_development_flag_from_config():
 
     return flag
 
-def get_development_flag():
-    return os.getenv("AUGUR_DEV") or get_development_flag_from_config() or False
+def get_development_flag(engine):
+
+    return os.getenv("AUGUR_DEV") or get_development_flag_from_config(engine) or False
 
 
 
@@ -152,7 +153,7 @@ class AugurConfig():
         self.accepted_types = ["str", "bool", "int", "float", "NoneType"]
         self.default_config = default_config
 
-    def get_section(self, section_name) -> dict:
+    def get_section(self, section_name: str) -> dict:
         """Get a section of data from the config.
 
         Args:
