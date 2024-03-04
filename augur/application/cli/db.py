@@ -11,12 +11,11 @@ import sqlalchemy as s
 import pandas as pd
 import json
 import re
-
-from augur.application.cli import test_connection, test_db_connection, with_database, DatabaseContext
-
-from augur.application.db.session import DatabaseSession
 from sqlalchemy import update
 from datetime import datetime
+
+from augur.application.cli import test_connection, test_db_connection, with_database, DatabaseContext
+from augur.application.db.session import DatabaseSession
 from augur.application.db.models import Repo
 
 logger = logging.getLogger(__name__)

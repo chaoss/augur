@@ -186,7 +186,7 @@ def repo_reset(ctx):
     """
     Refresh repo collection to force data collection
     """
-    augur_app.database.execute(s.sql.text("""
+    ctx.engine.execute(s.sql.text("""
         UPDATE augur_operations.collection_status 
         SET core_status='Pending',core_task_id = NULL, core_data_last_collected = NULL;
 

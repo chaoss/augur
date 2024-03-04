@@ -7,10 +7,10 @@ import re
 import beaker
 
 from flask import request, jsonify, current_app
-
-from augur.application.db import get_session
 from functools import wraps
 from sqlalchemy.orm.exc import NoResultFound
+
+from augur.application.db import get_session
 from augur.application.config import get_development_flag
 from augur.application.db.models import ClientApplication
 
@@ -130,7 +130,7 @@ def api_key_required(fun):
             with get_session() as session:
                 try:
                     kwargs["application"] = session.query(ClientApplication).filter(ClientApplication.api_key == client_token).one()
-                except NoResultFound as e:
+                except NoResultFound:
                     return {"status": "Unauthorized client"}
 
                 return fun(*args, **kwargs)
