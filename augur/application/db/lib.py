@@ -56,7 +56,7 @@ def get_section(section_name) -> dict:
         for setting in section_data:
             setting_dict = setting.__dict__
 
-            setting_dict = convert_type_of_value(setting_dict, logger)
+            setting_dict = convert_type_of_value(setting_dict, self.logger)
 
             setting_name = setting_dict["setting_name"]
             setting_value = setting_dict["value"]
