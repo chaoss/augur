@@ -15,7 +15,7 @@ from augur.application.db.util import execute_session_query
 platform_id = 1
 
 @celery.task(base=AugurCoreRepoCollectionTask)
-def collect_events(repo_git: str):
+def collect_events(repo_git: str, full_collection: bool):
 
     logger = logging.getLogger(collect_events.__name__)
     

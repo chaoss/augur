@@ -17,7 +17,7 @@ platform_id = 1
 
 
 @celery.task(base=AugurCoreRepoCollectionTask)
-def collect_pull_requests(repo_git: str) -> int:
+def collect_pull_requests(repo_git: str, full_collection: bool) -> int:
 
     logger = logging.getLogger(collect_pull_requests.__name__)
 

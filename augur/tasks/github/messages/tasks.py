@@ -16,7 +16,7 @@ platform_id = 1
 
 
 @celery.task(base=AugurCoreRepoCollectionTask)
-def collect_github_messages(repo_git: str) -> None:
+def collect_github_messages(repo_git: str, full_collection: bool) -> None:
 
     logger = logging.getLogger(collect_github_messages.__name__)
 
