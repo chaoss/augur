@@ -1,7 +1,7 @@
 import sqlalchemy as s
 import logging
 from typing import List, Any, Optional
-from augur.application.db.models import Config 
+from augur.application.db.models import Config, CollectionStatus, PullRequest, Issue
 from augur.application.db import get_session
 from augur.application.db.util import execute_session_query
 
@@ -95,3 +95,21 @@ def get_value(section_name: str, setting_name: str) -> Optional[Any]:
         setting_dict = convert_type_of_value(setting_dict, logger)
 
         return setting_dict["value"]
+
+def get_core_data_last_collected(repo_id):
+    
+    with get_session() as session:
+        try:
+           return session.query(CollectionStatus).filter(CollectionStatus.repo_id == repo_id).one().secondary_data_last_collected 
+        except s.orm.exc.NoResultFound:
+            return None
+        
+def get_updated_prs(repo_id, since):
+    
+    with get_session() as session:
+        return session.query(PullRequest).filter(PullRequest.repo_id == repo_id, PullRequest.pr_updated_at >= since).order_by(PullRequest.pr_src_number).all()
+    
+def get_updated_issues(repo_id, since):
+    
+    with get_session() as session:
+        return session.query(Issue).filter(Issue.repo_id == repo_id, Issue.updated_at >= since).order_by(Issue.gh_issue_number).all()
