@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime
 
 from augur.tasks.github.pull_requests.core import extract_data_from_pr_list
 from augur.tasks.init.celery_app import celery_app as celery
@@ -11,6 +12,7 @@ from augur.tasks.github.util.util import add_key_value_pair_to_dicts, get_owner_
 from augur.application.db.models import PullRequest, Message, PullRequestReview, PullRequestLabel, PullRequestReviewer, PullRequestMeta, PullRequestAssignee, PullRequestReviewMessageRef, Contributor, Repo
 from augur.application.db.util import execute_session_query
 from ..messages.tasks import process_github_comment_contributors
+from augur.application.db.lib import get_core_data_last_collected
 
 
 platform_id = 1
@@ -29,7 +31,13 @@ def collect_pull_requests(repo_git: str, full_collection: bool) -> int:
         Repo.repo_git == repo_git).one().repo_id
 
         owner, repo = get_owner_repo(repo_git)
-        pr_data = retrieve_all_pr_data(repo_git, logger, manifest.key_auth)
+
+        if full_collection:
+            core_data_last_collected = None
+        else:
+            core_data_last_collected = get_core_data_last_collected().date()
+
+        pr_data = retrieve_pull_requests(repo_git, logger, manifest.key_auth, core_data_last_collected)
 
         if pr_data:
             process_pull_requests(pr_data, f"{owner}/{repo}: Pr task", repo_id, logger, augur_db)
@@ -42,13 +50,13 @@ def collect_pull_requests(repo_git: str, full_collection: bool) -> int:
     
 # TODO: Rename pull_request_reviewers table to pull_request_requested_reviewers
 # TODO: Fix column names in pull request labels table
-def retrieve_all_pr_data(repo_git: str, logger, key_auth) -> None:
+def retrieve_pull_requests(repo_git: str, logger, key_auth, since) -> None:
 
     owner, repo = get_owner_repo(repo_git)
 
     logger.info(f"Collecting pull requests for {owner}/{repo}")
 
-    url = f"https://api.github.com/repos/{owner}/{repo}/pulls?state=all&direction=desc"
+    url = f"https://api.github.com/repos/{owner}/{repo}/pulls?state=all&direction=desc&sort=updated"
     # returns an iterable of all prs at this url (this essentially means you can treat the prs variable as a list of the prs)
     prs = GithubPaginator(url, key_auth, logger)
 
@@ -68,6 +76,10 @@ def retrieve_all_pr_data(repo_git: str, logger, key_auth) -> None:
         logger.info(f"{owner}/{repo} Prs Page {page} of {num_pages}")
 
         all_data += page_data
+
+        # return if last pr on the page was updated before the since date
+        if since and datetime.fromisoformat(page_data[-1]["updated_at"].replace("Z", "+00:00")) < since:
+            return all_data
 
     return all_data
 
