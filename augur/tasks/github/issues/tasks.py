@@ -14,6 +14,7 @@ from augur.tasks.util.worker_util import remove_duplicate_dicts
 from augur.application.db.models import Issue, IssueLabel, IssueAssignee, Contributor, Repo
 from augur.application.config import get_development_flag
 from augur.application.db.util import execute_session_query
+from augur.application.db.lib import get_core_data_last_collected
 
 development = get_development_flag()
 
@@ -46,8 +47,14 @@ def collect_issues(repo_git: str, full_collection: bool) -> int:
             #     pass 
 
             owner, repo = get_owner_repo(repo_git)
+
+            if full_collection:
+                core_data_last_collected = None
+            else:
+                core_data_last_collected = get_core_data_last_collected().date()
+
         
-            issue_data = retrieve_all_issue_data(repo_git, logger, manifest.key_auth)
+            issue_data = retrieve_issues(repo_git, logger, manifest.key_auth, core_data_last_collected)
             #issue_data = retrieve_all_issue_data(repo_git, logger, the_key)
 
             if issue_data:
@@ -62,15 +69,16 @@ def collect_issues(repo_git: str, full_collection: bool) -> int:
             logger.error(f"Could not collect issues for repo {repo_git}\n Reason: {e} \n Traceback: {''.join(traceback.format_exception(None, e, e.__traceback__))}")
             return -1
 
-
-
-def retrieve_all_issue_data(repo_git, logger, key_auth) -> None:
+def retrieve_issues(repo_git, logger, key_auth, since) -> None:
 
     owner, repo = get_owner_repo(repo_git)
 
     logger.info(f"Collecting issues for {owner}/{repo}")
 
     url = f"https://api.github.com/repos/{owner}/{repo}/issues?state=all"
+
+    if since:
+        url += since.isoformat()
 
     # returns an iterable of all issues at this url (this essentially means you can treat the issues variable as a list of the issues)
     # Reference the code documenation for GithubPaginator for more details
