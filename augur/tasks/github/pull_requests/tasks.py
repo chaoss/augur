@@ -39,11 +39,9 @@ def collect_pull_requests(repo_git: str, full_collection: bool) -> int:
         else:
             core_data_last_collected = get_core_data_last_collected().date()
 
-        pr_data = retrieve_pull_requests(repo_git, logger, manifest.key_auth, core_data_last_collected)
-
         total_count = 0
         all_data = []
-        for page in retrieve_all_pr_data(repo_git, logger, manifest.key_auth):
+        for page in retrieve_pull_requests(repo_git, logger, manifest.key_auth, core_data_last_collected):
             all_data += page
 
             if len(all_data) >= 1000:
@@ -65,7 +63,7 @@ def collect_pull_requests(repo_git: str, full_collection: bool) -> int:
     
 # TODO: Rename pull_request_reviewers table to pull_request_requested_reviewers
 # TODO: Fix column names in pull request labels table
-def retrieve_pull_requests(repo_git: str, logger, key_auth, since) -> None:
+def retrieve_pull_requests(repo_git: str, logger, key_auth, since):
 
     owner, repo = get_owner_repo(repo_git)
 
