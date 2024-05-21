@@ -14,6 +14,8 @@ from augur.application.db.util import execute_session_query
 from ..messages.tasks import process_github_comment_contributors
 from augur.application.db.lib import get_core_data_last_collected
 
+from typing import Generator, List, Dict
+
 
 platform_id = 1
 
@@ -39,13 +41,26 @@ def collect_pull_requests(repo_git: str, full_collection: bool) -> int:
 
         pr_data = retrieve_pull_requests(repo_git, logger, manifest.key_auth, core_data_last_collected)
 
-        if pr_data:
-            process_pull_requests(pr_data, f"{owner}/{repo}: Pr task", repo_id, logger, augur_db)
+        total_count = 0
+        all_data = []
+        for page in retrieve_all_pr_data(repo_git, logger, manifest.key_auth):
+            all_data += page
 
-            return len(pr_data)
+            if len(all_data) >= 1000:
+                process_pull_requests(all_data, f"{owner}/{repo}: Pr task", repo_id, logger, augur_db)
+                total_count += len(all_data)
+                all_data.clear()
+
+        if len(all_data):
+            process_pull_requests(all_data, f"{owner}/{repo}: Pr task", repo_id, logger, augur_db)
+            total_count += len(all_data)
+
+        if total_count > 0:
+            return total_count
         else:
             logger.info(f"{owner}/{repo} has no pull requests")
             return 0
+        
         
     
 # TODO: Rename pull_request_reviewers table to pull_request_requested_reviewers
@@ -60,28 +75,25 @@ def retrieve_pull_requests(repo_git: str, logger, key_auth, since) -> None:
     # returns an iterable of all prs at this url (this essentially means you can treat the prs variable as a list of the prs)
     prs = GithubPaginator(url, key_auth, logger)
 
-    all_data = []
     num_pages = prs.get_num_pages()
     for page_data, page in prs.iter_pages():
 
         if page_data is None:
-            return all_data
+            return
 
         if len(page_data) == 0:
             logger.debug(
                 f"{owner}/{repo} Prs Page {page} contains no data...returning")
             logger.info(f"{owner}/{repo} Prs Page {page} of {num_pages}")
-            return all_data
+            return
 
         logger.info(f"{owner}/{repo} Prs Page {page} of {num_pages}")
 
-        all_data += page_data
+        yield page_data
 
         # return if last pr on the page was updated before the since date
         if since and datetime.fromisoformat(page_data[-1]["updated_at"].replace("Z", "+00:00")) < since:
-            return all_data
-
-    return all_data
+            return 
 
 
 def process_pull_requests(pull_requests, task_name, repo_id, logger, augur_db):
