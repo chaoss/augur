@@ -95,7 +95,9 @@ def fast_retrieve_all_pr_and_issue_messages(repo_git: str, logger, key_auth, tas
 
 
 def process_large_issue_and_pr_message_collection(repo_id, repo_git: str, logger, key_auth, task_name, augur_db) -> None:
-
+    """
+    This only runs if there is a large collection. 
+    """
     owner, repo = get_owner_repo(repo_git)
 
     # define logger for task
