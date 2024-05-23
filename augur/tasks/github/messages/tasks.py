@@ -10,11 +10,14 @@ from augur.tasks.util.worker_util import remove_duplicate_dicts
 from augur.tasks.github.util.util import get_owner_repo
 from augur.application.db.models import PullRequest, Message, Issue, PullRequestMessageRef, IssueMessageRef, Contributor, Repo, CollectionStatus
 from augur.application.db import get_engine, get_session
-from sqlalchemy.sql import text
 
 from augur.tasks.github.util.gh_graphql_entities import GraphQlPageCollection
 from augur.application.db.models import *
 from augur.application.db.util import execute_session_query
+
+from sqlalchemy.sql import text
+
+
 
 platform_id = 1
 
