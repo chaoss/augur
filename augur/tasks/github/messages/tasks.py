@@ -12,6 +12,10 @@ from augur.application.db.models import PullRequest, Message, Issue, PullRequest
 from augur.application.db import get_engine, get_session
 from sqlalchemy.sql import text
 
+from augur.tasks.github.util.gh_graphql_entities import GraphQlPageCollection
+from augur.application.db.models import *
+from augur.application.db.util import execute_session_query
+
 platform_id = 1
 
 @celery.task(base=AugurCoreRepoCollectionTask)
@@ -115,19 +119,116 @@ def process_large_issue_and_pr_message_collection(repo_id, repo_git: str, logger
 
         logger.info(f"{task_name}: Github messages index {index+1} of {len(comment_urls)}")
 
-        messages = GithubPaginator(comment_url, key_auth, logger)
-        for page_data, _ in messages.iter_pages():
+        # Get the count of messages we already have
+        engine = get_engine()
 
-            if page_data is None or len(page_data) == 0:
-                break
+        with engine.connect() as connection:
 
-            all_data += page_data
+            query = text(f"""
+                SELECT 
+                    x.repo_id, 
+                    comment_url,
+                    split_part(split_part(comment_url, '/repos/', 2), '/', 1) AS organization,
+                    split_part(split_part(comment_url, '/repos/', 2), '/', 2) AS repository,
+                    split_part(split_part(comment_url, '/issues/', 2), '/', 1) AS issue_number,
+                    theid, 
+                    thenumber, 
+                    COALESCE(COUNT(y.pull_request_id) + COUNT(z.issue_id), 0) AS comments 
+                FROM 
+                (
+                    SELECT repo_id, pr_comments_url AS comment_url ,pull_request_id AS theid, pr_src_number AS thenumber 
+                    FROM augur_data.pull_requests 
+                    WHERE repo_id={repo_id} and pr_comments_url = {comment_url}
+                    
+                    UNION
+                    
+                    SELECT repo_id, comments_url as comment_url, issue_id AS theid, gh_issue_number AS thenumber 
+                    FROM augur_data.issues 
+                    WHERE repo_id = {repo_id} and comments_url = {comment_url}
+                ) x 
+                LEFT JOIN augur_data.pull_request_message_ref y ON x.theid = y.pull_request_id
+                LEFT JOIN augur_data.issue_message_ref z ON x.theid = z.issue_id 
+                GROUP BY x.repo_id, comment_url, organization, repository, issue_number, theid, thenumber;
+            """)
 
-        logger.info(f"All data size: {len(all_data)}")
+            # Execute the query with the provided parameters
+            result = connection.execute(query, {'repo_id': repo_id, 'comment_url': comment_url}).fetchall()
 
-        if len(all_data) >= 20:
-            process_messages(all_data, task_name, repo_id, logger, augur_db)
-            all_data.clear()
+            # Extract the values into separate variables. There can only ever be a single row. The iteration is a precaution
+            for row in result:
+                repo_id = row['repo_id']
+                comment_url = row['comment_url']
+                organization = row['organization']
+                repository = row['repository']
+                issue_number = row['issue_number']
+                theid = row['theid']
+                thenumber = row['thenumber']
+                comment_count = row['comments']
+
+
+        # Check the messages with the graphql query
+        if comment_count == 0: 
+            continue 
+
+        # If the number we have is >= that in the message query, skip that URL
+        ghquery = """
+            query {
+            repository($owner: String!, name: String!, $numRecords: Int!, $cursor: String) {
+                issueOrPullRequest(number: Int!) {
+                ... on PullRequest {
+                        comments {
+                            totalCount
+                        }
+                        }
+                ... on Issue {
+                        comments {
+                            totalCount
+                            pageInfo {
+                                hasNextPage
+                                endCursor
+                            }
+                        }
+                }
+                }
+            }
+            }
+        """
+        
+        values = ("owner", "name", "number")
+        params = {
+            'owner' : owner,
+            'repo'  : name,
+            'number' : thenumber,
+            'values' : values
+        }
+
+        
+        message_count_check = GraphQlPageCollection(ghquery, key_auth, logger,bind=params)
+
+        platform_message_count += [{
+            'totalCount': comments['totalCount']
+            } for totalCount in message_count_check if totalCount]
+
+
+        if len(platform_message_count) > 0:
+            if totalCount > comment_count:
+                #dostuff
+                messages = GithubPaginator(comment_url, key_auth, logger)
+                for page_data, _ in messages.iter_pages():
+
+                    if page_data is None or len(page_data) == 0:
+                        break
+
+                    all_data += page_data
+
+                logger.info(f"All data size: {len(all_data)}")
+
+                if len(all_data) >= 20:
+                    process_messages(all_data, task_name, repo_id, logger, augur_db)
+                    all_data.clear()
+            # else, keep the url and continue on
+            else: 
+                logger.info("we have all the messages already") 
 
     if len(all_data) > 0:
         process_messages(all_data, task_name, repo_id, logger, augur_db)
