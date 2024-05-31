@@ -10,6 +10,7 @@ from augur.tasks.util.worker_util import remove_duplicate_dicts
 from augur.tasks.github.util.util import get_owner_repo
 from augur.application.db.models import PullRequest, Message, Issue, PullRequestMessageRef, IssueMessageRef, Contributor, Repo, CollectionStatus
 from augur.application.db import get_engine, get_session
+from augur.application.db.lib import get_core_data_last_collected, get_updated_prs, get_updated_issues
 from sqlalchemy.sql import text
 
 platform_id = 1
@@ -29,18 +30,61 @@ def collect_github_messages(repo_git: str, full_collection: bool) -> None:
         owner, repo = get_owner_repo(repo_git)
         task_name = f"{owner}/{repo}: Message Task"
 
-        
-        if is_repo_small(repo_id):
-            message_data = fast_retrieve_all_pr_and_issue_messages(repo_git, logger, manifest.key_auth, task_name)
-            
-            if message_data:
-                process_messages(message_data, task_name, repo_id, logger, augur_db)
-
-            else:
-                logger.info(f"{owner}/{repo} has no messages")
-
+        if full_collection:
+            core_data_last_collected = None
         else:
-            process_large_issue_and_pr_message_collection(repo_id, repo_git, logger, manifest.key_auth, task_name, augur_db)
+            core_data_last_collected = get_core_data_last_collected().date()
+
+        messages_by_repo_collection_contains_needed_data = does_bulk_messages_collection_contain_all_needed_data(since=core_data_last_collected)
+        if messages_by_repo_collection_contains_needed_data:
+
+            messages = fast_retrieve_all_pr_and_issue_messages(repo_git, logger, manifest.key_auth, task_name, since=core_data_last_collected)
+        else:
+
+            messages = process_large_issue_and_pr_message_collection(repo_id, repo_git, logger, manifest.key_auth, task_name, augur_db, since=core_data_last_collected)
+
+        if messages:
+            process_messages(messages, task_name, repo_id, logger, augur_db)
+        
+        # if is_repo_small(repo_id):
+        #     message_data = fast_retrieve_all_pr_and_issue_messages(repo_git, logger, manifest.key_auth, task_name)
+            
+        #     if message_data:
+        #         process_messages(message_data, task_name, repo_id, logger, augur_db)
+
+        #     else:
+        #         logger.info(f"{owner}/{repo} has no messages")
+
+        # else:
+        #     process_large_issue_and_pr_message_collection(repo_id, repo_git, logger, manifest.key_auth, task_name, augur_db)
+
+
+def does_bulk_messages_collection_contain_all_needed_data(logger, key_auth, owner, repo, since):
+
+    # pass since query param to api based on since parameter
+    url = f"https://api.github.com/repos/{owner}/{repo}/issues/comments"
+
+    if since:
+        url += f"?since={since.isoformat()}"
+
+    page_count = GithubPaginator(url, key_auth, logger).get_num_pages()
+
+    return last_page_number <= 299
+
+    # ping url for first page
+    response = ping_url_for_first_page()
+    
+    if "Link" not in response.headers:
+        return True
+    
+    last_page_number = get_last_page_number(response)
+
+    # if full collection and last page number is less than or equal to 299 then we can collect all data with bulk
+    return last_page_number <= 299
+    
+
+    # Are there enought pages to hold all messages or does it boil over 300 pages
+    # if last page (300th) is full then return false otherwise return true
 
 
 def is_repo_small(repo_id):
@@ -51,18 +95,15 @@ def is_repo_small(repo_id):
 
         return result != None
 
-def fast_retrieve_all_pr_and_issue_messages(repo_git: str, logger, key_auth, task_name) -> None:
+def fast_retrieve_all_pr_and_issue_messages(repo_git: str, logger, key_auth, task_name, since) -> None:
 
     owner, repo = get_owner_repo(repo_git)
-
-    # url to get issue and pull request comments
-    url = f"https://api.github.com/repos/{owner}/{repo}/issues/comments"
 
     # define logger for task
     logger.info(f"Collecting github comments for {owner}/{repo}")
 
     # url to get issue and pull request comments
-    url = f"https://api.github.com/repos/{owner}/{repo}/issues/comments"
+    url = f"https://api.github.com/repos/{owner}/{repo}/issues/comments?since={since.isoformat()}"
 
     # define database task session, that also holds authentication keys the GithubPaginator needs
     
@@ -90,7 +131,7 @@ def fast_retrieve_all_pr_and_issue_messages(repo_git: str, logger, key_auth, tas
     return all_data
 
 
-def process_large_issue_and_pr_message_collection(repo_id, repo_git: str, logger, key_auth, task_name, augur_db) -> None:
+def process_large_issue_and_pr_message_collection(repo_id, repo_git: str, logger, key_auth, task_name, augur_db, since) -> None:
 
     owner, repo = get_owner_repo(repo_git)
 
@@ -101,10 +142,11 @@ def process_large_issue_and_pr_message_collection(repo_id, repo_git: str, logger
 
     with engine.connect() as connection:
 
+        # TODO: Enusre since is formatted correctly
         query = text(f"""
-            (select pr_comments_url from pull_requests WHERE repo_id={repo_id} order by pr_created_at desc)
+            (select pr_comments_url from pull_requests WHERE repo_id={repo_id} AND pr_updated_at >= {since.isoformat()} order by pr_created_at desc)
             UNION
-            (select comments_url as comment_url from issues WHERE repo_id={repo_id} order by created_at desc);
+            (select comments_url as comment_url from issues WHERE repo_id={repo_id} AND issue_updated_at >= {since.isoformat()} order by created_at desc);
         """)
 
         result = connection.execute(query).fetchall()
