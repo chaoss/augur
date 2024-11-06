@@ -99,6 +99,7 @@ Current maintainers
 - `Isaac Milarsky <https://github.com/IsaacMilarky>`_
 - `John McGinnis <https://github.com/Ulincys>`_ 
 - `Sean P. Goggins <https://github.com/sgoggins>`_ 
+- `Mbaoma Mary <https://github.com/Mbaoma>`_
 
 Former maintainers
 --------------------
