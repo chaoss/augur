@@ -14,7 +14,7 @@ RUN apt-get update && apt-get -y install \
         python3-dev \
         python3-venv \
         wget \
-        curl \                
+        curl \
         postgresql-client \
         libpq-dev \
         && apt-get clean \
@@ -51,13 +51,16 @@ FROM python:3.11-slim-bullseye AS runtime
 LABEL maintainer="outdoors@acm.org"
 LABEL version="0.76.5"
 
-# Install runtime dependencies
+# Install runtime dependencies, including jq, curl, and wget
 RUN apt-get update && apt-get install -y \
         postgresql-client \
         firefox-esr \
         chromium \
         tar \
         chromium-driver \
+        jq \                    
+        wget \                  
+        curl \                   
         && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -91,5 +94,4 @@ ENV PATH="/opt/venv/bin:/root/.cargo/bin:${PATH}"
 
 EXPOSE 5000
 ENTRYPOINT ["/bin/bash", "/entrypoint.sh"]
-#ENTRYPOINT ["/entrypoint.sh"]
-CMD /init.sh
+CMD ["/init.sh"]
