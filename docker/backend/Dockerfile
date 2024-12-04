@@ -81,8 +81,11 @@ RUN GECKODRIVER_VERSION=$(curl -s https://api.github.com/repos/mozilla/geckodriv
 COPY --from=builder /opt/venv /opt/venv
 COPY --from=builder /augur /augur
 
-# Ensure correct permissions and set entrypoint
+# Execute the install-workers-deps.sh script here
 RUN chmod +x /augur/scripts/docker/install-workers-deps.sh /augur/scripts/docker/install-go.sh
+RUN ./augur/scripts/docker/install-workers-deps.sh 
+RUN ./augur/scripts/docker/install-go.sh
+
 RUN mkdir -p /augur/facade/ repos/ logs/
 
 COPY ./docker/backend/entrypoint.sh /
