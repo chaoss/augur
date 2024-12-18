@@ -1,6 +1,6 @@
 ---
 name: Feature request
-about: Suggest an feature request or enhancement for our project!
+about: Suggest a feature request or enhancement for our project!
 
 ---
 

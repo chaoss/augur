@@ -16,7 +16,7 @@ The standard options are:
 - ``workers``, the number of instances of this worker that Augur should spawn if ``switch`` is set to ``1``. Defaults to ``1``.
 - ``port``, which is the base TCP port the worker will use t0 communicate with Augur’s broker. The default is different for each worker, for the ``insight_worker`` it is ``21311``.
 
-Keeping workers at 1 should be fine for small collection sets, but if you have a lot of repositories to collect data for, you can raise it. We also suggest double checking that the default worker ports are free on your machine.
+Keeping workers at 1 should be fine for small collection sets, but if you have a lot of repositories to collect data for, you can raise it. We also suggest double-checking that the default worker ports are free on your machine.
 
 Configuration for ML models are:
 
