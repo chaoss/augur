@@ -1,5 +1,5 @@
-# SPDX-License-Identifier: MIT
-FROM python:3.11-slim-bullseye
+# Stage 1: Builder
+FROM python:3.11-slim-bullseye AS builder
 
 LABEL maintainer="outdoors@acm.org"
 LABEL version="0.76.6"
@@ -7,110 +7,94 @@ LABEL version="0.76.6"
 ENV DEBIAN_FRONTEND=noninteractive
 ENV PATH="/usr/bin/:/usr/local/bin:/usr/lib:${PATH}"
 
-RUN set -x \
-    && apt-get update \
-    && apt-get -y install \
+# Install build dependencies
+RUN apt-get update && apt-get -y install \
         git \
-        bash \
-        curl \
         gcc \
-        software-properties-common \
-        postgresql-contrib \
-        musl-dev \
         python3-dev \
-        python3-distutils \
         python3-venv \
         wget \
+        curl \
         postgresql-client \
         libpq-dev \
-        build-essential \
-        rustc \
-        cargo \
+        && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Rust
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+
+# Add cargo and rustup to PATH
+ENV PATH="/root/.cargo/bin:${PATH}"
+
+# Install specific version of Rust
+RUN rustup install 1.78.0 && rustup default 1.78.0
+
+# Create virtual environment
+RUN python3 -m venv /opt/venv
+RUN /opt/venv/bin/pip install --upgrade pip wheel
+
+# Copy application code
+WORKDIR /augur
+COPY ./setup.py .
+COPY ./scripts/ scripts/
+COPY ./alembic.ini .
+COPY ./metadata.py .
+COPY ./augur/ augur/
+COPY ./README.md .
+
+# Install application dependencies
+RUN /opt/venv/bin/pip install .
+
+# Stage 2: Runtime
+FROM python:3.11-slim-bullseye AS runtime
+
+LABEL maintainer="outdoors@acm.org"
+LABEL version="0.76.5"
+
+# Install runtime dependencies, including jq, curl, and wget
+RUN apt-get update && apt-get install -y \
+        postgresql-client \
+        firefox-esr \
         chromium \
         tar \
-	jq \
         chromium-driver \
+        jq \                    
+        wget \                  
+        curl \                   
         && apt-get clean \
-    && rm -rf /var/lib/apt/lists/* \
-    && curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-
-# Install Firefox from Debian repositories for ARM64 architecture
-RUN set -x \
-    && apt-get update \
-    && apt-get install -y firefox-esr
+    && rm -rf /var/lib/apt/lists/*
 
 # Install Geckodriver
 RUN GECKODRIVER_VERSION=$(curl -s https://api.github.com/repos/mozilla/geckodriver/releases/latest | jq -r '.tag_name' | sed 's/v//') \
     && ARCH=$(uname -m) \
     && if [ "$ARCH" = "aarch64" ]; then \
          GECKODRIVER_URL="https://github.com/mozilla/geckodriver/releases/download/v${GECKODRIVER_VERSION}/geckodriver-v${GECKODRIVER_VERSION}-linux-aarch64.tar.gz"; \
-         GECKODRIVER_FILE="geckodriver-v${GECKODRIVER_VERSION}-linux-aarch64.tar.gz"; \
        else \
          GECKODRIVER_URL="https://github.com/mozilla/geckodriver/releases/download/v${GECKODRIVER_VERSION}/geckodriver-v${GECKODRIVER_VERSION}-linux64.tar.gz"; \
-         GECKODRIVER_FILE="geckodriver-v${GECKODRIVER_VERSION}-linux64.tar.gz"; \
        fi \
     && wget $GECKODRIVER_URL \
-    && tar -xzf $GECKODRIVER_FILE \
+    && tar -xzf geckodriver-v${GECKODRIVER_VERSION}-linux*.tar.gz \
     && mv geckodriver /usr/local/bin/ \
-    && rm $GECKODRIVER_FILE
+    && rm geckodriver-v${GECKODRIVER_VERSION}-linux*.tar.gz
 
-# Verify installations
-RUN firefox --version
-RUN geckodriver --version
+# Copy virtual environment and application code from builder
+COPY --from=builder /opt/venv /opt/venv
+COPY --from=builder /augur /augur
 
-# Ensure Rust directories are writable
-RUN mkdir -p /root/.rustup/downloads /root/.cargo/registry && \
-    chmod -R 777 /root/.rustup /root/.cargo
+# Execute the install-workers-deps.sh script here
+RUN chmod +x /augur/scripts/docker/install-workers-deps.sh /augur/scripts/docker/install-go.sh
+RUN ./augur/scripts/docker/install-workers-deps.sh 
+RUN ./augur/scripts/docker/install-go.sh
 
-# Add rust and cargo to PATH
-ENV PATH="/root/.cargo/bin:${PATH}"
-
-# Install the specific version of Rust
-RUN set -x \
-    && rustup install 1.78.0
-RUN set -x \
-    && rustup default 1.78.0
-
-EXPOSE 5000
-
-WORKDIR /augur
-COPY ./README.md .
-COPY ./alembic.ini .
-COPY ./augur/ augur/
-COPY ./metadata.py .
-COPY ./setup.py .
-COPY ./scripts/ scripts/
-
-# Add rust and cargo to PATH
-ENV PATH="/usr/bin/:/root/.cargo/bin:/usr/local/bin:${PATH}"
-
-RUN python3 -m venv /opt/venv
-
-RUN set -x \
-    && /opt/venv/bin/pip install --upgrade pip 
-
-RUN set -x \
-    && /opt/venv/bin/pip install wheel
-    
-RUN set -x \
-    && /opt/venv/bin/pip install .
-
-RUN set -x \
-    && /opt/venv/bin/pip install --upgrade pip \
-    && /opt/venv/bin/pip install wheel \
-    && /opt/venv/bin/pip install .
-
-RUN ./scripts/docker/install-go.sh
-ENV PATH="${PATH}:/usr/local/go/bin"
-RUN ./scripts/docker/install-workers-deps.sh
-
-# RUN ./scripts/install/workers.sh 
-
-RUN mkdir -p repos/ logs/ /augur/facade/
+RUN mkdir -p /augur/facade/ repos/ logs/
 
 COPY ./docker/backend/entrypoint.sh /
 COPY ./docker/backend/init.sh /
 RUN chmod +x /entrypoint.sh /init.sh
+
+# Set the environment
+ENV PATH="/opt/venv/bin:/root/.cargo/bin:${PATH}"
+
+EXPOSE 5000
 ENTRYPOINT ["/bin/bash", "/entrypoint.sh"]
-#ENTRYPOINT ["/entrypoint.sh"]
-CMD /init.sh
+CMD ["/init.sh"]
