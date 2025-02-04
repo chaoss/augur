@@ -62,14 +62,19 @@ RUN geckodriver --version
 RUN mkdir -p /root/.rustup/downloads /root/.cargo/registry && \
     chmod -R 777 /root/.rustup /root/.cargo
 
-# Add rust and cargo to PATH
-ENV PATH="/root/.cargo/bin:${PATH}"
-
+# Add rust and cargo to PATH (before actual rust installation to ensure rustup is found!)
+ENV PATH="/usr/bin/:/root/.cargo/bin:/usr/local/bin:${PATH}"
 # Install the specific version of Rust
-RUN set -x \
-    && rustup install 1.78.0
-RUN set -x \
-    && rustup default 1.78.0
+RUN set -x && rustup install 1.78.0 && \
+    rustup default 1.78.0
+
+
+COPY ./scripts/ scripts/
+RUN ./scripts/docker/install-go.sh
+ENV PATH="${PATH}:/usr/local/go/bin"
+RUN ./scripts/docker/install-workers-deps.sh
+
+
 
 EXPOSE 5000
 
@@ -79,30 +84,16 @@ COPY ./alembic.ini .
 COPY ./augur/ augur/
 COPY ./metadata.py .
 COPY ./setup.py .
-COPY ./scripts/ scripts/
 
-# Add rust and cargo to PATH
-ENV PATH="/usr/bin/:/root/.cargo/bin:/usr/local/bin:${PATH}"
+
 
 RUN python3 -m venv /opt/venv
-
-RUN set -x \
-    && /opt/venv/bin/pip install --upgrade pip 
-
-RUN set -x \
-    && /opt/venv/bin/pip install wheel
-    
-RUN set -x \
-    && /opt/venv/bin/pip install .
 
 RUN set -x \
     && /opt/venv/bin/pip install --upgrade pip \
     && /opt/venv/bin/pip install wheel \
     && /opt/venv/bin/pip install .
 
-RUN ./scripts/docker/install-go.sh
-ENV PATH="${PATH}:/usr/local/go/bin"
-RUN ./scripts/docker/install-workers-deps.sh
 
 # RUN ./scripts/install/workers.sh 
 
