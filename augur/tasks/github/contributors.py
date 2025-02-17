@@ -91,7 +91,7 @@ def process_contributors():
     logger = logging.getLogger(process_contributors.__name__)
 
     tool_source = "Contributors task"
-    tool_version = "2.0"
+    tool_version = "3.0"
     data_source = "Github API"
 
     key_auth = GithubRandomKeyAuth(logger)
