@@ -154,7 +154,7 @@ def _insert_with_retries(contributors_batch, max_retries, logger):
             bulk_insert_dicts(contributors_batch, Contributor, ["cntrb_id"])
             return  # Exit function if successful
         except (OperationalError, DeadlockDetected) as e:
-            wait_time = 2 ** retries + random.uniform(0, 1)  # Exponential backoff
+            wait_time = 3 ** retries + random.uniform(0, 1)  # Exponential backoff
             logger.warning(f"Deadlock detected, retrying in {wait_time:.2f} seconds... (Attempt {retries + 1}/{max_retries})")
             time.sleep(wait_time)
             retries += 1
