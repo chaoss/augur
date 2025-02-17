@@ -112,7 +112,7 @@ def process_contributors():
 
     logger.info(f"Length of contributors to enrich: {contributors_len}")
 
-    batch_size = 50  # Adjust batch size as needed
+    batch_size = 20  # Started with 50. Backed off to 20
     max_retries = 5
     enriched_contributors = []
 
