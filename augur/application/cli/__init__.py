@@ -12,7 +12,7 @@ from augur.application.db import get_engine, dispose_database_engine
 from sqlalchemy.exc import OperationalError 
 
 
-def test_connection(function_internet_connection):
+""" def test_connection(function_internet_connection):
     @click.pass_context
     def new_func(ctx, *args, **kwargs):
         usage = re.search(r"Usage:\s(.*)\s\[OPTIONS\]", str(ctx.get_usage())).groups()[0]
@@ -34,7 +34,39 @@ def test_connection(function_internet_connection):
                 Consider setting http_proxy variables for limited access installations.")
             sys.exit(-1)        
         
-    return update_wrapper(new_func, function_internet_connection)
+    return update_wrapper(new_func, function_internet_connection) """
+
+import socket
+import sys
+import functools
+import click
+
+def has_internet(host="8.8.8.8", port=53, timeout=3):
+    """Check internet connectivity by attempting a socket connection to a public DNS."""
+    try:
+        socket.setdefaulttimeout(timeout)
+        socket.create_connection((host, port))
+        return True
+    except (socket.timeout, socket.gaierror, socket.error):
+        return False
+
+def test_connection(func):
+    """Decorator to check internet before executing a function."""
+    @functools.wraps(func)
+    @click.pass_context
+    def wrapper(ctx, *args, **kwargs):
+        if not has_internet():
+            usage = ctx.get_usage().strip()
+            print(f"\n\n{usage}\nCommand setup failed.\n"
+                  "You are not connected to the internet.\n"
+                  "Please connect to proceed.\n"
+                  "Consider setting http_proxy variables if on a restricted network.")
+            sys.exit(-1)
+        return ctx.invoke(func, *args, **kwargs)
+
+    return wrapper
+
+### end modification
 
 def test_db_connection(function_db_connection):
     @click.pass_context
