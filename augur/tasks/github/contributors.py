@@ -23,7 +23,7 @@ from psycopg2.errors import DeadlockDetected
 from augur.tasks.init.celery_app import celery_app as celery
 from augur.tasks.init.celery_app import AugurCoreRepoCollectionTask
 from augur.tasks.github.util.github_paginator import hit_api
-from augur.tasks.github.facade_github.committers import grab_committer_list  # Ensure this is the correct function
+from augur.tasks.github.facade_github.tasks import * 
 from augur.application.db.models import Contributor
 from augur.application.db.util import execute_session_query
 from augur.application.db.lib import bulk_insert_dicts, get_session
