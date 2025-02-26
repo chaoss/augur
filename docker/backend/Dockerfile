@@ -2,7 +2,7 @@
 FROM python:3.11-slim-bullseye
 
 LABEL maintainer="outdoors@acm.org"
-LABEL version="0.76.6"
+LABEL version="0.85.0"
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV PATH="/usr/bin/:/usr/local/bin:/usr/lib:${PATH}"
@@ -80,6 +80,7 @@ COPY ./augur/ augur/
 COPY ./metadata.py .
 COPY ./setup.py .
 COPY ./scripts/ scripts/
+COPY ./keyman/ keyman/
 
 # Add rust and cargo to PATH
 ENV PATH="/usr/bin/:/root/.cargo/bin:/usr/local/bin:${PATH}"
