@@ -2,14 +2,13 @@
 """
 Augur library commands for controlling the backend components
 """
-import resource
 import os
 import time
 import subprocess
 import click
 import logging
 import psutil
-import signal
+import signal as os_signal
 from redis.exceptions import ConnectionError as RedisConnectionError
 import uuid
 import traceback
@@ -27,7 +26,7 @@ from augur.application.db.lib import get_value
 from augur.application.cli import test_connection, test_db_connection, with_database, DatabaseContext
 from augur.application.cli._cli_util import _broadcast_signal_to_processes, raise_open_file_limit, clear_redis_caches, clear_rabbitmq_messages
 
-from keyman.KeyClient import KeyClient, KeyPublisher
+from keyman.KeyClient import KeyPublisher
 from augur.application.config_sync import update_db_from_file, update_file_from_db
 
 logger = AugurLogger("augur", reset_logfiles=False).get_logger()
@@ -39,11 +38,12 @@ def cli(ctx):
 
 @cli.command("start")
 @click.option("--development", is_flag=True, default=False, help="Enable development mode, implies --disable-collection")
+@click.option("--disable-collection", is_flag=True, default=False, help="Disable automatic collection")
 @test_connection
 @test_db_connection
 @with_database
 @click.pass_context
-def start(ctx, development):
+def start(ctx, development, disable_collection):
     """Start Augur's backend server."""
 
     # Update database configuration from file on startup
@@ -87,7 +87,7 @@ def start(ctx, development):
 
     worker_vmem_cap = get_value("Celery", 'worker_process_vmem_cap')
 
-    processes = start_celery_collection_processes(float(worker_vmem_cap))
+    celery_processes = start_celery_collection_processes(float(worker_vmem_cap))
 
     if os.path.exists("celerybeat-schedule.db"):
             logger.info("Deleting old task schedule")
@@ -116,7 +116,7 @@ def start(ctx, development):
 
     
     try:
-        processes[0].wait()
+        celery_processes[0].wait()
     except KeyboardInterrupt:
 
         # Update file configuration from database on shutdown
@@ -125,7 +125,7 @@ def start(ctx, development):
             logger.warning("Failed to update file configuration from database")
 
         logger.info("Shutting down all celery worker processes")
-        for p in processes:
+        for p in celery_processes:
             if p:
                 p.terminate()
 
@@ -194,26 +194,32 @@ def start_celery_collection_processes(vmem_cap_ratio):
 @click.pass_context
 def stop(ctx):
     """
-    Sends SIGTERM to all Augur server & worker processes
+    Sends SIGTERM to all Augur server processes
     """
-    logger = logging.getLogger("augur.cli")
+    cli_logger = logging.getLogger("augur.cli")
 
     # Update file configuration from database on shutdown
-    logger.info("Updating file configuration from database...")
+    cli_logger.info("Updating file configuration from database...")
     if not update_file_from_db():
-        logger.warning("Failed to update file configuration from database")
+        cli_logger.warning("Failed to update file configuration from database")
 
-    augur_stop(signal.SIGTERM, logger, ctx.obj.engine)
+    augur_stop(os_signal.SIGTERM, cli_logger)
 
 @cli.command('kill')
 @with_database
 @click.pass_context
 def kill(ctx):
     """
-    Sends SIGKILL to all Augur server & worker processes
+    Sends SIGKILL to all Augur server processes
     """
-    logger = logging.getLogger("augur.cli")
-    augur_stop(signal.SIGKILL, logger, ctx.obj.engine)
+    cli_logger = logging.getLogger("augur.cli")
+
+    # Update file configuration from database on shutdown
+    cli_logger.info("Updating file configuration from database...")
+    if not update_file_from_db():
+        cli_logger.warning("Failed to update file configuration from database")
+
+    augur_stop(os_signal.SIGKILL, cli_logger)
 
 @cli.command('repo-reset')
 @test_connection
@@ -279,17 +285,26 @@ def is_collection_process(process):
     return False
 
 
-def augur_stop(signal, logger, engine):
+def augur_stop(signal_type, cli_logger):
     """
     Stops augur with the given signal, 
-    and cleans up collection if it was running
+    and cleans up the server
     """
 
-    augur_collection_processes = get_augur_collection_processes()
+    augur_processes = get_augur_server_processes()
+ 
+    _broadcast_signal_to_processes(augur_processes, logger=cli_logger, broadcast_signal=signal_type)
 
-    _broadcast_signal_to_processes(augur_collection_processes, logger=logger, broadcast_signal=signal)
+    cleanup_after_server_halt(cli_logger)
 
-    cleanup_after_collection_halt(logger, engine)
+def cleanup_after_server_halt(cli_logger):
+    """
+    Cleans up after server halt by calling the collection cleanup function
+    """
+    from augur.application.db.engine import DatabaseEngine
+    
+    with DatabaseEngine() as engine:
+        cleanup_after_collection_halt(cli_logger, engine)
 
 def cleanup_after_collection_halt(logger, engine):
     

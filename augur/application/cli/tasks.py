@@ -10,13 +10,11 @@ import subprocess
 import uuid
 import time
 import logging
-import signal
+import signal as os_signal
 import psutil
 # from redis.exceptions import ConnectionError as RedisConnectionError
 
-from augur import instance_id
 from augur.application.logs import AugurLogger
-from augur.tasks.init.redis_connection import redis_connection
 from augur.application.cli import test_connection, test_db_connection, with_database, DatabaseContext
 from augur.application.cli._cli_util import _broadcast_signal_to_processes, raise_open_file_limit, clear_rabbitmq_messages
 from augur.application.config_sync import update_db_from_file, update_file_from_db
@@ -88,14 +86,14 @@ def stop(ctx):
     """
     Sends SIGTERM to all Augur tasks processes
     """
-    logger = logging.getLogger("augur.cli")
+    cli_logger = logging.getLogger("augur.cli")
 
     # Update file configuration from database on shutdown
-    logger.info("Updating file configuration from database...")
+    cli_logger.info("Updating file configuration from database...")
     if not update_file_from_db():
-        logger.warning("Failed to update file configuration from database")
+        cli_logger.warning("Failed to update file configuration from database")
 
-    augur_stop(signal.SIGTERM, logger)
+    augur_stop(os_signal.SIGTERM, cli_logger)
 
 @cli.command('kill')
 @with_database
@@ -104,14 +102,14 @@ def kill(ctx):
     """
     Sends SIGKILL to all Augur tasks processes
     """
-    logger = logging.getLogger("augur.cli")
+    cli_logger = logging.getLogger("augur.cli")
 
     # Update file configuration from database on shutdown
-    logger.info("Updating file configuration from database...")
+    cli_logger.info("Updating file configuration from database...")
     if not update_file_from_db():
-        logger.warning("Failed to update file configuration from database")
+        cli_logger.warning("Failed to update file configuration from database")
 
-    augur_stop(signal.SIGKILL, logger)
+    augur_stop(os_signal.SIGKILL, cli_logger)
 
 @cli.command('processes')
 def processes():
@@ -121,7 +119,7 @@ def processes():
     for process in augur_processes:
         logger.info(f"Found process {process.pid}")
 
-def augur_stop(signal, logger):
+def augur_stop(signal_type, cli_logger):
     """
     Stops augur with the given signal, 
     and cleans up the tasks
@@ -129,17 +127,22 @@ def augur_stop(signal, logger):
 
     augur_processes = get_augur_tasks_processes()
  
-    _broadcast_signal_to_processes(augur_processes, logger=logger, broadcast_signal=signal)
+    _broadcast_signal_to_processes(augur_processes, logger=cli_logger, broadcast_signal=signal_type)
 
-    cleanup_after_tasks_halt(logger)
+    cleanup_after_tasks_halt(cli_logger)
 
 
-def cleanup_after_tasks_halt(logger):
+def cleanup_after_tasks_halt(cli_logger):
     
     try:
-        clear_rabbitmq_messages()
+        # Get the connection string and queues for RabbitMQ
+        from augur.application.db.lib import get_value
+        connection_string = get_value("RabbitMQ", "connection_string")
+        queues = ['celery', 'secondary', 'scheduling', 'facade']
+        clear_rabbitmq_messages(connection_string, queues, cli_logger)
         
     except Exception as e:
+        cli_logger.warning(f"Error clearing RabbitMQ messages: {str(e)}")
         pass
 
 def get_augur_tasks_processes():
@@ -169,10 +172,7 @@ def is_tasks_process(process):
 @test_connection
 @test_db_connection
 def clear():
-
-
     while True:
-
         user_input = str(input("Warning this will remove all the tasks from all instances on this server!\nWould you like to proceed? [y/N]"))
 
         if not user_input:
@@ -185,7 +185,7 @@ def clear():
             subprocess.call(celery_purge_command.split(" "))
             return
 
-        elif user_input in ("n", "N", "no", "NO"):
+        if user_input in ("n", "N", "no", "NO"):
             logger.info("Exiting")
             return
         else:

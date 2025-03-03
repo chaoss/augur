@@ -8,11 +8,10 @@ import subprocess
 import click
 import logging
 import psutil
-import signal
+import signal as os_signal
 import uuid
 import traceback
 
-from augur.application.db.session import DatabaseSession
 from augur.application.logs import AugurLogger
 from augur.application.cli import test_connection, test_db_connection, with_database, DatabaseContext
 from augur.application.cli._cli_util import _broadcast_signal_to_processes, raise_open_file_limit, clear_redis_caches, clear_rabbitmq_messages
@@ -94,9 +93,9 @@ def stop(ctx):
     """
     Sends SIGTERM to all Augur api processes
     """
-    logger = logging.getLogger("augur.cli")
+    cli_logger = logging.getLogger("augur.cli")
 
-    augur_stop(signal.SIGTERM, logger, ctx.obj.engine)
+    augur_stop(os_signal.SIGTERM, cli_logger, ctx.obj.engine)
 
 @cli.command('kill')
 @with_database
@@ -105,8 +104,8 @@ def kill(ctx):
     """
     Sends SIGKILL to all Augur api processes
     """
-    logger = logging.getLogger("augur.cli")
-    augur_stop(signal.SIGKILL, logger, ctx.obj.engine)
+    cli_logger = logging.getLogger("augur.cli")
+    augur_stop(os_signal.SIGKILL, cli_logger, ctx.obj.engine)
 
 @cli.command('processes')
 def processes():
@@ -116,22 +115,22 @@ def processes():
     for process in augur_processes:
         logger.info(f"Found process {process.pid}")
 
-def augur_stop(signal, logger, engine):
+def augur_stop(signal_type, cli_logger, engine):
     """
     Stops augur with the given signal, 
     and cleans up the api
     """
 
     # Update file configuration from database on shutdown
-    logger.info("Updating file configuration from database...")
+    cli_logger.info("Updating file configuration from database...")
     if not update_file_from_db():
-        logger.warning("Failed to update file configuration from database")
+        cli_logger.warning("Failed to update file configuration from database")
 
     augur_processes = get_augur_api_processes()
  
-    _broadcast_signal_to_processes(augur_processes, logger=logger, broadcast_signal=signal)
+    _broadcast_signal_to_processes(augur_processes, logger=cli_logger, broadcast_signal=signal_type)
 
-    cleanup_after_api_halt(logger, engine)
+    cleanup_after_api_halt(cli_logger, engine)
 
 
 def cleanup_after_api_halt(logger, engine):

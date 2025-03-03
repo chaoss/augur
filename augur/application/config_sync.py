@@ -10,7 +10,7 @@ import logging
 from typing import Dict, Any
 
 from augur.application.db.session import DatabaseSession
-from augur.application.db.engine import DatabaseEngine, get_database_string
+from augur.application.db.engine import DatabaseEngine
 from augur.application.config import AugurConfig
 
 logger = logging.getLogger(__name__)
