@@ -17,13 +17,13 @@ Augur is now releasing a dramatically improved new version to the ```main``` bra
 - The `main` branch is a stable version of our new architecture, which features:
   - Dramatic improvement in the speed of large scale data collection (100,000+ repos). All data is obtained for 100k+ repos within 2 weeks.
   - A new job management architecture that uses Celery and Redis to manage queues, and enables users to run a Flower job monitoring dashboard.
-  - Materialized views to increase the snappiness of API’s and Frontends on large scale data.
+  - Materialized views to increase the snappiness of API's and Frontends on large scale data.
   - Changes to primary keys, which now employ a UUID strategy that ensures unique keys across all Augur instances.
   - Support for [8knot](https://github.com/oss-aspen/8kno) dashboards (view a sample [here](https://eightknot.osci.io/)).
   *beautification coming soon!*
   - Data collection completeness assurance enabled by a structured, relational data set that is easily compared with platform API Endpoints.
 - The next release of the new version will include a hosted version of Augur where anyone can create an account and add repos *they care about*.
-If the hosted instance already has a requested organization or repository it will be added to a user’s view. If its a new repository or organization, the user will be notified that collection will take (time required for the scale of repositories added). 
+If the hosted instance already has a requested organization or repository it will be added to a user's view. If its a new repository or organization, the user will be notified that collection will take (time required for the scale of repositories added). 
 
 ## What is Augur?
 Augur is a software suite for collecting and measuring structured data
@@ -31,10 +31,10 @@ about [free](https://www.fsf.org/about/) and [open-source](https://opensource.or
 
 We gather trace data for a group of repositories, normalize it into our data model, and provide a variety of metrics about said data. The structure of our data model enables us to synthesize data across various platforms to provide meaningful context for meaningful questions about the way these communities evolve.
 
-Augur’s main focus is to measure the overall health and sustainability of open source projects, as these types of projects are system critical for nearly every software organization or company. We do this by gathering data about project repositories and normalizing that into our data model to provide useful metrics about your project’s health.
+Augur's main focus is to measure the overall health and sustainability of open source projects, as these types of projects are system critical for nearly every software organization or company. We do this by gathering data about project repositories and normalizing that into our data model to provide useful metrics about your project's health.
 
 For example, one of our metrics is *burstiness*. Burstiness – how are short timeframes of intense activity, followed by a corresponding return to a typical pattern of activity, observed in a project? 
-This can paint a picture of a project’s focus and gain insight into the potential stability of a project and how its typical cycle of updates occurs. 
+This can paint a picture of a project's focus and gain insight into the potential stability of a project and how its typical cycle of updates occurs. 
 
 We are a [CHAOSS](https://chaoss.community) project, and many of our
 metrics are implementations of the metrics defined by our awesome community. You can find a full list of them [here](https://chaoss.community/metrics/).
@@ -152,3 +152,14 @@ GSoC 2019 participants
 GSoC 2018 participants
 -----------------------
 - `Keanu Nichols <https://github.com/kmn5409/>`_
+
+## Configuration Synchronization
+
+Augur implements a configuration synchronization system that ensures consistency between the file-based configuration (`db.config.json`) and the database configuration. This system follows these rules:
+
+1. On startup, the file configuration is read and used to update the database configuration
+2. On shutdown, the database configuration is read and used to update the file configuration
+3. All configuration changes made in tasks or gunicorn processes are made to the database
+4. All configuration reads are from the config file
+
+This ensures configuration changes made during runtime are preserved in the file for the next startup while maintaining the file as the source of truth for reading configuration values.

@@ -28,6 +28,7 @@ from augur.application.cli import test_connection, test_db_connection, with_data
 from augur.application.cli._cli_util import _broadcast_signal_to_processes, raise_open_file_limit, clear_redis_caches, clear_rabbitmq_messages
 
 from keyman.KeyClient import KeyClient, KeyPublisher
+from augur.application.config_sync import update_db_from_file, update_file_from_db
 
 logger = AugurLogger("augur", reset_logfiles=False).get_logger()
 
@@ -44,6 +45,11 @@ def cli(ctx):
 @click.pass_context
 def start(ctx, development):
     """Start Augur's backend server."""
+
+    # Update database configuration from file on startup
+    logger.info("Updating database configuration from file...")
+    if not update_db_from_file():
+        logger.warning("Failed to update database configuration from file")
 
     try:
         if os.environ.get('AUGUR_DOCKER_DEPLOY') != "1":
@@ -112,6 +118,11 @@ def start(ctx, development):
     try:
         processes[0].wait()
     except KeyboardInterrupt:
+
+        # Update file configuration from database on shutdown
+        logger.info("Updating file configuration from database...")
+        if not update_file_from_db():
+            logger.warning("Failed to update file configuration from database")
 
         logger.info("Shutting down all celery worker processes")
         for p in processes:
@@ -186,6 +197,11 @@ def stop(ctx):
     Sends SIGTERM to all Augur server & worker processes
     """
     logger = logging.getLogger("augur.cli")
+
+    # Update file configuration from database on shutdown
+    logger.info("Updating file configuration from database...")
+    if not update_file_from_db():
+        logger.warning("Failed to update file configuration from database")
 
     augur_stop(signal.SIGTERM, logger, ctx.obj.engine)
 

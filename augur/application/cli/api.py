@@ -17,6 +17,7 @@ from augur.application.logs import AugurLogger
 from augur.application.cli import test_connection, test_db_connection, with_database, DatabaseContext
 from augur.application.cli._cli_util import _broadcast_signal_to_processes, raise_open_file_limit, clear_redis_caches, clear_rabbitmq_messages
 from augur.application.db.lib import get_value
+from augur.application.config_sync import update_db_from_file, update_file_from_db
 
 logger = AugurLogger("augur", reset_logfiles=False).get_logger()
 
@@ -44,6 +45,11 @@ def start(ctx, development, port):
         
         logger.error("Failed to raise open file limit!")
         raise e
+    
+    # Update database configuration from file on startup
+    logger.info("Updating database configuration from file...")
+    if not update_db_from_file():
+        logger.warning("Failed to update database configuration from file")
     
     if development:
         os.environ["AUGUR_DEV"] = "1"
@@ -115,6 +121,11 @@ def augur_stop(signal, logger, engine):
     Stops augur with the given signal, 
     and cleans up the api
     """
+
+    # Update file configuration from database on shutdown
+    logger.info("Updating file configuration from database...")
+    if not update_file_from_db():
+        logger.warning("Failed to update file configuration from database")
 
     augur_processes = get_augur_api_processes()
  
