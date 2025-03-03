@@ -190,5 +190,3 @@ def clear():
             return
         else:
             logger.error("Invalid input")
-
-    
