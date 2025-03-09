@@ -63,6 +63,11 @@
                                 <i class="fs-5 bi-server"></i><span class="ms-2 d-none d-md-inline">Applications</span>
                             </a>
                         </li>
+                        <li>
+                            <a id="apikey-link" href="#apikey" class="nav-link px-sm-0 px-2">
+                                <i class="fs-5 bi-key"></i><span class="ms-2 d-none d-md-inline">API Keys</span>
+                            </a>
+                        </li>
                         {# <li class="dropdown">
                             <a href="#" class="nav-link dropdown-toggle px-sm-0 px-1" id="dropdown"
                                 data-bs-toggle="dropdown" aria-expanded="false">
@@ -410,6 +415,96 @@
                             </div>
                         </div>
                     </div>
+                    <div id="apikey-div" style="display:none;">
+                        <h1 id="apikey-section">API Keys</h1>
+                        {# Start API Key card #}
+                        <div class="card dashboard-content">
+                            <div class="card-body">
+                                <div class="row mb-4">
+                                    <div class="col-12">
+                                        <h2>Manage API Keys</h2>
+                                        <p>API keys allow secure access to Augur's API endpoints. Use these keys for authentication when making API requests.</p>
+                                    </div>
+                                </div>
+                                <div class="row mb-4">
+                                    <div class="col-12">
+                                        <div class="card">
+                                            <div class="card-header">
+                                                <h5>Current API Keys</h5>
+                                            </div>
+                                            <div class="card-body">
+                                                <table class="table" id="api-keys-table">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>API Key</th>
+                                                            <th>Created</th>
+                                                            <th>Actions</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody id="api-keys-list">
+                                                        <!-- API keys will be loaded here -->
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-12">
+                                        <button type="button" id="generate-api-key" class="btn btn-primary">
+                                            <i class="bi bi-plus-circle"></i> Generate New API Key
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {# End API Key card #}
+                    </div>
+                    <div id="dei-div" style="display:none;">
+                        <h1 id="dei-section">DEI Badging</h1>
+                        {# Start DEI Badging card #}
+                        <div class="card dashboard-content">
+                            <div class="card-body">
+                                <div class="row mb-4">
+                                    <div class="col-12">
+                                        <h2>DEI Badging</h2>
+                                        <p>DEI Badging allows you to manage and track your DEI initiatives.</p>
+                                    </div>
+                                </div>
+                                <div class="row mb-4">
+                                    <div class="col-12">
+                                        <div class="card">
+                                            <div class="card-header">
+                                                <h5>DEI Initiatives</h5>
+                                            </div>
+                                            <div class="card-body">
+                                                <table class="table" id="dei-initiatives-table">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Initiative</th>
+                                                            <th>Status</th>
+                                                            <th>Actions</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody id="dei-initiatives-list">
+                                                        <!-- DEI initiatives will be loaded here -->
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-12">
+                                        <button type="button" id="add-dei-initiative" class="btn btn-primary">
+                                            <i class="bi bi-plus-circle"></i> Add New Initiative
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {# End DEI Badging card #}
+                    </div>
                 </div>
             </div>
         </div>
@@ -482,13 +577,22 @@
                 elements[i].classList.remove("active");
 
                 div = getDivFromNavLink(elements[i]);
-                div.hidden = true;
+                if (div) {
+                    div.style.display = "none";
+                }
             }
         });
         navLink.classList.add("active");
 
         div = getDivFromNavLink(navLink);
-        div.hidden = false;
+        if (div) {
+            div.style.display = "block";
+            
+            // Load data based on which tab is active
+            if (navLink.id === "apikey-link") {
+                loadApiKeys();
+            }
+        }
     }
 </script>
 <script type="text/javascript">
@@ -593,11 +697,123 @@
                 return;
             }
             
-            setActive(navlink);
+            // Hide all divs
+            $("#profile-div").hide();
+            $("#tracker-div").hide();
+            $("#application-div").hide();
+            $("#apikey-div").hide();
+            $("#dei-div").hide();
+            
+            // Show the selected div
+            $("#" + navID + "-div").show();
+            
+            // Update active link
+            $(".nav-link").removeClass("active");
+            $("#" + navID + "-link").addClass("active");
+            
+            // Load data if needed
+            if (navID === "apikey") {
+                loadApiKeys();
+            }
         }
     }
 
     getActive();
 </script>
+<script>
+    // Existing JavaScript code...
+
+    // Handle API Keys section
+    $("#apikey-link").click(function() {
+        // Hide all divs
+        $("#profile-div").hide();
+        $("#tracker-div").hide();
+        $("#application-div").hide();
+        $("#dei-div").hide();
+        $("#apikey-div").show();
+
+        // Update active link
+        $(".nav-link").removeClass("active");
+        $("#apikey-link").addClass("active");
+
+        // Load API keys
+        loadApiKeys();
+    });
+
+    // Load API keys
+    function loadApiKeys() {
+        $.ajax({
+            url: "{{ url_for('api_keys_list') }}",
+            type: "GET",
+            success: function(response) {
+                $("#api-keys-list").empty();
+                if (response.keys && response.keys.length > 0) {
+                    response.keys.forEach(function(key) {
+                        const row = `
+                            <tr>
+                                <td>${key.api_key}</td>
+                                <td>${key.created_at}</td>
+                                <td>
+                                    <button class="btn btn-sm btn-danger delete-api-key" data-key-id="${key.id}">
+                                        <i class="bi bi-trash"></i> Delete
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                        $("#api-keys-list").append(row);
+                    });
+                } else {
+                    $("#api-keys-list").append('<tr><td colspan="3" class="text-center">No API keys found</td></tr>');
+                }
+            },
+            error: function(xhr, status, error) {
+                showError("Failed to load API keys: " + error);
+            }
+        });
+    }
+
+    // Generate new API key
+    $("#generate-api-key").click(function() {
+        $.ajax({
+            url: "{{ url_for('generate_api_key') }}",
+            type: "POST",
+            success: function(response) {
+                if (response.success) {
+                    showSuccess("API key generated successfully");
+                    loadApiKeys();
+                } else {
+                    showError("Failed to generate API key: " + response.message);
+                }
+            },
+            error: function(xhr, status, error) {
+                showError("Failed to generate API key: " + error);
+            }
+        });
+    });
+
+    // Delete API key
+    $(document).on("click", ".delete-api-key", function() {
+        const keyId = $(this).data("key-id");
+        if (confirm("Are you sure you want to delete this API key? This action cannot be undone.")) {
+            $.ajax({
+                url: "{{ url_for('delete_api_key') }}",
+                type: "POST",
+                data: { key_id: keyId },
+                success: function(response) {
+                    if (response.success) {
+                        showSuccess("API key deleted successfully");
+                        loadApiKeys();
+                    } else {
+                        showError("Failed to delete API key: " + response.message);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    showError("Failed to delete API key: " + error);
+                }
+            });
+        }
+    });
+</script>
+</body>
 
 </html>

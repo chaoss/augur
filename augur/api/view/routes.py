@@ -3,7 +3,8 @@ Defines the api routes for the augur views
 """
 import logging
 import math
-from flask import render_template, request, redirect, url_for, session, flash
+from datetime import datetime
+from flask import render_template, request, redirect, url_for, session, flash, jsonify
 from .utils import *
 from flask_login import login_user, logout_user, current_user, login_required
 
@@ -213,7 +214,93 @@ settings:
 @app.route('/account/settings')
 @login_required
 def user_settings():
-    return render_template("settings.j2")
+    return render_template('settings.j2')
+
+@app.route('/account/api-keys')
+@login_required
+def api_keys_list():
+    """
+    Get a list of API keys for the current user.
+    """
+    try:
+        # Query the client applications for the current user to get their API keys
+        applications = db_session.query(ClientApplication).filter(
+            ClientApplication.user_id == current_user.user_id
+        ).all()
+        
+        keys = []
+        for app in applications:
+            keys.append({
+                'id': app.id,
+                'api_key': app.api_key,
+                'name': app.name,
+                'created_at': app.redirect_url  # Using redirect_url as created_at for demonstration
+            })
+        
+        return jsonify({'success': True, 'keys': keys})
+    except Exception as e:
+        logger.error(f"Error getting API keys: {str(e)}")
+        return jsonify({'success': False, 'message': str(e)})
+
+@app.route('/account/generate-api-key', methods=['POST'])
+@login_required
+def generate_api_key():
+    """
+    Generate a new API key for the current user.
+    """
+    try:
+        # Generate a new API key
+        import secrets
+        new_key = secrets.token_hex(16)
+        
+        # Create a new client application with the generated API key
+        new_app = ClientApplication(
+            id=secrets.token_hex(16),
+            api_key=new_key,
+            name=f"API Key - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+            redirect_url=datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+            user_id=current_user.user_id
+        )
+        
+        # Add the new application to the database
+        db_session.add(new_app)
+        db_session.commit()
+        
+        return jsonify({'success': True, 'api_key': new_key})
+    except Exception as e:
+        db_session.rollback()
+        logger.error(f"Error generating API key: {str(e)}")
+        return jsonify({'success': False, 'message': str(e)})
+
+@app.route('/account/delete-api-key', methods=['POST'])
+@login_required
+def delete_api_key():
+    """
+    Delete an API key for the current user.
+    """
+    try:
+        key_id = request.form.get('key_id')
+        if not key_id:
+            return jsonify({'success': False, 'message': 'No key ID provided'})
+        
+        # Find the application with the given ID and ensure it belongs to the current user
+        app = db_session.query(ClientApplication).filter(
+            ClientApplication.id == key_id,
+            ClientApplication.user_id == current_user.user_id
+        ).first()
+        
+        if not app:
+            return jsonify({'success': False, 'message': 'API key not found or not authorized'})
+        
+        # Delete the application
+        db_session.delete(app)
+        db_session.commit()
+        
+        return jsonify({'success': True})
+    except Exception as e:
+        db_session.rollback()
+        logger.error(f"Error deleting API key: {str(e)}")
+        return jsonify({'success': False, 'message': str(e)})
 
 """ ----------------------------------------------------------------
 report page:
