@@ -7,6 +7,7 @@ from datetime import datetime
 from flask import render_template, request, redirect, url_for, session, flash, jsonify
 from .utils import *
 from flask_login import login_user, logout_user, current_user, login_required
+import secrets
 
 from augur.application.db.models import User, Repo, ClientApplication
 from .server import LoginException
@@ -238,7 +239,7 @@ def api_keys_list():
             })
         
         return jsonify({'success': True, 'keys': keys})
-    except Exception as e:
+    except (ValueError, AttributeError, RuntimeError) as e:
         logger.error(f"Error getting API keys: {str(e)}")
         return jsonify({'success': False, 'message': str(e)})
 
@@ -250,7 +251,6 @@ def generate_api_key():
     """
     try:
         # Generate a new API key
-        import secrets
         new_key = secrets.token_hex(16)
         
         # Create a new client application with the generated API key
@@ -267,7 +267,7 @@ def generate_api_key():
         db_session.commit()
         
         return jsonify({'success': True, 'api_key': new_key})
-    except Exception as e:
+    except (ValueError, AttributeError, RuntimeError) as e:
         db_session.rollback()
         logger.error(f"Error generating API key: {str(e)}")
         return jsonify({'success': False, 'message': str(e)})
@@ -297,7 +297,7 @@ def delete_api_key():
         db_session.commit()
         
         return jsonify({'success': True})
-    except Exception as e:
+    except (ValueError, AttributeError, RuntimeError) as e:
         db_session.rollback()
         logger.error(f"Error deleting API key: {str(e)}")
         return jsonify({'success': False, 'message': str(e)})
