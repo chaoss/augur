@@ -1,8 +1,14 @@
+"""API endpoints for the Augur view module.
+
+This module contains API endpoints that return JSON responses rather than HTML views.
+These endpoints support the front-end functionality of Augur.
+"""
 import logging
 import re
 from datetime import datetime
+from typing import Dict, List, Any, Optional, Union
 
-from flask import request, jsonify, redirect, url_for, flash, current_app
+from flask import request, jsonify, redirect, url_for, flash, current_app, Response
 from flask_login import current_user, login_required
 
 from augur.application.db.models import Repo, RepoGroup, UserGroup, UserRepo, WorkerOauth
@@ -17,16 +23,36 @@ from .utils import requestReports, toCacheFilename
 
 logger = logging.getLogger(__name__)
 
+
 @app.route('/cache/file/')
-@app.route('/cache/file/<path:file>')
-def cache(file=None):
-    if file is None:
+@app.route('/cache/file/<path:file_path>')
+def cache(file_path: Optional[str] = None) -> Response:
+    """Redirect to cached file.
+    
+    Args:
+        file_path: The path of the cached file to retrieve.
+        
+    Returns:
+        A redirect response to the static file or cache directory.
+    """
+    if file_path is None:
         return redirect(url_for('static', filename="cache"))
-    return redirect(url_for('static', filename="cache/" + toCacheFilename(file, False)))
+    return redirect(url_for('static', filename="cache/" + toCacheFilename(file_path, False)))
 
     
-def add_existing_org_to_group(session, user_id, group_name, rg_id):
-
+def add_existing_org_to_group(session: Any, user_id: int, 
+                             group_name: str, rg_id: int) -> bool:
+    """Add repositories from an existing organization to a user group.
+    
+    Args:
+        session: The database session.
+        user_id: The ID of the user who owns the group.
+        group_name: The name of the group to add repositories to.
+        rg_id: The ID of the repository group (organization).
+        
+    Returns:
+        bool: True if successful, False otherwise.
+    """
     logger.info("Adding existing org to group")
 
     group_id = UserGroup.convert_group_name_to_id(session, user_id, group_name)
@@ -38,8 +64,9 @@ def add_existing_org_to_group(session, user_id, group_name, rg_id):
     for repo in repos:
         result = UserRepo.insert(session, repo.repo_id, group_id)
         if not result:
-            logger.info("Failed to add repo to group")
+            return False
     
+    return True
 
 
 @app.route('/account/repos/add', methods = ['POST'])
@@ -217,15 +244,23 @@ Locking request loop:
     report request completes. A json response is guaranteed.
     Assumes that the requested repo exists.
 """
-@app.route('/requests/report/wait/<id>')
-def wait_for_report_request(id):
-    requestReports(id)
-    return jsonify(report_requests[id])
+@app.route('/requests/report/wait/<repo_id>')
+def wait_for_report_request(repo_id: str) -> Response:
+    """Wait for a report request to complete.
+    
+    Args:
+        repo_id: The ID of the repository to get report status for.
+        
+    Returns:
+        A JSON response with the status of the report request.
+    """
+    requestReports(repo_id)
+    return jsonify(report_requests[repo_id])
 
 
 @app.route('/admin/worker-oauth-keys')
 @login_required
-def list_worker_oauth_keys():
+def list_worker_oauth_keys() -> Response:
     """List all worker OAuth keys.
     
     This endpoint returns a JSON list of all worker OAuth keys stored in the database.
@@ -249,13 +284,13 @@ def list_worker_oauth_keys():
             
             return jsonify({'success': True, 'keys': keys})
     except Exception as e:
-        logger.error(f"Error getting worker OAuth keys: {str(e)}")
+        logger.error("Error getting worker OAuth keys: %s", str(e))
         return jsonify({'success': False, 'message': str(e)})
 
 
 @app.route('/admin/worker-oauth-keys', methods=['POST'])
 @login_required
-def add_worker_oauth_key():
+def add_worker_oauth_key() -> Response:
     """Add a new worker OAuth key.
     
     Creates a new worker OAuth key for external APIs like GitHub and GitLab.
@@ -296,13 +331,13 @@ def add_worker_oauth_key():
         
         return jsonify({'success': True, 'key_id': key_id})
     except Exception as e:
-        logger.error(f"Error adding worker OAuth key: {str(e)}")
+        logger.error("Error adding worker OAuth key: %s", str(e))
         return jsonify({'success': False, 'message': str(e)})
 
 
 @app.route('/admin/worker-oauth-keys/<int:key_id>', methods=['DELETE'])
 @login_required
-def delete_worker_oauth_key(key_id):
+def delete_worker_oauth_key(key_id: int) -> Response:
     """Delete a worker OAuth key.
     
     Removes a worker OAuth key used for external APIs.
@@ -328,5 +363,5 @@ def delete_worker_oauth_key(key_id):
         
         return jsonify({'success': True})
     except Exception as e:
-        logger.error(f"Error deleting worker OAuth key: {str(e)}")
+        logger.error("Error deleting worker OAuth key: %s", str(e))
         return jsonify({'success': False, 'message': str(e)})
