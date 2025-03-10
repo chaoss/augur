@@ -697,24 +697,7 @@
                 return;
             }
             
-            // Hide all divs
-            $("#profile-div").hide();
-            $("#tracker-div").hide();
-            $("#application-div").hide();
-            $("#apikey-div").hide();
-            $("#dei-div").hide();
-            
-            // Show the selected div
-            $("#" + navID + "-div").show();
-            
-            // Update active link
-            $(".nav-link").removeClass("active");
-            $("#" + navID + "-link").addClass("active");
-            
-            // Load data if needed
-            if (navID === "apikey") {
-                loadApiKeys();
-            }
+            setActive(navlink);
         }
     }
 

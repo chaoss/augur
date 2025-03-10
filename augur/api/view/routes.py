@@ -60,126 +60,162 @@ def logo(brand=None):
 """ ----------------------------------------------------------------
 default:
 table:
-    This is the default landing route, which displays a table view
-    of the Augur repositories.
+    This route returns the default view of the application, which
+    is currently defined as the repository table view
 """
 @app.route('/')
 @app.route('/repos/views/table')
 def repo_table_view():
+    query = request.args.get('q')
     try:
-        # page is the offset index for pagination
-        page = int(request.args.get('page', 1))
-        filter = request.args.get('filter', False)
-        sort = request.args.get('sort', None)
-        group = request.args.get('group', None)
-        rev = False
-        sort2 = sort
-        if sort is not None and sort.startswith("-"):
-            sort2 = sort[1:]
+        page = int(request.args.get('p') or 0)
+    except:
+        page = 1
+
+    sorting = request.args.get('s')
+    rev = request.args.get('r')
+
+    if rev is not None:
+        if rev == "False":
+            rev = False
+        elif rev == "True":
             rev = True
         
-        repos_count = get_all_repos_count(db_session, group)
-        all_repos = get_all_repos(db_session, group, 25, (page - 1) * 25)
-        
-        return render_module("repos-table", all_repos=all_repos, total=repos_count, filter=filter, page=page)
-    except (ValueError, AttributeError, RuntimeError) as e:
-        logger.error(f"Error in repo_table_view: {e}")
-        return render_template("error.j2", error=str(e))
+    direction = "DESC" if rev else "ASC"
+
+    pagination_offset = get_value("frontend", "pagination_offset")
+    
+    if current_user.is_authenticated:
+        data = current_user.get_repos(page = page, sort = sorting, direction = direction, search=query)[0]
+        repos_count = (current_user.get_repo_count(search = query)[0] or 0)
+    else:
+        data = get_all_repos(page = page, sort = sorting, direction = direction, search=query)[0]
+        repos_count = (get_all_repos_count(search = query)[0] or 0)
+
+    page_count = math.ceil(repos_count / pagination_offset) - 1
+    
+    if not data:
+        data = None
+
+    return render_module("repos-table", title="Repos", repos=data, query_key=query, activePage=page, pages=page_count, offset=pagination_offset, PS="repo_table_view", reverse = rev, sorting = sorting)
 
 """ ----------------------------------------------------------------
-    This is a card view of the Augur repositories.
+card:
+    This route returns the repository card view
 """
 @app.route('/repos/views/card')
 def repo_card_view():
-    try:
-        # page is the offset index for pagination
-        page = int(request.args.get('page', 1))
+    query = request.args.get('q')
+    if current_user.is_authenticated:
+        count = current_user.get_repo_count()[0]
+        data = current_user.get_repos(page_size = count)[0]
+    else:
+        count = get_all_repos_count()[0]
+        data = get_all_repos(page_size=count)[0]
         
-        repos_count = get_all_repos_count(db_session)
-        all_repos = get_all_repos(db_session, None, 25, (page - 1) * 25)
-        
-        return renderRepos('card', {}, {"all_repos": all_repos, "total": repos_count}, page=page, pageSource="repo_card_view")
-    except (ValueError, AttributeError, RuntimeError) as e:
-        logger.error(f"Error in repo_card_view: {e}")
-        return render_template("error.j2", error=str(e))
+    return renderRepos("card", query, data, filter = True)
 
 """ ----------------------------------------------------------------
-    This renders a status/loading page.
+status:
+    This route returns the status view, which displays information
+    about the current status of collection in the backend
 """
 @app.route('/collection/status')
 def status_view():
-    return render_module("status")
+    return render_module("status", title="Status")
 
 """ ----------------------------------------------------------------
-    This route performs user authentication.
+login:
+    Under development
 """
 @app.route('/account/login', methods=['GET', 'POST'])
 def user_login():
-    # redirect users who are already logged in
-    if current_user.is_authenticated:
-        return redirect(request.args.get('next', url_for('user_settings')))
-    
     if request.method == 'POST':
-        username = request.form.get('username', None)
-        password = request.form.get('password', None)
-        
-        if not username or not password:
-            flash("Please provide both a username and password.", "error")
-            return render_template("login.j2")
-        
         try:
-            user = User.get_by_login(db_session, username)
-            if not user:
-                raise LoginException("Invalid username or password")
+            username = request.form.get('username')
+            remember = request.form.get('remember') is not None
+            password = request.form.get('password')
+            register = request.form.get('register')
+
+            if username is None:
+                raise LoginException("A login issue occurred")
+
+            user = User.get_user(db_session, username)
+
+            if not user and register is None:
+                raise LoginException("Invalid login credentials")
             
-            if not user.check_password(password):
-                raise LoginException("Invalid username or password")
-            
-            login_user(user)
-            flash("Login successful", "success")
-            return redirect(request.args.get('next', url_for('user_settings')))
+            # register a user
+            if register is not None:
+                if user:
+                    raise LoginException("User already exists")
+                
+                email = request.form.get('email')
+                first_name = request.form.get('first_name')
+                last_name = request.form.get('last_name')
+                admin = request.form.get('admin') or False
+
+                result = User.create_user(username, password, email, first_name, last_name, admin)
+                if not result[0]:
+                    raise LoginException("An error occurred registering your account")
+                else:
+                    user = User.get_user(db_session, username)
+                    flash(result[1]["status"])
+
+            # Log the user in if the password is valid
+            if user.validate(password) and login_user(user, remember = remember):
+                flash(f"Welcome, {username}!")
+                if "login_next" in session:
+                    return redirect(session.pop("login_next"))
+                return redirect(url_for('root'))
+            else:
+                print("Invalid login")
+                raise LoginException("Invalid login credentials")
         except LoginException as e:
-            flash(str(e), "error")
-            return render_template("login.j2")
-        
-    return render_template("login.j2")
+            flash(str(e))
+    return render_module('login', title="Login")
 
 """ ----------------------------------------------------------------
-    This route ends a user's session.
+logout:
+    Under development
 """
 @app.route('/account/logout')
 @login_required
 def user_logout():
     logout_user()
-    flash("You have been logged out", "success")
-    return redirect(url_for('repo_table_view'))
+    flash("You have been logged out")
+    return redirect(url_for('root'))
 
 """ ----------------------------------------------------------------
-    This route authorizes a 3rd party application to access a
-    user's account via the API.
+default:
+table:
+    This route performs external authorization for a user
 """
 @app.route('/user/authorize')
 @login_required
 def authorize_user():
-    client_id = request.args.get('client_id')
-    redirect_uri = request.args.get('redirect_uri')
-    
-    return render_module("authorization", client_id=client_id, redirect_uri=redirect_uri)
+    client_id = request.args.get("client_id")
+    state = request.args.get("state")
+    response_type = request.args.get("response_type")
 
-""" ----------------------------------------------------------------
-    This route allows a user to delete their account.
-"""
+    if not client_id or response_type != "code":
+        return render_message("Invalid Request", "Something went wrong. You may need to return to the previous application and make the request again.")
+    
+    # TODO get application from client id
+    client = ClientApplication.get_by_id(db_session, client_id)            
+
+    return render_module("authorization", app = client, state = state)
+
 @app.route('/account/delete')
 @login_required
 def user_delete():
-    try:
-        current_user.delete(db_session)
+    if current_user.delete()[0]:
+        flash(f"Account {current_user.login_name} successfully removed")
         logout_user()
-        flash("Your account has been deleted", "success")
-        return redirect(url_for('repo_table_view'))
-    except (ValueError, AttributeError, RuntimeError) as e:
-        flash(f"Error deleting account: {e}", "error")
-        return redirect(url_for('user_settings'))
+    else:
+        flash("An error occurred removing the account")
+
+    return redirect(url_for("root"))
 
 """ ----------------------------------------------------------------
 settings:
@@ -286,99 +322,124 @@ report page:
 def repo_repo_view(id):
     # For some reason, there is no reports definition (shouldn't be possible)
     if reports is None:
-        return render_message("Reports are not available", "Augur is unable to obtain report data at this time.")
+        return render_message("Report Definitions Missing", "You requested a report for a repo on this instance, but a definition for the report layout was not found.")
     
-    # Get the repository
-    repo = db_session.query(Repo).filter(Repo.repo_id == id).first()
-    if repo:
-        return render_module("repo-info", repo=repo, reports=reports["pull_request_reports"], issue_reports=reports["issue_reports"])
+    repo = Repo.get_by_id(db_session, id)
     
-    # Cannot find the repo
-    return render_message("Repository not found", f"Augur was unable to locate repository with ID: {id}")
+    return render_module("repo-info", reports=reports.keys(), images=reports, title="Repo", repo=repo, repo_id=id)
 
 """ ----------------------------------------------------------------
-group page:
-    This route returns a list of repositories associated with the
-    currently logged in user.
+default:
+table:
+    This route returns the groups view for the logged in user.
 """
 @app.route('/user/groups/')
 @login_required
 def user_groups_view():
+    params = {}
+
+    pagination_offset = get_value("frontend", "pagination_offset")
+
+    params = {}
+    
+    if query := request.args.get('q'):
+        params["search"] = query
+
+    if sort := request.args.get('s'):
+        params["sort"] = sort
+
+    rev = request.args.get('r')
+    if rev is not None:
+        if rev == "False":
+            rev = False
+            params["direction"] = "ASC"
+        elif rev == "True":
+            rev = True
+            params["direction"] = "DESC"
+
     try:
-        groups, favorites = current_user.get_groups()
-        
-        for g in favorites:
-            if g in groups:
-                groups.remove(g)
-        
-        # Get the repo counts for all the groups and favorites
-        repoGroups = []
-        for g in groups:
-            repoGroups.append({
-                "name": g.name,
-                "repos": current_user.get_group_repos(db_session, g.name),
-                "favorited": False
-            })
-        
-        favGroups = []
-        for g in favorites:
-            favGroups.append({
-                "name": g.name,
-                "repos": current_user.get_group_repos(db_session, g.name),
-                "favorited": True
-            })
-        
-        # Sort the groups by name
-        repoGroups.sort(key=lambda x: x["name"])
-        favGroups.sort(key=lambda x: x["name"])
-        
-        # Return the page
-        return render_module("groups-table", groups=repoGroups, favorites=favGroups)
-    except (ValueError, AttributeError, RuntimeError) as e:
-        return render_message("Error retrieving groups", str(e))
+        activepage = int(request.args.get('p')) if 'p' in request.args else 0
+    except:
+        activepage = 0
+
+    (groups, status) = current_user.get_groups_info(**params)
+
+    # if not groups and not query:
+    #     return render_message("No Groups Defined", "You do not have any groups defined, you can add groups on you profile page.")
+    # elif not groups:
+    #     return render_message("No Matching Groups", "Your search did not match any group names.")
+
+    page_count = len(groups)
+    page_count //= pagination_offset
+    current_page_start = activepage * pagination_offset
+    current_page_end = current_page_start + pagination_offset
+
+    groups = groups[current_page_start : current_page_end]
+
+    return render_module("groups-table", title="Groups", groups=groups, query_key=query, activePage=activepage, pages=page_count, offset=pagination_offset, PS="user_groups_view", reverse = rev, sorting = sort)
+
 
 """ ----------------------------------------------------------------
-    This route returns a list of repositories associated with the
-    currently logged in user, filtered by group.
+default:
+table:
+    This route returns the groups view for the logged in user.
 """
 @app.route('/user/group/<group>')
 @login_required
 def user_group_view(group = None):
-    try:
-        if group is None:
-            return redirect(url_for('user_groups_view'))
-        
-        # page is the offset index for pagination
-        page = int(request.args.get('page', 1))
-        
-        # Get the repos by group
-        group_repos = current_user.get_group_repos(db_session, group)
-        
-        return render_module("user-group-repos-table", repos=group_repos, group=group, page=page)
-    except (ValueError, AttributeError, RuntimeError) as e:
-        return render_message("Error retrieving repositories", str(e))
+    if not group:
+        return render_message("No Group Specified", "You must specify a group to view this page.")
 
-""" ----------------------------------------------------------------
-    This route immediately throws an Exception (for testing)
-"""
+    params = {}
+
+    try:
+        params["page"] = int(request.args.get('p') or 0)
+    except:
+        params["page"] = 1
+    
+    if query := request.args.get('q'):
+        params["search"] = query
+
+    if sort := request.args.get('s'):
+        params["sort"] = sort
+
+    rev = request.args.get('r')
+    if rev is not None:
+        if rev == "False":
+            rev = False
+            params["direction"] = "ASC"
+        elif rev == "True":
+            rev = True
+            params["direction"] = "DESC"
+
+    pagination_offset = get_value("frontend", "pagination_offset")
+
+    data = current_user.get_group_repos(group, **params)[0]
+    page_count = current_user.get_group_repo_count(group, search = query)[0] or 0
+    page_count //= pagination_offset
+    
+    return render_module("user-group-repos-table", title="Repos", repos=data, query_key=query, activePage=params["page"], pages=page_count, offset=pagination_offset, PS="user_group_view", reverse = rev, sorting = params.get("sort"), group=group)
+
 @app.route('/error')
 def throw_exception():
-    import sys
-    raise Exception(f"Requested test exception (Python{sys.version})")
+    raise Exception("This Exception intentionally raised")
 
 """ ----------------------------------------------------------------
-    This route displays a dashboard for analyzing the current state
-    of the Augur application.
+Admin dashboard:
+    View the admin dashboard.
 """
 @app.route('/dashboard')
 def dashboard_view():
-    # If we don't have admin privileges, deny the request
-    if not current_user.is_authenticated or not current_user.admin:
-        return render_message("Access Denied", "You need to be an administrator in order to access the application dashboard.")
-    
-    requestData = request.json
-    if requestData:
-        # request format: {"command": "...", args:{...}}
-        pass
-    
-    return render_module("admin-dashboard")
+    empty = [
+        { "title": "Placeholder", "settings": [
+            { "id": "empty",
+                "display_name": "Empty Entry",
+                "value": "NULL",
+                "description": "There's nothing here 👻"
+            }
+        ]}
+    ]
+
+    backend_config = requestJson("config/get", False)
+
+    return render_template('admin-dashboard.j2', sections = empty, config = backend_config)
