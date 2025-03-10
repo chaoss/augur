@@ -1,13 +1,19 @@
-from flask import request, jsonify, redirect, url_for, flash, current_app
-import re
-from flask_login import current_user, login_required
-from augur.application.db.models import Repo, RepoGroup, UserGroup, UserRepo, WorkerOauth
-from augur.tasks.frontend import add_github_orgs_and_repos, parse_org_and_repo_name, parse_org_name, add_gitlab_repos
-from .utils import *
-from ..server import app
-from augur.application.db.session import DatabaseSession
 import logging
+import re
 from datetime import datetime
+
+from flask import request, jsonify, redirect, url_for, flash, current_app
+from flask_login import current_user, login_required
+
+from augur.application.db.models import Repo, RepoGroup, UserGroup, UserRepo, WorkerOauth
+from augur.application.db.session import DatabaseSession
+from augur.tasks.frontend import (
+    add_github_orgs_and_repos, parse_org_and_repo_name, 
+    parse_org_name, add_gitlab_repos
+)
+from ..server import app
+from .init import report_requests
+from .utils import requestReports, toCacheFilename
 
 logger = logging.getLogger(__name__)
 
@@ -222,8 +228,14 @@ def wait_for_report_request(id):
 def list_worker_oauth_keys():
     """List all worker OAuth keys.
     
-    Returns a JSON response with all worker OAuth keys for external APIs.
-    These keys are used by collection workers to interface with external platforms.
+    This endpoint returns a JSON list of all worker OAuth keys stored in the database.
+    These keys are used by collection workers to interface with external platforms
+    like GitHub and GitLab.
+    
+    Returns:
+        flask.Response: JSON response containing the list of worker OAuth keys.
+            Format: {'success': bool, 'keys': [{'id': int, 'name': str,
+                    'platform': str, 'access_token': str}]}
     """
     try:
         with DatabaseSession() as session:
@@ -247,7 +259,17 @@ def add_worker_oauth_key():
     """Add a new worker OAuth key.
     
     Creates a new worker OAuth key for external APIs like GitHub and GitLab.
-    These keys are used by collection workers to fetch data from external platforms.
+    These keys enable collection workers to fetch data from external platforms.
+    
+    Form Parameters:
+        platform (str): The platform this key is for (e.g., 'github', 'gitlab').
+        name (str): A descriptive name for the key (optional).
+        access_token (str): The OAuth access token from the platform.
+    
+    Returns:
+        flask.Response: JSON response indicating success or failure.
+            Format: {'success': bool, 'key_id': int} or
+                   {'success': False, 'message': str}
     """
     try:
         platform = request.form.get('platform', 'github')
@@ -285,6 +307,14 @@ def delete_worker_oauth_key(key_id):
     
     Removes a worker OAuth key used for external APIs.
     This endpoint requires the user to be authenticated.
+    
+    Args:
+        key_id (int): The ID of the worker OAuth key to delete.
+    
+    Returns:
+        flask.Response: JSON response indicating success or failure.
+            Format: {'success': bool} or
+                   {'success': False, 'message': str}
     """
     try:
         with DatabaseSession() as session:
