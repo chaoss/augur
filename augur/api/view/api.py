@@ -1,12 +1,13 @@
 from flask import request, jsonify, redirect, url_for, flash, current_app
 import re
 from flask_login import current_user, login_required
-from augur.application.db.models import Repo, RepoGroup, UserGroup, UserRepo
+from augur.application.db.models import Repo, RepoGroup, UserGroup, UserRepo, WorkerOauth
 from augur.tasks.frontend import add_github_orgs_and_repos, parse_org_and_repo_name, parse_org_name, add_gitlab_repos
 from .utils import *
 from ..server import app
 from augur.application.db.session import DatabaseSession
 import logging
+from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
@@ -219,10 +220,12 @@ def wait_for_report_request(id):
 @app.route('/admin/worker-oauth-keys')
 @login_required
 def list_worker_oauth_keys():
+    """List all worker OAuth keys.
+    
+    Returns a JSON response with all worker OAuth keys for external APIs.
+    These keys are used by collection workers to interface with external platforms.
+    """
     try:
-        from augur.application.db.models import WorkerOauth
-        from augur.application.db.session import DatabaseSession
-
         with DatabaseSession() as session:
             oauth_keys = session.query(WorkerOauth).all()
             keys = [{
@@ -241,13 +244,15 @@ def list_worker_oauth_keys():
 @app.route('/admin/worker-oauth-keys', methods=['POST'])
 @login_required
 def add_worker_oauth_key():
+    """Add a new worker OAuth key.
+    
+    Creates a new worker OAuth key for external APIs like GitHub and GitLab.
+    These keys are used by collection workers to fetch data from external platforms.
+    """
     try:
-        from augur.application.db.models import WorkerOauth
-        from augur.application.db.session import DatabaseSession
-        from datetime import datetime
-
         platform = request.form.get('platform', 'github')
-        name = request.form.get('name', f"{platform} API Key - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        name = request.form.get('name', f"{platform} API Key - {timestamp}")
         access_token = request.form.get('access_token')
         
         if not access_token:
@@ -276,10 +281,12 @@ def add_worker_oauth_key():
 @app.route('/admin/worker-oauth-keys/<int:key_id>', methods=['DELETE'])
 @login_required
 def delete_worker_oauth_key(key_id):
+    """Delete a worker OAuth key.
+    
+    Removes a worker OAuth key used for external APIs.
+    This endpoint requires the user to be authenticated.
+    """
     try:
-        from augur.application.db.models import WorkerOauth
-        from augur.application.db.session import DatabaseSession
-
         with DatabaseSession() as session:
             key = session.query(WorkerOauth).filter(WorkerOauth.oauth_id == key_id).first()
             
