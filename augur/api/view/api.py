@@ -6,6 +6,9 @@ from augur.tasks.frontend import add_github_orgs_and_repos, parse_org_and_repo_n
 from .utils import *
 from ..server import app
 from augur.application.db.session import DatabaseSession
+import logging
+
+logger = logging.getLogger(__name__)
 
 @app.route('/cache/file/')
 @app.route('/cache/file/<path:file>')
@@ -211,3 +214,82 @@ Locking request loop:
 def wait_for_report_request(id):
     requestReports(id)
     return jsonify(report_requests[id])
+
+
+@app.route('/admin/worker-oauth-keys')
+@login_required
+def list_worker_oauth_keys():
+    try:
+        from augur.application.db.models import WorkerOauth
+        from augur.application.db.session import DatabaseSession
+
+        with DatabaseSession() as session:
+            oauth_keys = session.query(WorkerOauth).all()
+            keys = [{
+                'id': key.oauth_id,
+                'name': key.name,
+                'platform': key.platform,
+                'access_token': key.access_token
+            } for key in oauth_keys]
+            
+            return jsonify({'success': True, 'keys': keys})
+    except Exception as e:
+        logger.error(f"Error getting worker OAuth keys: {str(e)}")
+        return jsonify({'success': False, 'message': str(e)})
+
+
+@app.route('/admin/worker-oauth-keys', methods=['POST'])
+@login_required
+def add_worker_oauth_key():
+    try:
+        from augur.application.db.models import WorkerOauth
+        from augur.application.db.session import DatabaseSession
+        from datetime import datetime
+
+        platform = request.form.get('platform', 'github')
+        name = request.form.get('name', f"{platform} API Key - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        access_token = request.form.get('access_token')
+        
+        if not access_token:
+            return jsonify({'success': False, 'message': 'Access token is required'})
+        
+        new_key = WorkerOauth(
+            name=name,
+            consumer_key='0',
+            consumer_secret='0',
+            access_token=access_token,
+            access_token_secret='0',
+            platform=platform
+        )
+        
+        with DatabaseSession() as session:
+            session.add(new_key)
+            session.commit()
+            key_id = new_key.oauth_id
+        
+        return jsonify({'success': True, 'key_id': key_id})
+    except Exception as e:
+        logger.error(f"Error adding worker OAuth key: {str(e)}")
+        return jsonify({'success': False, 'message': str(e)})
+
+
+@app.route('/admin/worker-oauth-keys/<int:key_id>', methods=['DELETE'])
+@login_required
+def delete_worker_oauth_key(key_id):
+    try:
+        from augur.application.db.models import WorkerOauth
+        from augur.application.db.session import DatabaseSession
+
+        with DatabaseSession() as session:
+            key = session.query(WorkerOauth).filter(WorkerOauth.oauth_id == key_id).first()
+            
+            if not key:
+                return jsonify({'success': False, 'message': 'OAuth key not found'})
+            
+            session.delete(key)
+            session.commit()
+        
+        return jsonify({'success': True})
+    except Exception as e:
+        logger.error(f"Error deleting worker OAuth key: {str(e)}")
+        return jsonify({'success': False, 'message': str(e)})
