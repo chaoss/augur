@@ -6,7 +6,7 @@ These endpoints support the front-end functionality of Augur.
 import logging
 import re
 from datetime import datetime
-from typing import Dict, List, Any, Optional, Union
+from typing import Dict, List, Any, Optional, Union, Tuple
 
 from flask import request, jsonify, redirect, url_for, flash, current_app, Response
 from flask_login import current_user, login_required
@@ -60,7 +60,7 @@ def add_existing_org_to_group(session: Any, user_id: int,
         return False
     
     repos = session.query(Repo).filter(Repo.repo_group_id == rg_id).all()
-    logger.info("Length of repos in org: " + str(len(repos)))
+    logger.info("Length of repos in org: %s", str(len(repos)))
     for repo in repos:
         result = UserRepo.insert(session, repo.repo_id, group_id)
         if not result:
@@ -69,10 +69,16 @@ def add_existing_org_to_group(session: Any, user_id: int,
     return True
 
 
-@app.route('/account/repos/add', methods = ['POST'])
+@app.route('/account/repos/add', methods=['POST'])
 @login_required
-def av_add_user_repo():
-
+def av_add_user_repo() -> Response:
+    """Add a repository to the user's repositories.
+    
+    This endpoint adds a repository to a user's group based on form data.
+    
+    Returns:
+        A JSON response indicating success or failure.
+    """
     print("Adding user repos")
 
     urls = request.form.get('urls')
