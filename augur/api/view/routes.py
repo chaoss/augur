@@ -11,22 +11,13 @@ from .utils import getSetting, render_module, render_message, renderRepos
 from .init import reports
 from flask_login import login_user, logout_user, current_user, login_required
 
-from augur.application.db.models import User, Repo, ClientApplication
+from augur.application.db.models import User, Repo, ClientApplication, WorkerOauth
 from .server import LoginException
 from augur.application.util import *
 from augur.application.db.lib import get_value
 from ..server import app, db_session
 
 logger = logging.getLogger(__name__)
-
-# Placeholder functions if not imported
-def get_all_repos(session, group=None, batch=None, offset=None):
-    """Placeholder for get_all_repos function."""
-    return []
-
-def get_all_repos_count(session, group=None):
-    """Placeholder for get_all_repos_count function."""
-    return 0
 
 # ROUTES -----------------------------------------------------------------------
 
@@ -61,7 +52,9 @@ def logo(brand=None):
 default:
 table:
     This route returns the default view of the application, which
-    is currently defined as the repository table view
+    is currently defined as the repository table view.
+    It implements user-based filtering to show appropriate repositories
+    based on authentication status.
 """
 @app.route('/')
 @app.route('/repos/views/table')
@@ -70,7 +63,7 @@ def repo_table_view():
     try:
         page = int(request.args.get('p') or 0)
     except:
-        page = 1
+        page = 0
 
     sorting = request.args.get('s')
     rev = request.args.get('r')
@@ -86,34 +79,35 @@ def repo_table_view():
     pagination_offset = get_value("frontend", "pagination_offset")
     
     if current_user.is_authenticated:
-        data = current_user.get_repos(page = page, sort = sorting, direction = direction, search=query)[0]
-        repos_count = (current_user.get_repo_count(search = query)[0] or 0)
+        data = current_user.get_repos(page=page, page_size=pagination_offset, sort=sorting, direction=direction, search=query)[0]
+        repos_count = current_user.get_repo_count(search=query)[0] or 0
     else:
-        data = get_all_repos(page = page, sort = sorting, direction = direction, search=query)[0]
-        repos_count = (get_all_repos_count(search = query)[0] or 0)
+        data = get_all_repos(page=page, page_size=pagination_offset, sort=sorting, direction=direction, search=query)[0]
+        repos_count = get_all_repos_count(search=query)[0] or 0
 
     page_count = math.ceil(repos_count / pagination_offset) - 1
+    if page_count < 0:
+        page_count = 0
     
-    if not data:
-        data = None
-
-    return render_module("repos-table", title="Repos", repos=data, query_key=query, activePage=page, pages=page_count, offset=pagination_offset, PS="repo_table_view", reverse = rev, sorting = sorting)
+    return render_module("repos-table", title="Repos", repos=data, query_key=query, activePage=page, pages=page_count, offset=pagination_offset, PS="repo_table_view", reverse=rev, sorting=sorting)
 
 """ ----------------------------------------------------------------
 card:
-    This route returns the repository card view
+    This route returns the repository card view.
+    It implements user-based filtering to show appropriate repositories
+    based on authentication status.
 """
 @app.route('/repos/views/card')
 def repo_card_view():
     query = request.args.get('q')
     if current_user.is_authenticated:
-        count = current_user.get_repo_count()[0]
-        data = current_user.get_repos(page_size = count)[0]
+        count = current_user.get_repo_count()[0] or 0
+        data = current_user.get_repos(page_size=count)[0] if count > 0 else []
     else:
-        count = get_all_repos_count()[0]
-        data = get_all_repos(page_size=count)[0]
+        count = get_all_repos_count()[0] or 0
+        data = get_all_repos(page_size=count)[0] if count > 0 else []
         
-    return renderRepos("card", query, data, filter = True)
+    return renderRepos("card", query, data, filter=True)
 
 """ ----------------------------------------------------------------
 status:
@@ -227,14 +221,15 @@ def user_settings():
     return render_template('settings.j2')
 
 
+""" ----------------------------------------------------------------
+API Keys List:
+    Returns a list of API keys for the authenticated user.
+    This endpoint is only accessible to authenticated users.
+"""
 @app.route('/account/api-keys')
 @login_required
 def api_keys_list():
-    """
-    Get a list of API keys for the current user.
-    """
     try:
-        # Query the client applications for the current user to get their API keys
         applications = db_session.query(ClientApplication).filter(
             ClientApplication.user_id == current_user.user_id
         ).all()
@@ -245,26 +240,26 @@ def api_keys_list():
                 'id': app.id,
                 'api_key': app.api_key,
                 'name': app.name,
-                'created_at': app.redirect_url  # Using redirect_url as created_at for demonstration
+                'created_at': app.redirect_url
             })
         
         return jsonify({'success': True, 'keys': keys})
-    except (ValueError, AttributeError, RuntimeError) as e:
+    except Exception as e:
         logger.error(f"Error getting API keys: {str(e)}")
         return jsonify({'success': False, 'message': str(e)})
 
 
+""" ----------------------------------------------------------------
+Generate API Key:
+    Creates a new API key for the authenticated user.
+    This endpoint is only accessible to authenticated users.
+"""
 @app.route('/account/generate-api-key', methods=['POST'])
 @login_required
 def generate_api_key():
-    """
-    Generate a new API key for the current user.
-    """
     try:
-        # Generate a new API key
         new_key = secrets.token_hex(16)
         
-        # Create a new client application with the generated API key
         new_app = ClientApplication(
             id=secrets.token_hex(16),
             api_key=new_key,
@@ -273,29 +268,29 @@ def generate_api_key():
             user_id=current_user.user_id
         )
         
-        # Add the new application to the database
         db_session.add(new_app)
         db_session.commit()
         
         return jsonify({'success': True, 'api_key': new_key})
-    except (ValueError, AttributeError, RuntimeError) as e:
+    except Exception as e:
         db_session.rollback()
         logger.error(f"Error generating API key: {str(e)}")
         return jsonify({'success': False, 'message': str(e)})
 
 
+""" ----------------------------------------------------------------
+Delete API Key:
+    Deletes an API key for the authenticated user.
+    This endpoint is only accessible to authenticated users.
+"""
 @app.route('/account/delete-api-key', methods=['POST'])
 @login_required
 def delete_api_key():
-    """
-    Delete an API key for the current user.
-    """
     try:
         key_id = request.form.get('key_id')
         if not key_id:
             return jsonify({'success': False, 'message': 'No key ID provided'})
         
-        # Find the application with the given ID and ensure it belongs to the current user
         app = db_session.query(ClientApplication).filter(
             ClientApplication.id == key_id,
             ClientApplication.user_id == current_user.user_id
@@ -304,12 +299,11 @@ def delete_api_key():
         if not app:
             return jsonify({'success': False, 'message': 'API key not found or not authorized'})
         
-        # Delete the application
         db_session.delete(app)
         db_session.commit()
         
         return jsonify({'success': True})
-    except (ValueError, AttributeError, RuntimeError) as e:
+    except Exception as e:
         db_session.rollback()
         logger.error(f"Error deleting API key: {str(e)}")
         return jsonify({'success': False, 'message': str(e)})
@@ -332,6 +326,7 @@ def repo_repo_view(id):
 default:
 table:
     This route returns the groups view for the logged in user.
+    It properly handles the tuple returned by get_groups_info.
 """
 @app.route('/user/groups/')
 @login_required
@@ -339,8 +334,6 @@ def user_groups_view():
     params = {}
 
     pagination_offset = get_value("frontend", "pagination_offset")
-
-    params = {}
     
     if query := request.args.get('q'):
         params["search"] = query
@@ -352,31 +345,27 @@ def user_groups_view():
     if rev is not None:
         if rev == "False":
             rev = False
-            params["direction"] = "ASC"
+            params["reversed"] = False
         elif rev == "True":
             rev = True
-            params["direction"] = "DESC"
+            params["reversed"] = True
 
     try:
         activepage = int(request.args.get('p')) if 'p' in request.args else 0
     except:
         activepage = 0
 
-    (groups, status) = current_user.get_groups_info(**params)
+    groups, status = current_user.get_groups_info(**params)
 
-    # if not groups and not query:
-    #     return render_message("No Groups Defined", "You do not have any groups defined, you can add groups on you profile page.")
-    # elif not groups:
-    #     return render_message("No Matching Groups", "Your search did not match any group names.")
-
-    page_count = len(groups)
-    page_count //= pagination_offset
+    total_groups = len(groups)
+    page_count = total_groups // pagination_offset
+    
     current_page_start = activepage * pagination_offset
     current_page_end = current_page_start + pagination_offset
 
-    groups = groups[current_page_start : current_page_end]
+    paged_groups = groups[current_page_start:current_page_end] if total_groups > 0 else []
 
-    return render_module("groups-table", title="Groups", groups=groups, query_key=query, activePage=activepage, pages=page_count, offset=pagination_offset, PS="user_groups_view", reverse = rev, sorting = sort)
+    return render_module("groups-table", title="Groups", groups=paged_groups, query_key=query, activePage=activepage, pages=page_count, offset=pagination_offset, PS="user_groups_view", reverse=rev, sorting=sort)
 
 
 """ ----------------------------------------------------------------
@@ -426,7 +415,8 @@ def throw_exception():
 
 """ ----------------------------------------------------------------
 Admin dashboard:
-    View the admin dashboard.
+    View the admin dashboard with configuration and settings.
+    This provides access to system configuration for administrators.
 """
 @app.route('/dashboard')
 def dashboard_view():
@@ -440,6 +430,74 @@ def dashboard_view():
         ]}
     ]
 
-    backend_config = requestJson("config/get", False)
+    try:
+        backend_config = requestJson("config/get", False)
+    except Exception as e:
+        logger.error(f"Error fetching backend config: {str(e)}")
+        backend_config = {}
 
-    return render_template('admin-dashboard.j2', sections = empty, config = backend_config)
+    return render_template('admin-dashboard.j2', sections=empty, config=backend_config)
+
+@app.route('/admin/worker-oauth-keys')
+@login_required
+def list_worker_oauth_keys():
+    try:
+        oauth_keys = db_session.query(WorkerOauth).all()
+        keys = [{
+            'id': key.oauth_id,
+            'name': key.name,
+            'platform': key.platform,
+            'access_token': key.access_token
+        } for key in oauth_keys]
+        
+        return jsonify({'success': True, 'keys': keys})
+    except Exception as e:
+        logger.error(f"Error getting worker OAuth keys: {str(e)}")
+        return jsonify({'success': False, 'message': str(e)})
+
+@app.route('/admin/worker-oauth-keys', methods=['POST'])
+@login_required
+def add_worker_oauth_key():
+    try:
+        platform = request.form.get('platform', 'github')
+        name = request.form.get('name', f"{platform} API Key - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        access_token = request.form.get('access_token')
+        
+        if not access_token:
+            return jsonify({'success': False, 'message': 'Access token is required'})
+        
+        new_key = WorkerOauth(
+            name=name,
+            consumer_key='0',
+            consumer_secret='0',
+            access_token=access_token,
+            access_token_secret='0',
+            platform=platform
+        )
+        
+        db_session.add(new_key)
+        db_session.commit()
+        
+        return jsonify({'success': True, 'key_id': new_key.oauth_id})
+    except Exception as e:
+        db_session.rollback()
+        logger.error(f"Error adding worker OAuth key: {str(e)}")
+        return jsonify({'success': False, 'message': str(e)})
+
+@app.route('/admin/worker-oauth-keys/<int:key_id>', methods=['DELETE'])
+@login_required
+def delete_worker_oauth_key(key_id):
+    try:
+        key = db_session.query(WorkerOauth).filter(WorkerOauth.oauth_id == key_id).first()
+        
+        if not key:
+            return jsonify({'success': False, 'message': 'OAuth key not found'})
+        
+        db_session.delete(key)
+        db_session.commit()
+        
+        return jsonify({'success': True})
+    except Exception as e:
+        db_session.rollback()
+        logger.error(f"Error deleting worker OAuth key: {str(e)}")
+        return jsonify({'success': False, 'message': str(e)})
