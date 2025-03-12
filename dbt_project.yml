@@ -12,12 +12,12 @@ profile: 'augur_dbt'
 # These configurations specify where dbt should look for different types of files.
 # The `model-paths` config, for example, states that models in this project can be
 # found in the "models/" directory. You probably won't need to change these!
-model-paths: ["models"]
-analysis-paths: ["analyses"]
-test-paths: ["tests"]
-seed-paths: ["seeds"]
-macro-paths: ["macros"]
-snapshot-paths: ["snapshots"]
+model-paths: ["augur/application/dbt/models"]
+analysis-paths: ["augur/application/dbt/analyses"]
+test-paths: ["augur/application/dbt/tests"] 
+seed-paths: ["augur/application/dbt/seeds"]
+macro-paths: ["augur/application/dbt/macros"]
+snapshot-paths: ["augur/application/dbt/snapshots"]
 
 clean-targets:         # directories to be removed by `dbt clean`
   - "target"
@@ -32,6 +32,10 @@ clean-targets:         # directories to be removed by `dbt clean`
 # files using the `{{ config(...) }}` macro.
 models:
   augur_dbt:
-    # Config indicated by + and applies to all files under models/example/
-    example:
-      +materialized: view
+    +materialized: table
+    +schema: public
+
+tests:
+  augur_dbt:
+    +schema: public
+    +store_failures: true
