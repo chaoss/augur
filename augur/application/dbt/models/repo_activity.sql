@@ -1,8 +1,8 @@
-# SPDX-License-Identifier: MIT
-''' 
+-- SPDX-License-Identifier: MIT
+/*
 "Hello World" for DBT Analytical Transformation Workflows
 This model calculates the total number of commits and issues for each repository
-'''
+*/
 {{ config(materialized='table') }}
 
 WITH commits AS (
