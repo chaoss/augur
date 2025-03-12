@@ -1,22 +1,58 @@
-from flask import request, jsonify, redirect, url_for, flash, current_app
+"""API endpoints for the Augur view module.
+
+This module contains API endpoints that return JSON responses rather than HTML views.
+These endpoints support the front-end functionality of Augur.
+"""
+import logging
 import re
+from datetime import datetime
+from typing import Dict, List, Any, Optional, Union, Tuple
+
+from flask import request, jsonify, redirect, url_for, flash, current_app, Response
 from flask_login import current_user, login_required
-from augur.application.db.models import Repo, RepoGroup, UserGroup, UserRepo
-from augur.tasks.frontend import add_github_orgs_and_repos, parse_org_and_repo_name, parse_org_name, add_gitlab_repos
-from .utils import *
-from ..server import app
+
+from augur.application.db.models import Repo, RepoGroup, UserGroup, UserRepo, WorkerOauth
 from augur.application.db.session import DatabaseSession
+from augur.tasks.frontend import (
+    add_github_orgs_and_repos, parse_org_and_repo_name, 
+    parse_org_name, add_gitlab_repos
+)
+from ..server import app
+from .init import report_requests
+from .utils import requestReports, toCacheFilename
+
+logger = logging.getLogger(__name__)
+
 
 @app.route('/cache/file/')
-@app.route('/cache/file/<path:file>')
-def cache(file=None):
-    if file is None:
+@app.route('/cache/file/<path:file_path>')
+def cache(file_path: Optional[str] = None) -> Response:
+    """Redirect to cached file.
+    
+    Args:
+        file_path: The path of the cached file to retrieve.
+        
+    Returns:
+        A redirect response to the static file or cache directory.
+    """
+    if file_path is None:
         return redirect(url_for('static', filename="cache"))
-    return redirect(url_for('static', filename="cache/" + toCacheFilename(file, False)))
+    return redirect(url_for('static', filename="cache/" + toCacheFilename(file_path, False)))
 
     
-def add_existing_org_to_group(session, user_id, group_name, rg_id):
-
+def add_existing_org_to_group(session: Any, user_id: int, 
+                             group_name: str, rg_id: int) -> bool:
+    """Add repositories from an existing organization to a user group.
+    
+    Args:
+        session: The database session.
+        user_id: The ID of the user who owns the group.
+        group_name: The name of the group to add repositories to.
+        rg_id: The ID of the repository group (organization).
+        
+    Returns:
+        bool: True if successful, False otherwise.
+    """
     logger.info("Adding existing org to group")
 
     group_id = UserGroup.convert_group_name_to_id(session, user_id, group_name)
@@ -24,18 +60,25 @@ def add_existing_org_to_group(session, user_id, group_name, rg_id):
         return False
     
     repos = session.query(Repo).filter(Repo.repo_group_id == rg_id).all()
-    logger.info("Length of repos in org: " + str(len(repos)))
+    logger.info("Length of repos in org: %s", str(len(repos)))
     for repo in repos:
         result = UserRepo.insert(session, repo.repo_id, group_id)
         if not result:
-            logger.info("Failed to add repo to group")
+            return False
     
+    return True
 
 
-@app.route('/account/repos/add', methods = ['POST'])
+@app.route('/account/repos/add', methods=['POST'])
 @login_required
-def av_add_user_repo():
-
+def av_add_user_repo() -> Response:
+    """Add a repository to the user's repositories.
+    
+    This endpoint adds a repository to a user's group based on form data.
+    
+    Returns:
+        A JSON response indicating success or failure.
+    """
     print("Adding user repos")
 
     urls = request.form.get('urls')
@@ -207,7 +250,124 @@ Locking request loop:
     report request completes. A json response is guaranteed.
     Assumes that the requested repo exists.
 """
-@app.route('/requests/report/wait/<id>')
-def wait_for_report_request(id):
-    requestReports(id)
-    return jsonify(report_requests[id])
+@app.route('/requests/report/wait/<repo_id>')
+def wait_for_report_request(repo_id: str) -> Response:
+    """Wait for a report request to complete.
+    
+    Args:
+        repo_id: The ID of the repository to get report status for.
+        
+    Returns:
+        A JSON response with the status of the report request.
+    """
+    requestReports(repo_id)
+    return jsonify(report_requests[repo_id])
+
+
+@app.route('/admin/worker-oauth-keys')
+@login_required
+def list_worker_oauth_keys() -> Response:
+    """List all worker OAuth keys.
+    
+    This endpoint returns a JSON list of all worker OAuth keys stored in the database.
+    These keys are used by collection workers to interface with external platforms
+    like GitHub and GitLab.
+    
+    Returns:
+        flask.Response: JSON response containing the list of worker OAuth keys.
+            Format: {'success': bool, 'keys': [{'id': int, 'name': str,
+                    'platform': str, 'access_token': str}]}
+    """
+    try:
+        with DatabaseSession() as session:
+            oauth_keys = session.query(WorkerOauth).all()
+            keys = [{
+                'id': key.oauth_id,
+                'name': key.name,
+                'platform': key.platform,
+                'access_token': key.access_token
+            } for key in oauth_keys]
+            
+            return jsonify({'success': True, 'keys': keys})
+    except Exception as e:
+        logger.error("Error getting worker OAuth keys: %s", str(e))
+        return jsonify({'success': False, 'message': str(e)})
+
+
+@app.route('/admin/worker-oauth-keys', methods=['POST'])
+@login_required
+def add_worker_oauth_key() -> Response:
+    """Add a new worker OAuth key.
+    
+    Creates a new worker OAuth key for external APIs like GitHub and GitLab.
+    These keys enable collection workers to fetch data from external platforms.
+    
+    Form Parameters:
+        platform (str): The platform this key is for (e.g., 'github', 'gitlab').
+        name (str): A descriptive name for the key (optional).
+        access_token (str): The OAuth access token from the platform.
+    
+    Returns:
+        flask.Response: JSON response indicating success or failure.
+            Format: {'success': bool, 'key_id': int} or
+                   {'success': False, 'message': str}
+    """
+    try:
+        platform = request.form.get('platform', 'github')
+        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        name = request.form.get('name', f"{platform} API Key - {timestamp}")
+        access_token = request.form.get('access_token')
+        
+        if not access_token:
+            return jsonify({'success': False, 'message': 'Access token is required'})
+        
+        new_key = WorkerOauth(
+            name=name,
+            consumer_key='0',
+            consumer_secret='0',
+            access_token=access_token,
+            access_token_secret='0',
+            platform=platform
+        )
+        
+        with DatabaseSession() as session:
+            session.add(new_key)
+            session.commit()
+            key_id = new_key.oauth_id
+        
+        return jsonify({'success': True, 'key_id': key_id})
+    except Exception as e:
+        logger.error("Error adding worker OAuth key: %s", str(e))
+        return jsonify({'success': False, 'message': str(e)})
+
+
+@app.route('/admin/worker-oauth-keys/<int:key_id>', methods=['DELETE'])
+@login_required
+def delete_worker_oauth_key(key_id: int) -> Response:
+    """Delete a worker OAuth key.
+    
+    Removes a worker OAuth key used for external APIs.
+    This endpoint requires the user to be authenticated.
+    
+    Args:
+        key_id (int): The ID of the worker OAuth key to delete.
+    
+    Returns:
+        flask.Response: JSON response indicating success or failure.
+            Format: {'success': bool} or
+                   {'success': False, 'message': str}
+    """
+    try:
+        with DatabaseSession() as session:
+            key = session.query(WorkerOauth).filter(WorkerOauth.oauth_id == key_id).first()
+            
+            if not key:
+                return jsonify({'success': False, 'message': 'OAuth key not found'})
+            
+            session.delete(key)
+            session.commit()
+        
+        return jsonify({'success': True})
+    except Exception as e:
+        logger.error("Error deleting worker OAuth key: %s", str(e))
+        return jsonify({'success': False, 'message': str(e)})

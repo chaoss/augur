@@ -1,0 +1,7 @@
+[33mcommit c65ab4ac75a0446b326d8b94241194a5d67f4037[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mfeature/api-keys-management[m[33m)[m
+Author: Prabhjit Singh Dhillon <dhillon prabhjitsingh@gmail.com>
+Date:   Sun Mar 9 22:46:44 2025 -0400
+
+    Move worker OAuth key management endpoints to api.py for architectural consistency
+    
+    Signed-off-by: Prabhjit Singh Dhillon <dhillon prabhjitsingh@gmail.com>
