@@ -346,6 +346,6 @@ def dashboard_view():
     return render_template('admin-dashboard.j2', sections = empty, config = backend_config)
 
 
-@app.route('/account/api-keys')
+@app.route('/api-keys')
 def api_keys_view():
     return render_template('api-keys.j2')
