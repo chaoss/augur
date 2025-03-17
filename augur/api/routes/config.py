@@ -38,6 +38,18 @@ def get_config():
 
     return jsonify(config_dict), 200
 
+@app.route(f"/{AUGUR_API_VERSION}/config/keys/get", methods=['GET'])
+def get_config_keys():
+    if not development and not request.is_secure:
+        return generate_upgrade_request()
+
+    setting_name = request.args.get('setting_name', '')
+
+    with DatabaseSession(logger, engine=current_app.engine) as session:
+        config_dict = AugurConfig(logger, session).get_value(section_name="Keys", setting_name=setting_name)
+
+    return jsonify(config_dict), 200
+
 
 @app.route(f"/{AUGUR_API_VERSION}/config/update", methods=['POST'])
 def update_config():

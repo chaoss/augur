@@ -13,11 +13,9 @@
         href="{{ url_for('static', filename='favicon/favicon-16x16.png') }}">
     <link rel="manifest" href="{{ url_for('static', filename='favicon/site.webmanifest') }}">
     <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
-    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="{{ url_for('static', filename='css/stylesheet.css') }}" rel="stylesheet">
     <style>
-        /* Optional: Ensures the input group elements don't wrap on small screens */
         .inline-form .form-control,
         .inline-form .form-select {
             display: inline-block;
@@ -32,7 +30,6 @@
     <div class="container mt-4">
         <h1>Manage API Keys</h1>
 
-        <!-- Display Existing API Keys -->
         <div class="card mb-4">
             <div class="card-body">
                 <h2>Your API Keys</h2>
@@ -41,36 +38,27 @@
                         <tr>
                             <th>Key Type</th>
                             <th>API Key</th>
-                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr>
                             <td>GitHub</td>
                             <td>
-                                <code id="github-key" data-key="dummy_github_key_123">
-                  **************
-                </code>
+                                <code id="github-key" data-key="">
+                                    **************
+                                </code>
                                 <button class="btn btn-sm btn-outline-secondary"
                                     onclick="toggleKey('github-key')">Show</button>
-                            </td>
-                            <td>
-                                <button class="btn btn-sm btn-outline-danger"
-                                    onclick="deleteKey('github_api_key')">Delete</button>
                             </td>
                         </tr>
                         <tr>
                             <td>GitLab</td>
                             <td>
-                                <code id="gitlab-key" data-key="dummy_gitlab_key_456">
-                  **************
-                </code>
+                                <code id="gitlab-key" data-key="">
+                                    **************
+                                </code>
                                 <button class="btn btn-sm btn-outline-secondary"
                                     onclick="toggleKey('gitlab-key')">Show</button>
-                            </td>
-                            <td>
-                                <button class="btn btn-sm btn-outline-danger"
-                                    onclick="deleteKey('gitlab_api_key')">Delete</button>
                             </td>
                         </tr>
                     </tbody>
@@ -78,27 +66,24 @@
             </div>
         </div>
 
-        <!-- Add New API Key -->
         <div class="card">
             <div class="card-body">
                 <h2 class="card-title">Add New API Key</h2>
                 <form>
                     <div class="row g-2 align-items-center">
-                        <!-- Platform Dropdown -->
                         <div class="col-md-2">
                             <label for="platformSelect" class="form-label">Platform</label>
                             <select class="form-select" id="platformSelect" name="platform">
                                 <option value="github">GitHub</option>
                                 <option value="gitlab">GitLab</option>
-                                <!-- Future platforms can be added here -->
                             </select>
                         </div>
-                        <!-- API Key Input and Generate Button -->
                         <div class="col-md-10">
                             <label for="apiKeyInput" class="form-label">API Key</label>
                             <div class="row g-2">
                                 <div class="col-9">
-                                    <input type="text" class="form-control" id="apiKeyInput" name="api_key" placeholder="">
+                                    <input type="text" class="form-control" id="apiKeyInput" name="api_key"
+                                        placeholder="">
                                 </div>
                                 <div class="col-3">
                                     <a id="helperLink" href="" target="_blank" class="btn btn-outline-secondary w-100">
@@ -118,7 +103,6 @@
 
     </div>
 
-    <!-- Bootstrap and jQuery scripts -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
@@ -128,7 +112,7 @@
             var btn = el.nextElementSibling;
             var actualKey = el.getAttribute("data-key");
             if (el.innerText.trim() === actualKey) {
-                el.innerText = "*".repeat(actualKey.length);
+                el.innerText = "*".repeat(15);
                 btn.innerText = "Show";
             } else {
                 el.innerText = actualKey;
@@ -136,30 +120,81 @@
             }
         }
 
-        // Dummy function for delete action on existing keys
-        function deleteKey(keyType) {
-            if (confirm("Are you sure you want to delete the " + keyType + "?")) {
-                alert(keyType + " deleted (dummy action).");
+        // Fetch the API keys from the backend config (from the "Keys" section)
+         function fetchApiKeys() {
+                // Fetch GitHub key
+                $.ajax({
+                    url: "/api/unstable/config/keys/get?setting_name=github_api_key",
+                    type: "GET",
+                    success: function (response) {
+                        if (response && response !== "") {
+                            $("#github-key").attr("data-key", response).text("**************");
+                        } else {
+                            $("#github-key").attr("data-key", "").text("No key configured");
+                        }
+                    },
+                    error: function (err) {
+                        console.error("Error fetching GitHub API key", err);
+                        $("#github-key").attr("data-key", "").text("Error loading key");
+                    }
+                });
+
+                // Fetch GitLab key
+                $.ajax({
+                    url: "/api/unstable/config/keys/get?setting_name=gitlab_api_key",
+                    type: "GET",
+                    success: function (response) {
+                        if (response && response !== "") {
+                            $("#gitlab-key").attr("data-key", response).text("**************");
+                        } else {
+                            $("#gitlab-key").attr("data-key", "").text("No key configured");
+                        }
+                    },
+                    error: function (err) {
+                        console.error("Error fetching GitLab API key", err);
+                        $("#gitlab-key").attr("data-key", "").text("Error loading key");
+                    }
+                });
             }
-        }
 
-        // Dummy function for saving new keys
+        // Save a new API key using the existing update endpoint.
         function saveNewKey() {
-            alert("New API key saved (dummy action).");
+            var platform = document.getElementById("platformSelect").value;
+            var keyInput = document.getElementById("apiKeyInput").value;
+            var updateData = { "Keys": {} };
+
+            if (platform === "github") {
+                updateData.Keys["github_api_key"] = keyInput;
+            } else if (platform === "gitlab") {
+                updateData.Keys["gitlab_api_key"] = keyInput;
+            }
+            $.ajax({
+                url: "/api/unstable/config/update",
+                type: "POST",
+                contentType: "application/json",
+                data: JSON.stringify(updateData),
+                success: function (response) {
+                    alert("API key saved successfully!");
+                    fetchApiKeys();
+                },
+                error: function (err) {
+                    alert("Error saving API key");
+                }
+            });
         }
 
-        // Update the API key input's placeholder and helper link based on selected platform
+        // Update the API key input's placeholder and helper link based on selected platform.
         function updateKeyForm() {
             var platform = document.getElementById("platformSelect").value;
             var keyInput = document.getElementById("apiKeyInput");
             var helperLink = document.getElementById("helperLink");
 
             if (platform === "github") {
-                keyInput.placeholder = "e.g. GH_XXXXXXXXXXXX";
+                keyInput.placeholder = "e.g. ghp_XXXXXXXXXXXX";
                 helperLink.href = "https://github.com/settings/tokens";
                 helperLink.innerText = "Generate GitHub API key";
             } else if (platform === "gitlab") {
-                keyInput.placeholder = "e.g. GL-XXXXXXXXXXXX";
+                keyInput.placeholder = "e.g. glpat-XXXXXXXXXXXX";
                 helperLink.href = "https://gitlab.com/profile/personal_access_tokens";
                 helperLink.innerText = "Generate GitLab API key";
             } else {
@@ -171,7 +206,10 @@
 
         // Attach event listeners
         document.getElementById("platformSelect").addEventListener("change", updateKeyForm);
-        window.addEventListener("DOMContentLoaded", updateKeyForm);
+        window.addEventListener("DOMContentLoaded", function () {
+            updateKeyForm();
+            fetchApiKeys();
+        });
     </script>
 </body>
 
