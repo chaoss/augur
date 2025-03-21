@@ -100,6 +100,7 @@ setup(
             "sphinx_rtd_theme==2.0.0", # 1.0.0
             "sphinxcontrib-openapi==0.8.3", # 0.7.0
             "sphinxcontrib-redoc==1.6.0", # 1.6.0
+            "sphinx-autobuild==2024.10.3",
             "docutils==0.20.1" # 0.19
         ]
     },
