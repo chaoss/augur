@@ -12,7 +12,11 @@ def get_engine():
 
     if engine is None:
         url = get_database_string()
-        engine = create_database_engine(url=url, poolclass=StaticPool)  
+        engine = create_database_engine(
+            url=url, 
+            pool_pre_ping=True, 
+            pool_recycle=600
+        )
         Session = sessionmaker(bind=engine)
     
     return engine
