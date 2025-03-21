@@ -53,6 +53,10 @@
                 <li class="nav-item">
                     <a class="nav-link {% if title == 'Status' %} active {% endif %}" aria-current="page" href="{{ url_for('status_view') }}">Collection Status</a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('api_keys_view') }}">API Keys</a>
+                </li>
+
                 <!-- .junk->NAVBAR_EXTRAS -->
             </ul>
             {# <ul class="navbar-nav navbar-right">
