@@ -52,10 +52,10 @@ setup(
         "pandas==1.5.3", # 1.4.3
         "numpy==1.26.0", # 1.23.2
         "requests==2.32.0", # 2.28.1
-        "psycopg2-binary==2.9.3", #2.9.3 what is pscopg-binary 3.0.16
+        "psycopg2-binary==2.9.9", #2.9.3 what is pscopg-binary 3.0.16
         "click==8.0.3", # 8.1.3
         "psutil==5.8.0", # 5.9.1
-        "gunicorn==22.0.0", # 20.1.0
+        "gunicorn==23.0.0", # 20.1.0
         "six==1.15.0", # 1.16.0
         "bokeh==2.0.2", # 2.4.3
         "selenium==3.141.0",# 4.4.3
