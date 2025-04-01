@@ -201,8 +201,8 @@ def setup_periodic_tasks(sender, **kwargs):
         The tasks so that they are grouped by the module they are defined in
     """
     from celery.schedules import crontab
-    from augur.tasks.start_tasks import augur_collection_monitor, augur_collection_update_weights
-    from augur.tasks.start_tasks import non_repo_domain_tasks, retry_errored_repos
+    from augur.tasks.start_tasks import augur_collection_monitor
+    from augur.tasks.start_tasks import non_repo_domain_tasks, retry_errored_repos, create_collection_status_records
     from augur.tasks.git.facade_tasks import clone_repos
     from augur.tasks.github.contributors import process_contributors
     from augur.tasks.db.refresh_materialized_views import refresh_materialized_views
@@ -236,7 +236,6 @@ def setup_periodic_tasks(sender, **kwargs):
         one_hour_in_seconds = 60*60
         sender.add_periodic_task(one_hour_in_seconds, process_contributors.s()
 )
-
 
 @after_setup_logger.connect
 def setup_loggers(*args,**kwargs):
