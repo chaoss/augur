@@ -377,7 +377,7 @@ You can stop augur with `augur backend stop`, followed by `augur backend kill`. 
 2. Modify the `environment.txt` file in the root of the repository to include your GitHub and GitLab API keys.
 3. If you are already running postgresql on your server you have two choices: 
    - Change the port mappings in the `docker-compose.yml` file to match ports for Postgresql not currently in use.
-   - Change the variables in `environment.txt` to include the correct values for your local, non-docker-container database.
+   - Change the variables in `environment.txt` to include the correct environment variables for your local, non-docker-container database. This file is used in step 5 to configure the environment variables using docker compose.
 4. `sudo docker build -t augur-new -f docker/backend/Dockerfile .`
 5. `sudo docker compose --env-file ./environment.txt --file docker-compose.yml up` to run the database in a Docker Container or 
    `sudo docker compose --env-file ./environment.txt --file docker-compose-externalDB.yml up` to connect to an already running database. *Note*: Environment file would be modified to point to an already running database. 
