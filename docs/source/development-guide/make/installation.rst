@@ -25,13 +25,22 @@ Example\:
 
 ``make install-dev``
 ---------------------
-The same as ``make install``, except it installs the additional developer dependencies and installs the packages in editable mode.
+**Note:** The `make install-dev` command has been **deprecated and removed** from the Makefile.
 
-Example\:
+It was previously used to install developer-specific dependencies and set up Augur in editable mode. These steps are now handled by the standard `make install` command, which installs all necessary components for development and usage.
+
+Please use the following instead:
 
 .. code-block:: bash
 
-  $ make install-dev
+  $ make install
+
+For additional developer dependencies (if needed), you can also run:
+
+.. code-block:: bash
+
+  $ pip install -e .[dev]
+
 
 ---------------
 
