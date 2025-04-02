@@ -21,6 +21,7 @@ default:
 	@ echo "Documentation Commands:"
 	@ echo "    docs                            Generates the documentation"
 	@ echo "    docs-view                       Generates the documentation, then opens it for local viewing"
+	@ echo "    docs-live                       Live-reloads documentation when updates are detected"
 
 # @ echo "    test-application                Runs all application unit tests (including metrics)"
 # @ echo "    test-workers                    Run all worker unit tests"
@@ -127,13 +128,15 @@ test-api:
 #
 # Documentation
 #
-.PHONY: docs docs-view
+.PHONY: docs docs-view docs-live
 docs:
 	@ bash -c 'cd docs/ && rm -rf build/ && make html;'
 
 docs-view: docs
 	@ bash -c 'open docs/build/html/index.html'
 
+docs-live:
+	@ sphinx-autobuild docs/source/ docs/build/html
 
 #
 # Docker Shortcuts
