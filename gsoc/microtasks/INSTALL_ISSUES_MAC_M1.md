@@ -1,11 +1,11 @@
 
-# 🛠 Microtask 2: Installation Issues Encountered on macOS 14.4 (M1)
+# Microtask 2: Installation Issues Encountered on macOS 14.4 (M1)
 
 This document outlines the issues I encountered while installing [CHAOSS Augur](https://github.com/chaoss/augur) on a **macOS 14.4 M1** machine using **Python 3.9.18** and **Augur v0.86.0**, along with the solutions I applied to resolve them.
 
 ---
 
-### ❗️Issue 1: pyenv under Rosetta 2
+### Issue 1: pyenv under Rosetta 2
 **Problem:**  
 Using `pyenv` to install Python 3.8.x failed due to Rosetta architecture issues:
 ```
@@ -27,7 +27,7 @@ arch -arm64 pyenv install 3.8.17
 
 ---
 
-### ❗️Issue 2: Python 3.8 not compatible with macOS 14
+### Issue 2: Python 3.8 not compatible with macOS 14
 **Problem:**  
 Even after installing Python 3.8, some packages like `numpy==1.26.0` and `tensorflow` failed to compile or install properly.
 
@@ -40,7 +40,7 @@ pyenv global 3.9.18
 
 ---
 
-### ❗️Issue 3: `make install-dev` does not exist
+### Issue 3: `make install-dev` does not exist
 **Problem:**  
 The official documentation suggests:
 ```bash
@@ -56,7 +56,7 @@ make install
 
 ---
 
-### ❗️Issue 4: `.git-credentials` permission error
+### Issue 4: `.git-credentials` permission error
 **Problem:**  
 During configuration, Augur attempts to create `.git-credentials` in `/`, which fails:
 ```
@@ -75,7 +75,7 @@ Facade worker directory: /Users/<yourname>/augur/repos
 
 ---
 
-### ❗️Issue 5: `h5py` version conflict with TensorFlow
+### Issue 5: `h5py` version conflict with TensorFlow
 **Problem:**  
 `augur` installs `h5py==3.10.0` but `tensorflow>=2.19.0` requires `h5py>=3.11.0`:
 ```
@@ -87,11 +87,11 @@ Manually install the required version:
 ```bash
 pip install 'h5py>=3.11.0'
 ```
-⚠️ Warning: This conflicts with Augur’s `setup.py`. It may be necessary to fork and patch `requirements.txt`.
+Warning: This conflicts with Augur’s `setup.py`. It may be necessary to fork and patch `requirements.txt`.
 
 ---
 
-### ❗️Issue 6: Invalid CLI commands in docs (`augur db init`)
+### Issue 6: Invalid CLI commands in docs (`augur db init`)
 **Problem:**  
 Documentation suggests running:
 ```bash
@@ -112,7 +112,7 @@ augur db upgrade-db-version   # to apply migrations
 
 ---
 
-### ❗️Issue 7: NLTK download prompt
+### Issue 7: NLTK download prompt
 **Problem:**  
 During installation, Augur prompts:
 ```
@@ -128,7 +128,7 @@ nltk.download('all')
 
 ---
 
-## ✅ Summary
+## Summary
 
 These issues are frequently encountered during Augur installation on Apple Silicon Macs. Resolving and documenting them helps improve onboarding and reduces developer friction.
 
