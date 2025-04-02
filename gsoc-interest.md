@@ -35,5 +35,5 @@ GSoC Mentors
 
 | Name | Email | Idea | Micro-Task Repository | Project Proposal | Submitted on GSOC | 
 | --- | --- | --- | --- | --- | --- |
-| Your Name Here | Your Email Here |  Idea You Hoping to Work On | Link to your Mico-task Repo | Link to Your Proposal | YES/NO |
+| Asish Kumar | officialasishkumar@gmail.com |  Conversion Rate | https://github.com/officialasishkumar/augur/ | https://docs.google.com/document/d/1xj2riRK1ztySZxRqzgdcjEwl0QIPYwOfEampjZtmVjk/edit?usp=sharing | NO |
 
