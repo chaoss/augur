@@ -49,19 +49,15 @@ def execute_sql_file(sql_file, dbname, username, password, host, port):
 
 
 def get_database_string() -> str:
-    """Get database string from env or file
+    """Get database string from file
 
     Note:
-        If environment variable is defined the function 
-            will use that as the database string. And if the 
-            environment variable is not defined, it will use the 
-            db.config.json file to get the database string
+        This function will use the db.config.json file to get the database string.
+        Environment variables are no longer used for database configuration.
 
     Returns:
         postgres database string
     """
-
-    augur_db_environment_var = os.getenv("AUGUR_DB")
 
     try:
         current_dir = os.getcwd()
@@ -72,14 +68,9 @@ def get_database_string() -> str:
     db_json_file_location = current_dir + "/db.config.json"
     db_json_exists = os.path.exists(db_json_file_location)
 
-    if not augur_db_environment_var and not db_json_exists:
-
-        print("ERROR no way to get connection to the database. \n\t\t\t\t\t\t    There is no db.config.json and the AUGUR_DB environment variable is not set\n\t\t\t\t\t\t    Please run make install or set the AUGUR_DB environment then run make install")
+    if not db_json_exists:
+        print("ERROR no way to get connection to the database. \n\t\t\t\t\t\t    There is no db.config.json file\n\t\t\t\t\t\t    Please run make install to create the configuration file")
         sys.exit()
-
-    if augur_db_environment_var:
-        return augur_db_environment_var
-
 
     with open("db.config.json", 'r') as f:
         db_config = json.load(f)
