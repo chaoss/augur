@@ -198,3 +198,4 @@ sendgrid.env
 *sendgrid*.env
 ./sendgrid.env
 sendgrid.env
+notebooks/topic_modeling/output/
