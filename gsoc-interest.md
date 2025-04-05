@@ -35,5 +35,5 @@ GSoC Mentors
 
 | Name | Email | Idea | Micro-Task Repository | Project Proposal | Submitted on GSOC | 
 | --- | --- | --- | --- | --- | --- |
-| Your Name Here | Your Email Here |  Idea You Hoping to Work On | Link to your Mico-task Repo | Link to Your Proposal | YES/NO |
+| Akshat Baranwal | [Email](mailto:kysuakshat23@gmail.com) | Implement Conversion Rate Metric In Chaoss Software | [Micro-Task](https://github.com/Akshatb2006/Augur-Microtask) | [Proposal](https://docs.google.com/document/d/1pIgDvBHl7KZkazm13A6I9BRiCLGdorW1xg1qXXTLpYQ/edit?usp=sharing) | YES |
 
