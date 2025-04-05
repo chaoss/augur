@@ -35,5 +35,5 @@ GSoC Mentors
 
 | Name | Email | Idea | Micro-Task Repository | Project Proposal | Submitted on GSOC | 
 | --- | --- | --- | --- | --- | --- |
-| Your Name Here | Your Email Here |  Idea You Hoping to Work On | Link to your Mico-task Repo | Link to Your Proposal | YES/NO |
+| Jiahong Lin | infojemi4@gmail.com |  Enhance Conversational Topic Modelling Capabilities in CHAOSS Software | [PR TO 1199](https://github.com/chaoss/augur/pull/3106) | https://docs.google.com/document/d/1iydCHyr7rhGgTHHGYy5SN5pozcWqhP_bnZZODMafVv8/edit?usp=sharing | YES |
 
