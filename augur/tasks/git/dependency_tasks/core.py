@@ -85,7 +85,7 @@ def generate_scorecard(logger, repo_git):
 
     with get_session() as session:
         #key_handler = GithubRandomKeyAuth(logger)
-        key_handler = GithubApiKeyHandler(logger)       
+        key_handler = GithubApiKeyHandler(logger, session)      
         os.environ['GITHUB_AUTH_TOKEN'] = key_handler.get_random_key()
 
     # This seems outdated
