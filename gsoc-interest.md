@@ -36,4 +36,5 @@ GSoC Mentors
 | Name | Email | Idea | Micro-Task Repository | Project Proposal | Submitted on GSOC | 
 | --- | --- | --- | --- | --- | --- |
 | Akshat Baranwal | [Email](mailto:kysuakshat23@gmail.com) | Implement Conversion Rate Metric In Chaoss Software | [Micro-Task](https://github.com/Akshatb2006/Augur-Microtask) | [Proposal](https://docs.google.com/document/d/1pIgDvBHl7KZkazm13A6I9BRiCLGdorW1xg1qXXTLpYQ/edit?usp=sharing) | YES |
+| Akshat Baranwal | [Email](mailto:kysuakshat23@gmail.com) | Open Source Software Health Metrics Visualization Exploration | [Micro-Task](https://github.com/Akshatb2006/Augur-Microtask) | [Proposal](https://docs.google.com/document/d/1f6DeLb7PFaW_2pyVRRF-4RC1d-5dnTMgeXP9kGGwSKo/edit?usp=sharing) | YES |
 
