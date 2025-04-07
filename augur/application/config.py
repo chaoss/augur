@@ -3,7 +3,7 @@ from sqlalchemy import and_, update
 import json
 from typing import List, Any, Optional
 import os
-from augur.application.db.models import Config 
+from augur.application.db.models import Config, MetricsConfig
 from augur.application.db.util import execute_session_query
 from augur.application.db.bulk_operations import BulkOperationHandler
 
@@ -131,6 +131,9 @@ def convert_type_of_value(config_dict, logger=None):
         elif data_type == "float":
             config_dict["value"] = float(config_dict["value"])
 
+        elif data_type == "json":
+            config_dict["value"] = json.loads(config_dict["value"])
+
         else:
             if logger:
                 logger.error(f"Need to add support for {data_type} types to config") 
@@ -150,7 +153,7 @@ class AugurConfig():
         self.session = session
         self.logger = logger
 
-        self.accepted_types = ["str", "bool", "int", "float", "NoneType"]
+        self.accepted_types = ["str", "bool", "int", "float", "json", "NoneType"]
         self.default_config = default_config
 
     def get_section(self, section_name) -> dict:
@@ -162,6 +165,28 @@ class AugurConfig():
         Returns:
             The section data as a dict
         """
+        # First check if this is a metrics section
+        if section_name == "Insight_Task":
+            query = self.session.query(MetricsConfig).filter_by(section_name=section_name)
+            metrics_data = execute_session_query(query, 'all')
+            
+            section_dict = {}
+            for metric in metrics_data:
+                value = metric.value
+                if metric.value_type == 'int':
+                    value = int(value)
+                elif metric.value_type == 'float':
+                    value = float(value)
+                elif metric.value_type == 'bool':
+                    value = value.lower() == 'true'
+                elif metric.value_type == 'json':
+                    value = json.loads(value)
+                
+                section_dict[metric.metric_name] = value
+            
+            return section_dict
+
+        # Otherwise use regular config table
         query = self.session.query(Config).filter_by(section_name=section_name).order_by(Config.setting_name.asc())
         section_data = execute_session_query(query, 'all')
         
@@ -194,6 +219,23 @@ class AugurConfig():
         if section_name == "frontend" and setting_name == "pagination_offset":
             return 25
 
+        # First check metrics config
+        if section_name == "Insight_Task":
+            metric = MetricsConfig.get_metric(self.session, section_name, setting_name)
+            if metric:
+                value = metric.value
+                if metric.value_type == 'int':
+                    return int(value)
+                elif metric.value_type == 'float':
+                    return float(value)
+                elif metric.value_type == 'bool':
+                    return value.lower() == 'true'
+                elif metric.value_type == 'json':
+                    return json.loads(value)
+                return value
+            return None
+
+        # Otherwise check regular config
         try:
             query = self.session.query(Config).filter(Config.section_name == section_name, Config.setting_name == setting_name)
             config_setting = execute_session_query(query, 'one')
@@ -206,6 +248,61 @@ class AugurConfig():
 
         return setting_dict["value"]
 
+    def set_value(self, section_name: str, setting_name: str, value: Any, value_type: str = None) -> bool:
+        """Set the value of a setting in the config.
+
+        Args:
+            section_name: The name of the section that the setting belongs to
+            setting_name: The name of the setting
+            value: The value to set
+            value_type: The type of the value (optional)
+
+        Returns:
+            True if successful, False otherwise
+        """
+        try:
+            # Handle metrics config
+            if section_name == "Insight_Task":
+                if value_type is None:
+                    if isinstance(value, bool):
+                        value_type = 'bool'
+                    elif isinstance(value, int):
+                        value_type = 'int'
+                    elif isinstance(value, float):
+                        value_type = 'float'
+                    elif isinstance(value, (dict, list)):
+                        value_type = 'json'
+                        value = json.dumps(value)
+                    else:
+                        value_type = 'str'
+
+                MetricsConfig.set_metric(
+                    self.session,
+                    section_name,
+                    setting_name,
+                    str(value),
+                    value_type
+                )
+                return True
+
+            # Handle regular config
+            query = self.session.query(Config).filter(
+                Config.section_name == section_name,
+                Config.setting_name == setting_name
+            )
+            config_setting = execute_session_query(query, 'one')
+            
+            if value_type:
+                config_setting.type = value_type
+            
+            config_setting.value = str(value)
+            self.session.commit()
+            
+            return True
+            
+        except Exception as e:
+            self.logger.error(f"Error setting config value: {str(e)}")
+            return False
 
     def load_config(self) -> dict:
         """Get full config as a dictionary.
