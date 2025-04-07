@@ -1,5 +1,4 @@
 import sqlalchemy as s
-from sqlalchemy import and_, update
 import json
 from typing import List, Any, Optional
 import os
@@ -64,7 +63,7 @@ default_config = {
                 "ssl_key_file": None 
             },
             "Logging": {
-                "logs_directory": "",
+                "logs_directory": "${HOME}/.augur/logs",
                 "log_level": "INFO",
             },
             "Celery": {

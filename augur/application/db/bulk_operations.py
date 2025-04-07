@@ -4,7 +4,7 @@ Improved bulk database operations with better error handling and performance.
 import logging
 from typing import List, Optional, Union, Dict, Any
 from sqlalchemy import text
-from sqlalchemy.exc import OperationalError, DataError, IntegrityError
+from sqlalchemy.exc import DataError, IntegrityError
 from psycopg2.errors import DeadlockDetected
 import time
 import random
