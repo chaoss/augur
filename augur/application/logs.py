@@ -3,7 +3,6 @@ from __future__ import annotations
 import logging
 import logging.config
 import logging.handlers
-from logging import FileHandler
 import os
 from pathlib import Path
 import shutil
@@ -35,20 +34,12 @@ def getFormatter(logLevel):
     elif logLevel == logging.ERROR:
         return logging.Formatter(fmt=ERROR_FORMAT_STRING)
 
-# create a file handler and set the format and log level
-# def create_file_handler(file, formatter, level):
-#     handler = FileHandler(filename=file, mode='a')
-#     handler.setFormatter(fmt=formatter)
-#     handler.setLevel(level)
-
-#     return handler
-
 def create_file_handler(file, formatter, level):
     try:
         # Ensure the directory exists
         directory = os.path.dirname(file)
-        if not os.path.exists(directory):
-            os.makedirs(directory)
+        if directory:
+            os.makedirs(directory, exist_ok=True)
         
         # Create the file handler
         handler = logging.FileHandler(filename=file, mode='a')
@@ -56,6 +47,9 @@ def create_file_handler(file, formatter, level):
         handler.setLevel(level)
         
         return handler
+    except PermissionError as e:
+        print(f"Permission denied creating log file {file}. Please check directory permissions.")
+        return None
     except Exception as e:
         print(f"Failed to create file handler: {e}")
         return None
@@ -110,6 +104,11 @@ def get_log_config():
         setting_name = setting_dict["setting_name"]
         setting_value = setting_dict["value"]
 
+        # Handle environment variable expansion in paths
+        if setting_name == "logs_directory" and setting_value:
+            setting_value = os.path.expandvars(setting_value)
+            setting_value = os.path.expanduser(setting_value)
+
         section_dict[setting_name] = setting_value
 
     return section_dict
@@ -121,8 +120,21 @@ class TaskLogConfig():
         
         log_config = get_log_config()
 
-        if log_config["logs_directory"] != "":
-            base_log_dir=log_config["logs_directory"]
+        if log_config["logs_directory"]:
+            try:
+                # Ensure the log directory is absolute and exists
+                base_log_dir = os.path.abspath(log_config["logs_directory"])
+                os.makedirs(base_log_dir, exist_ok=True)
+            except PermissionError:
+                print(f"Permission denied creating log directory {base_log_dir}.")
+                print("Falling back to user's home directory for logs")
+                base_log_dir = os.path.expanduser("~/.augur/logs")
+                os.makedirs(base_log_dir, exist_ok=True)
+            except Exception as e:
+                print(f"Error creating log directory {base_log_dir}: {e}")
+                print("Falling back to user's home directory for logs")
+                base_log_dir = os.path.expanduser("~/.augur/logs")
+                os.makedirs(base_log_dir, exist_ok=True)
 
         if reset_logfiles is True:
             try:
@@ -192,8 +204,21 @@ class AugurLogger():
         
         log_config = get_log_config()
         
-        if log_config["logs_directory"] != "":
-            base_log_dir=log_config["logs_directory"]
+        if log_config["logs_directory"]:
+            try:
+                # Ensure the log directory is absolute and exists
+                base_log_dir = os.path.abspath(log_config["logs_directory"])
+                os.makedirs(base_log_dir, exist_ok=True)
+            except PermissionError:
+                print(f"Permission denied creating log directory {base_log_dir}.")
+                print("Falling back to user's home directory for logs")
+                base_log_dir = os.path.expanduser("~/.augur/logs")
+                os.makedirs(base_log_dir, exist_ok=True)
+            except Exception as e:
+                print(f"Error creating log directory {base_log_dir}: {e}")
+                print("Falling back to user's home directory for logs")
+                base_log_dir = os.path.expanduser("~/.augur/logs")
+                os.makedirs(base_log_dir, exist_ok=True)
 
         if reset_logfiles is True:
             try:
