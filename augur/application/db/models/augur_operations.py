@@ -8,6 +8,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from typing import List
 import sqlalchemy as sa
 from sqlalchemy import JSON
+import json
 
 
 import logging
@@ -152,7 +153,7 @@ class WorkerJob(Base):
     __tablename__ = "worker_job"
     __table_args__ = {
         "schema": "augur_operations",
-        "comment": "This table stores the jobs workers collect data for. A job is found in the code, and in the augur.config.json under the construct of a “model”. ",
+        "comment": "This table stores the jobs workers collect data for. A job is found in the code, and in the augur.config.json under the construct of a "model". ",
     }
 
     job_model = Column(String(255), primary_key=True)
@@ -174,7 +175,7 @@ class WorkerOauth(Base):
     __tablename__ = "worker_oauth"
     __table_args__ = {
         "schema": "augur_operations",
-        "comment": "This table stores credentials for retrieving data from platform API’s. Entries in this table must comply with the terms of service for each platform. ",
+        "comment": "This table stores credentials for retrieving data from platform API's. Entries in this table must comply with the terms of service for each platform. ",
     }
 
     oauth_id = Column(
@@ -250,6 +251,98 @@ class Config(Base):
         UniqueConstraint('section_name', "setting_name", name='unique-config-setting'),
         {"schema": "augur_operations"}
     )
+
+class MetricsConfig(Base):
+    __tablename__ = 'metrics_config'
+    __table_args__ = (
+        UniqueConstraint('section_name', 'metric_name', name='metrics_config_unique'),
+        {"schema": "augur_operations"}
+    )
+
+    id = Column(Integer, primary_key=True, server_default=text("nextval('augur_operations.metrics_config_id_seq'::regclass)"))
+    section_name = Column(String, nullable=False)
+    metric_name = Column(String, nullable=False)
+    value = Column(String, nullable=False)
+    value_type = Column(String, nullable=False)
+    description = Column(Text)
+    units = Column(String)
+    valid_range = Column(JSONB)
+    created_at = Column(TIMESTAMP(precision=0), server_default=text("CURRENT_TIMESTAMP"))
+    updated_at = Column(TIMESTAMP(precision=0), server_default=text("CURRENT_TIMESTAMP"), onupdate=text("CURRENT_TIMESTAMP"))
+
+    @staticmethod
+    def validate_value(value, value_type, valid_range=None):
+        """Validate a metric value against its type and range constraints."""
+        try:
+            if value_type == 'int':
+                value = int(value)
+            elif value_type == 'float':
+                value = float(value)
+            elif value_type == 'bool':
+                if isinstance(value, str):
+                    value = value.lower() == 'true'
+                value = bool(value)
+            elif value_type == 'json':
+                if isinstance(value, str):
+                    value = json.loads(value)
+            
+            if valid_range and (value_type == 'int' or value_type == 'float'):
+                min_val = valid_range.get('min')
+                max_val = valid_range.get('max')
+                if min_val is not None and value < min_val:
+                    raise ValueError(f"Value {value} is below minimum {min_val}")
+                if max_val is not None and value > max_val:
+                    raise ValueError(f"Value {value} exceeds maximum {max_val}")
+            
+            return True
+        except (ValueError, json.JSONDecodeError) as e:
+            return False
+
+    @staticmethod
+    def get_metric(session, section_name, metric_name):
+        """Get a metric's configuration."""
+        try:
+            query = session.query(MetricsConfig).filter(
+                MetricsConfig.section_name == section_name,
+                MetricsConfig.metric_name == metric_name
+            )
+            return execute_session_query(query, 'one')
+        except NoResultFound:
+            return None
+
+    @staticmethod
+    def set_metric(session, section_name, metric_name, value, value_type, description=None, units=None, valid_range=None):
+        """Create or update a metric configuration."""
+        if not MetricsConfig.validate_value(value, value_type, valid_range):
+            raise ValueError(f"Invalid value {value} for type {value_type}")
+
+        try:
+            metric = MetricsConfig.get_metric(session, section_name, metric_name)
+            if metric:
+                # Update existing metric
+                metric.value = str(value)
+                metric.value_type = value_type
+                metric.description = description
+                metric.units = units
+                metric.valid_range = valid_range
+            else:
+                # Create new metric
+                metric = MetricsConfig(
+                    section_name=section_name,
+                    metric_name=metric_name,
+                    value=str(value),
+                    value_type=value_type,
+                    description=description,
+                    units=units,
+                    valid_range=valid_range
+                )
+                session.add(metric)
+            
+            session.commit()
+            return metric
+        except Exception as e:
+            session.rollback()
+            raise e
 
 # add admit column to database
 class User(Base):
