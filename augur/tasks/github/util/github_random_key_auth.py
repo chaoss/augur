@@ -14,7 +14,7 @@ class GithubRandomKeyAuth(RandomKeyAuth):
 
     
         # gets the github api keys from the database via the GithubApiKeyHandler
-        github_api_keys = GithubApiKeyHandler(logger).keys
+        github_api_keys = GithubApiKeyHandler(logger, session).keys
         #github_api_keys = random.sample(github_api_keys, len(github_api_keys))
 
         if not github_api_keys:

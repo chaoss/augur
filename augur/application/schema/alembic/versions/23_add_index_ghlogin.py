@@ -27,19 +27,32 @@ def downgrade():
 
     gh_loginindex(upgrade)
 
+# def gh_loginindex(upgrade=True):
+
+#    if upgrade:
+
+#       conn = op.get_bind() 
+#       conn.execute(text(""" 
+#          CREATE INDEX if not exists "gh_login" ON "augur_data"."contributors" USING btree (
+#             "gh_login" ASC NULLS FIRST);"""))
+
+#    else: 
+
+
+#       conn = op.get_bind() 
+#       conn.execute(text(""" 
+#          DROP INDEX if exists "gh_login" ON "augur_data"."contributors" USING btree (
+#             "gh_login" ASC NULLS FIRST);"""))
+
 def gh_loginindex(upgrade=True):
+    conn = op.get_bind()
 
-   if upgrade:
-
-      conn = op.get_bind() 
-      conn.execute(text(""" 
-         CREATE INDEX if not exists "gh_login" ON "augur_data"."contributors" USING btree (
-            "gh_login" ASC NULLS FIRST);"""))
-
-   else: 
-
-
-      conn = op.get_bind() 
-      conn.execute(text(""" 
-         DROP INDEX if exists "gh_login" ON "augur_data"."contributors" USING btree (
-            "gh_login" ASC NULLS FIRST);"""))
+    if upgrade:
+        conn.execute(text("""
+            CREATE INDEX IF NOT EXISTS "gh_login"
+            ON "augur_data"."contributors" USING btree ("gh_login" ASC NULLS FIRST);
+        """))
+    else:
+        conn.execute(text("""
+            DROP INDEX IF EXISTS "gh_login";
+        """))
