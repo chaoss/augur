@@ -29,7 +29,7 @@ from augur.application.db.lib import get_value
 from augur.application.cli import test_connection, test_db_connection, with_database, DatabaseContext
 import sqlalchemy as s
 
-from keyman.KeyClient import KeyClient, KeyPublisher
+from keyman.KeyClient import KeyPublisher
 
 logger = AugurLogger("augur", reset_logfiles=True).get_logger()
 
