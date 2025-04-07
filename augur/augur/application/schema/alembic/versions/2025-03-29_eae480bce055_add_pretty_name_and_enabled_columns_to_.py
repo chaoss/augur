@@ -1,0 +1,5 @@
+sa.Column('worker_run_id', sa.BIGINT(), autoincrement=False, nullable=True, comment='This column is used to indicate analyzes run by a worker during the same execution period, and is useful for grouping, and time series analysis.  '),
+sa.Column('dep_name', sa.VARCHAR(), autoincrement=False, nullable=True, comment='Name of the dependency found in project. '),
+sa.Column('dep_count', sa.INTEGER(), autoincrement=False, nullable=True, comment='Number of times the dependency was found. '),
+sa.Column('dep_language', sa.VARCHAR(), autoincrement=False, nullable=True, comment='Language of the dependency. '),
+sa.Column('pull_request_info', sa.VARCHAR(), autoincrement=False, nullable=True, comment='This is a representation of the repo:branch information in the pull request. Head is issuing the pull request and base is taking the pull request. For example:  (We do not store all of this)\n\n "head": {\n      "label": "chaoss:pull-request-worker",\n      "ref": "pull-request-worke') 
