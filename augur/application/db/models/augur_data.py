@@ -536,6 +536,9 @@ class Platform(Base):
     data_source = Column(String)
     data_collection_date = Column(TIMESTAMP(precision=0))
 
+    pretty_name = Column(String(255))
+    enabled = Column(Boolean, default=True)
+
 
 class RepoGroup(Base):
     __tablename__ = "repo_groups"

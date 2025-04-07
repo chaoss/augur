@@ -5,6 +5,7 @@ from typing import List, Any, Optional
 import os
 from augur.application.db.models import Config 
 from augur.application.db.util import execute_session_query
+from augur.application.db.bulk_operations import BulkOperationHandler
 
 def get_development_flag_from_config():
     
@@ -273,35 +274,8 @@ class AugurConfig():
                     "type": data_type # optional
                 }
         """
-        for setting in settings:
-
-            if "type" not in setting:
-                setting["type"] = setting["value"].__class__.__name__
-
-            if setting["type"] == "NoneType":
-                setting["type"] = None
-
-        #print(f"\nsetting: {settings}")
-        #self.session.insert_data(settings,Config, ["section_name", "setting_name"])
-
-            #Check if setting exists.
-            query = self.session.query(Config).filter(and_(Config.section_name == setting["section_name"],Config.setting_name == setting["setting_name"]) )
-
-            if execute_session_query(query, 'first') is None:
-                # TODO: Update to use bulk insert dicts so config doesn't require database session
-                self.session.insert_data(setting,Config, ["section_name", "setting_name"])
-            else:
-                #If setting exists. use raw update to not increase autoincrement
-                update_query = (
-                    update(Config)
-                    .where(Config.section_name == setting["section_name"])
-                    .where(Config.setting_name == setting["setting_name"])
-                    .values(value=setting["value"])
-                )
-
-                self.session.execute(update_query)
-                self.session.commit()
-       
+        handler = BulkOperationHandler(self.logger)
+        handler.bulk_config_update(settings, Config, session=self.session)
 
     def add_section_from_json(self, section_name: str, json_data: dict) -> None:
         """Add a section from a dict.

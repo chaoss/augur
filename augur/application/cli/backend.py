@@ -133,7 +133,7 @@ def start(ctx, disable_collection, development, pidfile, port):
             return
         
         # load keys
-        ghkeyman = GithubApiKeyHandler(logger)
+        ghkeyman = GithubApiKeyHandler(logger, session)
         glkeyman = GitlabApiKeyHandler(logger)
 
         for key in ghkeyman.keys:

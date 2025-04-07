@@ -6,6 +6,9 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import relationship
 from werkzeug.security import generate_password_hash, check_password_hash
 from typing import List
+import sqlalchemy as sa
+from sqlalchemy import JSON
+
 
 import logging
 import secrets
@@ -188,6 +191,8 @@ class WorkerOauth(Base):
     access_token_secret = Column(String(255), nullable=False)
     repo_directory = Column(String)
     platform = Column(String, server_default=text("'github'::character varying"))
+    #platform_features = Column(sa.JSON)
+    platform_features = Column(JSON, nullable=True)
 
 
 class WorkerSettingsFacade(Base):

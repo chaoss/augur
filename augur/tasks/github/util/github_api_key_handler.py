@@ -4,6 +4,7 @@ import random
 
 from typing import List
 from sqlalchemy.orm import Session
+from augur.util.keycloak import KeyClient
 
 from augur.tasks.util.redis_list import RedisList
 from augur.application.db.lib import get_value, get_worker_oauth_keys
@@ -26,20 +27,31 @@ class GithubApiKeyHandler():
         config_key (str): The api key that is stored in the users config table
         key: (List[str]): List of keys retrieve from database or cache
     """
-
-    def __init__(self, logger):
-
+    
+    def __init__(self, logger, session):
         self.logger = logger
+        self.session = session
 
+        # Initialize KeyClient for dynamic GitHub token management
+        self.key_client = KeyClient(session, platform="github")
+
+        # 🟡 Optionally keep redis stuff for fallback if needed
         self.oauth_redis_key = "github_oauth_keys_list"
-
         self.redis_key_list = RedisList(self.oauth_redis_key)
 
-        self.config_key = self.get_config_key()
+        # 🟡 COMMENT OUT these legacy calls (↓)
+        # self.config_key = self.get_config_key()
+        # self.keys = self.get_api_keys()
 
-        self.keys = self.get_api_keys()
+        # ✅ NEW replacement using KeyClient
+        try:
+            self.keys = [self.key_client.get_key_for_feature("rest")]
+            self.logger.info(f"Retrieved GitHub API key using KeyClient.")
+        except Exception as e:
+            self.logger.error(f"Failed to retrieve GitHub key from KeyClient: {e}")
+            self.keys = []
 
-        self.logger.info(f"Retrieved {len(self.keys)} github api keys for use")
+
 
     def get_random_key(self):
         """Retrieves a random key from the list of keys
