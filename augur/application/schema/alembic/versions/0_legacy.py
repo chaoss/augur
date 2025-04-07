@@ -63,13 +63,13 @@ def upgrade():
     )
     for legacy_migration_filename in ordered_legacy_migrations:
         legacy_migration_file_path = legacy_folder / legacy_migration_filename
-        with legacy_migration_file_path.open() as legacy_migration_file:
+        with legacy_migration_file_path.open(encoding="utf-8") as legacy_migration_file:
             logger.info(f"Running legacy migration {legacy_migration_filename}")
             op.execute(legacy_migration_file.read())
 
     # execute the commit.sql file at then end of all the sql files to COMMIT everything in the first revision
     commit_file_path = str(legacy_folder) + "/commit.sql"
-    with open(commit_file_path, "r") as commit_file:
+    with open(commit_file_path, "r", encoding="utf-8") as commit_file:
         op.execute(commit_file.read())
 
 
