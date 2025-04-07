@@ -9,15 +9,23 @@ from psycopg2.errors import DeadlockDetected
 import time
 import random
 
+
 class BulkOperationError(Exception):
     """Custom exception for bulk operation errors."""
     pass
 
+
 class BulkOperationHandler:
-    """Handles bulk database operations with improved error handling and performance."""
-    
-    def __init__(self, logger: logging.Logger, max_retries: int = 10, 
-                 initial_backoff: float = 1.0, max_backoff: float = 30.0):
+    """Handles bulk database operations with improved error handling and
+    performance."""
+
+    def __init__(
+        self,
+        logger: logging.Logger,
+        max_retries: int = 10,
+        initial_backoff: float = 1.0,
+        max_backoff: float = 30.0
+    ):
         self.logger = logger
         self.max_retries = max_retries
         self.initial_backoff = initial_backoff
@@ -29,7 +37,12 @@ class BulkOperationHandler:
         jitter = random.uniform(0, 0.1 * backoff)
         return backoff + jitter
 
-    def _handle_deadlock(self, attempt: int, operation: str, data_size: int) -> None:
+    def _handle_deadlock(
+        self,
+        attempt: int,
+        operation: str,
+        data_size: int
+    ) -> None:
         """Handle deadlock with exponential backoff."""
         backoff = self._calculate_backoff(attempt)
         self.logger.debug(
@@ -40,25 +53,34 @@ class BulkOperationHandler:
         )
         time.sleep(backoff)
 
-    def _handle_data_error(self, error: DataError, data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def _handle_data_error(
+        self,
+        error: DataError,
+        data: List[Dict[str, Any]]
+    ) -> List[Dict[str, Any]]:
         """Handle data errors by cleaning and validating data."""
         cleaned_data = []
         for item in data:
             try:
                 # Add data cleaning logic here
                 cleaned_data.append(item)
-            except Exception as e:
-                self.logger.warning(f"Failed to clean data item: {e}")
+            except Exception:
+                self.logger.warning("Failed to clean data item")
                 continue
         return cleaned_data
 
-    def bulk_insert(self, data: Union[List[dict], dict], table, 
-                   natural_keys: List[str], return_columns: Optional[List[str]] = None,
-                   string_fields: Optional[List[str]] = None,
-                   on_conflict_update: bool = True) -> Optional[List[dict]]:
+    def bulk_insert(
+        self,
+        data: Union[List[dict], dict],
+        table,
+        natural_keys: List[str],
+        return_columns: Optional[List[str]] = None,
+        string_fields: Optional[List[str]] = None,
+        on_conflict_update: bool = True
+    ) -> Optional[List[dict]]:
         """
         Improved bulk insert operation with better error handling.
-        
+
         Args:
             data: Data to insert
             table: SQLAlchemy table
@@ -66,7 +88,7 @@ class BulkOperationHandler:
             return_columns: Columns to return after insert
             string_fields: String fields that need special handling
             on_conflict_update: Whether to update on conflict
-            
+
         Returns:
             Optional[List[dict]]: Returned data if return_columns specified
         """
@@ -81,8 +103,11 @@ class BulkOperationHandler:
             try:
                 # Prepare the insert statement
                 stmnt = self._prepare_insert_statement(
-                    table, data, natural_keys, 
-                    return_columns, string_fields, 
+                    table,
+                    data,
+                    natural_keys,
+                    return_columns,
+                    string_fields,
                     on_conflict_update
                 )
 
@@ -90,14 +115,19 @@ class BulkOperationHandler:
                 with table.metadata.bind.begin() as connection:
                     if return_columns:
                         result = connection.execute(stmnt)
-                        return [dict(row) for row in result.mappings()]
-                    else:
-                        connection.execute(stmnt)
-                        return None
+                        return [
+                            dict(row) for row in result.mappings()
+                        ]
+                    connection.execute(stmnt)
+                    return None
 
             except OperationalError as e:
                 if isinstance(e.orig, DeadlockDetected):
-                    self._handle_deadlock(attempt, "bulk insert", len(data))
+                    self._handle_deadlock(
+                        attempt,
+                        "bulk insert",
+                        len(data)
+                    )
                     attempt += 1
                     continue
                 raise
@@ -105,39 +135,57 @@ class BulkOperationHandler:
             except DataError as e:
                 cleaned_data = self._handle_data_error(e, data)
                 if not cleaned_data:
-                    raise BulkOperationError("All data items failed validation")
+                    raise BulkOperationError(
+                        "All data items failed validation"
+                    )
                 data = cleaned_data
                 continue
 
-            except Exception as e:
+            except Exception:
                 if len(data) == 1:
                     raise
-                
+
                 # Split data and retry with smaller batches
                 mid = len(data) // 2
                 first_half = self.bulk_insert(
-                    data[:mid], table, natural_keys,
-                    return_columns, string_fields, on_conflict_update
+                    data[:mid],
+                    table,
+                    natural_keys,
+                    return_columns,
+                    string_fields,
+                    on_conflict_update
                 )
                 second_half = self.bulk_insert(
-                    data[mid:], table, natural_keys,
-                    return_columns, string_fields, on_conflict_update
+                    data[mid:],
+                    table,
+                    natural_keys,
+                    return_columns,
+                    string_fields,
+                    on_conflict_update
                 )
-                
+
                 if return_columns:
-                    return (first_half or []) + (second_half or [])
+                    return (
+                        (first_half or []) +
+                        (second_half or [])
+                    )
                 return None
 
         raise BulkOperationError(
-            f"Failed to complete bulk insert after {self.max_retries} attempts"
+            "Failed to complete bulk insert after "
+            f"{self.max_retries} attempts"
         )
 
-    def _prepare_insert_statement(self, table, data: List[dict],
-                                natural_keys: List[str],
-                                return_columns: Optional[List[str]],
-                                string_fields: Optional[List[str]],
-                                on_conflict_update: bool) -> text:
+    def _prepare_insert_statement(
+        self,
+        table,
+        data: List[dict],
+        natural_keys: List[str],
+        return_columns: Optional[List[str]],
+        string_fields: Optional[List[str]],
+        on_conflict_update: bool
+    ) -> text:
         """Prepare the SQL insert statement."""
         # Implementation of statement preparation
         # This would include the actual SQL generation logic
-        pass 
+        pass
