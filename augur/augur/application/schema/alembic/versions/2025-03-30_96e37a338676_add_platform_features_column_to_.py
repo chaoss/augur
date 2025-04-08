@@ -6,7 +6,7 @@ def upgrade():
     op.add_column('platform_features', sa.Column('dep_name', sa.VARCHAR(), autoincrement=False, nullable=True, comment='Name of the dependency found in project.'))
     op.add_column('platform_features', sa.Column('dep_count', sa.INTEGER(), autoincrement=False, nullable=True, comment='Number of times the dependency was found.'))
     op.add_column('platform_features', sa.Column('dep_language', sa.VARCHAR(), autoincrement=False, nullable=True, comment='Language of the dependency.'))
-    op.add_column('platform_features', sa.Column('pull_request_info', sa.Text(), nullable=True, comment='Information about dependency analyzes'))
+    op.add_column('platform_features', sa.Column('pull_request_info', sa.Text(), nullable=True, comment='This is a representation of the repo:branch information in the pull request. Head is issuing the pull request and base is taking the pull request. For example: (We do not store all of this)\n\n "head": {\n      "label": "chaoss:pull-request-worker",\n      "ref": "pull-request-worke'))
 
 def downgrade():
     op.drop_column('platform_features', 'worker_run_id')
