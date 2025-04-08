@@ -141,7 +141,7 @@ def get_repo_commit_count(logger, facade_helper, repo_git):
 	repo = get_repo_by_repo_git(repo_git)
     
 	absolute_path = get_absolute_repo_path(facade_helper.repo_base_directory, repo.repo_id, repo.repo_path,repo.repo_name)
-	repo_loc = (f"{absolute_path}/.git")
+	repo_loc = (f"{absolute_path}.git")
 
 	logger.debug(f"loc: {repo_loc}")
 	logger.debug(f"path: {repo.repo_path}")
