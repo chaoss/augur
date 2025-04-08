@@ -37,3 +37,5 @@ GSoC Mentors
 | --- | --- | --- | --- | --- | --- |
 | Your Name Here | Your Email Here |  Idea You Hoping to Work On | Link to your Mico-task Repo | Link to Your Proposal | YES/NO |
 
+- [Sahzad Hussain](https://github.com/gluonicboom/augur) | [Microtask 2 Work](https://github.com/gluonicboom/augur/blob/gsoc-microtask-2/gsoc/2025/microtask-2-sahzad.md)
+
