@@ -59,6 +59,9 @@ def get_language_deps(path, language, name,logger):
 		except FileNotFoundError as e:
 			logger.error(f"Given file not found!\n file: {f}\n path: {path}\n Error: {e}")
 			return []
+		except Exception as e:
+			logger.error(f"Unexpected error processing file {f} at path: {path}\n Error: {e}")
+			return []
 
 		if f_deps is None:
 			continue

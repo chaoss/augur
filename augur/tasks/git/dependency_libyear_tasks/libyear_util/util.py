@@ -37,48 +37,47 @@ def get_parsed_deps(path,logger):
 
         if not deps_file or not f:
             continue
-        file_handle= open(deps_file)
+        with open(deps_file) as file_handle:
+            short_file_name = os.path.split(deps_file)[-1]
 
-        short_file_name = os.path.split(deps_file)[-1]
-
-        if short_file_name == 'Requirement.txt':
-            dependency_list.extend(parse_requirement_txt(file_handle))
-        
-        if short_file_name == 'requirements.txt':
-            dependency_list.extend(parse_requirement_txt(file_handle))
-
-        if short_file_name == 'setup.py':
-            dependency_list.extend(parse_setup_py(file_handle))
-
-        if short_file_name == 'Pipfile':
-            dependency_list.extend(parse_pipfile(file_handle))
-
-        if short_file_name == 'Pipfile.lock':
-            dependency_list.extend(parse_pipfile_lock(file_handle))
-
-        if short_file_name == 'pyproject.toml':
-            dependency_list.extend(parse_poetry(file_handle))
-
-        if short_file_name == 'poetry.lock':
-            dependency_list.extend(parse_poetry_lock(file_handle))
-
-        if short_file_name == 'environment.yml':
-            dependency_list.extend(parse_conda(file_handle))
-
-        if short_file_name == 'environment.yaml':
-            dependency_list.extend(parse_conda(file_handle))
-
-        if f == 'environment.yml.lock':
-            dependency_list.extend(parse_conda(file_handle))
-
-        if short_file_name == 'environment.yaml.lock':
-            dependency_list.extend(parse_conda(file_handle)) 
+            if short_file_name == 'Requirement.txt':
+                dependency_list.extend(parse_requirement_txt(file_handle))
             
-        if short_file_name == 'package.json':
-            try:
-                dependency_list.extend(parse_package_json(file_handle))
-            except KeyError as e:
-                logger.error(f"package.json for repo at path {path} is missing required key: {e}\n Skipping file...")
+            if short_file_name == 'requirements.txt':
+                dependency_list.extend(parse_requirement_txt(file_handle))
+
+            if short_file_name == 'setup.py':
+                dependency_list.extend(parse_setup_py(file_handle))
+
+            if short_file_name == 'Pipfile':
+                dependency_list.extend(parse_pipfile(file_handle))
+
+            if short_file_name == 'Pipfile.lock':
+                dependency_list.extend(parse_pipfile_lock(file_handle))
+
+            if short_file_name == 'pyproject.toml':
+                dependency_list.extend(parse_poetry(file_handle))
+
+            if short_file_name == 'poetry.lock':
+                dependency_list.extend(parse_poetry_lock(file_handle))
+
+            if short_file_name == 'environment.yml':
+                dependency_list.extend(parse_conda(file_handle))
+
+            if short_file_name == 'environment.yaml':
+                dependency_list.extend(parse_conda(file_handle))
+
+            if f == 'environment.yml.lock':
+                dependency_list.extend(parse_conda(file_handle))
+
+            if short_file_name == 'environment.yaml.lock':
+                dependency_list.extend(parse_conda(file_handle)) 
+            
+            if short_file_name == 'package.json':
+                try:
+                    dependency_list.extend(parse_package_json(file_handle))
+                except KeyError as e:
+                    logger.error(f"package.json for repo at path {path} is missing required key: {e}\n Skipping file...")
 
         
     return dependency_list
