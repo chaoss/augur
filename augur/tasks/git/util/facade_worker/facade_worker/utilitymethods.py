@@ -136,10 +136,6 @@ def count_branches(git_dir):
     branches_dir = os.path.join(git_dir, 'refs', 'heads')
     return sum(1 for _ in os.scandir(branches_dir))
 
-import os
-import subprocess
-from subprocess import check_output, CalledProcessError
-
 def get_repo_commit_count(logger, facade_helper, repo_git):
     repo = get_repo_by_repo_git(repo_git)
     
@@ -151,40 +147,43 @@ def get_repo_commit_count(logger, facade_helper, repo_git):
     )
     repo_loc = f"{absolute_path}/.git"
 
-    logger.debug(f"loc: {repo_loc}")
-    logger.debug(f"path: {repo.repo_path}")
+    logger.debug(f"Repository location: {repo_loc}")
+    logger.debug(f"Repository path: {repo.repo_path}")
 
-    # Check if the .git directory exists; if not, try without it.
+    # Determine the correct repository directory.
     if not os.path.exists(repo_loc):
         logger.error(f"Directory not found: {repo_loc}. Trying without '.git' extension.")
         repo_loc = absolute_path 
         if not os.path.exists(repo_loc):
             raise FileNotFoundError(f"Neither {absolute_path} nor {repo_loc} exist.")
 
-    # If there are no branches then the repository is considered empty.
+    # If the repository does not have any branches, it is considered empty.
     if count_branches(repo_loc) == 0:
         logger.info("Repository is empty; no branches found.")
         return 0
 
-    try:
-        # Execute the git command to count commits.
+    def get_commit_count():
+        """Attempt to get commit count using git rev-list."""
         output = check_output(
             ["git", "--git-dir", repo_loc, "rev-list", "--count", "HEAD"],
             stderr=subprocess.PIPE
         )
-        # Decode, strip, and convert output to integer commit count.
-        commit_count = int(output.decode('utf-8').strip())
+        return int(output.decode('utf-8').strip())
+
+    # First attempt to count commits.
+    try:
+        commit_count = get_commit_count()
+        return commit_count
     except CalledProcessError as e:
         stderr_msg = e.stderr.decode('utf-8') if e.stderr else ""
         logger.error(
-            f"Error running git rev-list --count HEAD in {repo_loc}: "
+            f"Error running 'git rev-list --count HEAD' in {repo_loc}: "
             f"Return code {e.returncode}. Stderr: {stderr_msg}"
         )
-        # If error indicates a problem reading a commit object
-        if e.returncode == 128 and "Could not read" in stderr_msg:
-            logger.info("Encountered a 'Could not read' error. Running git fsck and git gc --prune=now.")
-
-            # Attempt to run git fsck.
+        # Check for error indications that might suggest corruption.
+        if e.returncode == 128 and ("Could not read" in stderr_msg or "unknown revision" in stderr_msg.lower()):
+            logger.info("Detected repository issues. Running 'git fsck' and 'git gc --prune=now' to attempt repair.")
+            # Run git fsck.
             try:
                 fsck_output = check_output(
                     ["git", "--git-dir", repo_loc, "fsck"],
@@ -192,9 +191,8 @@ def get_repo_commit_count(logger, facade_helper, repo_git):
                 )
                 logger.info("git fsck output: " + fsck_output.decode('utf-8').strip())
             except Exception as fsck_e:
-                logger.error(f"Error running git fsck: {fsck_e}")
-
-            # Attempt to run git gc with immediate prune.
+                logger.error(f"Error running 'git fsck': {fsck_e}")
+            # Run git gc with prune.
             try:
                 gc_output = check_output(
                     ["git", "--git-dir", repo_loc, "gc", "--prune=now"],
@@ -202,20 +200,25 @@ def get_repo_commit_count(logger, facade_helper, repo_git):
                 )
                 logger.info("git gc --prune=now output: " + gc_output.decode('utf-8').strip())
             except Exception as gc_e:
-                logger.error(f"Error running git gc --prune=now: {gc_e}")
+                logger.error(f"Error running 'git gc --prune=now': {gc_e}")
 
-            return 0
-        elif e.returncode == 128 and "unknown revision" in stderr_msg.lower():
-            logger.info("Encountered an 'unknown revision' error. Interpreting repository as empty.")
-            return 0
+            # Retry the commit count logic.
+            try:
+                commit_count = get_commit_count()
+                return commit_count
+            except CalledProcessError as re:
+                logger.error(
+                    f"Retry of 'git rev-list --count HEAD' failed in {repo_loc}: "
+                    f"Return code {re.returncode}. Stderr: {re.stderr.decode('utf-8') if re.stderr else ''}"
+                )
+                return 0
         else:
-            # For any other unexpected error, re-raise the exception.
+            # If the error does not indicate the expected repository issues, re-raise.
             raise e
+
     except Exception as e:
         logger.error(f"Unexpected error while counting commits: {str(e)}")
         raise e
-
-    return commit_count
 
 def get_facade_weight_time_factor(repo_git):
 
