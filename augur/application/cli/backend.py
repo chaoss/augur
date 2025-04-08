@@ -49,7 +49,90 @@ def cli(ctx):
 @with_database
 @click.pass_context
 def start(ctx, disable_collection, development, pidfile, port):
-    """Start Augur's backend server."""
+    """Start the Augur server with all configured workers"""
+    if development:
+        disable_collection = True
+
+    # Start the server
+    start_server(port)
+
+    # Start workers if collection is enabled
+    if not disable_collection:
+        start_workers()
+
+def start_workers():
+    """Start the worker processes"""
+    worker_processes = determine_worker_processes(0.8, 8)  # 80% of available memory, max 8 processes
+    if worker_processes:
+        start_celery_worker_processes(worker_processes)
+
+def determine_worker_processes(ratio, maximum):
+    """Determine number of worker processes based on available memory"""
+    available_memory = psutil.virtual_memory().available
+    process_memory = 500 * 1024 * 1024  # 500MB per process
+    num_processes = min(int(available_memory * ratio / process_memory), maximum)
+    return max(1, num_processes)  # At least 1 process
+
+def start_celery_worker_processes(num_processes, disable_collection=False):
+    """Start celery worker processes"""
+    if disable_collection:
+        return
+
+    for i in range(num_processes):
+        start_worker_process(i)
+
+def start_worker_process(worker_id):
+    """Start a single worker process"""
+    worker_logger = AugurLogger(f"worker_{worker_id}").get_logger()
+    try:
+        subprocess.Popen(["celery", "-A", "augur.tasks.init.celery_app", "worker", "-l", "info"])
+        worker_logger.info(f"Started worker {worker_id}")
+    except Exception as e:
+        worker_logger.error(f"Failed to start worker {worker_id}: {str(e)}")
+
+@cli.command('stop')
+@test_connection
+@test_db_connection
+@with_database
+@click.pass_context
+def stop(ctx):
+    """Stop the Augur server and workers gracefully"""
+    stop_logger = AugurLogger("stop").get_logger()
+    augur_stop(signal.SIGTERM, stop_logger, ctx.obj.engine)
+
+def augur_stop(stop_signal, stop_logger, engine):
+    """Stop Augur processes with the given signal"""
+    processes = get_augur_processes()
+    if processes:
+        _broadcast_signal_to_processes(processes, stop_signal, stop_logger)
+        cleanup_collection_status_and_rabbit(stop_logger, engine)
+
+def cleanup_collection_status_and_rabbit(cleanup_logger, engine):
+    """Clean up collection status and RabbitMQ"""
+    with DatabaseSession(logger=cleanup_logger) as session:
+        clean_collection_status(session)
+    clear_redis_caches()
+    clear_all_message_queues(os.getenv("RABBITMQ_CONNECTION_STRING"))
+
+def _broadcast_signal_to_processes(process_list, broadcast_signal=signal.SIGTERM, given_logger=None):
+    """Send signal to all processes in the list"""
+    if not process_list:
+        return
+
+    for proc in process_list:
+        try:
+            proc.send_signal(broadcast_signal)
+            if given_logger:
+                given_logger.info(f"Sent signal {broadcast_signal} to process {proc.pid}")
+        except psutil.NoSuchProcess:
+            if given_logger:
+                given_logger.warning(f"Process {proc.pid} no longer exists")
+        except Exception as e:
+            if given_logger:
+                given_logger.error(f"Error sending signal to process {proc.pid}: {str(e)}")
+
+def start_server(port):
+    """Start the server"""
     with open(pidfile, "w") as pidfile_io:
         pidfile_io.write(str(os.getpid()))
         
@@ -62,10 +145,6 @@ def start(ctx, disable_collection, development, pidfile, port):
         
         logger.error("Failed to raise open file limit!")
         raise e
-    
-    if development:
-        os.environ["AUGUR_DEV"] = "1"
-        logger.info("Starting in development mode")
     
     os.environ["AUGUR_PIDFILE"] = pidfile
 
@@ -81,14 +160,6 @@ def start(ctx, disable_collection, development, pidfile, port):
     
     os.environ["AUGUR_PORT"] = str(port)
     
-    if disable_collection:
-        os.environ["AUGUR_DISABLE_COLLECTION"] = "1"
-    
-    worker_vmem_cap = get_value("Celery", 'worker_process_vmem_cap')
-
-    # create rabbit messages so if it failed on shutdown the queues are clean
-    cleanup_collection_status_and_rabbit(logger, ctx.obj.engine)
-
     gunicorn_command = f"gunicorn -c {gunicorn_location} -b {host}:{port} augur.api.server:app --log-file gunicorn.log"
     server = subprocess.Popen(gunicorn_command.split(" "))
 
@@ -111,8 +182,6 @@ def start(ctx, disable_collection, development, pidfile, port):
     logger.info('Gunicorn webserver started...')
     logger.info(f'Augur is running at: {"http" if development else "https"}://{host}:{port}')
     logger.info(f"The API is available at '{api_response.json()['route']}'")
-
-    processes = start_celery_worker_processes(float(worker_vmem_cap), disable_collection)
 
     if os.path.exists("celerybeat-schedule.db"):
             logger.info("Deleting old task schedule")
@@ -171,7 +240,7 @@ def start(ctx, disable_collection, development, pidfile, port):
             server.terminate()
 
         logger.info("Shutting down all celery worker processes")
-        for p in processes:
+        for p in process_list:
             if p:
                 p.terminate()
 
@@ -188,164 +257,6 @@ def start(ctx, disable_collection, development, pidfile, port):
                 pass
             
     os.unlink(pidfile)
-
-def start_celery_worker_processes(vmem_cap_ratio, disable_collection=False):
-
-    #Calculate process scaling based on how much memory is available on the system in bytes.
-    #Each celery process takes ~500MB or 500 * 1024^2 bytes
-
-    process_list = []
-
-    #Cap memory usage to 30% of total virtual memory
-    available_memory_in_bytes = psutil.virtual_memory().total * vmem_cap_ratio
-    available_memory_in_megabytes = available_memory_in_bytes / (1024 ** 2)
-    max_process_estimate = available_memory_in_megabytes // 500
-    sleep_time = 0
-
-    #Get a subset of the maximum procesess available using a ratio, not exceeding a maximum value
-    def determine_worker_processes(ratio,maximum):
-        return max(min(round(max_process_estimate * ratio),maximum),1)
-    
-    frontend_worker = f"celery -A augur.tasks.init.celery_app.celery_app worker -l info --concurrency=1 -n frontend:{uuid.uuid4().hex}@%h -Q frontend"
-    max_process_estimate -= 1
-    process_list.append(subprocess.Popen(frontend_worker.split(" ")))
-    sleep_time += 6
-
-    if not disable_collection:
-
-        #2 processes are always reserved as a baseline.
-        scheduling_worker = f"celery -A augur.tasks.init.celery_app.celery_app worker -l info --concurrency=2 -n scheduling:{uuid.uuid4().hex}@%h -Q scheduling"
-        max_process_estimate -= 2
-        process_list.append(subprocess.Popen(scheduling_worker.split(" ")))
-        sleep_time += 6
-
-        #60% of estimate, Maximum value of 45 : Reduced because it can be lower
-        core_num_processes = determine_worker_processes(.40, 90)
-        logger.info(f"Starting core worker processes with concurrency={core_num_processes}")
-        core_worker = f"celery -A augur.tasks.init.celery_app.celery_app worker -l info --concurrency={core_num_processes} -n core:{uuid.uuid4().hex}@%h"
-        process_list.append(subprocess.Popen(core_worker.split(" ")))
-        sleep_time += 6
-
-        #20% of estimate, Maximum value of 25
-        secondary_num_processes = determine_worker_processes(.39, 50)
-        logger.info(f"Starting secondary worker processes with concurrency={secondary_num_processes}")
-        secondary_worker = f"celery -A augur.tasks.init.celery_app.celery_app worker -l info --concurrency={secondary_num_processes} -n secondary:{uuid.uuid4().hex}@%h -Q secondary"
-        process_list.append(subprocess.Popen(secondary_worker.split(" ")))
-        sleep_time += 6
-
-        #15% of estimate, Maximum value of 20
-        facade_num_processes = determine_worker_processes(.17, 20)
-        logger.info(f"Starting facade worker processes with concurrency={facade_num_processes}")
-        facade_worker = f"celery -A augur.tasks.init.celery_app.celery_app worker -l info --concurrency={facade_num_processes} -n facade:{uuid.uuid4().hex}@%h -Q facade"
-        
-        process_list.append(subprocess.Popen(facade_worker.split(" ")))
-        sleep_time += 6
-
-    time.sleep(sleep_time)
-
-    return process_list
-
-
-@cli.command('stop')
-@test_connection
-@test_db_connection
-@with_database
-@click.pass_context
-def stop(ctx):
-    """
-    Sends SIGTERM to all Augur server & worker processes
-    """
-    logger = logging.getLogger("augur.cli")
-
-    augur_stop(signal.SIGTERM, logger, ctx.obj.engine)
-
-@cli.command('stop-collection-blocking')
-@test_connection
-@test_db_connection
-@with_database
-@click.pass_context
-def stop_collection(ctx):
-    """
-    Stop collection tasks if they are running, block until complete
-    """
-    processes = get_augur_processes()
-    
-    stopped = []
-    
-    p: psutil.Process
-    for p in processes:
-        if p.name() == "celery":
-            stopped.append(p)
-            p.terminate()
-    
-    if not len(stopped):
-        logger.info("No collection processes found")
-        return
-    
-    _, alive = psutil.wait_procs(stopped, 5,
-                                 lambda p: logger.info(f"STOPPED: {p.pid}"))
-    
-    killed = []
-    while True:
-        for i in range(len(alive)):
-            if alive[i].status() == psutil.STATUS_ZOMBIE:
-                logger.info(f"KILLING ZOMBIE: {alive[i].pid}")
-                alive[i].kill()
-                killed.append(i)
-            elif not alive[i].is_running():
-                logger.info(f"STOPPED: {p.pid}")
-                killed.append(i)
-        
-        for i in reversed(killed):
-            alive.pop(i)
-        
-        if not len(alive):
-            break
-        
-        logger.info(f"Waiting on [{', '.join(str(p.pid for p in alive))}]")
-        time.sleep(0.5)
-    
-    cleanup_collection_status_and_rabbit(logger, ctx.obj.engine)
-
-@cli.command('kill')
-@test_connection
-@test_db_connection
-@with_database
-@click.pass_context
-def kill(ctx):
-    """
-    Sends SIGKILL to all Augur server & worker processes
-    """
-    logger = logging.getLogger("augur.cli")
-    augur_stop(signal.SIGKILL, logger, ctx.obj.engine)
-
-
-def augur_stop(signal, logger, engine):
-    """
-    Stops augur with the given signal, 
-    and cleans up collection if it was running
-    """
-
-    augur_processes = get_augur_processes()
-    # if celery is running, run the cleanup function
-    process_names = [process.name() for process in augur_processes]
-
-    _broadcast_signal_to_processes(augur_processes, broadcast_signal=signal, given_logger=logger)
-
-    if "celery" in process_names:
-        cleanup_collection_status_and_rabbit(logger, engine)
-
-
-def cleanup_collection_status_and_rabbit(logger, engine):
-    clear_redis_caches()
-
-    connection_string = get_value("RabbitMQ", "connection_string")
-
-    with DatabaseSession(logger, engine=engine) as session:
-
-        clean_collection_status(session)
-
-    clear_rabbitmq_messages(connection_string)
 
 def clear_redis_caches():
     """Clears the redis databases that celery and redis use."""
@@ -484,20 +395,6 @@ def get_augur_processes():
             except (KeyError, FileNotFoundError):
                 pass
     return augur_processes
-
-def _broadcast_signal_to_processes(processes, broadcast_signal=signal.SIGTERM, given_logger=None):
-    if given_logger is None:
-        _logger = logger
-    else:
-        _logger = given_logger
-    for process in processes:
-        if process.pid != os.getpid():
-            logger.info(f"Stopping process {process.pid}")
-            try:
-                process.send_signal(broadcast_signal)
-            except psutil.NoSuchProcess:
-                pass
-
 
 def raise_open_file_limit(num_files):
     """
