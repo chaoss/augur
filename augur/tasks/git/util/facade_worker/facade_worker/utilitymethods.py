@@ -34,7 +34,7 @@ from .config import FacadeHelper as FacadeHelper
 from augur.tasks.util.worker_util import calculate_date_weight_from_timestamps
 from augur.application.db.lib import execute_sql, fetchall_data_from_sql_text, remove_working_commits_by_repo_id_and_hashes, remove_commits_by_repo_id_and_hashes, get_repo_by_repo_git, get_session
 from augur.application.db.util import execute_session_query
-import glob 
+from glob import glob 
 #from augur.tasks.git.util.facade_worker.facade
 
 def update_repo_log(logger, facade_helper, repos_id,status):
