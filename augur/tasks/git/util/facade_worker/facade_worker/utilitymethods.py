@@ -137,6 +137,34 @@ def count_branches(git_dir):
     branches_dir = os.path.join(git_dir, 'refs', 'heads')
     return sum(1 for _ in os.scandir(branches_dir))
 
+def get_remote_default_branch(absolute_path, logger):
+    """
+    Determine the default branch from the remote by parsing the output of:
+      git remote show origin
+    Looks for a line starting with "HEAD branch:" and returns it as "origin/<branch>".
+    Falls back to "origin/main" on error.
+    """
+    try:
+        output = check_output(
+            ["git", "remote", "show", "origin"],
+            cwd=absolute_path,
+            stderr=subprocess.PIPE
+        )
+        output_text = output.decode("utf-8")
+        for line in output_text.splitlines():
+            line = line.strip()
+            if line.startswith("HEAD branch:"):
+                # For example: "HEAD branch: main"
+                parts = line.split(":")
+                if len(parts) > 1:
+                    default_branch = parts[1].strip()
+                    logger.info(f"Detected remote default branch: {default_branch}")
+                    return f"origin/{default_branch}"
+    except Exception as e:
+        logger.error(f"Error determining remote default branch: {e}")
+    # Fallback.
+    return "origin/main"
+
 def remove_corrupted_pack_files(repo_loc, logger):
     """
     Remove any pack (*.pack) and index (*.idx) files from the repository's pack directory.
@@ -144,8 +172,8 @@ def remove_corrupted_pack_files(repo_loc, logger):
     or invalid index-pack output.
     """
     pack_dir = os.path.join(repo_loc, "objects", "pack")
-    pack_files = glob.glob(os.path.join(pack_dir, "pack-*.pack"))
-    idx_files = glob.glob(os.path.join(pack_dir, "pack-*.idx"))
+    pack_files = glob(os.path.join(pack_dir, "pack-*.pack"))
+    idx_files = glob(os.path.join(pack_dir, "pack-*.idx"))
     files_removed = False
 
     for f in pack_files + idx_files:
@@ -159,20 +187,29 @@ def remove_corrupted_pack_files(repo_loc, logger):
     if not files_removed:
         logger.info("No corrupted pack files found to remove.")
 
-def fix_remote_reference(logger, absolute_path, repo_loc, bad_ref):
+def fix_remote_reference(logger, absolute_path, repo_loc, bad_ref, remote_branch=None):
     """
     Attempt to fix a known bad remote-tracking reference by running a series of commands:
     
-      1. Remove the bad ref (git update-ref -d).
-      2. Prune the remote tracking references (git remote prune origin).
-      3. Remove the bad ref once more.
-      4. Stash local changes (git stash) and pull the latest changes (git pull),
-         executed in the working tree.
+      1. Remove the bad ref using 'git update-ref -d'.
+      2. Prune remote-tracking references.
+      3. Remove the bad ref again.
+      4. Force a fetch of all objects.
+      5. Hard-reset the working tree to the remote's primary branch.
+      6. Clean out untracked files.
+    
+    The remote branch is determined dynamically unless provided.
     """
+    if not remote_branch:
+        remote_branch = get_remote_default_branch(absolute_path, logger)
+    
     commands = [
-        (["git", "--git-dir", repo_loc, "update-ref", "-d", bad_ref], "Removing bad remote reference"),
-        (["git", "--git-dir", repo_loc, "remote", "prune", "origin"], "Pruning remote references"),
-        (["git", "--git-dir", repo_loc, "update-ref", "-d", bad_ref], "Removing bad remote reference (again)"),
+        (["git", "--git-dir", repo_loc, "update-ref", "-d", bad_ref],
+         "Removing bad remote reference"),
+        (["git", "--git-dir", repo_loc, "remote", "prune", "origin"],
+         "Pruning remote references"),
+        (["git", "--git-dir", repo_loc, "update-ref", "-d", bad_ref],
+         "Removing bad remote reference (again)")
     ]
     
     for cmd, desc in commands:
@@ -182,10 +219,13 @@ def fix_remote_reference(logger, absolute_path, repo_loc, bad_ref):
         except Exception as e:
             logger.error(f"Error running {desc}: {e}")
     
-    # For commands that apply to the working tree, set cwd to the repository's base directory.
     working_commands = [
-        (["git", "stash"], "Stashing local changes"),
-        (["git", "pull"], "Pulling latest changes")
+        (["git", "--git-dir", repo_loc, "fetch", "--all", "--force"],
+         "Fetching all objects"),
+        (["git", "reset", "--hard", remote_branch],
+         "Hard reset to remote branch"),
+        (["git", "clean", "-fdx"],
+         "Cleaning untracked files")
     ]
     
     for cmd, desc in working_commands:
@@ -197,10 +237,11 @@ def fix_remote_reference(logger, absolute_path, repo_loc, bad_ref):
 
 def get_repo_commit_count(logger, facade_helper, repo_git):
     """
-    Retrieve the commit count from a repository. If errors are encountered (for instance,
-    due to repository corruption or a bad remote ref), this method runs a sequence of repair
-    commands (including fsck, gc, fetch, repack, removing corrupted pack files, and fixing a bad 
-    remote reference) before retrying the commit count operation.
+    Retrieve the commit count from the repository. If a CalledProcessError with return code
+    128 is encountered, this method runs a series of repair commands (fsck, gc, fetch, repack,
+    removing corrupted pack files, and fixing a bad remote reference) before retrying.
+    The goal is to ensure that the repository is up-to-date with the remote and that no extraneous
+    local files are created.
     """
     repo = get_repo_by_repo_git(repo_git)
     
@@ -243,7 +284,7 @@ def get_repo_commit_count(logger, facade_helper, repo_git):
             f"{initial_error.returncode}: {stderr_msg}"
         )
         
-        # If the error returns code 128, assume corruption-related issues.
+        # Treat any error with code 128 as a sign of repository issues.
         if initial_error.returncode == 128:
             logger.info("Return code 128 detected. Running maintenance commands to repair repository.")
             
@@ -257,7 +298,7 @@ def get_repo_commit_count(logger, facade_helper, repo_git):
             for cmd, desc in maintenance_commands:
                 try:
                     output = check_output(cmd, stderr=subprocess.PIPE)
-                    logger.info(f"{desc} output: " + output.decode("utf-8").strip())
+                    logger.info(f"{desc} output: {output.decode('utf-8').strip()}")
                 except Exception as cmd_error:
                     logger.error(f"Error running {desc}: {cmd_error}")
             
