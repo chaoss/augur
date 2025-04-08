@@ -136,9 +136,28 @@ def count_branches(git_dir):
     branches_dir = os.path.join(git_dir, 'refs', 'heads')
     return sum(1 for _ in os.scandir(branches_dir))
 
-import os
-import subprocess
-from subprocess import check_output, CalledProcessError
+
+def remove_corrupted_pack_files(repo_loc, logger):
+    """
+    Remove any pack (*.pack) and index (*.idx) files from the repository's pack directory.
+    This can help clear out corrupted pack files that cause "unresolved deltas" or 
+    "invalid index-pack" errors.
+    """
+    pack_dir = os.path.join(repo_loc, "objects", "pack")
+    pack_files = glob(os.path.join(pack_dir, "pack-*.pack"))
+    idx_files = glob(os.path.join(pack_dir, "pack-*.idx"))
+    files_removed = False
+
+    for f in pack_files + idx_files:
+        try:
+            os.remove(f)
+            logger.info(f"Removed corrupted pack file: {f}")
+            files_removed = True
+        except Exception as ex:
+            logger.error(f"Failed to remove pack file {f}: {ex}")
+
+    if not files_removed:
+        logger.info("No corrupted pack files found to remove.")
 
 def get_repo_commit_count(logger, facade_helper, repo_git):
     repo = get_repo_by_repo_git(repo_git)
@@ -149,75 +168,89 @@ def get_repo_commit_count(logger, facade_helper, repo_git):
         repo.repo_path,
         repo.repo_name
     )
+    # The expected repository directory is the .git folder.
     repo_loc = f"{absolute_path}/.git"
-
+    
     logger.debug(f"Repository location: {repo_loc}")
     logger.debug(f"Repository path: {repo.repo_path}")
 
-    # Use the base path if the .git directory is not found.
+    # If the .git directory does not exist, fall back to the base repository path.
     if not os.path.exists(repo_loc):
         logger.error(f"Directory not found: {repo_loc}. Trying without '.git' extension.")
         repo_loc = absolute_path 
         if not os.path.exists(repo_loc):
             raise FileNotFoundError(f"Neither {absolute_path} nor {repo_loc} exist.")
-
-    # If the repository has no branches then it is considered empty.
+    
+    # If there are no branches in the repository, treat it as empty.
     if count_branches(repo_loc) == 0:
         logger.info("Repository is empty; no branches found.")
         return 0
-
+    
     def attempt_get_commit_count():
-        """Attempt to get the commit count via git rev-list."""
+        """Run git rev-list to obtain the commit count."""
         output = check_output(
             ["git", "--git-dir", repo_loc, "rev-list", "--count", "HEAD"],
             stderr=subprocess.PIPE
         )
-        return int(output.decode('utf-8').strip())
-
-    # First attempt at commit count.
+        return int(output.decode("utf-8").strip())
+    
     try:
         return attempt_get_commit_count()
+    
     except CalledProcessError as initial_error:
-        stderr_msg = initial_error.stderr.decode('utf-8') if initial_error.stderr else ""
+        stderr_msg = (initial_error.stderr.decode("utf-8") 
+                      if initial_error.stderr else "")
         logger.error(
-            f"Initial git rev-list failed in {repo_loc} with return code {initial_error.returncode}: {stderr_msg}"
+            f"Initial git rev-list failed in {repo_loc} with return code "
+            f"{initial_error.returncode}: {stderr_msg}"
         )
-
-        # Check if the error message suggests repository corruption or missing objects.
-        if (initial_error.returncode == 128 and (
+        
+        # Check for errors that indicate repository corruption.
+        if initial_error.returncode == 128 and (
             "could not read" in stderr_msg.lower() or
             "did not send all necessary objects" in stderr_msg.lower() or
-            "unknown revision" in stderr_msg.lower()
-        )):
-            logger.info("Detected repository issues. Running maintenance commands to attempt repair.")
-
-            # List of maintenance commands to run
+            "unknown revision" in stderr_msg.lower() or
+            "unresolved deltas" in stderr_msg.lower() or
+            "invalid index-pack" in stderr_msg.lower()
+        ):
+            logger.info("Detected repository issues. Running maintenance commands to repair.")
+            
+            # List of maintenance commands to run.
             maintenance_commands = [
                 (["git", "--git-dir", repo_loc, "fsck"], "git fsck"),
                 (["git", "--git-dir", repo_loc, "gc", "--prune=now"], "git gc --prune=now"),
                 (["git", "--git-dir", repo_loc, "fetch", "--all", "--force"], "git fetch --all --force"),
                 (["git", "--git-dir", repo_loc, "repack", "-a", "-d"], "git repack -a -d")
             ]
-
-            # Execute each maintenance command.
+            
             for cmd, desc in maintenance_commands:
                 try:
                     output = check_output(cmd, stderr=subprocess.PIPE)
-                    logger.info(f"{desc} output: " + output.decode('utf-8').strip())
+                    logger.info(f"{desc} output: " + output.decode("utf-8").strip())
                 except Exception as cmd_error:
                     logger.error(f"Error running {desc}: {cmd_error}")
-
-            # Now retry the commit count.
+            
+            # If the error message indicates pack problems, attempt to remove corrupted pack files.
+            if ("unresolved deltas" in stderr_msg.lower() or 
+                "invalid index-pack" in stderr_msg.lower()):
+                try:
+                    remove_corrupted_pack_files(repo_loc, logger)
+                except Exception as remove_e:
+                    logger.error(f"Error removing corrupted pack files: {remove_e}")
+            
+            # Retry the commit count after performing the maintenance.
             try:
                 return attempt_get_commit_count()
             except CalledProcessError as retry_error:
-                retry_stderr = retry_error.stderr.decode('utf-8') if retry_error.stderr else ""
+                retry_stderr = (retry_error.stderr.decode("utf-8")
+                                if retry_error.stderr else "")
                 logger.error(
-                    f"Retry of git rev-list failed in {repo_loc} with return code {retry_error.returncode}: {retry_stderr}"
+                    f"Retry of git rev-list failed in {repo_loc} with return code "
+                    f"{retry_error.returncode}: {retry_stderr}"
                 )
                 return 0
         else:
-            # Re-raise if the error is not one of the expected repository issues.
+            # If the error doesn't match our expected repository corruption issues, re-raise.
             raise initial_error
 
     except Exception as e:
