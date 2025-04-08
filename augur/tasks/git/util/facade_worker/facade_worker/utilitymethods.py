@@ -226,6 +226,7 @@ def get_repo_commit_count(logger, facade_helper, repo_git):
 	commit_count = int(check_commit_count_cmd)
 
 	return commit_count
+"""
 
 def get_facade_weight_time_factor(repo_git):
 
@@ -271,4 +272,3 @@ def update_facade_scheduling_fields(repo_git, weight, commit_count):
 
 
 
-"""
