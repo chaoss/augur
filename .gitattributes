@@ -1,0 +1,5 @@
+# Normalize line endings for all text files
+* text=auto
+
+# Force shell scripts to use LF (important for Docker builds)
+*.sh text eol=lf
