@@ -136,6 +136,9 @@ def count_branches(git_dir):
     branches_dir = os.path.join(git_dir, 'refs', 'heads')
     return sum(1 for _ in os.scandir(branches_dir))
 
+import os
+import subprocess
+from subprocess import check_output, CalledProcessError
 
 def get_repo_commit_count(logger, facade_helper, repo_git):
     repo = get_repo_by_repo_git(repo_git)
@@ -151,25 +154,25 @@ def get_repo_commit_count(logger, facade_helper, repo_git):
     logger.debug(f"loc: {repo_loc}")
     logger.debug(f"path: {repo.repo_path}")
 
-    # Check if the .git directory exists, otherwise try without it.
+    # Check if the .git directory exists; if not, try without it.
     if not os.path.exists(repo_loc):
         logger.error(f"Directory not found: {repo_loc}. Trying without '.git' extension.")
         repo_loc = absolute_path 
         if not os.path.exists(repo_loc):
             raise FileNotFoundError(f"Neither {absolute_path} nor {repo_loc} exist.")
 
-    # If there are no branches then the repo is empty.
+    # If there are no branches then the repository is considered empty.
     if count_branches(repo_loc) == 0:
         logger.info("Repository is empty; no branches found.")
         return 0
 
     try:
-        # Execute git command to count commits.
+        # Execute the git command to count commits.
         output = check_output(
             ["git", "--git-dir", repo_loc, "rev-list", "--count", "HEAD"],
             stderr=subprocess.PIPE
         )
-        # Convert output to an integer. Decode and strip to be safe.
+        # Decode, strip, and convert output to integer commit count.
         commit_count = int(output.decode('utf-8').strip())
     except CalledProcessError as e:
         stderr_msg = e.stderr.decode('utf-8') if e.stderr else ""
@@ -177,12 +180,36 @@ def get_repo_commit_count(logger, facade_helper, repo_git):
             f"Error running git rev-list --count HEAD in {repo_loc}: "
             f"Return code {e.returncode}. Stderr: {stderr_msg}"
         )
-        # If error indicates there is no HEAD (commonly exit status 128), treat the repo as empty.
-        if e.returncode == 128 or "unknown revision" in stderr_msg.lower():
-            logger.info("Interpreting error as no valid HEAD (empty repository) and returning count 0.")
+        # If error indicates a problem reading a commit object
+        if e.returncode == 128 and "Could not read" in stderr_msg:
+            logger.info("Encountered a 'Could not read' error. Running git fsck and git gc --prune=now.")
+
+            # Attempt to run git fsck.
+            try:
+                fsck_output = check_output(
+                    ["git", "--git-dir", repo_loc, "fsck"],
+                    stderr=subprocess.PIPE
+                )
+                logger.info("git fsck output: " + fsck_output.decode('utf-8').strip())
+            except Exception as fsck_e:
+                logger.error(f"Error running git fsck: {fsck_e}")
+
+            # Attempt to run git gc with immediate prune.
+            try:
+                gc_output = check_output(
+                    ["git", "--git-dir", repo_loc, "gc", "--prune=now"],
+                    stderr=subprocess.PIPE
+                )
+                logger.info("git gc --prune=now output: " + gc_output.decode('utf-8').strip())
+            except Exception as gc_e:
+                logger.error(f"Error running git gc --prune=now: {gc_e}")
+
+            return 0
+        elif e.returncode == 128 and "unknown revision" in stderr_msg.lower():
+            logger.info("Encountered an 'unknown revision' error. Interpreting repository as empty.")
             return 0
         else:
-            # Re-raise the exception for any unexpected errors.
+            # For any other unexpected error, re-raise the exception.
             raise e
     except Exception as e:
         logger.error(f"Unexpected error while counting commits: {str(e)}")
