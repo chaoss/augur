@@ -1,4 +1,5 @@
 # encoding: utf-8
+from sqlalchemy import BigInteger, SmallInteger, Column, Index, Integer, String, Table, text, UniqueConstraint, Boolean, ForeignKey, update, CheckConstraint, JSON, TIMESTAMP, Text, JSONB
 from sqlalchemy import BigInteger, SmallInteger, Column, Index, Integer, String, Table, text, UniqueConstraint, Boolean, ForeignKey, update, CheckConstraint
 from sqlalchemy.dialects.postgresql import TIMESTAMP
 from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
@@ -153,7 +154,7 @@ class WorkerJob(Base):
     __tablename__ = "worker_job"
     __table_args__ = {
         "schema": "augur_operations",
-        "comment": "This table stores the jobs workers collect data for. A job is found in the code, and in the augur.config.json under the construct of a "model". ",
+        "comment": "This table stores the jobs workers collect data for. A job is found in the code, and in the augur.config.json under the construct of a model."
     }
 
     job_model = Column(String(255), primary_key=True)

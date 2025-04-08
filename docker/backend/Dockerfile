@@ -37,6 +37,9 @@ LABEL version="0.85.3"
 ENV DEBIAN_FRONTEND=noninteractive
 ENV PATH="/usr/bin/:/usr/local/bin:/usr/lib:${PATH}"
 
+# Create non-root user and group
+RUN groupadd -r augur && useradd -r -g augur augur
+
 RUN set -x \
     && apt-get update \
     && apt-get -y install \
@@ -56,7 +59,7 @@ RUN set -x \
         build-essential \
         chromium \
         tar \
-	jq \
+        jq \
         chromium-driver \
         && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
@@ -85,51 +88,47 @@ RUN GECKODRIVER_VERSION=$(curl -s https://api.github.com/repos/mozilla/geckodriv
 RUN firefox --version
 RUN geckodriver --version
 
-
-
-
-
 EXPOSE 5000
 
 WORKDIR /augur
-COPY ./README.md .
-COPY ./alembic.ini .
-COPY ./augur/ augur/
-COPY ./metadata.py .
-COPY ./setup.py .
-COPY ./scripts/ scripts/
-COPY ./keyman/ keyman/
 
+# Copy application files
+COPY --chown=augur:augur ./README.md .
+COPY --chown=augur:augur ./alembic.ini .
+COPY --chown=augur:augur ./augur/ augur/
+COPY --chown=augur:augur ./metadata.py .
+COPY --chown=augur:augur ./setup.py .
+COPY --chown=augur:augur ./scripts/ scripts/
+COPY --chown=augur:augur ./keyman/ keyman/
 
+# Create and configure virtual environment
+RUN python3 -m venv /opt/venv && \
+    chown -R augur:augur /opt/venv
 
-RUN python3 -m venv /opt/venv
-
-RUN set -x \
-    && /opt/venv/bin/pip install --upgrade pip 
-
-RUN set -x \
-    && /opt/venv/bin/pip install wheel
-    
-RUN set -x \
-    && /opt/venv/bin/pip install .
-
+# Install Python dependencies
 RUN set -x \
     && /opt/venv/bin/pip install --upgrade pip \
     && /opt/venv/bin/pip install wheel \
     && /opt/venv/bin/pip install .
 
+# Install worker dependencies
 RUN ./scripts/docker/install-workers-deps.sh
 
-COPY --from=golang "/root/scc" "/root/scc"
-COPY --from=golang "/root/scorecard/scorecard" "./scorecard"
+# Copy Golang binaries
+COPY --from=golang --chown=augur:augur "/root/scc" "/root/scc"
+COPY --from=golang --chown=augur:augur "/root/scorecard/scorecard" "./scorecard"
 
-# RUN ./scripts/install/workers.sh 
+# Create necessary directories with proper permissions
+RUN mkdir -p /augur/repos /augur/logs /augur/facade && \
+    chown -R augur:augur /augur
 
-RUN mkdir -p repos/ logs/ /augur/facade/
-
-COPY ./docker/backend/entrypoint.sh /
-COPY ./docker/backend/init.sh /
+# Copy and configure entrypoint scripts
+COPY --chown=augur:augur ./docker/backend/entrypoint.sh /
+COPY --chown=augur:augur ./docker/backend/init.sh /
 RUN chmod +x /entrypoint.sh /init.sh
+
+# Switch to non-root user
+USER augur
+
 ENTRYPOINT ["/bin/bash", "/entrypoint.sh"]
-#ENTRYPOINT ["/entrypoint.sh"]
 CMD /init.sh
