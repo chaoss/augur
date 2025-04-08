@@ -137,8 +137,6 @@ def count_branches(git_dir):
     branches_dir = os.path.join(git_dir, 'refs', 'heads')
     return sum(1 for _ in os.scandir(branches_dir))
 
-
-
 def remove_corrupted_pack_files(repo_loc, logger):
     """
     Remove any pack (*.pack) and index (*.idx) files from the repository's pack directory.
@@ -161,7 +159,49 @@ def remove_corrupted_pack_files(repo_loc, logger):
     if not files_removed:
         logger.info("No corrupted pack files found to remove.")
 
+def fix_remote_reference(logger, absolute_path, repo_loc, bad_ref):
+    """
+    Attempt to fix a known bad remote-tracking reference by running a series of commands:
+    
+      1. Remove the bad ref (git update-ref -d).
+      2. Prune the remote tracking references (git remote prune origin).
+      3. Remove the bad ref once more.
+      4. Stash local changes (git stash) and pull the latest changes (git pull),
+         executed in the working tree.
+    """
+    commands = [
+        (["git", "--git-dir", repo_loc, "update-ref", "-d", bad_ref], "Removing bad remote reference"),
+        (["git", "--git-dir", repo_loc, "remote", "prune", "origin"], "Pruning remote references"),
+        (["git", "--git-dir", repo_loc, "update-ref", "-d", bad_ref], "Removing bad remote reference (again)"),
+    ]
+    
+    for cmd, desc in commands:
+        try:
+            output = check_output(cmd, stderr=subprocess.PIPE)
+            logger.info(f"{desc} output: {output.decode('utf-8').strip()}")
+        except Exception as e:
+            logger.error(f"Error running {desc}: {e}")
+    
+    # For commands that apply to the working tree, set cwd to the repository's base directory.
+    working_commands = [
+        (["git", "stash"], "Stashing local changes"),
+        (["git", "pull"], "Pulling latest changes")
+    ]
+    
+    for cmd, desc in working_commands:
+        try:
+            output = check_output(cmd, stderr=subprocess.PIPE, cwd=absolute_path)
+            logger.info(f"{desc} output: {output.decode('utf-8').strip()}")
+        except Exception as e:
+            logger.error(f"Error running {desc} in {absolute_path}: {e}")
+
 def get_repo_commit_count(logger, facade_helper, repo_git):
+    """
+    Retrieve the commit count from a repository. If errors are encountered (for instance,
+    due to repository corruption or a bad remote ref), this method runs a sequence of repair
+    commands (including fsck, gc, fetch, repack, removing corrupted pack files, and fixing a bad 
+    remote reference) before retrying the commit count operation.
+    """
     repo = get_repo_by_repo_git(repo_git)
     
     absolute_path = get_absolute_repo_path(
@@ -170,47 +210,43 @@ def get_repo_commit_count(logger, facade_helper, repo_git):
         repo.repo_path,
         repo.repo_name
     )
-    # Prefer the .git directory; if missing, fall back to the base path.
+    # Preferred repository location is the .git directory.
     repo_loc = f"{absolute_path}/.git"
     
     logger.debug(f"Repository location: {repo_loc}")
     logger.debug(f"Repository path: {repo.repo_path}")
-
+    
     if not os.path.exists(repo_loc):
         logger.error(f"Directory not found: {repo_loc}. Trying without '.git' extension.")
         repo_loc = absolute_path
         if not os.path.exists(repo_loc):
             raise FileNotFoundError(f"Neither {absolute_path} nor {repo_loc} exist.")
-
-    # If no branches exist, consider the repository empty.
+    
     if count_branches(repo_loc) == 0:
         logger.info("Repository is empty; no branches found.")
         return 0
-
+    
     def attempt_get_commit_count():
-        """Attempt to count the commits using git rev-list."""
         output = check_output(
             ["git", "--git-dir", repo_loc, "rev-list", "--count", "HEAD"],
             stderr=subprocess.PIPE
         )
         return int(output.decode("utf-8").strip())
-
+    
     try:
         return attempt_get_commit_count()
     
     except CalledProcessError as initial_error:
-        stderr_msg = (initial_error.stderr.decode("utf-8")
-                      if initial_error.stderr else "")
+        stderr_msg = (initial_error.stderr.decode("utf-8") if initial_error.stderr else "")
         logger.error(
             f"Initial git rev-list failed in {repo_loc} with return code "
             f"{initial_error.returncode}: {stderr_msg}"
         )
         
-        # For our purposes, treat any CalledProcessError with exit code 128 as a corruption issue.
+        # If the error returns code 128, assume corruption-related issues.
         if initial_error.returncode == 128:
             logger.info("Return code 128 detected. Running maintenance commands to repair repository.")
             
-            # Define maintenance commands.
             maintenance_commands = [
                 (["git", "--git-dir", repo_loc, "fsck"], "git fsck"),
                 (["git", "--git-dir", repo_loc, "gc", "--prune=now"], "git gc --prune=now"),
@@ -218,7 +254,6 @@ def get_repo_commit_count(logger, facade_helper, repo_git):
                 (["git", "--git-dir", repo_loc, "repack", "-a", "-d"], "git repack -a -d")
             ]
             
-            # Execute each maintenance command.
             for cmd, desc in maintenance_commands:
                 try:
                     output = check_output(cmd, stderr=subprocess.PIPE)
@@ -226,27 +261,27 @@ def get_repo_commit_count(logger, facade_helper, repo_git):
                 except Exception as cmd_error:
                     logger.error(f"Error running {desc}: {cmd_error}")
             
-            # Remove corrupted pack files as an additional fix.
-            try:
-                remove_corrupted_pack_files(repo_loc, logger)
-            except Exception as remove_e:
-                logger.error(f"Error removing corrupted pack files: {remove_e}")
+            remove_corrupted_pack_files(repo_loc, logger)
             
-            # Retry the commit count after maintenance.
+            # If the error message indicates a bad remote reference, attempt to fix it.
+            bad_ref = "refs/remotes/origin/dependabot/docker/test/IntegrationTests/docker/postgres-16.4"
+            if ("did not send all necessary objects" in stderr_msg.lower() or
+                f"bad object {bad_ref.lower()}" in stderr_msg.lower()):
+                logger.info("Detected bad remote reference error. Attempting to fix remote reference.")
+                fix_remote_reference(logger, absolute_path, repo_loc, bad_ref)
+            
             try:
                 return attempt_get_commit_count()
             except CalledProcessError as retry_error:
-                retry_stderr = (retry_error.stderr.decode("utf-8")
-                                if retry_error.stderr else "")
+                retry_stderr = (retry_error.stderr.decode("utf-8") if retry_error.stderr else "")
                 logger.error(
                     f"Retry of git rev-list failed in {repo_loc} with return code "
                     f"{retry_error.returncode}: {retry_stderr}"
                 )
                 return 0
         else:
-            # For other return codes, re-raise the error.
             raise initial_error
-
+    
     except Exception as e:
         logger.error(f"Unexpected error while counting commits: {str(e)}")
         raise e
