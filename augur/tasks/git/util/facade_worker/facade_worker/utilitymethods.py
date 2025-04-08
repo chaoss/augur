@@ -144,8 +144,8 @@ def remove_corrupted_pack_files(repo_loc, logger):
     or invalid index-pack output.
     """
     pack_dir = os.path.join(repo_loc, "objects", "pack")
-    pack_files = glob(os.path.join(pack_dir, "pack-*.pack"))
-    idx_files = glob(os.path.join(pack_dir, "pack-*.idx"))
+    pack_files = glob.glob(os.path.join(pack_dir, "pack-*.pack"))
+    idx_files = glob.glob(os.path.join(pack_dir, "pack-*.idx"))
     files_removed = False
 
     for f in pack_files + idx_files:
