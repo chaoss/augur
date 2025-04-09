@@ -19,6 +19,9 @@ class RatelimitException(Exception):
 class UrlNotFoundException(Exception):
     pass
 
+class NotAuthorizedException(Exception):
+    pass
+
 class GithubDataAccess:
 
     def __init__(self, key_manager, logger: logging.Logger):
@@ -110,6 +113,9 @@ class GithubDataAccess:
             if response.status_code == 404:
                 raise UrlNotFoundException(f"Could not find {url}")
             
+            if response.status_code == 401:
+                raise NotAuthorizedException(f"Could not authorize with the github api")
+            
             response.raise_for_status()
 
             try:
@@ -145,6 +151,13 @@ class GithubDataAccess:
         except RatelimitException as e:
             self.__handle_github_ratelimit_response(e.response)
             raise e
+        except NotAuthorizedException as e:
+            self.__handle_github_not_authorized_response()
+
+    def __handle_github_not_authorized_response(self):
+
+        self.key = self.key_client.invalidate(self.key)
+
         
     def __handle_github_ratelimit_response(self, response):
 
@@ -153,9 +166,8 @@ class GithubDataAccess:
         if "Retry-After" in headers:
 
             retry_after = int(headers["Retry-After"])
-            self.logger.info(
-                f'\n\n\n\nSleeping for {retry_after} seconds due to secondary rate limit issue.\n\n\n\n')
-            time.sleep(retry_after)
+            self.logger.info('\n\n\n\nEncountered secondary rate limit issue.\n\n\n\n')
+            self.key = self.key_client.expire(self.key, time.time() + retry_after)
 
         elif "X-RateLimit-Remaining" in headers and int(headers["X-RateLimit-Remaining"]) < GITHUB_RATELIMIT_REMAINING_CAP:
             current_epoch = int(time.time())
@@ -170,7 +182,7 @@ class GithubDataAccess:
             self.key = self.key_client.expire(self.key, epoch_when_key_resets)
 
         else:
-            time.sleep(60)
+            self.key = self.key_client.expire(self.key, time.time() + 60)
 
     def __add_query_params(self, url: str, additional_params: dict) -> str:
         """Add query params to a url.
