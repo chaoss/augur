@@ -1,0 +1,44 @@
+Filesystem      Size  Used Avail Use% Mounted on
+tmpfs           101G  5.1M  101G   1% /run
+/dev/nvme0n1p3  933G  282G  604G  32% /
+tmpfs           504G   50M  504G   1% /dev/shm
+tmpfs           5.0M  4.0K  5.0M   1% /run/lock
+/dev/nvme0n1p1  771M   31M  741M   5% /boot/efi
+/dev/nvme1n1    3.6T  3.0T  439G  88% /mnt/bigdata
+/dev/sdc        3.6T  2.7T  728G  80% /mnt/dbexternal
+/dev/sdb1        20T  2.4T   17T  13% /mnt/external2
+tmpfs           101G   64K  101G   1% /run/user/1001
+/dev/sdd2        13T   11T  1.4T  89% /mnt/external
+Filesystem      Size  Used Avail Use% Mounted on
+tmpfs           101G  5.1M  101G   1% /run
+/dev/nvme0n1p3  933G  282G  604G  32% /
+tmpfs           504G   33M  504G   1% /dev/shm
+tmpfs           5.0M  4.0K  5.0M   1% /run/lock
+/dev/nvme0n1p1  771M   31M  741M   5% /boot/efi
+/dev/nvme1n1    3.6T  3.0T  439G  88% /mnt/bigdata
+/dev/sdc        3.6T  2.7T  728G  80% /mnt/dbexternal
+/dev/sdb1        20T  2.4T   17T  13% /mnt/external2
+tmpfs           101G   64K  101G   1% /run/user/1001
+/dev/sdd2        13T   11T  1.4T  89% /mnt/external
+Filesystem      Size  Used Avail Use% Mounted on
+tmpfs           101G  4.6M  101G   1% /run
+/dev/nvme0n1p3  933G  268G  617G  31% /
+tmpfs           504G   21M  504G   1% /dev/shm
+tmpfs           5.0M  4.0K  5.0M   1% /run/lock
+/dev/nvme0n1p1  771M   31M  741M   5% /boot/efi
+/dev/nvme1n1    3.6T  3.0T  439G  88% /mnt/bigdata
+/dev/sdc        3.6T  2.9T  556G  85% /mnt/dbexternal
+/dev/sdb1        20T  2.9T   17T  16% /mnt/external2
+tmpfs           101G   64K  101G   1% /run/user/1001
+/dev/sdd2        13T  9.2T  2.9T  77% /mnt/external
+Filesystem      Size  Used Avail Use% Mounted on
+tmpfs           101G  5.1M  101G   1% /run
+/dev/nvme0n1p3  933G  394G  492G  45% /
+tmpfs           504G   23M  504G   1% /dev/shm
+tmpfs           5.0M  4.0K  5.0M   1% /run/lock
+/dev/nvme0n1p1  771M   31M  741M   5% /boot/efi
+/dev/nvme1n1    3.6T  433G  3.0T  13% /mnt/bigdata
+/dev/sdc        3.6T  2.4T  1.1T  69% /mnt/dbexternal
+/dev/sdb1        20T  5.4T   14T  29% /mnt/external2
+tmpfs           101G   64K  101G   1% /run/user/1001
+/dev/sdd2        13T  8.3T  3.8T  69% /mnt/external
