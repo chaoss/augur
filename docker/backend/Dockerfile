@@ -133,3 +133,5 @@ RUN chmod +x /entrypoint.sh /init.sh
 ENTRYPOINT ["/bin/bash", "/entrypoint.sh"]
 #ENTRYPOINT ["/entrypoint.sh"]
 CMD /init.sh
+
+

@@ -1,4 +1,4 @@
-#SPDX-License-Identifier: MIT
+# SPDX-License-Identifier: MIT
 FROM postgres:16
 
 LABEL maintainer="outdoors@acm.org"
