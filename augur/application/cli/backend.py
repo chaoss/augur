@@ -41,7 +41,7 @@ def cli(ctx):
     ctx.obj = DatabaseContext()
 
 @cli.command("start")
-@click.option("--disable-collection", is_flag=True, default=False, help="Turns off data collection workers")
+@click.option("--disable-collection", is_flag=True, default=False, help="Turns off data collection workers", envvar='AUGUR_DISABLE_COLLECTION')
 @click.option("--development", is_flag=True, default=False, help="Enable development mode, implies --disable-collection")
 @click.option("--pidfile", default="main.pid", help="File to store the controlling process ID in")
 @click.option('--port')
