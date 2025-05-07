@@ -2,10 +2,11 @@
 
 
 
-FROM golang:1.23-bullseye AS golang
+FROM golang:1.23 AS golang-builder
 
 # Write final binaries to / so it's easy to copy them out
 ENV GOBIN=/
+ENV CGO_ENABLED=0
 
 RUN go install github.com/boyter/scc/v3@v3.4.0 \
     && /scc --version
@@ -112,5 +113,6 @@ RUN mkdir -p repos/ logs/ /augur/facade/
 
 COPY --chmod=u=rwx,go=rx ./docker/backend/entrypoint.sh /
 COPY --chmod=u=rwx,go=rx ./docker/backend/init.sh /
+RUN chmod +x /entrypoint.sh /init.sh
 ENTRYPOINT ["/bin/bash", "/entrypoint.sh"]
 CMD ["/init.sh"]
