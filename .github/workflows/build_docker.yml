@@ -61,6 +61,7 @@ jobs:
             type=raw,value=devel-latest,enable=${{ (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/dev' }}
             type=raw,value=latest,enable=${{ github.event_name == 'release' }}
             type=raw,value=${{ github.event.release.tag_name }},enable=${{ github.event_name == 'release' }}
+            type=raw,value=test,enable=${{ github.event_name == 'pull_request' }}
 
       - name: Build and push
         id: push
@@ -71,8 +72,77 @@ jobs:
           file: ./docker/${{ matrix.image }}/Dockerfile
           labels: ${{ steps.meta.outputs.labels }}
           platforms: linux/amd64
-          # Only push if we've tagged the image in the metadata step
+          # Only push if we've tagged the image in the metadata step and we're not in a pull request
           push: ${{ github.event_name != 'pull_request' && steps.meta.outputs.tags != '' }}
           tags: ${{ steps.meta.outputs.tags }}
           cache-from: type=gha,scope=container-${{ matrix.image }}
           cache-to: type=gha,scope=container-${{ matrix.image }},mode=max
+          load: true
+
+      - name: Export image
+        if: github.event_name == 'pull_request'
+        run: |
+          docker save -o /tmp/${{ matrix.image }}-image.tar ghcr.io/${{ github.repository_owner }}/augur_${{ matrix.image }}:test
+
+      - name: Save image as artifact
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.image }}-image
+          path: /tmp/${{ matrix.image }}-image.tar
+
+  smoke-test:
+    name: Smoke test
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download image artifact - backend
+        uses: actions/download-artifact@v4
+        with:
+          name: backend-image
+          path: /tmp
+
+      - name: Download image artifact - database
+        uses: actions/download-artifact@v4
+        with:
+          name: database-image
+          path: /tmp
+
+      - name: Download image artifact - rabbitmq
+        uses: actions/download-artifact@v4
+        with:
+          name: rabbitmq-image
+          path: /tmp
+
+      - name: Load images
+        run: |
+          docker load -i /tmp/backend-image.tar
+          docker load -i /tmp/database-image.tar
+          docker load -i /tmp/rabbitmq-image.tar
+
+      - name: Prepare compose file
+        run: |
+          yq eval -i '.services.augur.image = "augur_backend:test"' docker-compose.yml
+          yq eval -i '.services.augur.pull_policy = "never"' docker-compose.yml
+          yq eval -i '.services.augur.restart = "no"' docker-compose.yml
+          yq eval -i '.services.augur-db.image = "augur_database:test"' docker-compose.yml
+          yq eval -i '.services.augur-db.pull_policy = "never"' docker-compose.yml
+          yq eval -i '.services.augur-db.restart = "no"' docker-compose.yml
+          yq eval -i '.services.rabbitmq.image = "augur_rabbitmq:test"' docker-compose.yml
+          yq eval -i '.services.rabbitmq.pull_policy = "never"' docker-compose.yml
+          yq eval -i '.services.rabbitmq.restart = "no"' docker-compose.yml
+          yq eval -i '.services.augur.environment += ["AUGUR_DISABLE_COLLECTION=true"]' docker-compose.yml
+
+      - name: Start services
+        run: docker compose -f docker-compose.yml up -d
+
+      - name: Wait for augur to start
+        timeout-minutes: 3
+        run: while ! docker ps -f name=augur-augur-1 | grep -q Up; do sleep 1; done
+
+      - name: Wait for expected log output
+        run: while ! docker logs augur-augur-1 | grep -q "Sending due task"; do sleep 1; done
