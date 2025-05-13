@@ -4,7 +4,7 @@ from augur.application.db.models import *
 from augur.tasks.github.util.util import get_owner_repo
 from augur.application.db.util import execute_session_query
 from augur.application.db.lib import get_secondary_data_last_collected, get_updated_prs
-
+from augur.tasks.github.util.github_data_access import GithubDataAccess, UrlNotFoundException ## Added for exception handling.
 
 def pull_request_commits_model(repo_id,logger, augur_db, key_auth, full_collection=False):
     
@@ -51,21 +51,31 @@ def pull_request_commits_model(repo_id,logger, augur_db, key_auth, full_collecti
         commits_url = pr_info['pr_url'] + '/commits?state=all'
         
         for page_data in github_data_access.paginate_resource(commits_url):
-
-            logger.info(f"{task_name}: Processing pr commit with hash {page_data['sha']}")
-            pr_commit_row = {
-                'pull_request_id': pr_info['pull_request_id'],
-                'pr_cmt_sha': page_data['sha'],
-                'pr_cmt_node_id': page_data['node_id'],
-                'pr_cmt_message': page_data['commit']['message'],
-                # 'pr_cmt_comments_url': pr_commit['comments_url'],
-                'tool_source': 'pull_request_commits_model',
-                'tool_version': '0.41',
-                'data_source': 'GitHub API',
-                'repo_id': repo.repo_id,
-            }
-
-            all_data.append(pr_commit_row)
+            try: 
+                logger.info(f"{task_name}: Processing pr commit with hash {page_data['sha']}")
+                pr_commit_row = {
+                    'pull_request_id': pr_info['pull_request_id'],
+                    'pr_cmt_sha': page_data['sha'],
+                    'pr_cmt_node_id': page_data['node_id'],
+                    'pr_cmt_message': page_data['commit']['message'],
+                    # 'pr_cmt_comments_url': pr_commit['comments_url'],
+                    'tool_source': 'pull_request_commits_model',
+                    'tool_version': '0.41',
+                    'data_source': 'GitHub API',
+                    'repo_id': repo.repo_id,
+                }
+                
+                all_data.append(pr_commit_row)            
+            ## It is sometimes the case that a PR disappears along with its associated commits
+            ## before these are collected. We don't want to error out the entire task in these 
+            ## cases. 
+            
+            ## I also don't think we want to continue UrlNotFoundException's in most other contexts
+            ## Which is why I put the code here. 
+            except UrlNotFoundException as e:
+                logger.warning(e)
+                continue
+                
     
     if len(all_data) > 0:
         logger.info(f"{task_name}: Inserting {len(all_data)} rows")
