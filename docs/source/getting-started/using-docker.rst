@@ -7,8 +7,10 @@ the following resources (or more).
 100 GB disk
 10 GB RAM
 
-Clone the Augur repository and create a .env file in the top level directory 
-with the following fields: 
+1. Clone the Augur repository https://github.com/chaoss/augur
+
+
+2. Create a .env file in the top level directory with the following fields: 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code:: python
@@ -22,7 +24,7 @@ with the following fields:
     AUGUR_GITLAB_API_KEY=placeholder
     AUGUR_GITLAB_USERNAME=placeholder
 
-Then run:
+3. Build the container using one of the following commands:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code:: shell 
