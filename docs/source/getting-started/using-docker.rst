@@ -9,8 +9,10 @@ the following resources (or more).
 
 Clone the Augur repository and create a .env file in the top level directory 
 with the following fields: 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code:: python
+
     AUGUR_DB=augur
     AUGUR_DB_USER=augur
     AUGUR_DB_PASSWORD=password_here
@@ -21,13 +23,17 @@ with the following fields:
     AUGUR_GITLAB_USERNAME=placeholder
 
 Then run:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code:: shell 
+
     docker compose up --build 
 
 or 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code:: shell 
+
     podman compose up --build 
 
 And augur should be up and running! 
