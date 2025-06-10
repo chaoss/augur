@@ -3052,6 +3052,7 @@ class PullRequestEvent(Base):
 class PullRequestFile(Base):
     __tablename__ = "pull_request_files"
     __table_args__ = (
+        Index("repo_id"),
         UniqueConstraint("pull_request_id", "repo_id", "pr_file_path"),
         {
             "schema": "augur_data",
