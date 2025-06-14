@@ -144,5 +144,6 @@ include = [
 dev = [
     "sphinx",
     "sphinx_rtd_theme",
+    "sphinxcontrib",
     # ...any others
 ]
