@@ -214,6 +214,9 @@ dependencies = [
 dev = [
     { name = "sphinx" },
     { name = "sphinx-rtd-theme" },
+    { name = "sphinxcontrib-openapi" },
+    { name = "sphinxcontrib-packages" },
+    { name = "sphinxcontrib-redoc" },
 ]
 
 [package.dev-dependencies]
@@ -225,6 +228,7 @@ dev = [
     { name = "sphinx" },
     { name = "sphinx-rtd-theme" },
     { name = "sphinxcontrib-openapi" },
+    { name = "sphinxcontrib-packages" },
     { name = "sphinxcontrib-redoc" },
     { name = "toml" },
     { name = "tox" },
@@ -235,6 +239,7 @@ docs = [
     { name = "sphinx" },
     { name = "sphinx-rtd-theme" },
     { name = "sphinxcontrib-openapi" },
+    { name = "sphinxcontrib-packages" },
     { name = "sphinxcontrib-redoc" },
 ]
 
@@ -300,6 +305,9 @@ requires-dist = [
     { name = "slack", specifier = "==0.0.2" },
     { name = "sphinx", marker = "extra == 'dev'" },
     { name = "sphinx-rtd-theme", marker = "extra == 'dev'" },
+    { name = "sphinxcontrib-openapi", marker = "extra == 'dev'" },
+    { name = "sphinxcontrib-packages", marker = "extra == 'dev'" },
+    { name = "sphinxcontrib-redoc", marker = "extra == 'dev'" },
     { name = "sqlalchemy", specifier = "==2.0.22" },
     { name = "tabulate", specifier = "==0.8.9" },
     { name = "tenacity", specifier = "==8.3.0" },
@@ -325,6 +333,7 @@ dev = [
     { name = "sphinx", specifier = "==7.2.6" },
     { name = "sphinx-rtd-theme", specifier = "==2.0.0" },
     { name = "sphinxcontrib-openapi", specifier = "==0.8.3" },
+    { name = "sphinxcontrib-packages" },
     { name = "sphinxcontrib-redoc", specifier = "==1.6.0" },
     { name = "toml", specifier = ">=0.10.2" },
     { name = "tox", specifier = "==3.24.4" },
@@ -335,6 +344,7 @@ docs = [
     { name = "sphinx", specifier = "==7.2.6" },
     { name = "sphinx-rtd-theme", specifier = "==2.0.0" },
     { name = "sphinxcontrib-openapi", specifier = "==0.8.3" },
+    { name = "sphinxcontrib-packages" },
     { name = "sphinxcontrib-redoc", specifier = "==1.6.0" },
 ]
 
@@ -811,6 +821,15 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/fe/1c/bd5a045b63ea70165940b439458d5516c129ece9eb4e7d3dd59bda5d076e/distributed-2023.10.1.tar.gz", hash = "sha256:6c52dde9684bc7147f04d14594a5090a5cc7fa58258a015f4ca4fb289a374eaf", size = 1094004, upload-time = "2023-10-27T22:15:05.178Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/5e/6b/4a5dc8bf17a2714f53f648b6f44f1cd2ad7ab41aaaffe1c25489947c24f6/distributed-2023.10.1-py3-none-any.whl", hash = "sha256:0e0fe280d3b7b8be45840df3697dcb07d954c9c21c2a31d0c8e2dbe60bdaef21", size = 1002230, upload-time = "2023-10-27T22:14:59.23Z" },
+]
+
+[[package]]
+name = "distro"
+version = "1.9.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/fc/f8/98eea607f65de6527f8a2e8885fc8015d3e6f5775df186e443e0964a11c3/distro-1.9.0.tar.gz", hash = "sha256:2fa77c6fd8940f116ee1d6b94a2f90b13b5ea8d019b98bc8bafdcabcdd9bdbed", size = 60722, upload-time = "2023-12-24T09:54:32.31Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/12/b3/231ffd4ab1fc9d679809f356cebee130ac7daa00d6d6f3206dd4fd137e9e/distro-1.9.0-py3-none-any.whl", hash = "sha256:7bffd925d65168f85027d8da9af6bddab658135b840670a223589bc0c8ef02b2", size = 20277, upload-time = "2023-12-24T09:54:30.421Z" },
 ]
 
 [[package]]
@@ -3495,6 +3514,19 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/af/cd/9891f1c361b306e9f5e423039bdbf99a25c838c51ac820c10e986582c29a/sphinxcontrib-openapi-0.8.3.tar.gz", hash = "sha256:9c62117540b5276006ac7ad4af34696d02af278afa299712740c3680a9a9de6c", size = 71854, upload-time = "2023-10-24T14:12:08.255Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/75/16/7187f68f8834ab455ddb6de1fcfa36896c0df714eb32c76a78f212a10780/sphinxcontrib_openapi-0.8.3-py3-none-any.whl", hash = "sha256:5f7ac93ff71487c6c0521bde1caad452070d39c9d8d5af324ee02dcdc465392f", size = 35234, upload-time = "2023-10-24T14:12:06.709Z" },
+]
+
+[[package]]
+name = "sphinxcontrib-packages"
+version = "1.2.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "distro" },
+    { name = "sphinx" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/3a/4d/9f32abbfbd2ea1ab29c5199819d2114f7c6ba09d2e45faaaf26777d1ab54/sphinxcontrib_packages-1.2.0.tar.gz", hash = "sha256:bdb5f4b0f4b78491287fdbeeef25fb2e546b1165c94d2ca2a1ec1d27ef11a6a8", size = 20385, upload-time = "2024-12-26T23:19:40.684Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/0a/e3/3c649a43cf62e4de7ba9872f4191c1c13ade3a21af30c8bfb1db0977c1dc/sphinxcontrib_packages-1.2.0-py3-none-any.whl", hash = "sha256:ea10b144406c51db0a5e1ad40799f037822c25b1d83318971fdb35e81cf8f611", size = 19411, upload-time = "2024-12-26T23:19:38.198Z" },
 ]
 
 [[package]]
