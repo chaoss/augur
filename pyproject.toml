@@ -137,3 +137,12 @@ include = [
     "augur*",
     "keyman*",
 ]
+
+
+### READTHEDOCS FIX
+[project.optional-dependencies]
+dev = [
+    "sphinx",
+    "sphinx_rtd_theme",
+    # ...any others
+]

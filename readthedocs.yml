@@ -23,16 +23,13 @@ formats: all
 
 # Optionally set the version of Python and requirements required to build your docs
 python:
-  version: "3.11"
-  install:
-    - method: pip
-      path: .
-      extra_requirements:
-        - dev
-    - method: pip
-      packages:
-        - sphinx_rtd_theme
+   install:
+      - method: pip
+        path: .
+        extra_requirements:
+            - dev
+            
 #   build: 
 #     os: ubuntu-22.04
 #     tools: 
-#       python:3.1 
+#       python:3.10
