@@ -22,7 +22,7 @@ dependencies = [
     "alembic==1.8.1",
     "Beaker==1.11.0",
     "blinker==1.4",
-    "bokeh==2.0.2",
+    "bokeh==2.4.3",
     "boto3==1.17.57",
     "bs4==0.0.1",
     "celery==5.2.7",
