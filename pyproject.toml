@@ -22,7 +22,7 @@ dependencies = [
     "alembic==1.8.1",
     "Beaker==1.11.0",
     "blinker==1.4",
-    "bokeh==2.0.2",
+    "bokeh==2.4.3",
     "boto3==1.17.57",
     "bs4==0.0.1",
     "celery==5.2.7",
@@ -88,7 +88,6 @@ dependencies = [
     "tornado==6.4.1",
     "typing-extensions==4.7.1",
     "Werkzeug~=2.0.0",
-    "xgboost==1.4.2",
     "xlrd==2.0.1",
     "xlsxwriter==1.3.7",
 ]
@@ -110,6 +109,7 @@ docs = [
     "sphinx_rtd_theme==2.0.0",
     "sphinxcontrib-openapi==0.8.3",
     "sphinxcontrib-redoc==1.6.0",
+    "sphinxcontrib-packages",
 ]
 
 [project.scripts]
@@ -137,4 +137,16 @@ where = ["."]
 include = [
     "augur*",
     "keyman*",
+]
+
+
+### READTHEDOCS FIX
+[project.optional-dependencies]
+dev = [
+    "sphinx",
+    "sphinx_rtd_theme",
+    "sphinxcontrib-packages",
+    "sphinxcontrib-openapi",
+    "sphinxcontrib-redoc",
+    # ...any others
 ]
