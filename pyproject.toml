@@ -109,6 +109,7 @@ docs = [
     "sphinx_rtd_theme==2.0.0",
     "sphinxcontrib-openapi==0.8.3",
     "sphinxcontrib-redoc==1.6.0",
+    "sphinxcontrib-packages",
 ]
 
 [project.scripts]
@@ -144,6 +145,6 @@ include = [
 dev = [
     "sphinx",
     "sphinx_rtd_theme",
-    "sphinxcontrib",
+    "sphinxcontrib-packages",
     # ...any others
 ]
