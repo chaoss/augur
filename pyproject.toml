@@ -146,5 +146,7 @@ dev = [
     "sphinx",
     "sphinx_rtd_theme",
     "sphinxcontrib-packages",
+    "sphinxcontrib-openapi",
+    "sphinxcontrib-redoc",
     # ...any others
 ]
