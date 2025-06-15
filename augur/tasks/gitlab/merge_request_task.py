@@ -21,23 +21,27 @@ def collect_gitlab_merge_requests(repo_git: str) -> int:
         repo_git: the repo url string
     """
 
-
     logger = logging.getLogger(collect_gitlab_merge_requests.__name__)
 
-    repo_id = get_repo_by_repo_git(repo_git).repo_id
+    # Get repo using session to ensure proper type handling
+    with get_session() as session:
+        repo = Repo.get_by_repo_git(session, repo_git)
+        if not repo:
+            logger.error(f"Could not find repo with git URL: {repo_git}")
+            return []
+        repo_id = repo.repo_id
 
-    owner, repo = Repo.parse_gitlab_repo_url(repo_git)
+    owner, repo_name = Repo.parse_gitlab_repo_url(repo_git)
 
     key_auth = GitlabRandomKeyAuth(logger)
 
     mr_data = retrieve_all_mr_data(repo_git, logger, key_auth)
 
     if mr_data:
-        mr_ids = process_merge_requests(mr_data, f"{owner}/{repo}: Mr task", repo_id, logger)
-
+        mr_ids = process_merge_requests(mr_data, f"{owner}/{repo_name}: Mr task", repo_id, logger)
         return mr_ids
     else:
-        logger.info(f"{owner}/{repo} has no merge requests")
+        logger.info(f"{owner}/{repo_name} has no merge requests")
         return []
 
 
@@ -47,15 +51,15 @@ def retrieve_all_mr_data(repo_git: str, logger, key_auth) -> None:
 
     Arguments:
         repo_git: url of the relevant repo
-        logger: loggin object
+        logger: logging object
         key_auth: key auth cache and rotator object 
     """
 
-    owner, repo = Repo.parse_gitlab_repo_url(repo_git)
+    owner, repo_name = Repo.parse_gitlab_repo_url(repo_git)
 
-    repo_identifier = get_gitlab_repo_identifier(owner, repo)
+    repo_identifier = get_gitlab_repo_identifier(owner, repo_name)
 
-    logger.info(f"Collecting pull requests for {owner}/{repo}")
+    logger.info(f"Collecting pull requests for {owner}/{repo_name}")
 
     url = f"https://gitlab.com/api/v4/projects/{repo_identifier}/merge_requests?with_labels_details=True"
     mrs = GitlabApiHandler(key_auth, logger)
@@ -69,11 +73,11 @@ def retrieve_all_mr_data(repo_git: str, logger, key_auth) -> None:
 
         if len(page_data) == 0:
             logger.debug(
-                f"{owner}/{repo} Mrs Page {page} contains no data...returning")
-            logger.info(f"{owner}/{repo} Mrs Page {page} of {num_pages}")
+                f"{owner}/{repo_name} Mrs Page {page} contains no data...returning")
+            logger.info(f"{owner}/{repo_name} Mrs Page {page} of {num_pages}")
             return all_data
 
-        logger.info(f"{owner}/{repo} Mrs Page {page} of {num_pages}")
+        logger.info(f"{owner}/{repo_name} Mrs Page {page} of {num_pages}")
 
         all_data += page_data
 
@@ -103,8 +107,9 @@ def process_merge_requests(data, task_name, repo_id, logger):
     mr_ids = []
     mr_mapping_data = {}
     for mr in data:
-
-        mr_ids.append(mr["iid"])
+        # Ensure mr["iid"] is an integer
+        mr_id = int(mr["iid"])
+        mr_ids.append(mr_id)
 
         mr, contributor_data = process_mr_contributors(mr, tool_source, tool_version, data_source)
 
@@ -116,7 +121,8 @@ def process_merge_requests(data, task_name, repo_id, logger):
 
         labels = extract_needed_mr_label_data(mr["labels"], repo_id, tool_source, tool_version, data_source)
 
-        mapping_data_key = mr["id"]
+        # Ensure mr["id"] is an integer
+        mapping_data_key = int(mr["id"])
         mr_mapping_data[mapping_data_key] = {
                                             "assignees": assignees,
                                             "labels": labels
@@ -133,18 +139,18 @@ def process_merge_requests(data, task_name, repo_id, logger):
     pr_return_columns = ["pull_request_id", "pr_src_id"]
     pr_return_data = bulk_insert_dicts(logger, merge_requests, PullRequest, pr_natural_keys, return_columns=pr_return_columns, string_fields=pr_string_fields)
 
-
     mr_assignee_dicts = []
     mr_label_dicts = []
     for data in pr_return_data:
-
-        mr_src_id = data["pr_src_id"]
+        # Ensure pr_src_id is an integer
+        mr_src_id = int(data["pr_src_id"])
         pull_request_id = data["pull_request_id"]
 
         try:
             other_mr_data = mr_mapping_data[mr_src_id]
         except KeyError as e:
-            logger.info(f"Cold not find other pr data. This should never happen. Error: {e}")
+            logger.info(f"Could not find other pr data. This should never happen. Error: {e}")
+            continue
 
         dict_key = "pull_request_id"
         mr_assignee_dicts += add_key_value_pair_to_dicts(other_mr_data["assignees"], dict_key, pull_request_id)
