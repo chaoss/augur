@@ -19,7 +19,7 @@ Detailed Steps
 2. Create or activate the Python3 virtual environment for the Augur instance you want to deploy as a public server. 
 3. If you have not already done so, clone Augur.
 4. Change into that directory.
-5. ``git checkout dev``, if you want to deploy the latest features, otherwise remain in the main branch. 
+5. ``git checkout main``, if you want to deploy the latest features, otherwise remain in the release branch. 
 6. You need a database owned by an Augur user. 
 7. ``make install`` ... now is a good time to go get some tea.
 8. When you return with your tea, follow the prompts: 
