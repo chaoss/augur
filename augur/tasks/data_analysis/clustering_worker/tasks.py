@@ -4,6 +4,12 @@ import time
 import traceback
 import re
 import pickle
+import uuid
+import datetime
+import json
+import pyLDAvis
+import pyLDAvis.sklearn
+from wordcloud import WordCloud
 
 import sqlalchemy as s
 import pandas as pd
@@ -21,8 +27,13 @@ from collections import Counter
 
 from augur.tasks.init.celery_app import celery_app as celery
 from augur.application.db.lib import get_value, get_session, get_repo_by_repo_git
-from augur.application.db.models import RepoClusterMessage, RepoTopic, TopicWord
+from augur.application.db.models import RepoClusterMessage, RepoTopic, TopicWord, TopicModelMeta
 from augur.tasks.init.celery_app import AugurMlRepoCollectionTask
+
+from gensim.models import HdpModel
+import gensim.corpora as corpora
+import spacy
+from nltk.corpus import stopwords
 
 
 MODEL_FILE_NAME = "kmeans_repo_messages"
@@ -260,6 +271,29 @@ def preprocess_and_tokenize(text):
     stems = [stemmer.stem(t) for t in tokens]
     return stems
 
+def estimate_topic_num_hdp(preprocessed_texts, logger=None, fallback=10, upper_limit=30):
+    """
+    Estimate the number of topics using Gensim's HDP model.
+    Returns the estimated number of topics (int).
+    If estimation fails, returns fallback value.
+    """
+    try:
+        logger and logger.info("Estimating topic number using HDP...")
+        dictionary = corpora.Dictionary(preprocessed_texts)
+        corpus = [dictionary.doc2bow(text) for text in preprocessed_texts]
+        hdp_model = HdpModel(corpus=corpus, id2word=dictionary)
+        topics = hdp_model.show_topics(formatted=False)
+        # Count topics with at least 2 non-zero words
+        num_topics = sum(1 for topic in topics if sum(w[1] for w in topic[1]) > 0.01)
+        if num_topics < 2 or num_topics > upper_limit:
+            logger and logger.warning(f"HDP estimated an unreasonable topic number: {num_topics}, using fallback {fallback}")
+            return fallback
+        logger and logger.info(f"HDP estimated topic number: {num_topics}")
+        return num_topics
+    except Exception as e:
+        logger and logger.error(f"HDP topic estimation failed: {e}, using fallback {fallback}")
+        return fallback
+
 def train_model(logger, engine, max_df, min_df, max_features, ngram_range, num_clusters, num_topics, num_words_per_topic, tool_source, tool_version, data_source):
     def visualize_labels_PCA(features, labels, annotations, num_components, title):
         labels_color_map = {-1: "red"}
@@ -338,8 +372,20 @@ def train_model(logger, engine, max_df, min_df, max_features, ngram_range, num_c
     pickle.dump(count_transformer.vocabulary_, open("vocabulary_count", 'wb'))
     feature_names = count_vectorizer.get_feature_names()
 
+    # Text preprocessing for HDP (tokenization, stopword removal, lemmatization)
+    nlp = spacy.load("en_core_web_sm")
+    stop_words = set(stopwords.words("english"))
+    def preprocess(text):
+        doc = nlp(text.lower())
+        return [token.lemma_ for token in doc if token.is_alpha and token.lemma_ not in stop_words and len(token) > 2]
+    texts_tokenized = [preprocess(t) for t in msg_df['msg_text'].astype(str).tolist()]
+
+    # Step 2: Estimate topic number using HDP
+    estimated_num_topics = estimate_topic_num_hdp(texts_tokenized, logger=logger, fallback=num_topics)
+    logger.info(f"[train_model] model_id will be generated after topic estimation. Estimated topic number: {estimated_num_topics}")
+
     logger.debug("Calling LDA")
-    lda_model = LDA(n_components=num_topics)
+    lda_model = LDA(n_components=estimated_num_topics)
     lda_model.fit(count_matrix)
     # each component in lda_model.components_ represents probability distribution over words in that topic
     topic_list = lda_model.components_
@@ -444,6 +490,105 @@ def train_model(logger, engine, max_df, min_df, max_features, ngram_range, num_c
     visualize_labels_PCA(tfidf_matrix.todense(), msg_df['cluster'], msg_df['repo_id'], 2, "tex!")
 
 # visualize_labels_PCA(tfidf_matrix.todense(), msg_df['cluster'], msg_df['repo_id'], 2, "MIN_DF={} and MAX_DF={} and NGRAM_RANGE={}".format(MIN_DF, MAX_DF, NGRAM_RANGE))
+
+    # Incremental enhancement: generate model_id and artifact_dir
+    model_id = str(uuid.uuid4())
+    artifact_dir = os.path.join("artifacts", model_id)
+    os.makedirs(artifact_dir, exist_ok=True)
+    start_time = datetime.datetime.now()
+
+    # After original model/vocab saves, also save to artifact_dir
+    try:
+        lda_model_artifact_path = os.path.join(artifact_dir, f"lda_model_{model_id}.pkl")
+        with open(lda_model_artifact_path, 'wb') as f:
+            pickle.dump(lda_model, f)
+        vocab_artifact_path = os.path.join(artifact_dir, f"vocabulary_count_{model_id}.pkl")
+        with open(vocab_artifact_path, 'wb') as f:
+            pickle.dump(count_transformer.vocabulary_, f)
+    except Exception as e:
+        logger.warning(f"Artifact model/vocab save failed: {e}")
+
+    # After all original DB writes, add model_id if possible
+    # (Assume model_id is added to record dicts for TopicWord and RepoTopic below)
+
+    # After all original analysis/statistics, add pyLDAvis, wordcloud, meta.json
+    vis_path = None
+    wordcloud_paths = []
+    try:
+        vis_data = pyLDAvis.sklearn.prepare(lda_model, count_matrix, count_vectorizer)
+        vis_path = os.path.join(artifact_dir, f"pyldavis_{model_id}.html")
+        pyLDAvis.save_html(vis_data, vis_path)
+    except Exception as e:
+        logger.warning(f"pyLDAvis generation failed: {e}")
+    try:
+        for topic_idx, topic in enumerate(topic_list):
+            freqs = {feature_names[i]: topic[i] for i in topic.argsort()[:-num_words_per_topic - 1:-1]}
+            wc = WordCloud(width=800, height=400, background_color='white').generate_from_frequencies(freqs)
+            wc_path = os.path.join(artifact_dir, f"wordcloud_topic{topic_idx+1}_{model_id}.png")
+            wc.to_file(wc_path)
+            wordcloud_paths.append(wc_path)
+    except Exception as e:
+        logger.warning(f"Wordcloud generation failed: {e}")
+    coherence_score = None
+    perplexity_score = None
+    try:
+        perplexity_score = lda_model.perplexity(count_matrix)
+    except Exception as e:
+        logger.warning(f"Perplexity calculation failed: {e}")
+    meta_json = {
+        "model_id": model_id,
+        "model_method": "HDP_LDA",
+        "num_topics": int(estimated_num_topics),
+        "num_words_per_topic": int(num_words_per_topic),
+        "training_parameters": {
+            "max_df": max_df,
+            "min_df": min_df,
+            "max_features": max_features,
+            "ngram_range": ngram_range,
+            "num_clusters": num_clusters
+        },
+        "model_file_paths": {
+            "lda_model": lda_model_artifact_path,
+            "vocab": vocab_artifact_path,
+            "pyldavis": vis_path,
+            "wordclouds": wordcloud_paths
+        },
+        "coherence_score": coherence_score,
+        "perplexity_score": perplexity_score,
+        "training_start_time": str(start_time),
+        "training_end_time": str(datetime.datetime.now()),
+        "tool_source": tool_source,
+        "tool_version": tool_version,
+        "data_source": data_source
+    }
+    meta_path = os.path.join(artifact_dir, f"meta_{model_id}.json")
+    try:
+        with open(meta_path, 'w') as f:
+            json.dump(meta_json, f, indent=2)
+    except Exception as e:
+        logger.warning(f"Meta JSON save failed: {e}")
+    # Write topic_model_meta ORM record
+    try:
+        with get_session() as session:
+            topic_model_meta = TopicModelMeta(
+                model_id=model_id,
+                model_method="HDP_LDA",
+                num_topics=int(estimated_num_topics),
+                num_words_per_topic=int(num_words_per_topic),
+                training_parameters=meta_json["training_parameters"],
+                model_file_paths=meta_json["model_file_paths"],
+                coherence_score=coherence_score,
+                perplexity_score=perplexity_score,
+                training_start_time=start_time,
+                training_end_time=datetime.datetime.now(),
+                tool_source=tool_source,
+                tool_version=tool_version,
+                data_source=data_source
+            )
+            session.add(topic_model_meta)
+            session.commit()
+    except Exception as e:
+        logger.warning(f"topic_model_meta DB write failed: {e}")
 
 
 
