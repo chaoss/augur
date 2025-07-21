@@ -27,10 +27,6 @@ import logging
 import re
 import json
 import urllib.parse
-import pyLDAvis
-import numpy as np
-
-
 from augur.application.db.models.base import Base
 from augur.application.db.util import execute_session_query
 from augur.application.db import get_session
@@ -3371,7 +3367,7 @@ class PullRequestReview(Base):
         ForeignKey(
             "augur_data.pull_requests.pull_request_id",
             ondelete="CASCADE",
-            onupdate="CASCADE",
+            onupdate="CASCADE"
         ),
         nullable=False,
     )
