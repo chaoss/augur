@@ -1,23 +1,18 @@
-"""Merge: Add topic model meta table, update OpenSSF deps unique constraint
+"""Add topic model meta table and foreign keys
 
-Revision ID: 32
-Revises: 31
-Create Date: 2025-07-xx
+Revision ID: 34
+Revises: 33 
+Create Date: 2025-07-23
 
 """
 from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
-from sqlalchemy import text
 
-# revision identifiers, used by Alembic.
-revision = '32'
-down_revision = '31'
-branch_labels = None
-depends_on = None
+revision = '34'
+down_revision = '33'  
 
 def upgrade():
-    # --- From 32_add_topic_model_meta_table.py ---
     op.create_table(
         'topic_model_meta',
         sa.Column('model_id', postgresql.UUID(as_uuid=True), nullable=False),
@@ -56,40 +51,11 @@ def upgrade():
     op.create_index('idx_repo_topic_model_id', 'repo_topic', ['model_id'], schema='augur_data')
     op.create_index('idx_topic_words_model_id', 'topic_words', ['model_id'], schema='augur_data')
 
-    # --- From 32_update_openssf_deps.py ---
-    op.drop_constraint(
-        'deps-scorecard-insert-unique',
-        'repo_deps_scorecard',
-        schema='augur_data',
-        type_='unique'
-    )
-    op.create_unique_constraint(
-        'deps_scorecard_new_unique',
-        'repo_deps_scorecard',
-        ['repo_id', 'repo_deps_scorecard_id'],
-        schema='augur_data'
-    )
-
 def downgrade():
-    # --- From 32_update_openssf_deps.py ---
-    op.drop_constraint(
-        'deps_scorecard_new_unique',
-        'repo_deps_scorecard',
-        schema='augur_data',
-        type_='unique'
-    )
-    op.create_unique_constraint(
-        'deps-scorecard-insert-unique',
-        'repo_deps_scorecard',
-        ['repo_id', 'name'],
-        schema='augur_data'
-    )
-
-    # --- From 32_add_topic_model_meta_table.py ---
     op.drop_index('idx_topic_words_model_id', table_name='topic_words', schema='augur_data')
     op.drop_index('idx_repo_topic_model_id', table_name='repo_topic', schema='augur_data')
     op.drop_constraint('fk_topic_words_model_id', 'topic_words', schema='augur_data', type_='foreignkey')
     op.drop_constraint('fk_repo_topic_model_id', 'repo_topic', schema='augur_data', type_='foreignkey')
     op.drop_column('topic_words', 'model_id', schema='augur_data')
     op.drop_column('repo_topic', 'model_id', schema='augur_data')
-    op.drop_table('topic_model_meta', schema='augur_data') 
+    op.drop_table('topic_model_meta', schema='augur_data')

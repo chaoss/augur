@@ -17,6 +17,7 @@ Augur Documentation
    schema/toc
    login
    procedures/toc
+   migrations/toc
 .. 
 
 ..
