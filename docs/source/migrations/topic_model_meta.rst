@@ -7,9 +7,31 @@ Topic Model Meta Migration
 What is Topic Modeling and Why is it Useful in Augur?
 -----------------------------------------------------
 
-Topic modeling is a machine learning technique that automatically groups text data (such as issue comments, pull requests, or commit messages) into topics based on patterns of word usage.
+Topic modeling is a machine learning technique that automatically groups large amounts of text—like issue comments, pull requests, or commit messages—into topics based on the words people use.
 
-In the context of Augur, topic modeling helps us understand what kinds of discussions, problems, or themes are most prevalent in a project's community—without manually reading every comment or issue.
+**In plain English:**  
+If you have thousands of GitHub comments, topic modeling helps you see what people are talking about by automatically sorting them into categories (topics) such as "bugs", "features", or "documentation", without having to read each comment yourself.
+
+**Why is this helpful for Augur?**
+- **Automatic grouping:** Augur can organize issues, PRs, and comments into topics, making it easier to analyze trends and community focus.
+- **Project health insights:** Maintainers can quickly spot which topics are most discussed, helping them identify emerging problems or popular features.
+- **Data-driven analysis:** Enables advanced analytics, such as tracking how topics change over time or comparing topic trends across projects.
+
+**How does Augur use topic modeling?**
+- Augur uses algorithms like LDA and HDP to discover topics in text data.
+- The results are stored in a new `topic_model_meta` table, which records which model was used, its parameters, and its results.
+- This makes it possible to reproduce results, compare different models, and trace which data came from which model run.
+
+**Example:**  
+Suppose a project has 10,000 issue comments. Topic modeling might automatically group them into topics like:
+- "Build errors"
+- "Feature requests"
+- "Documentation"
+- "Performance issues"
+
+This helps maintainers and contributors see what the community cares about most, and track how these topics change over time.
+
+This documentation is written for both technical and non-technical contributors, so you don't need to be a machine learning expert to understand how topic modeling benefits Augur.
 
 **Benefits for Augur:**
 
