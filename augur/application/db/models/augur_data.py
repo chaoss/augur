@@ -3601,3 +3601,25 @@ class RepoClone(Base):
     clone_data_timestamp = Column(TIMESTAMP(precision=6))
 
     repo = relationship("Repo")
+
+
+class TopicModelMeta(Base):
+    __tablename__ = "topic_model_meta"
+    __table_args__ = {"schema": "augur_data"}
+
+    model_id = Column(UUID(as_uuid=True), primary_key=True)
+    model_method = Column(String, nullable=False)
+    num_topics = Column(Integer, nullable=False)
+    num_words_per_topic = Column(Integer, nullable=False)
+    training_parameters = Column(JSONB, nullable=False)
+    model_file_paths = Column(JSONB, nullable=False)
+    coherence_score = Column(Float, nullable=True)
+    perplexity_score = Column(Float, nullable=True)
+    training_start_time = Column(TIMESTAMP(precision=0), nullable=False)
+    training_end_time = Column(TIMESTAMP(precision=0), nullable=False)
+    tool_source = Column(String, nullable=False)
+    tool_version = Column(String, nullable=False)
+    data_source = Column(String, nullable=False)
+    data_collection_date = Column(
+        TIMESTAMP(precision=0), server_default=text("CURRENT_TIMESTAMP")
+    )
