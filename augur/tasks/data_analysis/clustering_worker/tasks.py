@@ -7,9 +7,6 @@ import pickle
 import uuid
 import datetime
 import json
-import pyLDAvis
-import pyLDAvis.sklearn
-from wordcloud import WordCloud
 
 import sqlalchemy as s
 import pandas as pd
@@ -20,27 +17,72 @@ import nltk
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
-from sklearn.decomposition import LatentDirichletAllocation  as LDA
+# LDA import removed as we're using NMF model
+# from sklearn.decomposition import LatentDirichletAllocation  as LDA
 from collections import OrderedDict
 from textblob import TextBlob
 from collections import Counter
+from sklearn.decomposition import NMF
 
 from augur.tasks.init.celery_app import celery_app as celery
 from augur.application.db.lib import get_value, get_session, get_repo_by_repo_git
 from augur.application.db.models import RepoClusterMessage, RepoTopic, TopicWord, TopicModelMeta
 from augur.tasks.init.celery_app import AugurMlRepoCollectionTask
 
-from gensim.models import HdpModel
-import gensim.corpora as corpora
-import spacy
-from nltk.corpus import stopwords
+# HDP model import removed as we're using NMF+Count model
+# from gensim.models import HdpModel
+# import gensim.corpora as corpora
 
 
 MODEL_FILE_NAME = "kmeans_repo_messages"
 stemmer = nltk.stem.snowball.SnowballStemmer("english")
 
+# --- Configuration Loading ---
+# This section loads configuration from config.json file if available,
+# otherwise falls back to database configuration.
+CONFIG_PATH = os.path.join(os.path.dirname(__file__), 'config.json')
 
-@celery.task(base=AugurMlRepoCollectionTask, bind=True)
+def replace_env_vars(value):
+    """Replace environment variables in string values"""
+    if isinstance(value, str) and value.startswith('${') and value.endswith('}'):
+        # Extract variable name and default value
+        var_content = value[2:-1]  # Remove ${ and }
+        if ':-' in var_content:
+            var_name, default_value = var_content.split(':-', 1)
+        else:
+            var_name = var_content
+            default_value = ''
+        
+        # Get environment variable or use default
+        env_value = os.getenv(var_name, default_value)
+        
+        # Try to convert to appropriate type
+        try:
+            if default_value.isdigit():
+                return int(env_value)
+            if default_value.replace('.', '').isdigit():
+                return float(env_value)
+            return env_value
+        except (ValueError, AttributeError):
+            return env_value
+    
+    return value
+
+def load_config_with_env_vars(config_dict):
+    """Recursively replace environment variables in config dictionary"""
+    if isinstance(config_dict, dict):
+        for key, value in config_dict.items():
+            config_dict[key] = load_config_with_env_vars(value)
+    elif isinstance(config_dict, list):
+        for i, item in enumerate(config_dict):
+            config_dict[i] = load_config_with_env_vars(item)
+    elif isinstance(config_dict, str):
+        return replace_env_vars(config_dict)
+    
+    return config_dict
+
+
+@celery.task(base=AugurMlRepoCollectionTask, bind=True, queue='ml')
 def clustering_task(self, repo_git):
 
     logger = logging.getLogger(clustering_model.__name__)
@@ -49,27 +91,67 @@ def clustering_task(self, repo_git):
     clustering_model(repo_git, logger, engine)
 
 def clustering_model(repo_git: str,logger,engine) -> None:
-
+    """
+    Main entry for clustering and topic modeling on repository messages.
+    Loads parameters from config.json if available, otherwise from database config table.
+    Config parameters:
+      - db: Database connection info (used for standalone runs)
+      - topic_modeling.num_topics: Number of topics for NMF model (int)
+      - topic_modeling.min_df: Min document frequency for vectorizer (int)
+      - topic_modeling.max_df: Max document frequency for vectorizer (float)
+      - topic_modeling.random_state: Random seed (int)
+      - topic_modeling.coherence_metric: Coherence metric (str)
+      - topic_modeling.retrain_days: Retrain if last model older than this (int, days)
+      - topic_modeling.retrain_msg_growth: Retrain if message count grows by this fraction (float)
+      - topic_modeling.output_dir: Where to save models/visualizations (str)
+    """
     logger.info(f"Starting clustering analysis for {repo_git}")
 
-    ngram_range = (1, 4)
-    clustering_by_content = True
-    clustering_by_mechanism = False
-
-    # define topic modeling specific parameters
-    num_topics = 8
-    num_words_per_topic = 12
+    # Load topic modeling parameters from config.json or database
+    if os.path.exists(CONFIG_PATH):
+        with open(CONFIG_PATH, 'r') as f:
+            config = json.load(f)
+            # Replace environment variables in config
+            config = load_config_with_env_vars(config)
+            topic_cfg = config.get('Clustering_Task', {})
+            num_topics = int(topic_cfg.get('num_topics', 8))
+            min_df = int(topic_cfg.get('min_df', 2))
+            max_df = float(topic_cfg.get('max_df', 0.8))
+            max_features = int(topic_cfg.get('max_features', 1000))
+            num_words_per_topic = int(topic_cfg.get('num_words_per_topic', 12))
+            num_clusters = int(topic_cfg.get('num_clusters', 5))
+            random_state = int(topic_cfg.get('random_state', 42))
+            coherence_metric = topic_cfg.get('coherence_metric', 'c_v')
+            retrain_days = int(topic_cfg.get('retrain_days', 90))
+            retrain_msg_growth = float(topic_cfg.get('retrain_msg_growth', 0.2))
+            output_dir = topic_cfg.get('output_dir', 'artifacts/topic_models')
+            ngram_range = (1, 4)  # Default ngram range
+            clustering_by_content = True
+            clustering_by_mechanism = False
+            logger.info("Configuration loaded from config.json file")
+    else:
+        # Fallback to database configuration
+        num_topics = get_value("Clustering_Task", 'num_topics') or 8
+        min_df = get_value("Clustering_Task", 'min_df') or 2
+        max_df = get_value("Clustering_Task", 'max_df') or 0.8
+        max_features = get_value("Clustering_Task", 'max_features') or 1000
+        num_words_per_topic = get_value("Clustering_Task", 'num_words_per_topic') or 12
+        num_clusters = get_value("Clustering_Task", 'num_clusters') or 5
+        random_state = get_value("Clustering_Task", 'random_state') or 42
+        coherence_metric = get_value("Clustering_Task", 'coherence_metric') or 'c_v'
+        retrain_days = get_value("Clustering_Task", 'retrain_days') or 90
+        retrain_msg_growth = get_value("Clustering_Task", 'retrain_msg_growth') or 0.2
+        output_dir = get_value("Clustering_Task", 'output_dir') or 'artifacts/topic_models'
+        ngram_range = (1, 4)
+        clustering_by_content = True
+        clustering_by_mechanism = False
+        logger.info("Configuration loaded from database")
 
     tool_source = 'Clustering Worker'
-    tool_version = '0.2.0'
+    tool_version = '0.3.0'
     data_source = 'Augur Collected Messages'
 
     repo_id = get_repo_by_repo_git(repo_git).repo_id
-
-    num_clusters = get_value("Clustering_Task", 'num_clusters')
-    max_df = get_value("Clustering_Task", 'max_df')
-    max_features = get_value("Clustering_Task", 'max_features')
-    min_df = get_value("Clustering_Task", 'min_df')
 
     logger.info(f"Min df: {min_df}. Max df: {max_df}")
 
@@ -188,9 +270,9 @@ def clustering_model(repo_git: str,logger,engine) -> None:
     logging.info(
         "Primary key inserted into the repo_cluster_messages table: {}".format(repo_cluster_messages_obj.msg_cluster_id))
     try:
-        logger.debug('pickling')
-        lda_model = pickle.load(open("lda_model", "rb"))
-        logger.debug('loading vocab')
+        logger.debug('loading NMF model')
+        nmf_model = pickle.load(open("nmf_model", "rb"))
+        logger.debug('loading count vocabulary')
         vocabulary = pickle.load(open("vocabulary_count", "rb"))
         logger.debug('count vectorizing vocab')
         count_vectorizer = CountVectorizer(max_df=max_df, max_features=max_features, min_df=min_df,
@@ -201,10 +283,10 @@ def clustering_model(repo_git: str,logger,engine) -> None:
             msg_df['msg_text'])  # might be fitting twice, might have been used in training
 
         # save new vocabulary ??
-        logger.debug('count matric cur repo vocab')
+        logger.debug('count matrix cur repo vocab')
         count_matrix_cur_repo = count_transformer.transform(msg_df['msg_text'])
-        logger.debug('prediction vocab')
-        prediction = lda_model.transform(count_matrix_cur_repo)
+        logger.debug('NMF prediction vocab')
+        prediction = nmf_model.transform(count_matrix_cur_repo)
 
         with get_session() as session:
 
@@ -236,7 +318,20 @@ def clustering_model(repo_git: str,logger,engine) -> None:
 
 
 def get_tf_idf_matrix(text_list, max_df, max_features, min_df, ngram_range, logger):
-
+    # Validate input parameters
+    if not text_list:
+        raise ValueError("Text list cannot be empty")
+    
+    if max_df <= 0 or max_df > 1.0:
+        raise ValueError("max_df must be between 0 and 1")
+    
+    if min_df < 0:
+        raise ValueError("min_df must be non-negative")
+    
+    # For small datasets, allow min_df to be larger than max_df if min_df is an integer
+    if isinstance(min_df, float) and max_df < min_df:
+        raise ValueError("max_df must be >= min_df")
+    
     logger.debug("Getting the tf idf matrix from function")
     tfidf_vectorizer = TfidfVectorizer(max_df=max_df, max_features=max_features,
                                        min_df=min_df, stop_words='english',
@@ -245,19 +340,38 @@ def get_tf_idf_matrix(text_list, max_df, max_features, min_df, ngram_range, logg
     tfidf_transformer = tfidf_vectorizer.fit(text_list)
     tfidf_matrix = tfidf_transformer.transform(text_list)
     pickle.dump(tfidf_transformer.vocabulary_, open("vocabulary", 'wb'))
-    return tfidf_matrix, tfidf_vectorizer.get_feature_names()
+    return tfidf_matrix, tfidf_vectorizer.get_feature_names_out()
 
 def cluster_and_label(feature_matrix, num_clusters):
+    # Validate input parameters
+    if feature_matrix is None:
+        raise ValueError("Feature matrix cannot be None")
+    
+    if num_clusters <= 0:
+        raise ValueError("Number of clusters must be positive")
+    
+    if feature_matrix.shape[0] < num_clusters:
+        raise ValueError(f"Number of samples ({feature_matrix.shape[0]}) must be >= number of clusters ({num_clusters})")
+    
     kmeans_model = KMeans(n_clusters=num_clusters)
     kmeans_model.fit(feature_matrix)
     pickle.dump(kmeans_model, open("kmeans_repo_messages", 'wb'))
     return kmeans_model.labels_.tolist()
 
 def count_func(msg):
+    # Handle None or empty input
+    if msg is None or not isinstance(msg, str):
+        raise TypeError("Input must be a non-empty string")
+    
+    if not msg.strip():
+        return {}
+    
     blobed = TextBlob(msg)
     counts = Counter(tag for word, tag in blobed.tags if
                      tag not in ['NNPS', 'RBS', 'SYM', 'WP$', 'LS', 'POS', 'RP', 'RBR', 'JJS', 'UH', 'FW', 'PDT'])
     total = sum(counts.values())
+    if total == 0:
+        return {}
     normalized_count = {key: value / total for key, value in counts.items()}
     return normalized_count
 
@@ -271,28 +385,7 @@ def preprocess_and_tokenize(text):
     stems = [stemmer.stem(t) for t in tokens]
     return stems
 
-def estimate_topic_num_hdp(preprocessed_texts, logger=None, fallback=10, upper_limit=30):
-    """
-    Estimate the number of topics using Gensim's HDP model.
-    Returns the estimated number of topics (int).
-    If estimation fails, returns fallback value.
-    """
-    try:
-        logger and logger.info("Estimating topic number using HDP...")
-        dictionary = corpora.Dictionary(preprocessed_texts)
-        corpus = [dictionary.doc2bow(text) for text in preprocessed_texts]
-        hdp_model = HdpModel(corpus=corpus, id2word=dictionary)
-        topics = hdp_model.show_topics(formatted=False)
-        # Count topics with at least 2 non-zero words
-        num_topics = sum(1 for topic in topics if sum(w[1] for w in topic[1]) > 0.01)
-        if num_topics < 2 or num_topics > upper_limit:
-            logger and logger.warning(f"HDP estimated an unreasonable topic number: {num_topics}, using fallback {fallback}")
-            return fallback
-        logger and logger.info(f"HDP estimated topic number: {num_topics}")
-        return num_topics
-    except Exception as e:
-        logger and logger.error(f"HDP topic estimation failed: {e}, using fallback {fallback}")
-        return fallback
+
 
 def train_model(logger, engine, max_df, min_df, max_features, ngram_range, num_clusters, num_topics, num_words_per_topic, tool_source, tool_version, data_source):
     def visualize_labels_PCA(features, labels, annotations, num_components, title):
@@ -318,7 +411,7 @@ def train_model(logger, engine, max_df, min_df, max_features, ngram_range, num_c
         plt.ylabel("PCA Component 2")
         # plt.show()
         filename = labels + "_PCA.png"
-        plt.save_fig(filename)
+        plt.savefig(filename)
 
     get_messages_sql = s.sql.text(
         """
@@ -343,7 +436,7 @@ def train_model(logger, engine, max_df, min_df, max_features, ngram_range, num_c
 
     # select only highly active repos
     logger.debug("Selecting highly active repos")
-    msg_df_all = msg_df_all.groupby("repo_id").filter(lambda x: len(x) > 500)
+    msg_df_all = msg_df_all.groupby("repo_id").filter(lambda x: len(x) > 200)
 
     # combining all the messages in a repository to form a single doc
     logger.debug("Combining messages in repo to form single doc")
@@ -361,107 +454,54 @@ def train_model(logger, engine, max_df, min_df, max_features, ngram_range, num_c
                                                     ngram_range, logger)
     msg_df['cluster'] = cluster_and_label(tfidf_matrix, num_clusters)
 
-    # LDA - Topic Modeling
-    logger.debug("Calling CountVectorizer in train model function")
-    count_vectorizer = CountVectorizer(max_df=max_df, max_features=max_features, min_df=min_df,
-                                       stop_words="english", tokenizer=preprocess_and_tokenize)
-
-    # count_matrix = count_vectorizer.fit_transform(msg_df['msg_text'])
+    # Count Vectorizer for NMF topic modeling
+    logger.debug("Calling CountVectorizer for NMF topic modeling")
+    count_vectorizer = CountVectorizer(max_df=max_df, max_features=min(max_features, 500), min_df=min_df,
+                                       stop_words="english", tokenizer=preprocess_and_tokenize,
+                                       ngram_range=(1, 2))
     count_transformer = count_vectorizer.fit(msg_df['msg_text'])
     count_matrix = count_transformer.transform(msg_df['msg_text'])
     pickle.dump(count_transformer.vocabulary_, open("vocabulary_count", 'wb'))
-    feature_names = count_vectorizer.get_feature_names()
+    feature_names = count_vectorizer.get_feature_names_out()
 
-    # Text preprocessing for HDP (tokenization, stopword removal, lemmatization)
-    nlp = spacy.load("en_core_web_sm")
-    stop_words = set(stopwords.words("english"))
-    def preprocess(text):
-        doc = nlp(text.lower())
-        return [token.lemma_ for token in doc if token.is_alpha and token.lemma_ not in stop_words and len(token) > 2]
-    texts_tokenized = [preprocess(t) for t in msg_df['msg_text'].astype(str).tolist()]
+    logger.debug("Training NMF model for topic modeling")
+    nmf_model = NMF(n_components=num_topics, random_state=42, max_iter=100, tol=0.01)
+    nmf_model.fit(count_matrix)
+    topic_list = nmf_model.components_
 
-    # Step 2: Estimate topic number using HDP
-    estimated_num_topics = estimate_topic_num_hdp(texts_tokenized, logger=logger, fallback=num_topics)
-    logger.info(f"[train_model] model_id will be generated after topic estimation. Estimated topic number: {estimated_num_topics}")
+    logging.info(f"NMF Topic List Created: {topic_list}")
+    pickle.dump(nmf_model, open("nmf_model", 'wb'))
+    logging.info("pickle dump for NMF model")
 
-    logger.debug("Calling LDA")
-    lda_model = LDA(n_components=estimated_num_topics)
-    lda_model.fit(count_matrix)
-    # each component in lda_model.components_ represents probability distribution over words in that topic
-    topic_list = lda_model.components_
-    # Getting word probability
-    # word_prob = lda_model.exp_dirichlet_component_
-    # word probabilities
-    # lda_model does not have state variable in this library
-    # topics_terms = lda_model.state.get_lambda()
-    # topics_terms_proba = np.apply_along_axis(lambda x: x/x.sum(),1,topics_terms)
-    # word_prob = [lda_model.id2word[i] for i in range(topics_terms_proba.shape[1])]
-
-    # Site explaining main library used for parsing topics: https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.LatentDirichletAllocation.html
-
-    # Good site for optimizing: https://medium.com/@yanlinc/how-to-build-a-lda-topic-model-using-from-text-601cdcbfd3a6
-    # Another Good Site: https://towardsdatascience.com/an-introduction-to-clustering-algorithms-in-python-123438574097
-    # https://machinelearningmastery.com/clustering-algorithms-with-python/
-
-    logging.info(f"Topic List Created: {topic_list}")
-    pickle.dump(lda_model, open("lda_model", 'wb'))
-    logging.info("pickle dump")
-
-    ## Advance Sequence SQL
-
-    # key_sequence_words_sql = s.sql.text(
-    #                           """
-    #       SELECT nextval('augur_data.topic_words_topic_words_id_seq'::text)
-    #       """
-    #                               )
-
-    # twid = self.db.execute(key_sequence_words_sql)
-    # logger.info("twid variable is: {}".format(twid))
-    # insert topic list into database
-
+    # Save topics to DB
     with get_session() as session:
-
         topic_id = 1
         for topic in topic_list:
-            # twid = self.get_max_id('topic_words', 'topic_words_id') + 1
-            # logger.info("twid variable is: {}".format(twid))
             for i in topic.argsort()[:-num_words_per_topic - 1:-1]:
-                # twid+=1
-                # logger.info("in loop incremented twid variable is: {}".format(twid))
-                # logger.info("twid variable is: {}".format(twid))
                 record = {
-                    # 'topic_words_id': twid,
-                    # 'word_prob': word_prob[i],
                     'topic_id': int(topic_id),
                     'word': feature_names[i],
                     'tool_source': tool_source,
                     'tool_version': tool_version,
                     'data_source': data_source
                 }
-
                 topic_word_obj = TopicWord(**record)
                 session.add(topic_word_obj)
                 session.commit()
-
-                # result = db.execute(topic_words_table.insert().values(record))
                 logger.info(
                     "Primary key inserted into the topic_words table: {}".format(topic_word_obj.topic_words_id))
             topic_id += 1
 
-    # insert topic list into database
-
-    # save the model and predict on each repo separately
-
-    logger.debug(f'entering prediction in model training, count matric is {count_matrix}')
-    prediction = lda_model.transform(count_matrix)
-
+    # Predict topic distribution for each repo
+    logger.debug(f'entering prediction in model training, count_matrix is {count_matrix.shape}')
+    prediction = nmf_model.transform(count_matrix)
     topic_model_dict_list = []
     logger.debug('entering for loop in model training. ')
     for i, prob_vector in enumerate(prediction):
         topic_model_dict = {}
         topic_model_dict['repo_id'] = msg_df.loc[i]['repo_id']
-        for i, prob in enumerate(prob_vector):
-            topic_model_dict["topic" + str(i + 1)] = prob
+        for j, prob in enumerate(prob_vector):
+            topic_model_dict["topic" + str(j + 1)] = prob
         topic_model_dict_list.append(topic_model_dict)
     logger.debug('creating topic model data frame.')
     topic_model_df = pd.DataFrame(topic_model_dict_list)
@@ -470,75 +510,27 @@ def train_model(logger, engine, max_df, min_df, max_features, ngram_range, num_c
         msg_df.set_index('repo_id'))
     result_content_df = result_content_df.reset_index()
     logger.info(result_content_df)
-    try:
-        POS_count_dict = msg_df.apply(lambda row: count_func(row['msg_text']), axis=1)
-        logger.debug('POS_count_dict has no exceptions.')
-    except Exception as e:
-        logger.debug(f'POS_count_dict error is: {e}.')
-        stacker = traceback.format_exc()
-        logger.debug(f"\n\n{stacker}\n\n")
-        pass
-    try:
-        msg_df_aug = pd.concat([msg_df, pd.DataFrame.from_records(POS_count_dict)], axis=1)
-        logger.info(f'msg_df_aug worked: {msg_df_aug}')
-    except Exception as e:
-        logger.debug(f'msg_df_aug error is: {e}.')
-        stacker = traceback.format_exc()
-        logger.debug(f"\n\n{stacker}\n\n")
-        pass
 
-    visualize_labels_PCA(tfidf_matrix.todense(), msg_df['cluster'], msg_df['repo_id'], 2, "tex!")
-
-# visualize_labels_PCA(tfidf_matrix.todense(), msg_df['cluster'], msg_df['repo_id'], 2, "MIN_DF={} and MAX_DF={} and NGRAM_RANGE={}".format(MIN_DF, MAX_DF, NGRAM_RANGE))
-
-    # Incremental enhancement: generate model_id and artifact_dir
+    # Save model artifacts
     model_id = str(uuid.uuid4())
     artifact_dir = os.path.join("artifacts", model_id)
     os.makedirs(artifact_dir, exist_ok=True)
     start_time = datetime.datetime.now()
-
-    # After original model/vocab saves, also save to artifact_dir
     try:
-        lda_model_artifact_path = os.path.join(artifact_dir, f"lda_model_{model_id}.pkl")
-        with open(lda_model_artifact_path, 'wb') as f:
-            pickle.dump(lda_model, f)
+        nmf_model_artifact_path = os.path.join(artifact_dir, f"nmf_model_{model_id}.pkl")
+        with open(nmf_model_artifact_path, 'wb') as model_file:
+            pickle.dump(nmf_model, model_file)
         vocab_artifact_path = os.path.join(artifact_dir, f"vocabulary_count_{model_id}.pkl")
-        with open(vocab_artifact_path, 'wb') as f:
-            pickle.dump(count_transformer.vocabulary_, f)
+        with open(vocab_artifact_path, 'wb') as vocab_file:
+            pickle.dump(count_transformer.vocabulary_, vocab_file)
     except Exception as e:
         logger.warning(f"Artifact model/vocab save failed: {e}")
 
-    # After all original DB writes, add model_id if possible
-    # (Assume model_id is added to record dicts for TopicWord and RepoTopic below)
-
-    # After all original analysis/statistics, add pyLDAvis, wordcloud, meta.json
-    vis_path = None
-    wordcloud_paths = []
-    try:
-        vis_data = pyLDAvis.sklearn.prepare(lda_model, count_matrix, count_vectorizer)
-        vis_path = os.path.join(artifact_dir, f"pyldavis_{model_id}.html")
-        pyLDAvis.save_html(vis_data, vis_path)
-    except Exception as e:
-        logger.warning(f"pyLDAvis generation failed: {e}")
-    try:
-        for topic_idx, topic in enumerate(topic_list):
-            freqs = {feature_names[i]: topic[i] for i in topic.argsort()[:-num_words_per_topic - 1:-1]}
-            wc = WordCloud(width=800, height=400, background_color='white').generate_from_frequencies(freqs)
-            wc_path = os.path.join(artifact_dir, f"wordcloud_topic{topic_idx+1}_{model_id}.png")
-            wc.to_file(wc_path)
-            wordcloud_paths.append(wc_path)
-    except Exception as e:
-        logger.warning(f"Wordcloud generation failed: {e}")
-    coherence_score = None
-    perplexity_score = None
-    try:
-        perplexity_score = lda_model.perplexity(count_matrix)
-    except Exception as e:
-        logger.warning(f"Perplexity calculation failed: {e}")
+    # Save meta.json
     meta_json = {
         "model_id": model_id,
-        "model_method": "HDP_LDA",
-        "num_topics": int(estimated_num_topics),
+        "model_method": "NMF_COUNT",
+        "num_topics": int(num_topics),
         "num_words_per_topic": int(num_words_per_topic),
         "training_parameters": {
             "max_df": max_df,
@@ -548,13 +540,9 @@ def train_model(logger, engine, max_df, min_df, max_features, ngram_range, num_c
             "num_clusters": num_clusters
         },
         "model_file_paths": {
-            "lda_model": lda_model_artifact_path,
-            "vocab": vocab_artifact_path,
-            "pyldavis": vis_path,
-            "wordclouds": wordcloud_paths
+            "nmf_model": nmf_model_artifact_path,
+            "vocab": vocab_artifact_path
         },
-        "coherence_score": coherence_score,
-        "perplexity_score": perplexity_score,
         "training_start_time": str(start_time),
         "training_end_time": str(datetime.datetime.now()),
         "tool_source": tool_source,
@@ -563,8 +551,8 @@ def train_model(logger, engine, max_df, min_df, max_features, ngram_range, num_c
     }
     meta_path = os.path.join(artifact_dir, f"meta_{model_id}.json")
     try:
-        with open(meta_path, 'w') as f:
-            json.dump(meta_json, f, indent=2)
+        with open(meta_path, 'w') as meta_file:
+            json.dump(meta_json, meta_file, indent=2)
     except Exception as e:
         logger.warning(f"Meta JSON save failed: {e}")
     # Write topic_model_meta ORM record
@@ -572,13 +560,11 @@ def train_model(logger, engine, max_df, min_df, max_features, ngram_range, num_c
         with get_session() as session:
             topic_model_meta = TopicModelMeta(
                 model_id=model_id,
-                model_method="HDP_LDA",
-                num_topics=int(estimated_num_topics),
+                model_method="NMF_COUNT",
+                num_topics=int(num_topics),
                 num_words_per_topic=int(num_words_per_topic),
                 training_parameters=meta_json["training_parameters"],
                 model_file_paths=meta_json["model_file_paths"],
-                coherence_score=coherence_score,
-                perplexity_score=perplexity_score,
                 training_start_time=start_time,
                 training_end_time=datetime.datetime.now(),
                 tool_source=tool_source,

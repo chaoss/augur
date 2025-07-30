@@ -67,7 +67,7 @@ def insight_model(repo_git: str,logger,engine) -> None:
         logger.info("Hitting endpoint: " + url + "\n")
         try:
             data = requests.get(url=url).json()
-        except:
+        except Exception:
             data = json.loads(json.dumps(requests.get(url=url).text))
 
         if len(data) == 0:
@@ -303,7 +303,7 @@ def insight_model(repo_git: str,logger,engine) -> None:
                 logger.info("error occurred while storing datapoint: {}\n".format(repr(e)))
                 break
 
-def confidence_interval_insights(logger, engine):
+def confidence_interval_insights(logger, engine, tool_version='1.0.0', data_source='Augur API', refresh=True, entry_info=None, api_host=None, api_port=None, repo_id=None, training_days=None, anomaly_days=None, confidence=None, tool_source=None, send_insights=True):
     """ Anomaly detection method based on confidence intervals
     """
 
@@ -380,7 +380,7 @@ def confidence_interval_insights(logger, engine):
                     logger.info(
                         "data {} days ago date found: {}, {}".format(training_days, dict['date'], begin_date))
                     break
-            except:
+            except Exception:
                 logger.info("Endpoint {} is not a timeseries, moving to next".format(endpoint))
                 not_timeseries = True
                 break
@@ -407,14 +407,14 @@ def confidence_interval_insights(logger, engine):
                 try:
                     trash = int(dict[key]) * 2 + 1
                     raw_values[key].append(int(dict[key]))
-                except:
+                except Exception:
                     try:
                         trash = int(dict[key]) * 2 + 1
                         raw_values[key] = [int(dict[key])]
-                    except:
+                    except Exception:
                         logger.info("Key: {} is non-numerical, moving to next key.".format(key))
 
-        for key in raw_values.keys():
+        for key in raw_values:
             if len(raw_values[key]) > 0:
                 mean, lower, upper = confidence_interval(raw_values[key], logger, confidence=confidence)
                 logger.info("Upper: {}, middle: {}, lower: {}".format(upper, mean, lower))
@@ -445,7 +445,7 @@ def confidence_interval_insights(logger, engine):
                     # Check if new insight has a better score than other insights in its place, use result
                     #   to determine if we continue in the insertion process (0 for no insertion, 1 for record
                     #   insertion, 2 for record and insight data points insertion)
-                    instructions = clear_insight(repo_id, score, endpoint['cm_info'], key, logger)
+                    instructions = clear_insight(repo_id, score, endpoint['cm_info'], key, logger, engine, refresh)
                     # clear_insight(repo_id, score, endpoint['cm_info'] + ' ({})'.format(key))
 
                     # Use result from clearing function to determine if we need to insert the record
@@ -467,13 +467,14 @@ def confidence_interval_insights(logger, engine):
                         }
 
                         repo_insight_obj = RepoInsightsRecord(**record)
-                        session.add(repo_insight_obj)
-                        session.commit()
+                        with get_session() as session:
+                            session.add(repo_insight_obj)
+                            session.commit()
 
                         logger.info("Primary key inserted into the repo_insights_records table: {}\n".format(repo_insight_obj.ri_id))
 
                         # Send insight to Jonah for slack bot
-                        send_insight(record, abs(date_filtered_raw_values[discovery_index][key] - mean), logger)
+                        send_insight(record, abs(date_filtered_raw_values[discovery_index][key] - mean), logger, engine, anomaly_days, send_insights)
 
                     # Use result from clearing function to determine if we still need to insert the insight
                     if instructions['insight']:
@@ -497,8 +498,9 @@ def confidence_interval_insights(logger, engine):
                                     "data_source": data_source
                                 }
                                 repo_insight_obj = RepoInsight(**data_point)
-                                session.add(repo_insight_obj)
-                                session.commit()
+                                with get_session() as session:
+                                    session.add(repo_insight_obj)
+                                    session.commit()
 
                                 logger.info("Primary key inserted into the repo_insights table: " + str(
                                     repo_insight_obj.ri_id))
@@ -547,7 +549,7 @@ def send_insight(insight, units_from_mean, logger, engine, anomaly_days, send_in
     except Exception as e:
         logger.info("sending insight to jonah failed: {}".format(e))
 
-def clear_insights(repo_id, new_endpoint, new_field, logger):
+def clear_insights(repo_id, new_endpoint, new_field, logger, engine):
 
     logger.info("Deleting all tuples in repo_insights_records table with info: "
                  "repo {} endpoint {} field {}".format(repo_id, new_endpoint, new_field))
@@ -564,7 +566,7 @@ def clear_insights(repo_id, new_endpoint, new_field, logger):
         with engine.connect() as conn:
             result = conn.execute(deleteSQL)
     except Exception as e:
-        logger.info("Error occured deleting insight slot: {}".format(e))
+        logger.info("Error occurred deleting insight slot: {}".format(e))
 
     # Delete all insights
     logger.info("Deleting all tuples in repo_insights table with info: "
@@ -582,9 +584,9 @@ def clear_insights(repo_id, new_endpoint, new_field, logger):
         with engine.connect() as conn:
             result = conn.execute(deleteSQL)
     except Exception as e:
-        logger.info("Error occured deleting insight slot: {}".format(e))
+        logger.info("Error occurred deleting insight slot: {}".format(e))
 
-def clear_insight(repo_id, new_score, new_metric, new_field, logger):
+def clear_insight(repo_id, new_score, new_metric, new_field, logger, engine, refresh=True):
     logger.info("Checking if insight slots filled...")
 
     # Dict that will be returned that instructs the rest of the worker where the insight insertion is
@@ -625,7 +627,7 @@ def clear_insight(repo_id, new_score, new_metric, new_field, logger):
                     with engine.connect() as conn:
                         result = conn.execute(deleteSQL)
                 except Exception as e:
-                    logger.info("Error occured deleting insight slot: {}".format(e))
+                    logger.info("Error occurred deleting insight slot: {}".format(e))
     else:
         insertion_directions['record'] = True
 
@@ -641,7 +643,7 @@ def clear_insight(repo_id, new_score, new_metric, new_field, logger):
         ins = json.loads(pd.read_sql(insightSQL, conn, params={}).to_json(orient='records'))
     logger.info("This repos insights: {}".format(ins))
 
-    # Determine if inisghts need to be deleted based on if there are more insights than we want stored,
+    # Determine if insights need to be deleted based on if there are more insights than we want stored,
     #   or if the current insights have a lower score
     num_insights = len(ins)
     to_delete = []
@@ -658,7 +660,7 @@ def clear_insight(repo_id, new_score, new_metric, new_field, logger):
                                                                                                insight['ri_score'],
                                                                                                new_score))
 
-    # After psuedo-deletion, determine if insertion of the new insight is needed
+    # After pseudo-deletion, determine if insertion of the new insight is needed
     if num_insights < num_insights_per_repo:
         insertion_directions['insight'] = True
 
@@ -679,7 +681,7 @@ def clear_insight(repo_id, new_score, new_metric, new_field, logger):
             with engine.connect() as conn:
                 result = conn.execute(deleteSQL)
         except Exception as e:
-            logger.info("Error occured deleting insight slot: {}".format(e))
+            logger.info("Error occurred deleting insight slot: {}".format(e))
 
     return insertion_directions
 

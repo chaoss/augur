@@ -27,8 +27,6 @@ import logging
 import re
 import json
 import urllib.parse
-import pyLDAvis
-import numpy as np
 
 
 from augur.application.db.models.base import Base
@@ -234,23 +232,23 @@ class Contributor(Base):
     gh_site_admin = Column(String)
     gl_web_url = Column(
         String,
-        comment='"web_url" value from these API calls to GitLab, all for the same user\n\nhttps://gitlab.com/api/v4/users?username=computationalmystic\nhttps://gitlab.com/api/v4/users?search=s@goggins.com\nhttps://gitlab.com/api/v4/users?search=outdoors@acm.org\n\n[\n  {\n    "id": 5481034,\n    "name": "sean goggins",\n    "username": "computationalmystic",\n    "state": "active",\n    "avatar_url": "https://secure.gravatar.com/avatar/fb1fb43953a6059df2fe8d94b21d575c?s=80&d=identicon",\n    "web_url": "https://gitlab.com/computationalmystic"\n  }\n]',
+        comment='“web_url” value from these API calls to GitLab, all for the same user\n\nhttps://gitlab.com/api/v4/users?username=computationalmystic\nhttps://gitlab.com/api/v4/users?search=s@goggins.com\nhttps://gitlab.com/api/v4/users?search=outdoors@acm.org\n\n[\n  {\n    "id": 5481034,\n    "name": "sean goggins",\n    "username": "computationalmystic",\n    "state": "active",\n    "avatar_url": "https://secure.gravatar.com/avatar/fb1fb43953a6059df2fe8d94b21d575c?s=80&d=identicon",\n    "web_url": "https://gitlab.com/computationalmystic"\n  }\n]',
     )
     gl_avatar_url = Column(
         String,
-        comment='"avatar_url" value from these API calls to GitLab, all for the same user\n\nhttps://gitlab.com/api/v4/users?username=computationalmystic\nhttps://gitlab.com/api/v4/users?search=s@goggins.com\nhttps://gitlab.com/api/v4/users?search=outdoors@acm.org\n\n[\n  {\n    "id": 5481034,\n    "name": "sean goggins",\n    "username": "computationalmystic",\n    "state": "active",\n    "avatar_url": "https://secure.gravatar.com/avatar/fb1fb43953a6059df2fe8d94b21d575c?s=80&d=identicon",\n    "web_url": "https://gitlab.com/computationalmystic"\n  }\n]',
+        comment='“avatar_url” value from these API calls to GitLab, all for the same user\n\nhttps://gitlab.com/api/v4/users?username=computationalmystic\nhttps://gitlab.com/api/v4/users?search=s@goggins.com\nhttps://gitlab.com/api/v4/users?search=outdoors@acm.org\n\n[\n  {\n    "id": 5481034,\n    "name": "sean goggins",\n    "username": "computationalmystic",\n    "state": "active",\n    "avatar_url": "https://secure.gravatar.com/avatar/fb1fb43953a6059df2fe8d94b21d575c?s=80&d=identicon",\n    "web_url": "https://gitlab.com/computationalmystic"\n  }\n]',
     )
     gl_state = Column(
         String,
-        comment='"state" value from these API calls to GitLab, all for the same user\n\nhttps://gitlab.com/api/v4/users?username=computationalmystic\nhttps://gitlab.com/api/v4/users?search=s@goggins.com\nhttps://gitlab.com/api/v4/users?search=outdoors@acm.org\n\n[\n  {\n    "id": 5481034,\n    "name": "sean goggins",\n    "username": "computationalmystic",\n    "state": "active",\n    "avatar_url": "https://secure.gravatar.com/avatar/fb1fb43953a6059df2fe8d94b21d575c?s=80&d=identicon",\n    "web_url": "https://gitlab.com/computationalmystic"\n  }\n]',
+        comment='“state” value from these API calls to GitLab, all for the same user\n\nhttps://gitlab.com/api/v4/users?username=computationalmystic\nhttps://gitlab.com/api/v4/users?search=s@goggins.com\nhttps://gitlab.com/api/v4/users?search=outdoors@acm.org\n\n[\n  {\n    "id": 5481034,\n    "name": "sean goggins",\n    "username": "computationalmystic",\n    "state": "active",\n    "avatar_url": "https://secure.gravatar.com/avatar/fb1fb43953a6059df2fe8d94b21d575c?s=80&d=identicon",\n    "web_url": "https://gitlab.com/computationalmystic"\n  }\n]',
     )
     gl_username = Column(
         String,
-        comment='"username" value from these API calls to GitLab, all for the same user\n\nhttps://gitlab.com/api/v4/users?username=computationalmystic\nhttps://gitlab.com/api/v4/users?search=s@goggins.com\nhttps://gitlab.com/api/v4/users?search=outdoors@acm.org\n\n[\n  {\n    "id": 5481034,\n    "name": "sean goggins",\n    "username": "computationalmystic",\n    "state": "active",\n    "avatar_url": "https://secure.gravatar.com/avatar/fb1fb43953a6059df2fe8d94b21d575c?s=80&d=identicon",\n    "web_url": "https://gitlab.com/computationalmystic"\n  }\n]',
+        comment='“username” value from these API calls to GitLab, all for the same user\n\nhttps://gitlab.com/api/v4/users?username=computationalmystic\nhttps://gitlab.com/api/v4/users?search=s@goggins.com\nhttps://gitlab.com/api/v4/users?search=outdoors@acm.org\n\n[\n  {\n    "id": 5481034,\n    "name": "sean goggins",\n    "username": "computationalmystic",\n    "state": "active",\n    "avatar_url": "https://secure.gravatar.com/avatar/fb1fb43953a6059df2fe8d94b21d575c?s=80&d=identicon",\n    "web_url": "https://gitlab.com/computationalmystic"\n  }\n]',
     )
     gl_full_name = Column(
         String,
-        comment='"name" value from these API calls to GitLab, all for the same user\n\nhttps://gitlab.com/api/v4/users?username=computationalmystic\nhttps://gitlab.com/api/v4/users?search=s@goggins.com\nhttps://gitlab.com/api/v4/users?search=outdoors@acm.org\n\n[\n  {\n    "id": 5481034,\n    "name": "sean goggins",\n    "username": "computationalmystic",\n    "state": "active",\n    "avatar_url": "https://secure.gravatar.com/avatar/fb1fb43953a6059df2fe8d94b21d575c?s=80&d=identicon",\n    "web_url": "https://gitlab.com/computationalmystic"\n  }\n]',
+        comment='“name” value from these API calls to GitLab, all for the same user\n\nhttps://gitlab.com/api/v4/users?username=computationalmystic\nhttps://gitlab.com/api/v4/users?search=s@goggins.com\nhttps://gitlab.com/api/v4/users?search=outdoors@acm.org\n\n[\n  {\n    "id": 5481034,\n    "name": "sean goggins",\n    "username": "computationalmystic",\n    "state": "active",\n    "avatar_url": "https://secure.gravatar.com/avatar/fb1fb43953a6059df2fe8d94b21d575c?s=80&d=identicon",\n    "web_url": "https://gitlab.com/computationalmystic"\n  }\n]',
     )
     gl_id = Column(
         BigInteger,
@@ -647,7 +645,6 @@ class TopicWord(Base):
     topic_id = Column(BigInteger)
     word = Column(String)
     word_prob = Column(Float(53))
-    model_id = Column(UUID(as_uuid=True), ForeignKey("augur_data.topic_model_meta.model_id"))  # 新增字段，指向 topic_model_meta
     tool_source = Column(String)
     tool_version = Column(String)
     data_source = Column(String)
@@ -775,8 +772,8 @@ class ContributorsAlias(Base):
         UniqueConstraint("alias_email"),
         {
             "schema": "augur_data",
-            "comment": """Every open source user may have more than one email used to make contributions over time. Augur selects the first email it encounters for a user as its canonical_email. The canonical_email is also added to the contributors_aliases table, with the canonical_email and alias_email being identical. Using this strategy, an email search will only need to join the alias table for basic email information, and can then more easily map the canonical email from each alias row to the same, more detailed information in the contributors table for a user."""
-        }
+            "comment": "Every open source user may have more than one email used to make contributions over time. Augur selects the first email it encounters for a user as its “canonical_email”. \n\nThe canonical_email is also added to the contributors_aliases table, with the canonical_email and alias_email being identical.  Using this strategy, an email search will only need to join the alias table for basic email information, and can then more easily map the canonical email from each alias row to the same, more detailed information in the contributors table for a user. ",
+        },
     )
 
     cntrb_alias_id = Column(
@@ -829,7 +826,7 @@ class Repo(Base):
 
         {
             "schema": "augur_data",
-            "comment": "This table is a combination of the columns in Facade's repo table and GHTorrent's projects table. ",
+            "comment": "This table is a combination of the columns in Facade’s repo table and GHTorrent’s projects table. ",
         },
     )
 
@@ -1203,7 +1200,7 @@ class RepoGroupInsight(Base):
     __tablename__ = "repo_group_insights"
     __table_args__ = {
         "schema": "augur_data",
-        "comment": 'This table is output from an analytical worker inside of Augur. It runs through the different metrics on a REPOSITORY_GROUP and identifies the five to ten most "interesting" metrics as defined by some kind of delta or other factor. The algorithm is going to evolve. \n\nWorker Design Notes: The idea is that the "insight worker" will scan through a bunch of active metrics or "synthetic metrics" to list the most important insights. ',
+        "comment": 'This table is output from an analytical worker inside of Augur. It runs through the different metrics on a REPOSITORY_GROUP and identifies the five to ten most “interesting” metrics as defined by some kind of delta or other factor. The algorithm is going to evolve. \n\nWorker Design Notes: The idea is that the "insight worker" will scan through a bunch of active metrics or "synthetic metrics" to list the most important insights. ',
     }
 
     rgi_id = Column(
@@ -1268,7 +1265,7 @@ class Commit(Base):
         Index("author_affiliation", "cmt_author_affiliation"),
         Index("author_cntrb_id", "cmt_ght_author_id"),
         Index("author_raw_email", "cmt_author_raw_email"),
-        Index("commited", "cmt_id"),
+        Index("committed", "cmt_id"),
         Index(
             "commits_idx_cmt_email_cmt_date_cmt_name",
             "cmt_author_email",
@@ -1617,7 +1614,7 @@ class MessageAnalysisSummary(Base):
     __tablename__ = "message_analysis_summary"
     __table_args__ = {
         "schema": "augur_data",
-        "comment": 'In a relationally perfect world, we would have a table called "message_analysis_run" the incremented the "worker_run_id" for both message_analysis and message_analysis_summary. For now, we decided this was overkill. ',
+        "comment": "In a relationally perfect world, we would have a table called “message_analysis_run” the incremented the “worker_run_id” for both message_analysis and message_analysis_summary. For now, we decided this was overkill. ",
     }
 
     msg_summary_id = Column(
@@ -1656,7 +1653,7 @@ class MessageSentimentSummary(Base):
     __tablename__ = "message_sentiment_summary"
     __table_args__ = {
         "schema": "augur_data",
-        "comment": 'In a relationally perfect world, we would have a table called "message_sentiment_run" the incremented the "worker_run_id" for both message_sentiment and message_sentiment_summary. For now, we decided this was overkill. ',
+        "comment": "In a relationally perfect world, we would have a table called “message_sentiment_run” the incremented the “worker_run_id” for both message_sentiment and message_sentiment_summary. For now, we decided this was overkill. ",
     }
 
     msg_summary_id = Column(
@@ -1867,7 +1864,7 @@ class RepoBadging(Base):
     __tablename__ = "repo_badging"
     __table_args__ = {
         "schema": "augur_data",
-        "comment": "This will be collected from the LF's Badging API\nhttps://bestpractices.coreinfrastructure.org/projects.json?pq=https%3A%2F%2Fgithub.com%2Fchaoss%2Faugur\n",
+        "comment": "This will be collected from the LF’s Badging API\nhttps://bestpractices.coreinfrastructure.org/projects.json?pq=https%3A%2F%2Fgithub.com%2Fchaoss%2Faugur\n",
     }
 
     badge_collection_id = Column(
@@ -1948,9 +1945,9 @@ class RepoDependency(Base):
     repo_id = Column(
         ForeignKey("augur_data.repo.repo_id"), comment="Forign key for repo id. "
     )
-    dep_name = Column(String, comment="Name of the dependancy found in project. ")
-    dep_count = Column(Integer, comment="Number of times the dependancy was found. ")
-    dep_language = Column(String, comment="Language of the dependancy. ")
+    dep_name = Column(String, comment="Name of the dependency found in project. ")
+    dep_count = Column(Integer, comment="Number of times the dependency was found. ")
+    dep_language = Column(String, comment="Language of the dependency. ")
     tool_source = Column(String)
     tool_version = Column(String)
     data_source = Column(String)
@@ -2083,7 +2080,7 @@ class RepoInsight(Base):
     __tablename__ = "repo_insights"
     __table_args__ = {
         "schema": "augur_data",
-        "comment": 'This table is output from an analytical worker inside of Augur. It runs through the different metrics on a repository and identifies the five to ten most "interesting" metrics as defined by some kind of delta or other factor. The algorithm is going to evolve. \n\nWorker Design Notes: The idea is that the "insight worker" will scan through a bunch of active metrics or "synthetic metrics" to list the most important insights. ',
+        "comment": 'This table is output from an analytical worker inside of Augur. It runs through the different metrics on a repository and identifies the five to ten most “interesting” metrics as defined by some kind of delta or other factor. The algorithm is going to evolve. \n\nWorker Design Notes: The idea is that the "insight worker" will scan through a bunch of active metrics or "synthetic metrics" to list the most important insights. ',
     }
 
     ri_id = Column(
@@ -2274,7 +2271,6 @@ class RepoTopic(Base):
     repo_id = Column(ForeignKey("augur_data.repo.repo_id"))
     topic_id = Column(Integer)
     topic_prob = Column(Float(53))
-    model_id = Column(UUID(as_uuid=True), ForeignKey("augur_data.topic_model_meta.model_id"))  # 新增字段，指向 topic_model_meta
     tool_source = Column(String)
     tool_version = Column(String)
     data_source = Column(String)
@@ -2378,7 +2374,7 @@ class DiscourseInsight(Base):
     __tablename__ = "discourse_insights"
     __table_args__ = {
         "schema": "augur_data",
-        "comment": 'This table is populated by the "Discourse_Analysis_Worker". It examines sequential discourse, using computational linguistic methods, to draw statistical inferences regarding the discourse in a particular comment thread. ',
+        "comment": "This table is populated by the “Discourse_Analysis_Worker”. It examines sequential discourse, using computational linguistic methods, to draw statistical inferences regarding the discourse in a particular comment thread. ",
     }
 
     msg_discourse_id = Column(
@@ -2908,7 +2904,7 @@ class PullRequestCommit(Base):
         UniqueConstraint("pull_request_id", "repo_id", "pr_cmt_sha"),
         {
             "schema": "augur_data",
-            "comment": 'Pull request commits are an enumeration of each commit associated with a pull request. \nNot all pull requests are from a branch or fork into master. \nThe commits table intends to count only commits that end up in the master branch (i.e., part of the deployed code base for a project).\nTherefore, there will be commit "SHA"\'s in this table that are no associated with a commit SHA in the commits table. \nIn cases where the PR is to the master branch of a project, you will find a match. In cases where the PR does not involve the master branch, you will not find a corresponding commit SHA in the commits table. This is expected. ',
+            "comment": "Pull request commits are an enumeration of each commit associated with a pull request. \nNot all pull requests are from a branch or fork into master. \nThe commits table intends to count only commits that end up in the master branch (i.e., part of the deployed code base for a project).\nTherefore, there will be commit “SHA”’s in this table that are no associated with a commit SHA in the commits table. \nIn cases where the PR is to the master branch of a project, you will find a match. In cases where the PR does not involve the master branch, you will not find a corresponding commit SHA in the commits table. This is expected. ",
         },
     )
 
@@ -3059,7 +3055,7 @@ class PullRequestFile(Base):
         UniqueConstraint("pull_request_id", "repo_id", "pr_file_path"),
         {
             "schema": "augur_data",
-            "comment": 'Pull request commits are an enumeration of each commit associated with a pull request. \nNot all pull requests are from a branch or fork into master. \nThe commits table intends to count only commits that end up in the master branch (i.e., part of the deployed code base for a project).\nTherefore, there will be commit "SHA"\'s in this table that are no associated with a commit SHA in the commits table. \nIn cases where the PR is to the master branch of a project, you will find a match. In cases where the PR does not involve the master branch, you will not find a corresponding commit SHA in the commits table. This is expected. ',
+            "comment": "Pull request commits are an enumeration of each commit associated with a pull request. \nNot all pull requests are from a branch or fork into master. \nThe commits table intends to count only commits that end up in the master branch (i.e., part of the deployed code base for a project).\nTherefore, there will be commit “SHA”’s in this table that are no associated with a commit SHA in the commits table. \nIn cases where the PR is to the master branch of a project, you will find a match. In cases where the PR does not involve the master branch, you will not find a corresponding commit SHA in the commits table. This is expected. ",
         },
     )
 
@@ -3201,8 +3197,7 @@ class PullRequestMessageRef(Base):
             onupdate="CASCADE",
             deferrable=True,
             initially="DEFERRED",
-        ),
-        nullable=False,
+        )
     )
     pr_message_ref_src_comment_id = Column(BigInteger)
     pr_message_ref_src_node_id = Column(String)
@@ -3257,7 +3252,7 @@ class PullRequestMeta(Base):
     )
     pr_src_meta_label = Column(
         String,
-        comment='This is a representation of the repo:branch information in the pull request. Head is issueing the pull request and base is taking the pull request. For example:  (We do not store all of this)\n\n "head": {\n      "label": "chaoss:pull-request-worker",\n      "ref": "pull-request-worker",\n      "sha": "6b380c3d6d625616f79d702612ebab6d204614f2",\n      "user": {\n        "login": "chaoss",\n        "id": 29740296,\n        "node_id": "MDEyOk9yZ2FuaXphdGlvbjI5NzQwMjk2",\n        "avatar_url": "https://avatars2.githubusercontent.com/u/29740296?v=4",\n        "gravatar_id": "",\n        "url": "https://api.github.com/users/chaoss",\n        "html_url": "https://github.com/chaoss",\n        "followers_url": "https://api.github.com/users/chaoss/followers",\n        "following_url": "https://api.github.com/users/chaoss/following{/other_user}",\n        "gists_url": "https://api.github.com/users/chaoss/gists{/gist_id}",\n        "starred_url": "https://api.github.com/users/chaoss/starred{/owner}{/repo}",\n        "subscriptions_url": "https://api.github.com/users/chaoss/subscriptions",\n        "organizations_url": "https://api.github.com/users/chaoss/orgs",\n        "repos_url": "https://api.github.com/users/chaoss/repos",\n        "events_url": "https://api.github.com/users/chaoss/events{/privacy}",\n        "received_events_url": "https://api.github.com/users/chaoss/received_events",\n        "type": "Organization",\n        "site_admin": false\n      },\n      "repo": {\n        "id": 78134122,\n        "node_id": "MDEwOlJlcG9zaXRvcnk3ODEzNDEyMg==",\n        "name": "augur",\n        "full_name": "chaoss/augur",\n        "private": false,\n        "owner": {\n          "login": "chaoss",\n          "id": 29740296,\n          "node_id": "MDEyOk9yZ2FuaXphdGlvbjI5NzQwMjk2",\n          "avatar_url": "https://avatars2.githubusercontent.com/u/29740296?v=4",\n          "gravatar_id": "",\n          "url": "https://api.github.com/users/chaoss",\n          "html_url": "https://github.com/chaoss",\n          "followers_url": "https://api.github.com/users/chaoss/followers",\n          "following_url": "https://api.github.com/users/chaoss/following{/other_user}",\n          "gists_url": "https://api.github.com/users/chaoss/gists{/gist_id}",\n          "starred_url": "https://api.github.com/users/chaoss/starred{/owner}{/repo}",\n          "subscriptions_url": "https://api.github.com/users/chaoss/subscriptions",\n          "organizations_url": "https://api.github.com/users/chaoss/orgs",\n          "repos_url": "https://api.github.com/users/chaoss/repos",\n          "events_url": "https://api.github.com/users/chaoss/events{/privacy}",\n          "received_events_url": "https://api.github.com/users/chaoss/received_events",\n          "type": "Organization",\n          "site_admin": false\n        },\n        "html_url": "https://github.com/chaoss/augur",\n        "description": "Python library and web service for Open Source Software Health and Sustainability metrics & data collection.",\n        "fork": false,\n        "url": "https://api.github.com/repos/chaoss/augur",\n        "forks_url": "https://api.github.com/repos/chaoss/augur/forks",\n        "keys_url": "https://api.github.com/repos/chaoss/augur/keys{/key_id}",\n        "collaborators_url": "https://api.github.com/repos/chaoss/augur/collaborators{/collaborator}",\n        "teams_url": "https://api.github.com/repos/chaoss/augur/teams",\n        "hooks_url": "https://api.github.com/repos/chaoss/augur/hooks",\n        "issue_events_url": "https://api.github.com/repos/chaoss/augur/issues/events{/number}",\n        "events_url": "https://api.github.com/repos/chaoss/augur/events",\n        "assignees_url": "https://api.github.com/repos/chaoss/augur/assignees{/user}",\n        "branches_url": "https://api.github.com/repos/chaoss/augur/branches{/branch}",\n        "tags_url": "https://api.github.com/repos/chaoss/augur/tags",\n        "blobs_url": "https://api.github.com/repos/chaoss/augur/git/blobs{/sha}",\n        "git_tags_url": "https://api.github.com/repos/chaoss/augur/git/tags{/sha}",\n        "git_refs_url": "https://api.github.com/repos/chaoss/augur/git/refs{/sha}",\n        "trees_url": "https://api.github.com/repos/chaoss/augur/git/trees{/sha}",\n        "statuses_url": "https://api.github.com/repos/chaoss/augur/statuses/{sha}",\n        "languages_url": "https://api.github.com/repos/chaoss/augur/languages",\n        "stargazers_url": "https://api.github.com/repos/chaoss/augur/stargazers",\n        "contributors_url": "https://api.github.com/repos/chaoss/augur/contributors",\n        "subscribers_url": "https://api.github.com/repos/chaoss/augur/subscribers",\n        "subscription_url": "https://api.github.com/repos/chaoss/augur/subscription",\n        "commits_url": "https://api.github.com/repos/chaoss/augur/commits{/sha}",\n        "git_commits_url": "https://api.github.com/repos/chaoss/augur/git/commits{/sha}",\n        "comments_url": "https://api.github.com/repos/chaoss/augur/comments{/number}",\n        "issue_comment_url": "https://api.github.com/repos/chaoss/augur/issues/comments{/number}",\n        "contents_url": "https://api.github.com/repos/chaoss/augur/contents/{+path}",\n        "compare_url": "https://api.github.com/repos/chaoss/augur/compare/{base}...{head}",\n        "merges_url": "https://api.github.com/repos/chaoss/augur/merges",\n        "archive_url": "https://api.github.com/repos/chaoss/augur/{archive_format}{/ref}",\n        "downloads_url": "https://api.github.com/repos/chaoss/augur/downloads",\n        "issues_url": "https://api.github.com/repos/chaoss/augur/issues{/number}",\n        "pulls_url": "https://api.github.com/repos/chaoss/augur/pulls{/number}",\n        "milestones_url": "https://api.github.com/repos/chaoss/augur/milestones{/number}",\n        "notifications_url": "https://api.github.com/repos/chaoss/augur/notifications{?since,all,participating}",\n        "labels_url": "https://api.github.com/repos/chaoss/augur/labels{/name}",\n        "releases_url": "https://api.github.com/repos/chaoss/augur/releases{/id}",\n        "deployments_url": "https://api.github.com/repos/chaoss/augur/deployments",\n        "created_at": "2017-01-05T17:34:54Z",\n        "updated_at": "2019-11-15T00:56:12Z",\n        "pushed_at": "2019-12-02T06:27:26Z",\n        "git_url": "git://github.com/chaoss/augur.git",\n        "ssh_url": "git@github.com:chaoss/augur.git",\n        "clone_url": "https://github.com/chaoss/augur.git",\n        "svn_url": "https://github.com/chaoss/augur",\n        "homepage": "http://augur.osshealth.io/",\n        "size": 82004,\n        "stargazers_count": 153,\n        "watchers_count": 153,\n        "language": "Python",\n        "has_issues": true,\n        "has_projects": false,\n        "has_downloads": true,\n        "has_wiki": false,\n        "has_pages": true,\n        "forks_count": 205,\n        "mirror_url": null,\n        "archived": false,\n        "disabled": false,\n        "open_issues_count": 14,\n        "license": {\n          "key": "mit",\n          "name": "MIT License",\n          "spdx_id": "MIT",\n          "url": "https://api.github.com/licenses/mit",\n          "node_id": "MDc6TGljZW5zZTEz"\n        },\n        "forks": 205,\n        "open_issues": 14,\n        "watchers": 153,\n        "default_branch": "master"\n      }\n    },\n    "base": {\n      "label": "chaoss:dev",\n      "ref": "dev",\n      "sha": "bfd2d34b51659613dd842cf83c3873f7699c2a0e",\n      "user": {\n        "login": "chaoss",\n        "id": 29740296,\n        "node_id": "MDEyOk9yZ2FuaXphdGlvbjI5NzQwMjk2",\n        "avatar_url": "https://avatars2.githubusercontent.com/u/29740296?v=4",\n        "gravatar_id": "",\n        "url": "https://api.github.com/users/chaoss",\n        "html_url": "https://github.com/chaoss",\n        "followers_url": "https://api.github.com/users/chaoss/followers",\n        "following_url": "https://api.github.com/users/chaoss/following{/other_user}",\n        "gists_url": "https://api.github.com/users/chaoss/gists{/gist_id}",\n        "starred_url": "https://api.github.com/users/chaoss/starred{/owner}{/repo}",\n        "subscriptions_url": "https://api.github.com/users/chaoss/subscriptions",\n        "organizations_url": "https://api.github.com/users/chaoss/orgs",\n        "repos_url": "https://api.github.com/users/chaoss/repos",\n        "events_url": "https://api.github.com/users/chaoss/events{/privacy}",\n        "received_events_url": "https://api.github.com/users/chaoss/received_events",\n        "type": "Organization",\n        "site_admin": false\n      },\n      "repo": {\n        "id": 78134122,\n        "node_id": "MDEwOlJlcG9zaXRvcnk3ODEzNDEyMg==",\n        "name": "augur",\n        "full_name": "chaoss/augur",\n        "private": false,\n        "owner": {\n          "login": "chaoss",\n          "id": 29740296,\n          "node_id": "MDEyOk9yZ2FuaXphdGlvbjI5NzQwMjk2",\n          "avatar_url": "https://avatars2.githubusercontent.com/u/29740296?v=4",\n          "gravatar_id": "",\n          "url": "https://api.github.com/users/chaoss",\n          "html_url": "https://github.com/chaoss",\n          "followers_url": "https://api.github.com/users/chaoss/followers",\n          "following_url": "https://api.github.com/users/chaoss/following{/other_user}",\n          "gists_url": "https://api.github.com/users/chaoss/gists{/gist_id}",\n          "starred_url": "https://api.github.com/users/chaoss/starred{/owner}{/repo}",\n          "subscriptions_url": "https://api.github.com/users/chaoss/subscriptions",\n          "organizations_url": "https://api.github.com/users/chaoss/orgs",\n          "repos_url": "https://api.github.com/users/chaoss/repos",\n          "events_url": "https://api.github.com/users/chaoss/events{/privacy}",\n          "received_events_url": "https://api.github.com/users/chaoss/received_events",\n          "type": "Organization",\n          "site_admin": false\n        },\n',
+        comment='This is a representation of the repo:branch information in the pull request. Head is issuing the pull request and base is taking the pull request. For example:  (We do not store all of this)\n\n "head": {\n      "label": "chaoss:pull-request-worker",\n      "ref": "pull-request-worker",\n      "sha": "6b380c3d6d625616f79d702612ebab6d204614f2",\n      "user": {\n        "login": "chaoss",\n        "id": 29740296,\n        "node_id": "MDEyOk9yZ2FuaXphdGlvbjI5NzQwMjk2",\n        "avatar_url": "https://avatars2.githubusercontent.com/u/29740296?v=4",\n        "gravatar_id": "",\n        "url": "https://api.github.com/users/chaoss",\n        "html_url": "https://github.com/chaoss",\n        "followers_url": "https://api.github.com/users/chaoss/followers",\n        "following_url": "https://api.github.com/users/chaoss/following{/other_user}",\n        "gists_url": "https://api.github.com/users/chaoss/gists{/gist_id}",\n        "starred_url": "https://api.github.com/users/chaoss/starred{/owner}{/repo}",\n        "subscriptions_url": "https://api.github.com/users/chaoss/subscriptions",\n        "organizations_url": "https://api.github.com/users/chaoss/orgs",\n        "repos_url": "https://api.github.com/users/chaoss/repos",\n        "events_url": "https://api.github.com/users/chaoss/events{/privacy}",\n        "received_events_url": "https://api.github.com/users/chaoss/received_events",\n        "type": "Organization",\n        "site_admin": false\n      },\n      "repo": {\n        "id": 78134122,\n        "node_id": "MDEwOlJlcG9zaXRvcnk3ODEzNDEyMg==",\n        "name": "augur",\n        "full_name": "chaoss/augur",\n        "private": false,\n        "owner": {\n          "login": "chaoss",\n          "id": 29740296,\n          "node_id": "MDEyOk9yZ2FuaXphdGlvbjI5NzQwMjk2",\n          "avatar_url": "https://avatars2.githubusercontent.com/u/29740296?v=4",\n          "gravatar_id": "",\n          "url": "https://api.github.com/users/chaoss",\n          "html_url": "https://github.com/chaoss",\n          "followers_url": "https://api.github.com/users/chaoss/followers",\n          "following_url": "https://api.github.com/users/chaoss/following{/other_user}",\n          "gists_url": "https://api.github.com/users/chaoss/gists{/gist_id}",\n          "starred_url": "https://api.github.com/users/chaoss/starred{/owner}{/repo}",\n          "subscriptions_url": "https://api.github.com/users/chaoss/subscriptions",\n          "organizations_url": "https://api.github.com/users/chaoss/orgs",\n          "repos_url": "https://api.github.com/users/chaoss/repos",\n          "events_url": "https://api.github.com/users/chaoss/events{/privacy}",\n          "received_events_url": "https://api.github.com/users/chaoss/received_events",\n          "type": "Organization",\n          "site_admin": false\n        },\n        "html_url": "https://github.com/chaoss/augur",\n        "description": "Python library and web service for Open Source Software Health and Sustainability metrics & data collection.",\n        "fork": false,\n        "url": "https://api.github.com/repos/chaoss/augur",\n        "forks_url": "https://api.github.com/repos/chaoss/augur/forks",\n        "keys_url": "https://api.github.com/repos/chaoss/augur/keys{/key_id}",\n        "collaborators_url": "https://api.github.com/repos/chaoss/augur/collaborators{/collaborator}",\n        "teams_url": "https://api.github.com/repos/chaoss/augur/teams",\n        "hooks_url": "https://api.github.com/repos/chaoss/augur/hooks",\n        "issue_events_url": "https://api.github.com/repos/chaoss/augur/issues/events{/number}",\n        "events_url": "https://api.github.com/repos/chaoss/augur/events",\n        "assignees_url": "https://api.github.com/repos/chaoss/augur/assignees{/user}",\n        "branches_url": "https://api.github.com/repos/chaoss/augur/branches{/branch}",\n        "tags_url": "https://api.github.com/repos/chaoss/augur/tags",\n        "blobs_url": "https://api.github.com/repos/chaoss/augur/git/blobs{/sha}",\n        "git_tags_url": "https://api.github.com/repos/chaoss/augur/git/tags{/sha}",\n        "git_refs_url": "https://api.github.com/repos/chaoss/augur/git/refs{/sha}",\n        "trees_url": "https://api.github.com/repos/chaoss/augur/git/trees{/sha}",\n        "statuses_url": "https://api.github.com/repos/chaoss/augur/statuses/{sha}",\n        "languages_url": "https://api.github.com/repos/chaoss/augur/languages",\n        "stargazers_url": "https://api.github.com/repos/chaoss/augur/stargazers",\n        "contributors_url": "https://api.github.com/repos/chaoss/augur/contributors",\n        "subscribers_url": "https://api.github.com/repos/chaoss/augur/subscribers",\n        "subscription_url": "https://api.github.com/repos/chaoss/augur/subscription",\n        "commits_url": "https://api.github.com/repos/chaoss/augur/commits{/sha}",\n        "git_commits_url": "https://api.github.com/repos/chaoss/augur/git/commits{/sha}",\n        "comments_url": "https://api.github.com/repos/chaoss/augur/comments{/number}",\n        "issue_comment_url": "https://api.github.com/repos/chaoss/augur/issues/comments{/number}",\n        "contents_url": "https://api.github.com/repos/chaoss/augur/contents/{+path}",\n        "compare_url": "https://api.github.com/repos/chaoss/augur/compare/{base}...{head}",\n        "merges_url": "https://api.github.com/repos/chaoss/augur/merges",\n        "archive_url": "https://api.github.com/repos/chaoss/augur/{archive_format}{/ref}",\n        "downloads_url": "https://api.github.com/repos/chaoss/augur/downloads",\n        "issues_url": "https://api.github.com/repos/chaoss/augur/issues{/number}",\n        "pulls_url": "https://api.github.com/repos/chaoss/augur/pulls{/number}",\n        "milestones_url": "https://api.github.com/repos/chaoss/augur/milestones{/number}",\n        "notifications_url": "https://api.github.com/repos/chaoss/augur/notifications{?since,all,participating}",\n        "labels_url": "https://api.github.com/repos/chaoss/augur/labels{/name}",\n        "releases_url": "https://api.github.com/repos/chaoss/augur/releases{/id}",\n        "deployments_url": "https://api.github.com/repos/chaoss/augur/deployments",\n        "created_at": "2017-01-05T17:34:54Z",\n        "updated_at": "2019-11-15T00:56:12Z",\n        "pushed_at": "2019-12-02T06:27:26Z",\n        "git_url": "git://github.com/chaoss/augur.git",\n        "ssh_url": "git@github.com:chaoss/augur.git",\n        "clone_url": "https://github.com/chaoss/augur.git",\n        "svn_url": "https://github.com/chaoss/augur",\n        "homepage": "http://augur.osshealth.io/",\n        "size": 82004,\n        "stargazers_count": 153,\n        "watchers_count": 153,\n        "language": "Python",\n        "has_issues": true,\n        "has_projects": false,\n        "has_downloads": true,\n        "has_wiki": false,\n        "has_pages": true,\n        "forks_count": 205,\n        "mirror_url": null,\n        "archived": false,\n        "disabled": false,\n        "open_issues_count": 14,\n        "license": {\n          "key": "mit",\n          "name": "MIT License",\n          "spdx_id": "MIT",\n          "url": "https://api.github.com/licenses/mit",\n          "node_id": "MDc6TGljZW5zZTEz"\n        },\n        "forks": 205,\n        "open_issues": 14,\n        "watchers": 153,\n        "default_branch": "master"\n      }\n    },\n    "base": {\n      "label": "chaoss:dev",\n      "ref": "dev",\n      "sha": "bfd2d34b51659613dd842cf83c3873f7699c2a0e",\n      "user": {\n        "login": "chaoss",\n        "id": 29740296,\n        "node_id": "MDEyOk9yZ2FuaXphdGlvbjI5NzQwMjk2",\n        "avatar_url": "https://avatars2.githubusercontent.com/u/29740296?v=4",\n        "gravatar_id": "",\n        "url": "https://api.github.com/users/chaoss",\n        "html_url": "https://github.com/chaoss",\n        "followers_url": "https://api.github.com/users/chaoss/followers",\n        "following_url": "https://api.github.com/users/chaoss/following{/other_user}",\n        "gists_url": "https://api.github.com/users/chaoss/gists{/gist_id}",\n        "starred_url": "https://api.github.com/users/chaoss/starred{/owner}{/repo}",\n        "subscriptions_url": "https://api.github.com/users/chaoss/subscriptions",\n        "organizations_url": "https://api.github.com/users/chaoss/orgs",\n        "repos_url": "https://api.github.com/users/chaoss/repos",\n        "events_url": "https://api.github.com/users/chaoss/events{/privacy}",\n        "received_events_url": "https://api.github.com/users/chaoss/received_events",\n        "type": "Organization",\n        "site_admin": false\n      },\n      "repo": {\n        "id": 78134122,\n        "node_id": "MDEwOlJlcG9zaXRvcnk3ODEzNDEyMg==",\n        "name": "augur",\n        "full_name": "chaoss/augur",\n        "private": false,\n        "owner": {\n          "login": "chaoss",\n          "id": 29740296,\n          "node_id": "MDEyOk9yZ2FuaXphdGlvbjI5NzQwMjk2",\n          "avatar_url": "https://avatars2.githubusercontent.com/u/29740296?v=4",\n          "gravatar_id": "",\n          "url": "https://api.github.com/users/chaoss",\n          "html_url": "https://github.com/chaoss",\n          "followers_url": "https://api.github.com/users/chaoss/followers",\n          "following_url": "https://api.github.com/users/chaoss/following{/other_user}",\n          "gists_url": "https://api.github.com/users/chaoss/gists{/gist_id}",\n          "starred_url": "https://api.github.com/users/chaoss/starred{/owner}{/repo}",\n          "subscriptions_url": "https://api.github.com/users/chaoss/subscriptions",\n          "organizations_url": "https://api.github.com/users/chaoss/orgs",\n          "repos_url": "https://api.github.com/users/chaoss/repos",\n          "events_url": "https://api.github.com/users/chaoss/events{/privacy}",\n          "received_events_url": "https://api.github.com/users/chaoss/received_events",\n          "type": "Organization",\n          "site_admin": false\n        },\n',
     )
     pr_src_meta_ref = Column(String)
     pr_sha = Column(String)
@@ -3628,4 +3623,3 @@ class TopicModelMeta(Base):
     data_collection_date = Column(
         TIMESTAMP(precision=0), server_default=text("CURRENT_TIMESTAMP")
     )
-
