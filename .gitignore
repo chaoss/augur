@@ -194,3 +194,15 @@ sendgrid.env
 *sendgrid*.env
 ./sendgrid.env
 sendgrid.env
+
+# Local configuration files
+augur/tasks/data_analysis/clustering_worker/config.json
+
+# Local cache and temporary files
+__pycache__/
+*.pyc
+*.log
+
+# Local artifacts (keep shared ones)
+artifacts/local/
+artifacts/temp/

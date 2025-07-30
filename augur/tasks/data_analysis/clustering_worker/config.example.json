@@ -1,0 +1,35 @@
+{
+  "db": {
+    "host": "${AUGUR_DB_HOST:-localhost}",
+    "port": "${AUGUR_DB_PORT:-5432}",
+    "user": "${AUGUR_DB_USER:-augur}",
+    "password": "${AUGUR_DB_PASSWORD}",
+    "database": "${AUGUR_DB_NAME:-augur}"
+  },
+  "Clustering_Task": {
+    "num_topics": 8,
+    "min_df": 2,
+    "max_df": 0.8,
+    "max_features": 1000,
+    "num_words_per_topic": 12,
+    "num_clusters": 5,
+    "random_state": 42,
+    "coherence_metric": "c_v",
+    "retrain_days": 90,
+    "retrain_msg_growth": 0.2,
+    "output_dir": "artifacts/topic_models"
+  },
+  "topic_modeling": {
+    "num_topics": 8,
+    "min_df": 2,
+    "max_df": 0.8,
+    "max_features": 1000,
+    "num_words_per_topic": 12,
+    "num_clusters": 5,
+    "random_state": 42,
+    "coherence_metric": "c_v",
+    "retrain_days": 90,
+    "retrain_msg_growth": 0.2,
+    "output_dir": "artifacts/topic_models"
+  }
+} 

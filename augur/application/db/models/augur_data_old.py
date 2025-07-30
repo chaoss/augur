@@ -152,7 +152,7 @@
 #     )
 
 
-# # TODO: Add foriegn key: cmt_author_platform_username = Column(String(), ForeignKey('augur_data.contributors.cntrb_login', name='fk_commits_contributors_3', ondelete="CASCADE", onupdate="CASCADE"))
+# # TODO: Add foreign key: cmt_author_platform_username = Column(String(), ForeignKey('augur_data.contributors.cntrb_login', name='fk_commits_contributors_3', ondelete="CASCADE", onupdate="CASCADE"))
 # # TODO: Add relationship with this foreign key
 # class Commits(Base):
 #     cmt_id = Column(BigInteger, primary_key=True, nullable=False)
@@ -230,7 +230,7 @@
 #             cmt_committer_date,
 #             postgresql_using="brin",
 #         ),
-#         Index("commited", cmt_id),
+#         Index("committed", cmt_id),
 #         Index(
 #             "commits_idx_cmt_email_cmt_date_cmt_name",
 #             cmt_author_email,
@@ -2291,9 +2291,9 @@
 #         ForeignKey("augur_data.repo.repo_id", name="repo_id"),
 #         comment="Forign key for repo id. ",
 #     )
-#     dep_name = Column(String(), comment="Name of the dependancy found in project. ")
-#     dep_count = Column(Integer, comment="Number of times the dependancy was found. ")
-#     dep_language = Column(String(), comment="Language of the dependancy. ")
+#     dep_name = Column(String(), comment="Name of the dependency found in project. ")
+#     dep_count = Column(Integer, comment="Number of times the dependency was found. ")
+#     dep_language = Column(String(), comment="Language of the dependency. ")
 #     tool_source = Column(String())
 #     tool_version = Column(String())
 #     data_source = Column(String())
