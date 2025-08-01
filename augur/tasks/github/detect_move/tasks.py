@@ -14,17 +14,25 @@ def detect_github_repo_move_core(repo_git : str) -> None:
 
     logger.info(f"Starting repo_move operation with {repo_git}")
 
-    repo = get_repo_by_repo_git(repo_git)
+    try:
+        repo = get_repo_by_repo_git(repo_git)
+        
+        if not repo:
+            logger.error(f"Repository not found in database: {repo_git}")
+            return
 
-    logger.info(f"Pinging repo: {repo_git}")
+        logger.info(f"Pinging repo: {repo_git}")
 
-    key_auth = GithubRandomKeyAuth(logger)
+        key_auth = GithubRandomKeyAuth(logger)
 
-    with get_session() as session:
-
-        #Ping each repo with the given repo_git to make sure
-        #that they are still in place. 
-        ping_github_for_repo_move(session, key_auth, repo, logger)
+        with get_session() as session:
+            #Ping each repo with the given repo_git to make sure
+            #that they are still in place. 
+            ping_github_for_repo_move(session, key_auth, repo, logger)
+            
+    except Exception as e:
+        logger.error(f"Error during repo move detection for {repo_git}: {str(e)}")
+        raise
 
 
 @celery.task(base=AugurSecondaryRepoCollectionTask)
@@ -34,14 +42,22 @@ def detect_github_repo_move_secondary(repo_git : str) -> None:
 
     logger.info(f"Starting repo_move operation with {repo_git}")
 
-    repo = get_repo_by_repo_git(repo_git)
+    try:
+        repo = get_repo_by_repo_git(repo_git)
+        
+        if not repo:
+            logger.error(f"Repository not found in database: {repo_git}")
+            return
 
-    logger.info(f"Pinging repo: {repo_git}")
+        logger.info(f"Pinging repo: {repo_git}")
 
-    key_auth = GithubRandomKeyAuth(logger)
+        key_auth = GithubRandomKeyAuth(logger)
 
-    with get_session() as session:
-
-        #Ping each repo with the given repo_git to make sure
-        #that they are still in place. 
-        ping_github_for_repo_move(session, key_auth, repo, logger,collection_hook='secondary')
+        with get_session() as session:
+            #Ping each repo with the given repo_git to make sure
+            #that they are still in place. 
+            ping_github_for_repo_move(session, key_auth, repo, logger,collection_hook='secondary')
+            
+    except Exception as e:
+        logger.error(f"Error during repo move detection for {repo_git}: {str(e)}")
+        raise
