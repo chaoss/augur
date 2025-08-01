@@ -46,17 +46,32 @@ def extract_owner_and_repo_from_endpoint(key_auth, url, logger):
 
 def ping_github_for_repo_move(session, key_auth, repo, logger,collection_hook='core'):
 
-    owner, name = get_owner_repo(repo.repo_git)
-    url = f"https://api.github.com/repos/{owner}/{name}"
+    try:
+        owner, name = get_owner_repo(repo.repo_git)
+        url = f"https://api.github.com/repos/{owner}/{name}"
+    except Exception as e:
+        logger.error(f"Failed to parse repo URL {repo.repo_git}: {str(e)}")
+        raise Exception(f"Invalid repository URL format: {repo.repo_git}")
 
     attempts = 0
     while attempts < 10:
-        response_from_gh = hit_api(key_auth, url, logger)
+        try:
+            response_from_gh = hit_api(key_auth, url, logger)
 
-        if response_from_gh and response_from_gh.status_code != 404:
-            break
+            if response_from_gh and response_from_gh.status_code != 404:
+                break
 
-        attempts += 1
+            attempts += 1
+        except Exception as e:
+            logger.warning(f"API call attempt {attempts + 1} failed for {url}: {str(e)}")
+            attempts += 1
+            if attempts >= 10:
+                raise Exception(f"Failed to get API response after {attempts} attempts: {str(e)}")
+
+    # Validate response
+    if not response_from_gh:
+        logger.error(f"No response received from GitHub API for {url}")
+        raise Exception(f"No response from GitHub API for {url}")
 
     #Update Url and retry if 301
     #301 moved permanently 
@@ -79,9 +94,10 @@ def ping_github_for_repo_move(session, key_auth, repo, logger,collection_hook='c
 
         update_repo_with_dict(repo, repo_update_dict, logger)
 
+        logger.info(f"Repository {repo.repo_git} has moved to {repo_update_dict['repo_git']}. Updated repository URL and resetting collection.")
         raise Exception("ERROR: Repo has moved! Resetting Collection!")
     
-    #Mark as ignore if 404
+    #Mark as ignore if 404 (repository deleted)
     if response_from_gh.status_code == 404:
         repo_update_dict = {
             'repo_git': repo.repo_git,
@@ -113,14 +129,15 @@ def ping_github_for_repo_move(session, key_auth, repo, logger,collection_hook='c
         collectionRecord.ml_task_id = None
         collectionRecord.ml_data_last_collected = datetime.today().strftime('%Y-%m-%dT%H:%M:%SZ')
 
-
         session.commit()
-        raise Exception("ERROR: Repo has moved, and there is no redirection! 404 returned, not 301. Resetting Collection!")
+        
+        logger.warning(f"Repository {repo.repo_git} returned 404 (deleted). Marked as IGNORE and collection stopped.")
+        return  # Return gracefully instead of raising exception
 
 
     if attempts >= 10:
         logger.error(f"Could not check if repo moved because the api timed out 10 times. Url: {url}")
-        raise Exception(f"ERROR: Could not get api response for repo: {url}")
+        raise Exception(f"ERROR: Could not get api response for repo: {url} after {attempts} attempts")
     
     #skip if not 404
     logger.info(f"Repo found at url: {url}")
