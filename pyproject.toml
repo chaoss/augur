@@ -113,9 +113,7 @@ docs = [
     "sphinxcontrib-openapi==0.8.3",
     "sphinxcontrib-redoc==1.6.0",
 ]
-apple-silicon = [
-    # Apple Silicon specific dependencies can be added here in the future
-]
+
 
 [project.scripts]
 augur = "augur.application.cli._multicommand:run"

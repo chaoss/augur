@@ -317,7 +317,6 @@ requires-dist = [
 ]
 
 [package.metadata.requires-dev]
-apple-silicon = []
 dev = [
     { name = "docutils", specifier = "==0.20.1" },
     { name = "ipdb", specifier = "==0.13.9" },
