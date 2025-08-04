@@ -82,7 +82,7 @@ dependencies = [
     "sqlalchemy==2.0.22",
     "tabulate==0.8.9",
     "tenacity==8.3.0",
-    "tensorflow>=2.15.0,<2.16.0",
+    "tensorflow==2.15.0",
     "textblob==0.15.3",
     "textual>=0.73.0",
     "toml",
@@ -114,8 +114,7 @@ docs = [
     "sphinxcontrib-redoc==1.6.0",
 ]
 apple-silicon = [
-    "tensorflow-macos>=2.15.0,<2.16.0",
-    "tensorflow-metal>=1.0.0,<1.1.0"
+    # Apple Silicon specific dependencies can be added here in the future
 ]
 
 [project.scripts]
