@@ -170,6 +170,7 @@ def facade_start_contrib_analysis_task():
     facade_helper.update_status('Updating Contributors')
     facade_helper.log_activity('Info', 'Updating Contributors with commits')
 
+"""
 @celery.task(base=AugurFacadeRepoCollectionTask)
 def facade_fetch_missing_commit_messages(repo_git):
     logger = logging.getLogger(facade_fetch_missing_commit_messages.__name__)
@@ -222,7 +223,7 @@ def facade_fetch_missing_commit_messages(repo_git):
 
     if to_insert:
         bulk_insert_dicts(logger, to_insert, CommitMessage, ["repo_id","cmt_hash"])
-
+"""
 
 #enable celery multithreading
 @celery.task(base=AugurFacadeRepoCollectionTask)
