@@ -215,7 +215,7 @@ def build_facade_repo_collect_request(session, logger, enabled_phase_names, days
 
     facade_enabled_phases.append(facade_task_update_weight_util_gen)
 
-    request = CollectionRequest("facade",facade_enabled_phases,max_repo=30, days_until_collect_again=10)
+    request = CollectionRequest("facade",facade_enabled_phases,max_repo=70, days_until_collect_again=30)
 
     request.get_valid_repos(session)
     return request
