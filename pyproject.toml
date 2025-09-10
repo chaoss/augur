@@ -85,7 +85,7 @@ dependencies = [
     "textual>=0.73.0",
     "toml",
     "toolz>=0.8.2",
-    "tornado==6.4.1",
+    "tornado==6.5",
     "typing-extensions==4.7.1",
     "Werkzeug~=2.0.0",
     "xgboost==3.0.2",
