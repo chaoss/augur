@@ -1,0 +1,12 @@
+mkdir -p docs
+cat > docs/requirements.txt <<'EOF'
+# docs/requirements.txt -- required by Read the Docs
+-e .                     # install local package (useful if your docs auto-document package)
+sphinx>=4.0
+sphinx-rtd-theme
+myst-parser
+sphinx-autodoc-typehints
+sphinx-copybutton
+sphinx-click
+# Add any other Sphinx extensions your conf.py needs (see docs/source/conf.py)
+EOF
