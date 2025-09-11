@@ -455,7 +455,7 @@ def generate_analysis_sequence(logger,repo_git, facade_helper):
 
     analysis_sequence.append(trim_commits_post_analysis_facade_task.si(repo_git))
 
-    analysis_sequence.append(facade_fetch_missing_commit_messages.si(repo_git))
+#    analysis_sequence.append(facade_fetch_missing_commit_messages.si(repo_git))
     
     analysis_sequence.append(facade_analysis_end_facade_task.si())
     
