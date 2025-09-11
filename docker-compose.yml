@@ -110,6 +110,35 @@ services:
   #    - rabbitmq
   #  networks:
   #    - augur
+
+  grafana:
+    image: grafana/grafana
+    ports:
+      - 3000:3000
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: password
+      GF_LOG_LEVEL: error
+      DS_PROMETHEUS: Augur Postgres
+    volumes:
+      - ./gf_provisioning:/etc/grafana/provisioning:Z
+      
+  prometheus:
+    image: prom/prometheus
+    ports:
+      - 9090:9090
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:z
+
+  postgres-exporter:
+    image: quay.io/prometheuscommunity/postgres-exporter
+    ports:
+      - 9187:9187
+    env_file: .env
+    environment:
+      DATA_SOURCE_URI: "augur-db:5432/augur?sslmode=disable"
+      DATA_SOURCE_USER: "${AUGUR_DB_USER:-augur}"
+      DATA_SOURCE_PASS: "${AUGUR_DB_PASSWORD:-augur}"
   
 volumes:
   augurpostgres:
