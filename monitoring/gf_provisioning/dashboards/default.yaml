@@ -6,6 +6,6 @@ providers:
     type: file
     options:
       path:
-        /etc/grafana/provisioning/dashboards/9628_rev8-postgres-grafana.json
+        /etc/grafana/provisioning/dashboards
         # Default path for Windows: C:/Program Files/GrafanaLabs/grafana/public/dashboards
         # Default path for Linux is: /var/lib/grafana/dashboards
