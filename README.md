@@ -8,9 +8,6 @@ We follow the [First Timers Only](https://www.firsttimersonly.com/) philosophy o
 
 [![standard-readme compliant](https://img.shields.io/badge/standard--readme-OK-green.svg?style=flat-square)](https://github.com/RichardLitt/standard-readme) [![Build Docker images](https://github.com/chaoss/augur/actions/workflows/build_docker.yml/badge.svg)](https://github.com/chaoss/augur/actions/workflows/build_docker.yml) [![Hits-of-Code](https://hitsofcode.com/github/chaoss/augur?branch=release)](https://hitsofcode.com/github/chaoss/augur/view?branch=release) [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/2788/badge)](https://bestpractices.coreinfrastructure.org/projects/2788)
 
-![Broken Links](https://github.com/Kushagra651/augur/actions/workflows/checks.yaml/badge.svg?job=broken-links)
-
-
 ## NEW RELEASE ALERT!
 **If you want to jump right in, the updated docker, docker-compose and bare metal installation instructions are available [here](docs/new-install.md)**.
 
