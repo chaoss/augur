@@ -1,0 +1,64 @@
+#SPDX-License-Identifier: MIT
+services:
+  
+  # Flower is a UI that helps more easily monitor running tasks for celery workers.
+  # This wont show you every error from the entire augur system, but it should show most of them.
+  # uncomment the section below to use flower
+  #flower:
+  #  image: augur-new:latest
+  #  restart: unless-stopped
+  #  command:
+  #    [ "celery", "-A", "augur.tasks.init.celery_app.celery_app", "flower", "--max-tasks=1000000" ]
+  #  ports:
+  #    - 5555:5555
+  #  environment:
+  #    - "AUGUR_DB=postgresql+psycopg2://${AUGUR_DB_USER:-augur}:${AUGUR_DB_PASSWORD:-augur}@augur-db:5432/augur"
+  #    - REDIS_CONN_STRING=redis://redis:6379
+  #    - RABBITMQ_CONN_STRING=amqp://${AUGUR_RABBITMQ_USERNAME:-augur}:${AUGUR_RABBITMQ_PASSWORD:-password123}@rabbitmq:5672/${AUGUR_RABBITMQ_VHOST:-augur_vhost}
+  #  depends_on:
+  #    - augur
+  #    - augur-db
+  #    - redis
+  #    - rabbitmq
+  #  networks:
+  #    - augur
+
+  grafana:
+    image: grafana/grafana
+    ports:
+      - 3000:3000
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: password
+      GF_LOG_LEVEL: error
+      DS_PROMETHEUS: Augur Postgres
+    volumes:
+      - ./gf_provisioning/dashboards:/etc/grafana/provisioning/dashboards:Z
+      - ./gf_provisioning/datasources:/etc/grafana/provisioning/datasources:Z
+      
+  prometheus:
+    image: prom/prometheus
+    ports:
+      - 9090:9090
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:z
+
+  postgres-exporter:
+    image: quay.io/prometheuscommunity/postgres-exporter
+    ports:
+      - 9187:9187
+    env_file: .env
+    environment:
+      DATA_SOURCE_URI: "augur-db:5432/augur?sslmode=disable"
+      DATA_SOURCE_USER: "${AUGUR_DB_USER:-augur}"
+      DATA_SOURCE_PASS: "${AUGUR_DB_PASSWORD:-augur}"
+  
+volumes:
+  augurpostgres:
+  cache:
+  config:
+  facade:
+  logs:
+
+networks:
+  augur:
