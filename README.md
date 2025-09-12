@@ -8,6 +8,9 @@ We follow the [First Timers Only](https://www.firsttimersonly.com/) philosophy o
 
 [![standard-readme compliant](https://img.shields.io/badge/standard--readme-OK-green.svg?style=flat-square)](https://github.com/RichardLitt/standard-readme) [![Build Docker images](https://github.com/chaoss/augur/actions/workflows/build_docker.yml/badge.svg)](https://github.com/chaoss/augur/actions/workflows/build_docker.yml) [![Hits-of-Code](https://hitsofcode.com/github/chaoss/augur?branch=release)](https://hitsofcode.com/github/chaoss/augur/view?branch=release) [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/2788/badge)](https://bestpractices.coreinfrastructure.org/projects/2788)
 
+![Broken Links](https://github.com/Kushagra651/augur/actions/workflows/checks.yaml/badge.svg?job=broken-links)
+
+
 ## NEW RELEASE ALERT!
 **If you want to jump right in, the updated docker, docker-compose and bare metal installation instructions are available [here](docs/new-install.md)**.
 
@@ -19,7 +22,7 @@ Augur is now releasing a dramatically improved new version. It is also available
   - A new job management architecture that uses Celery and Redis to manage queues, and enables users to run a Flower job monitoring dashboard.
   - Materialized views to increase the snappiness of API’s and Frontends on large scale data.
   - Changes to primary keys, which now employ a UUID strategy that ensures unique keys across all Augur instances.
-  - Support for [8knot](https://github.com/oss-aspen/8kno) dashboards (view a sample [here](https://eightknot.osci.io/)).
+  - Support for [8knot](https://github.com/oss-aspen/8knot) dashboards (view a sample [here](https://eightknot.osci.io/)).
   *beautification coming soon!*
   - Data collection completeness assurance enabled by a structured, relational data set that is easily compared with platform API Endpoints.
 - The next release of the new version will include a hosted version of Augur where anyone can create an account and add repos *they care about*.

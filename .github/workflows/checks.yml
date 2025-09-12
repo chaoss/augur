@@ -1,4 +1,5 @@
 name: "run-linting-checks"
+
 on:
   pull_request:
     branches: [main, release]
@@ -8,11 +9,11 @@ jobs:
     name: runner / check docs
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout repository
+        uses: actions/checkout@v2
       - name: Install uv
         uses: astral-sh/setup-uv@v6
       - name: Ensure docs build cleanly
-        # Setting `O` to pass extra options to the sphinx-build command.
         run: O="-a -E -n -W --keep-going" make docs
 
   run-pylint:
@@ -33,9 +34,8 @@ jobs:
     name: runner / misspell
     runs-on: ubuntu-latest
     steps:
-      - name: Highlight any misspellings in changes.
-        uses: actions/checkout@v4
-      - name: misspell
+      - uses: actions/checkout@v4
+      - name: Highlight any misspellings in changes
         uses: reviewdog/action-misspell@v1
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -45,9 +45,26 @@ jobs:
     name: runner / uv-lock
     runs-on: ubuntu-latest
     steps:
-      - name: Check out repository
-        uses: actions/checkout@v4
-      - name: Install uv
-        uses: astral-sh/setup-uv@v6
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
       - name: Ensure uv lockfile is up to date
         run: uv lock --check
+# broken link checker
+  broken-links:
+    name: runner / broken link check
+    runs-on: ubuntu-latest
+    needs: check-docs  # Run after docs build
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Run lychee link checker
+        run: |
+          mkdir -p lychee
+          lychee --verbose --no-progress --exclude-mail --timeout 20 . > lychee/out.md
+
+      - name: Upload link check report
+        uses: actions/upload-artifact@v3
+        with:
+          name: lychee-report
+          path: ./lychee/out.md
