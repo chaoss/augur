@@ -27,7 +27,9 @@ services:
       - 9187:9187
     entrypoint: /bin/postgres_exporter --no-collector.wal
     environment:
-      DATA_SOURCE_URI: "augur-db:5432/augur?sslmode=disable"
+      DATA_SOURCE_URI: "host.containers.internal:5432/augur?sslmode=disable"
       DATA_SOURCE_USER: "${AUGUR_DB_USER:-augur}"
       DATA_SOURCE_PASS: "${AUGUR_DB_PASSWORD:-augur}"
+    extra_hosts:
+     - "host.containers.internal:host-gateway"
 
