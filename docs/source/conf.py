@@ -51,6 +51,17 @@ extensions = ['sphinx.ext.autodoc',
     'sphinxcontrib.openapi',
     'sphinxcontrib.redoc',
 ]
+# Mock heavy or unnecessary imports so autodoc doesn't fail
+autodoc_mock_imports = [
+    "alembic",
+    "Beaker",
+    "blinker",
+    "bokeh",
+    "sqlalchemy",
+    "psycopg2",
+    "numpy",
+    "pandas",
+]
 
 redoc = [
     {
@@ -76,13 +87,13 @@ source_suffix = '.rst'
 
 # The master toctree document.
 master_doc = 'index'
-79 project = "Augur"
-80 author = "Carter Landis"
-81 copyright = "2025, Carter Landis"
-82
-83 # Version info for the project
-84 version = "1.0.0"
-85 release = version
+project = "Augur"
+author = "Carter Landis"
+copyright = "2025, Carter Landis"
+
+# Version info for the project
+version = "1.0.0"
+release = version
 
 # General information about the project.
 
