@@ -11,8 +11,8 @@ services:
       GF_LOG_LEVEL: error
       DS_PROMETHEUS_AUGUR: Augur Postgres
     volumes:
-      - ./gf_provisioning/dashboards:/etc/grafana/provisioning/dashboards:Z
-      - ./gf_provisioning/datasources:/etc/grafana/provisioning/datasources:Z
+      - ./gf_provisioning/dashboards:/etc/grafana/provisioning/dashboards:z
+      - ./gf_provisioning/datasources:/etc/grafana/provisioning/datasources:z
       
   prometheus:
     image: prom/prometheus
