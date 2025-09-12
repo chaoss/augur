@@ -11,4 +11,4 @@ scrape_configs:
       - targets: ["postgres-exporter:9187"]
   - job_name: flower
     static_configs:
-      - targets: ['host.containers.internal:5555']
+      - targets: ["host.containers.internal:5555"]
