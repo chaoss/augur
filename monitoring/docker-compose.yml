@@ -9,7 +9,7 @@ services:
       GF_SECURITY_ADMIN_USER: admin
       GF_SECURITY_ADMIN_PASSWORD: password
       GF_LOG_LEVEL: error
-      DS_PROMETHEUS: Augur Postgres
+      DS_PROMETHEUS_AUGUR: Augur Postgres
     volumes:
       - ./gf_provisioning/dashboards:/etc/grafana/provisioning/dashboards:Z
       - ./gf_provisioning/datasources:/etc/grafana/provisioning/datasources:Z
