@@ -25,7 +25,6 @@ services:
     image: quay.io/prometheuscommunity/postgres-exporter
     ports:
       - 9187:9187
-    env_file: .env
     environment:
       DATA_SOURCE_URI: "augur-db:5432/augur?sslmode=disable"
       DATA_SOURCE_USER: "${AUGUR_DB_USER:-augur}"
