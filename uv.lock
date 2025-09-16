@@ -1,5 +1,5 @@
 version = 1
-revision = 2
+revision = 3
 requires-python = ">=3.10"
 resolution-markers = [
     "python_full_version >= '3.12'",
@@ -218,9 +218,13 @@ dependencies = [
 dev = [
     { name = "docutils" },
     { name = "ipdb" },
+    { name = "myst-parser" },
     { name = "pytest" },
     { name = "setuptools" },
     { name = "sphinx" },
+    { name = "sphinx-autodoc-typehints" },
+    { name = "sphinx-click" },
+    { name = "sphinx-copybutton" },
     { name = "sphinx-rtd-theme" },
     { name = "sphinxcontrib-openapi" },
     { name = "sphinxcontrib-redoc" },
@@ -229,8 +233,12 @@ dev = [
 ]
 docs = [
     { name = "docutils" },
+    { name = "myst-parser" },
     { name = "setuptools" },
     { name = "sphinx" },
+    { name = "sphinx-autodoc-typehints" },
+    { name = "sphinx-click" },
+    { name = "sphinx-copybutton" },
     { name = "sphinx-rtd-theme" },
     { name = "sphinxcontrib-openapi" },
     { name = "sphinxcontrib-redoc" },
@@ -316,9 +324,13 @@ requires-dist = [
 dev = [
     { name = "docutils", specifier = "==0.20.1" },
     { name = "ipdb", specifier = "==0.13.9" },
+    { name = "myst-parser" },
     { name = "pytest", specifier = "==6.2.5" },
     { name = "setuptools" },
     { name = "sphinx", specifier = "==7.2.6" },
+    { name = "sphinx-autodoc-typehints" },
+    { name = "sphinx-click" },
+    { name = "sphinx-copybutton" },
     { name = "sphinx-rtd-theme", specifier = "==2.0.0" },
     { name = "sphinxcontrib-openapi", specifier = "==0.8.3" },
     { name = "sphinxcontrib-redoc", specifier = "==1.6.0" },
@@ -327,8 +339,12 @@ dev = [
 ]
 docs = [
     { name = "docutils", specifier = "==0.20.1" },
+    { name = "myst-parser" },
     { name = "setuptools" },
     { name = "sphinx", specifier = "==7.2.6" },
+    { name = "sphinx-autodoc-typehints" },
+    { name = "sphinx-click" },
+    { name = "sphinx-copybutton" },
     { name = "sphinx-rtd-theme", specifier = "==2.0.0" },
     { name = "sphinxcontrib-openapi", specifier = "==0.8.3" },
     { name = "sphinxcontrib-redoc", specifier = "==1.6.0" },
@@ -2017,6 +2033,23 @@ wheels = [
 ]
 
 [[package]]
+name = "myst-parser"
+version = "4.0.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "docutils" },
+    { name = "jinja2" },
+    { name = "markdown-it-py" },
+    { name = "mdit-py-plugins" },
+    { name = "pyyaml" },
+    { name = "sphinx" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/66/a5/9626ba4f73555b3735ad86247a8077d4603aa8628537687c839ab08bfe44/myst_parser-4.0.1.tar.gz", hash = "sha256:5cfea715e4f3574138aecbf7d54132296bfd72bb614d31168f48c477a830a7c4", size = 93985, upload-time = "2025-02-12T10:53:03.833Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/5f/df/76d0321c3797b54b60fef9ec3bd6f4cfd124b9e422182156a1dd418722cf/myst_parser-4.0.1-py3-none-any.whl", hash = "sha256:9134e88959ec3b5780aedf8a99680ea242869d012e8821db3126d427edc9c95d", size = 84579, upload-time = "2025-02-12T10:53:02.078Z" },
+]
+
+[[package]]
 name = "networkx"
 version = "3.4.2"
 source = { registry = "https://pypi.org/simple" }
@@ -3203,6 +3236,44 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/73/8e/6e51da4b26665b4b92b1944ea18b2d9c825e753e19180cc5bdc818d0ed3b/sphinx-7.2.6.tar.gz", hash = "sha256:9a5160e1ea90688d5963ba09a2dcd8bdd526620edbb65c328728f1b2228d5ab5", size = 7015183, upload-time = "2023-09-13T23:13:25.589Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/b2/b6/8ed35256aa530a9d3da15d20bdc0ba888d5364441bb50a5a83ee7827affe/sphinx-7.2.6-py3-none-any.whl", hash = "sha256:1e09160a40b956dc623c910118fa636da93bd3ca0b9876a7b3df90f07d691560", size = 3207959, upload-time = "2023-09-13T23:13:23.467Z" },
+]
+
+[[package]]
+name = "sphinx-autodoc-typehints"
+version = "2.0.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "sphinx" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/bd/f0/b750f1ea593df9ba152e99929807530604d06fae887e5a38ae1e0a31358a/sphinx_autodoc_typehints-2.0.1.tar.gz", hash = "sha256:60ed1e3b2c970acc0aa6e877be42d48029a9faec7378a17838716cacd8c10b12", size = 38816, upload-time = "2024-04-10T17:53:06.859Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/c8/95/5baffb0ef1b8fd72d0a5a3ab531e82c5e810df3530c8f61857c69026b7ac/sphinx_autodoc_typehints-2.0.1-py3-none-any.whl", hash = "sha256:f73ae89b43a799e587e39266672c1075b2ef783aeb382d3ebed77c38a3fc0149", size = 19533, upload-time = "2024-04-10T17:53:04.797Z" },
+]
+
+[[package]]
+name = "sphinx-click"
+version = "6.1.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "click" },
+    { name = "docutils" },
+    { name = "sphinx" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/de/4b/c433ea57136eac0ccb8d76d33355783f1e6e77f1f13dc7d8f15dba2dc024/sphinx_click-6.1.0.tar.gz", hash = "sha256:c702e0751c1a0b6ad649e4f7faebd0dc09a3cc7ca3b50f959698383772f50eef", size = 26855, upload-time = "2025-09-11T11:05:45.53Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/88/95/a2fa680f02ee9cbe4532169d2e60b102fe415b6cfa25584ac2d112e4c43b/sphinx_click-6.1.0-py3-none-any.whl", hash = "sha256:7dbed856c3d0be75a394da444850d5fc7ecc5694534400aa5ed4f4849a8643f9", size = 8931, upload-time = "2025-09-11T11:05:43.897Z" },
+]
+
+[[package]]
+name = "sphinx-copybutton"
+version = "0.5.2"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "sphinx" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/fc/2b/a964715e7f5295f77509e59309959f4125122d648f86b4fe7d70ca1d882c/sphinx-copybutton-0.5.2.tar.gz", hash = "sha256:4cf17c82fb9646d1bc9ca92ac280813a3b605d8c421225fd9913154103ee1fbd", size = 23039, upload-time = "2023-04-14T08:10:22.998Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/9e/48/1ea60e74949eecb12cdd6ac43987f9fd331156388dcc2319b45e2ebb81bf/sphinx_copybutton-0.5.2-py3-none-any.whl", hash = "sha256:fb543fd386d917746c9a2c50360c7905b605726b9355cd26e9974857afeae06e", size = 13343, upload-time = "2023-04-14T08:10:20.844Z" },
 ]
 
 [[package]]

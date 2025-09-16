@@ -100,6 +100,7 @@ dev = [
     "toml>=0.10.2",
     "ipdb==0.13.9",
     {include-group = "docs"},
+
 ]
 docs = [
     "docutils==0.20.1",
@@ -110,6 +111,11 @@ docs = [
     "sphinx_rtd_theme==2.0.0",
     "sphinxcontrib-openapi==0.8.3",
     "sphinxcontrib-redoc==1.6.0",
+    "sphinx-autodoc-typehints",
+    "sphinx-copybutton",
+    "sphinx-click",
+    "myst-parser",
+
 ]
 
 [project.scripts]
