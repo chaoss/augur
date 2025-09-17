@@ -508,12 +508,28 @@ def facade_phase(repo_git, full_collection):
 
 
     #These tasks need repos to be cloned by facade before they can work.
-    facade_sequence = group(
-        chain(*facade_core_collection),
-        process_dependency_metrics.si(repo_git),
-        process_libyear_dependency_metrics.si(repo_git),
-        process_scc_value_metrics.si(repo_git)
+    # Commented out to see if there is an effect that is leading us to have issues with secondary and facade not running on main
+    # goggins - 09-17-2025
+    # facade_sequence = group(
+    #     chain(*facade_core_collection),
+    #     process_dependency_metrics.si(repo_git),
+    #     process_libyear_dependency_metrics.si(repo_git),
+    #     process_scc_value_metrics.si(repo_git)
+    # )
+
+    # logger.info(f"Facade sequence: {facade_sequence}")
+    # return facade_sequence
+    #These tasks need repos to be cloned by facade before they can work.
+
+    #These tasks need repos to be cloned by facade before they can work.
+    facade_sequence.append(
+        group(
+            chain(*facade_core_collection),
+            process_dependency_metrics.si(repo_git),
+            process_libyear_dependency_metrics.si(repo_git),
+            process_scc_value_metrics.si(repo_git)
+        )
     )
 
     logger.info(f"Facade sequence: {facade_sequence}")
-    return facade_sequence
+    return chain(*facade_sequence)
