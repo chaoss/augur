@@ -602,8 +602,9 @@ class AugurTaskRoutine:
                 # otherwise a gitlab repo would reset it and cause subsequent github repos to use gitlab phases.
                 phases = None
                 if "github" in repo.repo_git:
-                    phases = col_hook.phases
+                    # phases = col_hook.phases # SPG variable scoping test
                     # use default platform name
+                    continue
 
                 elif "gitlab" in repo.repo_git:
                     platform_name = "gitlab"
@@ -612,7 +613,7 @@ class AugurTaskRoutine:
                     phases = col_hook.gitlab_phases
            
                 augur_collection_sequence = []
-                for job in phases:
+                for job in col_hook.phases: # SPG variable scoping test
                     #Add the phase to the sequence in order as a celery task.
                     #The preliminary task creates the larger task chain 
                     augur_collection_sequence.append(job(repo_git, full_collection))
