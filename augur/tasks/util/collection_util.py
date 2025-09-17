@@ -604,7 +604,7 @@ class AugurTaskRoutine:
                 if "github" in repo.repo_git:
                     # phases = col_hook.phases # SPG variable scoping test
                     # use default platform name
-                    continue
+                    pass
 
                 elif "gitlab" in repo.repo_git:
                     platform_name = "gitlab"
