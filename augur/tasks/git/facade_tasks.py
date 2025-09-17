@@ -491,6 +491,8 @@ def facade_phase(repo_git, full_collection):
     #force_analysis = session.force_analysis
     run_facade_contributors = facade_helper.run_facade_contributors
 
+    # Added back for debugging spg 9-17-2025
+    facade_sequence = []
     facade_core_collection = []
 
     if not limited_run or (limited_run and pull_repos):
