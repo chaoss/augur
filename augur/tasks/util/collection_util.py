@@ -621,7 +621,8 @@ class AugurTaskRoutine:
                     #yield the value of the task_id to the calling method so that the proper collectionStatus field can be updated
                     yield repo_git, task_id, col_hook.name
 
-                elif "gitlab" in repo.repo_git:
+                #elif "gitlab" in repo.repo_git:
+                else: 
                     platform_name = "gitlab"
                     if col_hook.gitlab_phases is None:
                         return
