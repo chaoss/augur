@@ -110,6 +110,9 @@ services:
   #    - rabbitmq
   #  networks:
   #    - augur
+
+      
+
   
 volumes:
   augurpostgres:

@@ -1,0 +1,33 @@
+#SPDX-License-Identifier: MIT
+services:
+
+  grafana:
+    image: grafana/grafana
+    ports:
+      - 3000:3000
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: password
+      GF_LOG_LEVEL: error
+      DS_PROMETHEUS_AUGUR: Augur Postgres
+    volumes:
+      - ./gf_provisioning/dashboards:/etc/grafana/provisioning/dashboards:z
+      - ./gf_provisioning/datasources:/etc/grafana/provisioning/datasources:z
+      
+  prometheus:
+    image: prom/prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:z
+    extra_hosts:
+     - "host.containers.internal:host-gateway"
+
+  postgres-exporter:
+    image: quay.io/prometheuscommunity/postgres-exporter
+    entrypoint: /bin/postgres_exporter --no-collector.wal
+    environment:
+      DATA_SOURCE_URI: "host.containers.internal:5432/augur?sslmode=disable"
+      DATA_SOURCE_USER: "${AUGUR_DB_USER:-augur}"
+      DATA_SOURCE_PASS: "${AUGUR_DB_PASSWORD:-augur}"
+    extra_hosts:
+     - "host.containers.internal:host-gateway"
+
