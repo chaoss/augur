@@ -18,6 +18,8 @@ services:
     image: prom/prometheus
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml:z
+    extra_hosts:
+     - "host.containers.internal:host-gateway"
 
   postgres-exporter:
     image: quay.io/prometheuscommunity/postgres-exporter
