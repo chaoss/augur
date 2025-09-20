@@ -604,4 +604,3 @@ def get_repo_group_by_name(name):
     with get_session() as session:
         
         return  session.query(RepoGroup).filter(RepoGroup.rg_name == name).first()
-        
