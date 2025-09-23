@@ -1,6 +1,8 @@
 import time
-from typing import Callable, Any, List, Dict, Optional, Union
+import logging
+from typing import Callable, TypedDict, Any, List, Dict, Optional, Union
 from sqlalchemy.exc import OperationalError
+from augur.application.db.models.base import Base
 
 
 def catch_operational_error(func: Callable[[], Any]) -> Any:
@@ -14,7 +16,7 @@ def catch_operational_error(func: Callable[[], Any]) -> Any:
 
     while attempts < 4:
         if attempts > 0:
-            # Do a 30% exponential backoff
+            #Do a 30% exponential backoff
             time.sleep(timeout)
             timeout = int(timeout * 1.3)
         try:
@@ -52,8 +54,7 @@ def execute_session_query(query: Any, query_type: str = "all") -> Any:
 
     return catch_operational_error(func)
 
-
-def convert_orm_list_to_dict_list(result: List[Any]) -> List[Dict[str, Any]]:
+def convert_orm_list_to_dict_list(result: List["Base"]) -> List[Dict[str, Any]]:
     """
     Converts a list of ORM model instances to a list of dictionaries.
     """
@@ -66,17 +67,20 @@ def convert_orm_list_to_dict_list(result: List[Any]) -> List[Dict[str, Any]]:
 
     return new_list
 
+class ConfigDict(TypedDict, total=False):
+    type: Optional[str]
+    value: Union[str, int, float, bool]
 
 def convert_type_of_value(
-    config_dict: Dict[str, Any], logger: Optional[Any] = None
-) -> Dict[str, Any]:
+    config_dict: ConfigDict, logger: Optional[logging.Logger] = None
+) -> ConfigDict:
     """
     Converts the 'value' field in config_dict to the type specified in 'type'.
     Supported types: str, int, bool, float.
     """
     data_type: Optional[str] = config_dict.get("type")
 
-    if data_type is None or data_type == "str":
+    if data_type == "str" or data_type is None:
         return config_dict
 
     elif data_type == "int":
