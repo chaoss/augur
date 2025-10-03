@@ -3,7 +3,7 @@ from augur.tasks.github.util.github_task_session import *
 from augur.application.db.models import *
 from augur.tasks.github.util.util import get_owner_repo
 from augur.tasks.github.util.gh_graphql_entities import request_graphql_dict
-from augur.application.db.util import execute_session_query
+from augur.application.db.helpers import execute_session_query
 from augur.application.db.lib import bulk_insert_dicts
 
 

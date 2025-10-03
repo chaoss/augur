@@ -34,7 +34,7 @@ from .utilitymethods import update_repo_log, get_absolute_repo_path
 from sqlalchemy.orm.exc import NoResultFound
 from augur.application.db.models.augur_data import *
 from augur.application.db.models.augur_operations import CollectionStatus
-from augur.application.db.util import execute_session_query, convert_orm_list_to_dict_list
+from augur.application.db.helpers import execute_session_query
 from augur.application.db.lib import execute_sql, get_repo_by_repo_git
 
 class GitCloneError(Exception):

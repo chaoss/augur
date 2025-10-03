@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session
 
 from augur.application.db.models import Config 
 from augur.application.config import convert_type_of_value
-from augur.application.db.util import execute_session_query
+from augur.application.db.helpers import execute_session_query
 
 ROOT_AUGUR_DIRECTORY = os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 

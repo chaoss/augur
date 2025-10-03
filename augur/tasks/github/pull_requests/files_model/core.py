@@ -2,7 +2,7 @@ import sqlalchemy as s
 from augur.tasks.github.util.github_graphql_data_access import GithubGraphQlDataAccess, NotFoundException, InvalidDataException
 from augur.application.db.models import *
 from augur.tasks.github.util.util import get_owner_repo
-from augur.application.db.util import execute_session_query
+from augur.application.db.helpers import execute_session_query
 from augur.application.db.lib import get_secondary_data_last_collected, get_updated_prs
 
 

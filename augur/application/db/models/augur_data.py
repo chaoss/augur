@@ -30,7 +30,7 @@ import urllib.parse
 
 
 from augur.application.db.models.base import Base
-from augur.application.db.util import execute_session_query
+from augur.application.db.helpers import execute_session_query
 from augur.application.db import get_session
 
 DEFAULT_REPO_GROUP_ID = 1
