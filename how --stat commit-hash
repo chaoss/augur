@@ -1,0 +1,122 @@
+[33m3994230d0[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mfix-docs-3249[m[33m, [m[1;31morigin/fix-docs-3249[m[33m)[m Fix: remove redundant requirements.txt and update workflow to use uv; clean up docs
+[33m3a6e34090[m Update uv.lock after dependency changes
+[33md1edfa60b[m chore(docs): add myst-parser + extras to uv docs group
+[33m82fc79541[m Fix Sphinx docs build: update conf.py and requirements
+[33m94924f087[m Fix Sphinx conf.py by defining copyright and version
+[33me2e634f06[m Fix docs workflow by installing requirements in check-docs job
+[33mac873a9fe[m docs: pin versions for stable RTD build
+[33m48bd4afe0[m docs: add requirements.txt and update RTD config
+[33mcf2d1c794[m Update production docs
+[33ma0fd7b29b[m Fix docs build: corrected filename and added quick-start to toctree
+[33md5bff5259[m Merge pull request #3252 from chaoss/facade-timezone-fix-redux
+[33maeaf09f5d[m Fix KeyError in invalid timezone handling
+[33mb17d8f977[m Try a new version of the TZdata fix
+[33m6cd41f6d8[m Merge pull request #3229 from MoralCode/dedup-conversion-function
+[33m7548d2e11[m Merge pull request #3242 from chaoss/release-version-update-0.90
+[33m27fa6b4f2[m updated release version in files
+[33m7b7bdffe0[m Merge pull request #3238 from chaoss/cache-redis-conn-details
+[33m69c173859[m cache redis connection on first retrieval
+[33mb289d662a[m move to db.util
+[33m07b20f7e6[m Merge pull request #3235 from chaoss/github-api-fix
+[33mc45d53bf3[m Fix variable name in _decide_retry_policy
+[33m944756249[m Merge pull request #3233 from MoralCode/fix-docs-links
+[33m11901879a[m Merge pull request #3232 from MoralCode/hang
+[33m78cacb13d[m another main -> dev from RTD
+[33mdf4aeb927[m correct docs links in error messages relating to keys
+[33m08aeca436[m use check_output for git log
+[33mb8c2ca4e2[m deduplicate convert_type_of_value
+[33mdc17a8f57[m Merge pull request #3208 from MoralCode/disabled-issues-410
+[33mefae939f1[m Merge pull request #3227 from MoralCode/podman-CI-typo
+[33m06d0c7a9d[m Merge pull request #3226 from JohnStrunk/fix-db-var
+[33md8f32acf4[m Merge pull request #3224 from chaoss/lint-fix
+[33me4f10e1fc[m fix missing docker -> podman in podman CI job
+[33md3d1ef480[m Update entrypoint.sh construction of AUGUR_DB from env vars
+[33mbb8b08cd7[m Merge pull request #3223 from chaoss/root-cleanup
+[33m537df4569[m Address warnings from linter
+[33mcca041db1[m Merge pull request #3221 from MoralCode/reset-logs-var
+[33m99a82235e[m Add docs to _decide_retry_policy
+[33m04ef1ef09[m include ResourceGoneException as one that should be ignored during a retry
+[33m08515de89[m Add an exception case for handling 410 Gone when making requests to github This may happen if requesting issues or issue comments when issues have been disabled for a repo
+[33m161cf0647[m removed junk
+[33meaa2fb925[m Merge pull request #3220 from MoralCode/unused-glob
+[33m45d03f2a4[m Merge pull request #3222 from JohnStrunk/db-var
+[33mbbda22102[m surround the template/hot reload config in a check for the AUGUR_DEV environment variable
+[33m2a5793e37[m Adjust globbing for gunicorn template reload so its limited to the augur templates directory
+[33m00505ceef[m Allow DB connection specification via components
+[33mad8653135[m determine whether to reset logs via a new AUGUR_RESET_LOGS environment variable this defaults to True to avoid infinite log growth unless explicitly opted in
+[33m2f4b847ff[m Merge pull request #3219 from chaoss/uvlock-fix
+[33ma68e7cbf8[m fixing make clean to preserve uv.lock
+[33mcf66b77a9[m Merge pull request #3216 from MoralCode/podman-CI
+[33m9bc4b01e8[m Merge pull request #3217 from chaoss/gitlab-mr-fixes
+[33m5567bbd53[m Merge pull request #3218 from chaoss/redis-conn
+[33me0eb110f4[m assign connection at top level since docker orchestrator can't access augur
+[33m93cb8e9a4[m Update KeyClient.py
+[33m65cb3789d[m start podman socket
+[33m91189cb2a[m Remove redis connection from top level
+[33m4f38278a7[m fix: need self so it must be in the class
+[33m6fa8c0185[m handle NoneType exception
+[33m9c462c42c[m extract out diff_refs and author assignment to make it clearer which object is None sometimes
+[33m17c6d2b22[m improve retrieval of repo_info from args
+[33mb6cd04973[m attempt to clean files from the base image per online advice https://stackoverflow.com/a/75539500
+[33mf0e228b31[m enable cache of intermediate layers during the build process
+[33m6ea59d329[m add podman copy of the E2E test
+[33mf3407d182[m Merge pull request #3211 from MoralCode/container-cleanup
+[33m2bb6c4d3e[m Merge pull request #3201 from MoralCode/branching-docs-update
+[33m725e5ea2e[m Merge branch 'main' into branching-docs-update
+[33m4e64a177d[m Merge pull request #3203 from JohnStrunk/docs-try2
+[33m53f739622[m Update login response example to use json5 format
+[33mc6ea7ff55[m Update creating-releases.rst
+[33mf8a542c84[m Update creating-releases.rst
+[33mf54e814fd[m Merge pull request #3210 from JohnStrunk/rtd-config
+[33m01a938b2e[m limit perms so they only change the directories just copied to avoid messing with downloaded python deps
+[33m1b78d9302[m no need to mount files into the container that we are going to copy in later anyway Also I worry that this may cause issues if the mounted files dont get correctly detected when they change, leading to builds with stale cache
+[33m5c151b63c[m Adapt copy permissions to work with podman
+[33me9b8cdfde[m Remove duplicate readthedocs config
+[33m8acb61cb1[m Fix trailing whitespace
+[33ma20aa6962[m Add docs check
+[33m706e5dcd2[m Fix warnings/errors in docs
+[33mf15eb3fa1[m Second pass most sections are "done" except the "why" and "hotfixes" sections at the end
+[33m8e2d430c8[m first pass at content for releases procedure document
+[33mc00361dbe[m add an outline for a procedures section of the docs
+[33mb3656b71b[m update some branch names
+[33m43f07d246[m update badges
+[33mcb449d2f3[m update docs refs in CONTRIBUTING
+[33mcf69b9ea9[m Merge pull request #3204 from JohnStrunk/push-keyman2
+[33m3ab3029ad[m Merge pull request #3202 from JohnStrunk/uv-try2
+[33m6e4ab16da[m Update new-install.rst
+[33m4a128161b[m Update dev-osx-install.rst
+[33m195a7c07b[m Update backend.rst
+[33mf8adc95c1[m Update backend.rst
+[33m9aa9b4359[m Update collecting-data.rst
+[33mbc51a8110[m Update server-deployment.rst
+[33m1f683ee95[m Update nginx-configuration.rst
+[33m6974aa506[m Merge pull request #3200 from MoralCode/update-build-rules
+[33m0f12451f3[m Constrain graphql-server-core>1.1.1
+[33m68431f1e3[m Upgrade xgboost to 3.0.2
+[33mbc5bb745c[m Add macOS test job
+[33ma45dff919[m Push the keyman container image
+[33m9c3087f43[m Update documentation for using uv
+[33mfbb61abe8[m Fix documention build on RTD
+[33m1fd74e56e[m Add uv-lock job
+[33m36fc563c1[m Update docker build for uv
+[33mba8f342fc[m Add dependencies for sub-packages into main pyproject.toml
+[33m641db32b8[m Initial conversion of main augur package to uv
+[33m5e5f70f37[m update comments in build_docker workflow
+[33mbb57a7a5c[m update branch name in checks.yml
+[33mfe56e69f4[m remove automerge workflow
+[33mccfc86163[m remove dev, add release as branches to run jobs on push
+[33m422af937d[m update container build automation for new branching model
+[33m47ceea4b9[m Merge pull request #3196 from chaoss/fix-windows-1252-decode
+[33m447cce2c9[m Merge pull request #3197 from chaoss/docker-docs-patch-12
+[33m2c100f9a8[m updated for demo
+[33m1e0e144ec[m Encode non-utf8 chars as bytes in analyze_commit
+[33m7f8f04928[m[33m ([m[1;33mtag: [m[1;33mv0.89.3[m[33m)[m Update metadata.py
+[33mf7679d498[m Update README.md
+[33mac9422577[m Merge pull request #3174 from cdolfi/main_materialized_view_update
+[33m8e3fff74b[m[33m ([m[1;33mtag: [m[1;33mv0.89.2[m[33m)[m Update metadata.py
+[33mfe4edc769[m Update README.md
+[33m210969c5e[m Merge pull request #3169 from chaoss/main-fixes
+[33macf181108[m Merge remote-tracking branch 'origin/main-fixes' into main-fixes
+[33m4a17efaa8[m fix: key error
+[33mfe696f732[m fixing releases NULL handling
+[33ma09
