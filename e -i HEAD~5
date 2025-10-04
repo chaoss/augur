@@ -1,0 +1,44 @@
+[33mcommit a9aa4238e92e29d439005dc8b9d6806630dab50e[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mfix-docs-3249[m[33m)[m
+Author: SURYA RAI <raisuraj1947@gmail.com>
+Date:   Mon Sep 15 21:59:15 2025 +0530
+
+    Update uv.lock after dependency changes
+    
+    Signed-off-by: SURYA RAI <raisuraj1947@gmail.com>
+    Signed-off-by: raisuraj2004 <raisuraj1947@gmail.com>
+
+[33mcommit aaefb00485ae29f277d7351c6b625f860c4c811b[m
+Author: SURYA RAI <raisuraj1947@gmail.com>
+Date:   Mon Sep 15 21:39:22 2025 +0530
+
+    chore(docs): add myst-parser + extras to uv docs group
+    
+    Signed-off-by: SURYA RAI <raisuraj1947@gmail.com>
+    Signed-off-by: raisuraj2004 <raisuraj1947@gmail.com>
+
+[33mcommit 353b514bf322934e544197b0b077d9e569980e9c[m
+Author: SURYA RAI <raisuraj1947@gmail.com>
+Date:   Fri Sep 12 09:58:17 2025 +0530
+
+    Fix Sphinx docs build: update conf.py and requirements
+    
+    Signed-off-by: SURYA RAI <raisuraj1947@gmail.com>
+    Signed-off-by: raisuraj2004 <raisuraj1947@gmail.com>
+
+[33mcommit 1366664d03c45d6b1ff35eb4bbbd344ab6a57f5c[m
+Author: SURYA RAI <raisuraj1947@gmail.com>
+Date:   Wed Sep 10 18:48:51 2025 +0530
+
+    Fix Sphinx conf.py by defining copyright and version
+    
+    Signed-off-by: SURYA RAI <raisuraj1947@gmail.com>
+    Signed-off-by: raisuraj2004 <raisuraj1947@gmail.com>
+
+[33mcommit bd722ea8dd1c160528daa00cecd0115de8af168e[m
+Author: SURYA RAI <raisuraj1947@gmail.com>
+Date:   Wed Sep 10 18:27:48 2025 +0530
+
+    Fix docs workflow by installing requirements in check-docs job
+    
+    Signed-off-by: SURYA RAI <raisuraj1947@gmail.com>
+    Signed-off-by: raisuraj2004 <raisuraj1947@gmail.com>

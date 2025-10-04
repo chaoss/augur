@@ -11,7 +11,7 @@ This guide explains how to run Augur in a production environment.
 Make sure to configure the following environment variables:
 
 - `AUGUR_RESET_LOGS`: Determines whether logs should be reset on startup.
-- `REFRESH_MATERIALIZED_VIEWS_INTERVAL_IN_DAYS`: Controls how often materialized views are refreshed. (Default: 1 day)
+- `AUGUR_RESET_LOGS`: Determines whether logs should be reset on startup.
 - `AUGUR_DB`: Database connection string
 - `AUGUR_REDIS_URL`: Redis connection string
 
