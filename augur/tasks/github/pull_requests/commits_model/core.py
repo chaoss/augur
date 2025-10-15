@@ -2,7 +2,7 @@ import sqlalchemy as s
 from augur.tasks.github.util.github_data_access import GithubDataAccess, UrlNotFoundException ## URLNotFoundException added to deal with percolation of 404 errors when the commits are not anywhere for a PR already captured. 
 from augur.application.db.models import *
 from augur.tasks.github.util.util import get_owner_repo
-from augur.application.db.util import execute_session_query
+from augur.application.db.helpers import execute_session_query
 from augur.application.db.lib import get_secondary_data_last_collected, get_updated_prs
 
 

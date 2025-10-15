@@ -7,7 +7,7 @@ from typing import Any, Dict
 from augur.application.db.engine import DatabaseEngine
 from augur.application.db.models import Repo, UserRepo, RepoGroup, UserGroup, User, CollectionStatus
 from augur.application.db.models.augur_operations import retrieve_owner_repos
-from augur.application.db.util import execute_session_query
+from augur.application.db.helpers import execute_session_query
 
 from sqlalchemy import Column, Table, MetaData, or_
 from sqlalchemy.sql.operators import ilike_op

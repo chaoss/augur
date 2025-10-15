@@ -3,7 +3,7 @@ from augur.tasks.github.pull_requests.files_model.core import *
 from augur.tasks.github.util.github_task_session import GithubTaskManifest
 from augur.tasks.init.celery_app import celery_app as celery
 from augur.tasks.init.celery_app import AugurSecondaryRepoCollectionTask
-from augur.application.db.util import execute_session_query
+from augur.application.db.helpers import execute_session_query
 
 @celery.task(base=AugurSecondaryRepoCollectionTask)
 def process_pull_request_files(repo_git: str, full_collection: bool) -> None:

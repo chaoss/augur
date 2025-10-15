@@ -5,7 +5,7 @@ from augur.tasks.github.util.util import get_owner_repo
 from augur.tasks.github.util.util import parse_json_response
 from datetime import datetime
 from augur.tasks.util.collection_state import CollectionState
-from augur.application.db.util import execute_session_query
+from augur.application.db.helpers import execute_session_query
 from augur.application.db.lib import bulk_insert_dicts
 
 
