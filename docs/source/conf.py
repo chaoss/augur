@@ -19,7 +19,7 @@
 #
 import os
 import sys
-import sphinx_rtd_theme
+from metadata import __copyright__, __release__, __version__
 
 here = os.path.abspath(os.path.dirname(__file__))
 
