@@ -202,6 +202,14 @@ def start(ctx, disable_collection, development, pidfile, port):
     os.unlink(pidfile)
 
 def start_celery_worker_processes( worker_counts: tuple(int, int, int), disable_collection=False):
+    """
+    Args:
+        worker_counts (tuple): a tuple of three integers describing how many workers to use for core, secondary, and facade tasks
+        disable_collection (bool, optional): whether to disable collection entirely and not schedule any actual task workers. Defaults to False.
+
+    Returns:
+        list: a list of the worker processes as executed by subprocess.Popen
+    """
 
     #Calculate process scaling based on how much memory is available on the system in bytes.
     #Each celery process takes ~500MB or 500 * 1024^2 bytes
