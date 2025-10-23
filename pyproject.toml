@@ -44,7 +44,6 @@ dependencies = [
     "keras-preprocessing",
     "matplotlib>=3.5.1",
     "mdpdf==0.0.18",
-    "mistune",
     "nltk==3.6.6",
     "numpy==1.26.0",
     "pandas==1.5.3",
