@@ -252,7 +252,7 @@ requires-dist = [
     { name = "python-crfsuite", specifier = ">=0.9.8" },
     { name = "pyyaml" },
     { name = "redis", specifier = "==4.3.3" },
-    { name = "requests", specifier = "==2.32.0" },
+    { name = "requests", specifier = "~=2.32" },
     { name = "scipy", specifier = ">=1.10.0,<1.13.0" },
     { name = "sklearn", specifier = "==0.0" },
     { name = "slack", specifier = "==0.0.2" },

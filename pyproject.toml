@@ -54,7 +54,7 @@ dependencies = [
     "python-crfsuite>=0.9.8",
     "pyYaml",
     "redis==4.3.3",
-    "requests==2.32.0",
+    "requests~=2.32",
     "scipy>=1.10.0,<1.13.0",
     "sklearn==0.0",
     "slack==0.0.2",
