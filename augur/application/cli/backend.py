@@ -201,7 +201,7 @@ def start(ctx, disable_collection, development, pidfile, port):
             
     os.unlink(pidfile)
 
-def start_celery_worker_processes( worker_counts: tuple(int, int, int), disable_collection=False):
+def start_celery_worker_processes(worker_counts: tuple(int, int, int), disable_collection=False):
     """
     Args:
         worker_counts (tuple): a tuple of three integers describing how many workers to use for core, secondary, and facade tasks
