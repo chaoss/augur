@@ -184,7 +184,6 @@ dependencies = [
     { name = "selenium" },
     { name = "six" },
     { name = "sklearn" },
-    { name = "sklearn-crfsuite" },
     { name = "slack" },
     { name = "sqlalchemy" },
     { name = "tabulate" },
@@ -271,7 +270,6 @@ requires-dist = [
     { name = "selenium", specifier = "==3.141.0" },
     { name = "six", specifier = "==1.15.0" },
     { name = "sklearn", specifier = "==0.0" },
-    { name = "sklearn-crfsuite", specifier = ">=0.3.6" },
     { name = "slack", specifier = "==0.0.2" },
     { name = "sqlalchemy", specifier = "==2.0.22" },
     { name = "tabulate", specifier = "==0.8.9" },
@@ -3032,21 +3030,6 @@ name = "sklearn"
 version = "0.0"
 source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/1e/7a/dbb3be0ce9bd5c8b7e3d87328e79063f8b263b2b1bfa4774cb1147bfcd3f/sklearn-0.0.tar.gz", hash = "sha256:e23001573aa194b834122d2b9562459bf5ae494a2d59ca6b8aa22c85a44c0e31", size = 1148, upload-time = "2015-07-15T14:17:46.609Z" }
-
-[[package]]
-name = "sklearn-crfsuite"
-version = "0.5.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "python-crfsuite" },
-    { name = "scikit-learn" },
-    { name = "tabulate" },
-    { name = "tqdm" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/d7/d4/26211eb22127f8476589e92448273c698f4ac39fce2e300cd0a1f748de98/sklearn_crfsuite-0.5.0.tar.gz", hash = "sha256:136cb941ff5f7ce62a2c378988d1123ac1037241e73999ae404509a2135078e9", size = 26187, upload-time = "2024-06-18T11:08:30.42Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/b2/11/a8370dd6fce65f8f4e74a0adffae72be9db5799d8ed8ddbf84415356a764/sklearn_crfsuite-0.5.0-py2.py3-none-any.whl", hash = "sha256:9cb7a881969b6426d28ada69ada7eff4c789a3c508eafc32d39c0d078ce3bebc", size = 10839, upload-time = "2024-06-18T11:08:22.743Z" },
-]
 
 [[package]]
 name = "slack"

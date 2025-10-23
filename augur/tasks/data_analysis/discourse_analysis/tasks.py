@@ -19,9 +19,6 @@ from augur.tasks.init.celery_app import AugurMlRepoCollectionTask
 # from sklearn.feature_extraction.text import TfidfVectorizer
 # from sklearn.model_selection import cross_val_score
 # import scipy
-# import sklearn_crfsuite
-# from sklearn_crfsuite import scorers
-# from sklearn_crfsuite import metrics
 # from sklearn.metrics import make_scorer
 # from sklearn.model_selection import cross_val_score
 # from sklearn.model_selection import RandomizedSearchCV
