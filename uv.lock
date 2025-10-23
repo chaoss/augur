@@ -142,31 +142,22 @@ source = { editable = "." }
 dependencies = [
     { name = "alembic" },
     { name = "beaker" },
-    { name = "blinker" },
-    { name = "bokeh" },
     { name = "boto3" },
     { name = "bs4" },
     { name = "celery" },
     { name = "click" },
-    { name = "cloudpickle" },
     { name = "coloredlogs" },
-    { name = "dask" },
     { name = "distributed" },
-    { name = "dnspython" },
     { name = "emoji" },
-    { name = "eventlet" },
     { name = "flask" },
     { name = "flask-cors" },
     { name = "flask-graphql" },
     { name = "flask-login" },
-    { name = "flask-wtf" },
     { name = "flower" },
-    { name = "fsspec" },
     { name = "gensim" },
     { name = "graphene" },
     { name = "graphene-sqlalchemy" },
     { name = "gunicorn" },
-    { name = "h5py" },
     { name = "httpx" },
     { name = "itsdangerous" },
     { name = "jinja2" },
@@ -240,31 +231,22 @@ docs = [
 requires-dist = [
     { name = "alembic", specifier = "==1.8.1" },
     { name = "beaker", specifier = "==1.11.0" },
-    { name = "blinker", specifier = "==1.4" },
-    { name = "bokeh", specifier = "==2.0.2" },
     { name = "boto3", specifier = "==1.17.57" },
     { name = "bs4", specifier = "==0.0.1" },
     { name = "celery", specifier = "~=5.5" },
     { name = "click", specifier = "~=8.1" },
-    { name = "cloudpickle", specifier = ">=0.2.2" },
     { name = "coloredlogs", specifier = "==15.0" },
-    { name = "dask", specifier = ">=2021.6.2" },
     { name = "distributed", specifier = ">=2021.3.0" },
-    { name = "dnspython", specifier = "==2.6.1" },
     { name = "emoji", specifier = "==1.2.0" },
-    { name = "eventlet", specifier = "==0.35.2" },
     { name = "flask", specifier = "==2.0.2" },
     { name = "flask-cors", specifier = "==4.0.1" },
     { name = "flask-graphql" },
     { name = "flask-login", specifier = "==0.5.0" },
-    { name = "flask-wtf", specifier = "==1.0.0" },
     { name = "flower", specifier = "==2.0.1" },
-    { name = "fsspec", specifier = ">=0.6.0" },
     { name = "gensim", specifier = ">=4.2.0" },
     { name = "graphene" },
     { name = "graphene-sqlalchemy" },
     { name = "gunicorn", specifier = "==22.0.0" },
-    { name = "h5py", specifier = "==3.10.0" },
     { name = "httpx", specifier = "==0.23.0" },
     { name = "itsdangerous", specifier = "==2.0.1" },
     { name = "jinja2", specifier = "~=3.0.3" },
@@ -370,28 +352,6 @@ sdist = { url = "https://files.pythonhosted.org/packages/b9/6a/1405343016bce8354
 wheels = [
     { url = "https://files.pythonhosted.org/packages/a6/80/ef8dff49aae0e4430f81842f7403e14e0ca59db7bbaf7af41245b67c6b25/billiard-4.2.2-py3-none-any.whl", hash = "sha256:4bc05dcf0d1cc6addef470723aac2a6232f3c7ed7475b0b580473a9145829457", size = 86896, upload-time = "2025-09-20T14:44:39.157Z" },
 ]
-
-[[package]]
-name = "blinker"
-version = "1.4"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/1b/51/e2a9f3b757eb802f61dc1f2b09c8c99f6eb01cf06416c0671253536517b6/blinker-1.4.tar.gz", hash = "sha256:471aee25f3992bd325afa3772f1063dbdbbca947a041b8b89466dc00d606f8b6", size = 111476, upload-time = "2015-07-23T12:26:37.745Z" }
-
-[[package]]
-name = "bokeh"
-version = "2.0.2"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "jinja2" },
-    { name = "numpy" },
-    { name = "packaging" },
-    { name = "pillow" },
-    { name = "python-dateutil" },
-    { name = "pyyaml" },
-    { name = "tornado" },
-    { name = "typing-extensions" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/30/cf/9bef843880084b646cf5e6988e8f0aa081dccdf09f1617cfc6755f9a3353/bokeh-2.0.2.tar.gz", hash = "sha256:d9248bdb0156797abf6d04b5eac581dcb121f5d1db7acbc13282b0609314893a", size = 8636228, upload-time = "2020-04-22T15:42:52.232Z" }
 
 [[package]]
 name = "boto3"
@@ -786,15 +746,6 @@ wheels = [
 ]
 
 [[package]]
-name = "dnspython"
-version = "2.6.1"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/37/7d/c871f55054e403fdfd6b8f65fd6d1c4e147ed100d3e9f9ba1fe695403939/dnspython-2.6.1.tar.gz", hash = "sha256:e8f0f9c23a7b7cb99ded64e6c3a6f3e701d78f50c55e002b839dea7225cff7cc", size = 332727, upload-time = "2024-02-18T18:48:48.952Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/87/a1/8c5287991ddb8d3e4662f71356d9656d91ab3a36618c3dd11b280df0d255/dnspython-2.6.1-py3-none-any.whl", hash = "sha256:5ef3b9680161f6fa89daf8ad451b5f1a33b18ae8a1c6778cdf4b43f08c0a6e50", size = 307696, upload-time = "2024-02-18T18:48:46.786Z" },
-]
-
-[[package]]
 name = "docutils"
 version = "0.20.1"
 source = { registry = "https://pypi.org/simple" }
@@ -810,19 +761,6 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/d6/56/484163d2f941f8c96de24fecf4885e3101913a2f4b31a1d50b4eb8eb244a/emoji-1.2.0.tar.gz", hash = "sha256:496f432058567985838c13d67dde84ca081614a8286c0b9cdc7d63dfa89d51a3", size = 131476, upload-time = "2021-01-27T15:21:13.807Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/24/fa/b3368f41b95a286f8d300e323449ab4e86b85334c2e0b477e94422b8ed0f/emoji-1.2.0-py3-none-any.whl", hash = "sha256:6b19b65da8d6f30551eead1705539cc0eadcd9e33a6ecbc421a29b87f96287eb", size = 131318, upload-time = "2021-01-27T15:21:11.762Z" },
-]
-
-[[package]]
-name = "eventlet"
-version = "0.35.2"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "dnspython" },
-    { name = "greenlet" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/5e/a1/079895f493a7c7eef5d1fb1335aba96e05527fd22dc6cead98ff38acdd3a/eventlet-0.35.2.tar.gz", hash = "sha256:8d1263e20b7f816a046ac60e1d272f9e5bc503f7a34d9adc789f8a85b14fa57d", size = 548860, upload-time = "2024-02-21T17:05:17.647Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/a6/5e/ea38bad6b685b0fde055b725e0a50613bfeecd572ec7606fa9449404f89a/eventlet-0.35.2-py3-none-any.whl", hash = "sha256:8fc1ee60d583f1dd58d6f304bb95fd46d34865ab22f57cb99008a81d61d573db", size = 359811, upload-time = "2024-02-21T17:05:15.13Z" },
 ]
 
 [[package]]
@@ -903,20 +841,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/f9/01/f6c0a3a654ca125cf9cd273314c03a8bc6a47bf861765c8c1d375e15a28d/Flask-Login-0.5.0.tar.gz", hash = "sha256:6d33aef15b5bcead780acc339464aae8a6e28f13c90d8b1cf9de8b549d1c0b4b", size = 41702, upload-time = "2020-02-09T16:55:43.898Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/2b/83/ac5bf3279f969704fc1e63f050c50e10985e50fd340e6069ec7e09df5442/Flask_Login-0.5.0-py2.py3-none-any.whl", hash = "sha256:7451b5001e17837ba58945aead261ba425fdf7b4f0448777e597ddab39f4fba0", size = 16039, upload-time = "2020-02-09T16:55:42.35Z" },
-]
-
-[[package]]
-name = "flask-wtf"
-version = "1.0.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "flask" },
-    { name = "itsdangerous" },
-    { name = "wtforms" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/06/bb/090df80acb1f51ee3996d822ba34096b3e54b3af76c2c46530d6cf35c9b9/Flask-WTF-1.0.0.tar.gz", hash = "sha256:872fbb17b5888bfc734edbdcf45bc08fb365ca39f69d25dc752465a455517b28", size = 45365, upload-time = "2021-11-07T15:35:41.915Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/5d/0a/59ddcce06b857a874187f2bc50da3fba8956c1855c19a2cc99d1dacab42a/Flask_WTF-1.0.0-py3-none-any.whl", hash = "sha256:01feccfc395405cea48a3f36c23f0d766e2cc6fd2a5a065ad50ad3e5827ec797", size = 12118, upload-time = "2021-11-07T15:35:40.151Z" },
 ]
 
 [[package]]
@@ -3840,18 +3764,6 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/f2/31/cbce966b6760e62d005c237961e839a755bf0c907199248394e2ee03ab05/wrapt-1.14.1-cp311-cp311-musllinux_1_1_x86_64.whl", hash = "sha256:49ef582b7a1152ae2766557f0550a9fcbf7bbd76f43fbdc94dd3bf07cc7168be", size = 83361, upload-time = "2023-10-07T08:30:11.98Z" },
     { url = "https://files.pythonhosted.org/packages/9a/aa/ab46fb18072b86e87e0965a402f8723217e8c0312d1b3e2a91308df924ab/wrapt-1.14.1-cp311-cp311-win32.whl", hash = "sha256:358fe87cc899c6bb0ddc185bf3dbfa4ba646f05b1b0b9b5a27c2cb92c2cea204", size = 33454, upload-time = "2023-10-07T08:30:13.513Z" },
     { url = "https://files.pythonhosted.org/packages/ba/7e/14113996bc6ee68eb987773b4139c87afd3ceff60e27e37648aa5eb2798a/wrapt-1.14.1-cp311-cp311-win_amd64.whl", hash = "sha256:26046cd03936ae745a502abf44dac702a5e6880b2b01c29aea8ddf3353b68224", size = 35616, upload-time = "2023-10-07T08:30:14.868Z" },
-]
-
-[[package]]
-name = "wtforms"
-version = "3.2.1"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "markupsafe" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/01/e4/633d080897e769ed5712dcfad626e55dbd6cf45db0ff4d9884315c6a82da/wtforms-3.2.1.tar.gz", hash = "sha256:df3e6b70f3192e92623128123ec8dca3067df9cfadd43d59681e210cfb8d4682", size = 137801, upload-time = "2024-10-21T11:34:00.108Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/08/c9/2088fb5645cd289c99ebe0d4cdcc723922a1d8e1beaefb0f6f76dff9b21c/wtforms-3.2.1-py3-none-any.whl", hash = "sha256:583bad77ba1dd7286463f21e11aa3043ca4869d03575921d1a1698d0715e0fd4", size = 152454, upload-time = "2024-10-21T11:33:58.44Z" },
 ]
 
 [[package]]
