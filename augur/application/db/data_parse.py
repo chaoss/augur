@@ -652,15 +652,19 @@ def extract_needed_contributor_data(contributor, tool_source, tool_version, data
     cntrb_id = GithubUUID()   
     cntrb_id["user"] = contributor["id"]
 
+    # Only set email if meaningful; avoid propagating empty/"null" strings
+    _email = contributor["email"] if "email" in contributor else None
+    _email = None if _email in (None, "", "null", "Null") else _email
+
     contributor = {
             "cntrb_id": cntrb_id.to_UUID(),
             "cntrb_login": contributor['login'],
             "cntrb_created_at": contributor['created_at'] if 'created_at' in contributor else None,
-            "cntrb_email": contributor['email'] if 'email' in contributor else None,
+            "cntrb_email": _email,
             "cntrb_company": contributor['company'] if 'company' in contributor else None,
             "cntrb_location": contributor['location'] if 'location' in contributor else None,
             # "cntrb_type": , dont have a use for this as of now ... let it default to null
-            "cntrb_canonical": contributor['email'] if 'email' in contributor else None,
+            "cntrb_canonical": _email,
             "gh_user_id": contributor['id'],
             "gh_login": str(contributor['login']),  ## cast as string by SPG on 11/28/2021 due to `nan` user
             "gh_url": contributor['url'],

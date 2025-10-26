@@ -275,15 +275,18 @@ class Contributor(Base):
         cntrb_id["user"] = contributor["id"]
         
         contributor_obj = cls()
+        # Only set email if meaningful; avoid propagating empty/"null" strings
+        _email = contributor["email"] if "email" in contributor else None
+        _email = None if _email in (None, "", "null", "Null") else _email
 
         contributor_obj.cntrb_id = cntrb_id.to_UUID()
         contributor_obj.cntrb_login = contributor['login']
         contributor_obj.cntrb_created_at = contributor['created_at'] if 'created_at' in contributor else None
-        contributor_obj.cntrb_email = contributor['email'] if 'email' in contributor else None
+        contributor_obj.cntrb_email = _email
         contributor_obj.cntrb_company = contributor['company'] if 'company' in contributor else None
         contributor_obj.cntrb_location = contributor['location'] if 'location' in contributor else None
         # cntrb_type =  dont have a use for this as of now ... let it default to null
-        contributor_obj.cntrb_canonical = contributor['email'] if 'email' in contributor else None
+        contributor_obj.cntrb_canonical = _email
         contributor_obj.gh_user_id = contributor['id']
         contributor_obj.gh_login = str(contributor['login'])  ## cast as string by SPG on 11/28/2021 due to `nan` user
         contributor_obj.gh_url = contributor['url']
