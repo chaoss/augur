@@ -1,5 +1,6 @@
 import time
 import random
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 from sqlalchemy.dialects import postgresql
 from sqlalchemy.exc import OperationalError
@@ -141,15 +142,27 @@ class DatabaseSession(Session):
             # create a dict that the on_conflict_do_update method requires to be able to map updates whenever there is a conflict. See sqlalchemy docs for more explanation and examples: https://docs.sqlalchemy.org/en/14/dialects/postgresql.html#updating-using-the-excluded-insert-values
             setDict = {}
             for key in data[0].keys():
-                    setDict[key] = getattr(stmnt.excluded, key)
-                
-            stmnt = stmnt.on_conflict_do_update(
-                #This might need to change
-                index_elements=natural_keys,
-                
-                #Columns to be updated
-                set_ = setDict
-            )
+                if key not in natural_keys:
+                    excluded_val = getattr(stmnt.excluded, key)
+                    # Treat empty/'null' strings as NULL for string fields
+                    if string_fields and key in string_fields:
+                        excluded_val = func.nullif(
+                            func.nullif(func.nullif(excluded_val, ""), "null"), "Null"
+                        )
+                    # Use COALESCE to keep existing value if new value is NULL
+                    setDict[key] = func.coalesce(
+                        excluded_val, getattr(stmnt.table.c, key)
+                    )
+            # Only add on_conflict_do_update if there are columns to update
+            if setDict:
+                stmnt = stmnt.on_conflict_do_update(
+                    # This might need to change
+                    index_elements=natural_keys,
+                    # Columns to be updated
+                    set_=setDict,
+                )
+            else:
+                stmnt = stmnt.on_conflict_do_nothing(index_elements=natural_keys)
 
         else:
             stmnt = stmnt.on_conflict_do_nothing(
