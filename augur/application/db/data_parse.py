@@ -653,7 +653,7 @@ def extract_needed_contributor_data(contributor, tool_source, tool_version, data
     cntrb_id["user"] = contributor["id"]
 
     # Only set email if meaningful; avoid propagating empty/"null" strings
-    _email = contributor["email"] if "email" in contributor else None
+    _email = contributor.get("email", None)
     _email = None if _email in (None, "", "null", "Null") else _email
 
     contributor = {
