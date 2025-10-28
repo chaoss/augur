@@ -6,8 +6,9 @@ from typing import Iterable, Any, Union
 from collections.abc import MutableSequence
 from augur.tasks.init.redis_connection import get_redis_connection
 from augur import instance_id
+import logging
 
-
+logger=logging.getLogger(__name__)
 class RedisList(MutableSequence):
     """Class to handler all operations of a redis list
 
@@ -211,7 +212,7 @@ class RedisList(MutableSequence):
         key_list_length = self.redis.llen(self.redis_list_key) 
 
         for i in range(key_list_length):
-            print(self.redis.lindex(self.redis_list_key, i))
+            logger.info(self.redis.lindex(self.redis_list_key, i))
 
 if __name__ == "__main__":
 
@@ -223,7 +224,7 @@ if __name__ == "__main__":
     # redis_list.append(8)
     # redis_list.append(8)
     redis_list[0:4:2] = [0, 1]
-    print("List values")
+    logger.info("List values")
     redis_list.print_values()
 
     redis_list.redis.delete("list")

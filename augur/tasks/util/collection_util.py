@@ -165,7 +165,7 @@ def task_failed_util(self, request,exc,traceback):
 
         query = session.query(CollectionStatus).filter(or_(core_id_match,secondary_id_match,facade_id_match))
 
-        print(f"chain: {request.chain}")
+        logger.info(f"chain: {request.chain}")
         #Make sure any further execution of tasks dependent on this one stops.
         try:
             #Replace the tasks queued ahead of this one in a chain with None.

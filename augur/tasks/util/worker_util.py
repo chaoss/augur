@@ -14,15 +14,15 @@ import subprocess
 from augur.tasks.util.metadata_exception import MetadataException
 
 
-def create_grouped_task_load(*args,processes=8,dataList=[],task=None):
+def create_grouped_task_load(logger, *args,processes=8,dataList=[],task=None):
     
     if not dataList or not task:
         raise AssertionError
     
-    print(f"Splitting {len(dataList)} items")
+    logger.info(f"Splitting {len(dataList)} items")
     #numpyData = np.array(list(dataList))
     listsSplitForProcesses = np.array_split(list(dataList), processes)
-    print("Done splitting items.")
+    logger.info("Done splitting items.")
 
     #print("args")
     #print(args)
