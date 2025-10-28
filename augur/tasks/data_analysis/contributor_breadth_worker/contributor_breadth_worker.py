@@ -89,7 +89,8 @@ def contributor_breadth_model(self) -> None:
     total = len(current_cntrb_logins)
     for cntrb in current_cntrb_logins:
 
-        print(f"Processing cntrb {index} of {total}")
+        logging.info(f"Processing cntrb {index} of {total}")
+        
         index += 1
 
         repo_cntrb_url = f"https://api.github.com/users/{cntrb['gh_login']}/events"
