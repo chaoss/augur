@@ -122,7 +122,7 @@ def process_issues(issues, task_name, repo_id, logger) -> None:
                                             }     
 
     if len(issue_dicts) == 0:
-        print("No issues found while processing")  
+        logger.info("No issues found while processing")
         return
 
     # remove duplicate contributors before inserting

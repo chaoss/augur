@@ -151,12 +151,11 @@ class FacadeHelper():
 
     def get_setting(self,setting):
         #Get a setting from the db
-
         query = s.sql.text("""SELECT value FROM settings WHERE setting=:settingParam ORDER BY
             last_modified DESC LIMIT 1""").bindparams(settingParam=setting)
         
         result = execute_sql(query).fetchone()
-        print(result)
+        self.logger.info(result)
         return result[0]
         
 

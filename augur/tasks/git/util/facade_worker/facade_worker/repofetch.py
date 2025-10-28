@@ -30,6 +30,7 @@ import subprocess
 import os
 import pathlib
 import sqlalchemy as s
+import logging
 from .utilitymethods import update_repo_log, get_absolute_repo_path
 from sqlalchemy.orm.exc import NoResultFound
 from augur.application.db.models.augur_data import *
@@ -37,6 +38,7 @@ from augur.application.db.models.augur_operations import CollectionStatus
 from augur.application.db.util import execute_session_query, convert_orm_list_to_dict_list
 from augur.application.db.lib import execute_sql, get_repo_by_repo_git
 
+logger=logging.getLogger(__name__)
 class GitCloneError(Exception):
     pass
 
@@ -128,7 +130,7 @@ def git_repo_initialize(facade_helper, session, repo_git):
         try:
             pathlib.Path(repo_path).mkdir(parents=True, exist_ok=True)
         except Exception as e:
-            print("COULD NOT CREATE REPO DIRECTORY")
+            logger.error("COULD NOT CREATE REPO DIRECTORY")
 
             update_repo_log(logger, facade_helper, row.repo_id, 'Failed (mkdir)')
             facade_helper.update_status(f"Failed (mkdir {repo_path})")
@@ -451,8 +453,7 @@ def git_repo_updates(facade_helper, repo_git):
                 pass
 
         cmdpull2 = (f"git -C {absolute_path} pull")
-
-        print(cmdpull2)
+        logger.info(cmdpull2)
         return_code = subprocess.Popen([cmdpull2], shell=True).wait()
 
         attempt += 1

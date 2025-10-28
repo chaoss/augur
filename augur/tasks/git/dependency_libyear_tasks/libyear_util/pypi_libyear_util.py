@@ -1,6 +1,7 @@
 import requests
 import dateutil.parser
 # from packaging import version
+import logging
 from distutils.version import LooseVersion
 import re 
 
@@ -104,6 +105,7 @@ def sort_dependency_requirement(dependency,data):
 
 def get_libyear(current_version, current_release_date, latest_version, latest_release_date):
 
+    logger = logging.getLogger(get_libyear.__name__)
     if not latest_version:
         return -1
     
@@ -117,6 +119,6 @@ def get_libyear(current_version, current_release_date, latest_version, latest_re
     latest_release_date = dateutil.parser.parse(latest_release_date)    
 
     libdays = (latest_release_date - current_release_date).days
-    print(libdays)
+    logger.info(libdays)
     libyear = libdays/365
     return libyear
