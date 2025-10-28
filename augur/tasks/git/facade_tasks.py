@@ -53,7 +53,7 @@ def facade_error_handler(request,exc,traceback):
 
     logger.error(f"Task {request.id} raised exception: {exc}! \n {traceback}")
 
-    print(f"chain: {request.chain}")
+    logger.info(f"chain: {request.chain}")
     #Make sure any further execution of tasks dependent on this one stops.
     try:
         #Replace the tasks queued ahead of this one in a chain with None.

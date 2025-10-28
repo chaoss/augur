@@ -132,7 +132,7 @@ def process_issues(issues, task_name, repo_id, logger) -> None:
 
 
     if len(issue_dicts) == 0:
-        print("No gitlab issues found while processing")  
+        logger.info("No gitlab issues found while processing.")
         return
     
     # remove duplicate contributors before inserting
