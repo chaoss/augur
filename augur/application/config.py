@@ -5,6 +5,7 @@ from typing import List, Any, Optional
 import os
 from augur.application.db.models import Config 
 from augur.application.db.util import execute_session_query, convert_type_of_value
+from pathlib import Path
 
 def get_development_flag_from_config():
     
@@ -37,7 +38,6 @@ default_config = {
                 "github": "<gh_api_key>",
                 "gitlab": "<gl_api_key>"
             },
-            #TODO: a lot of these are deprecated.
             "Facade": {
                 "check_updates": 1,
                 "create_xlsx_summary_files": 1,
@@ -50,7 +50,8 @@ default_config = {
                 "pull_repos": 1,
                 "rebuild_caches": 1,
                 "run_analysis": 1,
-                "run_facade_contributors": 1
+                "run_facade_contributors": 1,
+                "facade_contributor_full_recollect": 0
             },
             "Server": {
                 "cache_expire": "3600",
@@ -121,7 +122,12 @@ class AugurConfig():
         self.logger = logger
 
         self.accepted_types = ["str", "bool", "int", "float", "NoneType"]
-        self.default_config = default_config
+        config_dir = Path(os.getenv("CONFIG_DATADIR", "./"))
+        config_path = config_dir.joinpath("augur.json")
+        if config_path.exists():
+            self.default_config = json.loads(config_path.read_text(encoding="UTF-8"))
+        else:
+            self.default_config = default_config
 
     def get_section(self, section_name) -> dict:
         """Get a section of data from the config.
