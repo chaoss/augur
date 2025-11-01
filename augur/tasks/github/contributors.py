@@ -11,12 +11,10 @@ from augur.application.db.util import execute_session_query
 from augur.application.db.lib import bulk_insert_dicts, get_session, batch_insert_contributors
 from augur.tasks.github.util.github_random_key_auth import GithubRandomKeyAuth
 
-
+logger=logging.getLogger(__name__)
 
 @celery.task
 def process_contributors():
-
-    logger = logging.getLogger(process_contributors.__name__)
 
     tool_source = "Contributors task"
     tool_version = "2.0"
@@ -111,7 +109,6 @@ def grab_comitters(self, repo_git,platform="github"):
 
     engine = self.app.engine
 
-    logger = logging.getLogger(grab_comitters.__name__)
 
     try:
         key_auth = GithubRandomKeyAuth(logger)

@@ -14,11 +14,10 @@ from augur.application.db.lib import get_core_data_last_collected
 from sqlalchemy.sql import text
 
 platform_id = 1
-
+logger=logging.getLogger(__name__)
 @celery.task(base=AugurCoreRepoCollectionTask)
 def collect_github_messages(repo_git: str, full_collection: bool) -> None:
 
-    logger = logging.getLogger(collect_github_messages.__name__)
 
     with GithubTaskManifest(logger) as manifest:
 

@@ -13,7 +13,7 @@ from augur.application.db.lib import get_value, get_session, get_repo_by_repo_gi
 from augur.application.db.models import PullRequestAnalysis
 from augur.tasks.init.celery_app import AugurMlRepoCollectionTask
 
-
+logger=logging.getLogger(__name__)
 # from sklearn.metrics import (confusion_matrix, f1_score, precision_score, recall_score)
 # from sklearn.preprocessing import LabelEncoder, MinMaxScaler
 # from xgboost import XGBClassifier
@@ -22,8 +22,6 @@ ROOT_AUGUR_DIRECTORY = os.path.dirname(os.path.dirname(os.path.dirname(os.path.d
 
 @celery.task(base=AugurMlRepoCollectionTask, bind=True)
 def pull_request_analysis_task(self, repo_git):
-
-    logger = logging.getLogger(pull_request_analysis_task.__name__)
     engine = self.app.engine
 
     pull_request_analysis_model(repo_git, logger, engine)
