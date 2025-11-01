@@ -19,11 +19,12 @@ from augur.tasks.init.celery_app import AugurMlRepoCollectionTask
 #SPDX-License-Identifier: MIT
 
 ROOT_AUGUR_DIRECTORY = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__)))))
+logger=logging.getLogger(__name__)
 
 @celery.task(base=AugurMlRepoCollectionTask, bind=True)
 def message_insight_task(self, repo_git):
 
-    logger = logging.getLogger(message_insight_task.__name__)
+
     engine = self.app.engine
 
     message_insight_model(repo_git, logger, engine)

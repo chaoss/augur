@@ -15,6 +15,8 @@ from augur.tasks.github.util.github_paginator import hit_api
 
 from augur.application.db.models import UserRepo, Repo
 
+logger=logging.getLogger(__name__)
+
 def parse_org_name(string):
 
     match = re.match(r'^\/?([a-zA-Z0-9_-]+)\/?$', string)
@@ -27,8 +29,6 @@ def parse_org_and_repo_name(string):
 
 @celery.task
 def add_github_orgs_and_repos(user_id, group_name, orgs, repo_urls):
-
-    logger = logging.getLogger(add_github_orgs_and_repos.__name__)
 
     with GithubTaskSession(logger) as session:
      
@@ -64,7 +64,6 @@ def add_github_orgs_and_repos(user_id, group_name, orgs, repo_urls):
 @celery.task
 def add_gitlab_repos(user_id, group_name, repo_urls):
 
-    logger = logging.getLogger(add_github_orgs_and_repos.__name__)
 
     with GithubTaskSession(logger) as session:
      

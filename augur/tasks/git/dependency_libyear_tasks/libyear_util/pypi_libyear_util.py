@@ -5,6 +5,7 @@ import logging
 from distutils.version import LooseVersion
 import re 
 
+logger=logging.getLogger(__name__)
 
 def get_pypi_data(name, version=None):
     """return a dictionary with pypi project data"""
@@ -105,7 +106,6 @@ def sort_dependency_requirement(dependency,data):
 
 def get_libyear(current_version, current_release_date, latest_version, latest_release_date):
 
-    logger = logging.getLogger(get_libyear.__name__)
     if not latest_version:
         return -1
     

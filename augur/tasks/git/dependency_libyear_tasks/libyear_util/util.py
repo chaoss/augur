@@ -21,7 +21,7 @@ file_list = [
     'environment.yaml.lock',
     'package.json'
 ]
-
+logger=logging.getLogger(__name__)
 
 def find(name, path):
     for root, dirs, files in os.walk(path):
@@ -82,8 +82,7 @@ def get_parsed_deps(path, logger):
     return dependency_list
 
 def get_libyear(current_version, current_release_date, latest_version, latest_release_date):
-    
-    logger = logging.getLogger(get_libyear.__name__)
+
 
     if not latest_version:
         return -1

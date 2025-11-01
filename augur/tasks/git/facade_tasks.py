@@ -32,6 +32,8 @@ from augur.tasks.git.scc_value_tasks.tasks import process_scc_value_metrics
 
 from augur.tasks.github.util.github_task_session import *
 
+logger=logging.getLogger(__name__)
+
 def filter_null_repo_id(records, logger, context=""):
     """Remove and log records with null/None repo_id."""
     filtered = []
@@ -49,8 +51,6 @@ def filter_null_repo_id(records, logger, context=""):
 @celery.task
 def facade_error_handler(request,exc,traceback):
 
-    logger = logging.getLogger(facade_error_handler.__name__)
-
     logger.error(f"Task {request.id} raised exception: {exc}! \n {traceback}")
 
     logger.info(f"chain: {request.chain}")
@@ -67,8 +67,6 @@ def facade_error_handler(request,exc,traceback):
 #Predefine facade collection with tasks
 @celery.task(base=AugurFacadeRepoCollectionTask)
 def facade_analysis_init_facade_task(repo_git):
-
-    logger = logging.getLogger(facade_analysis_init_facade_task.__name__)
     facade_helper = FacadeHelper(logger)
 
     facade_helper.update_status('Running analysis')
@@ -77,9 +75,6 @@ def facade_analysis_init_facade_task(repo_git):
 
 @celery.task(base=AugurFacadeRepoCollectionTask)
 def trim_commits_facade_task(repo_git):
-
-    logger = logging.getLogger(trim_commits_facade_task.__name__)
-
     facade_helper = FacadeHelper(logger)
 
     repo = get_repo_by_repo_git(repo_git)
@@ -104,9 +99,7 @@ def trim_commits_facade_task(repo_git):
 
 @celery.task(base=AugurFacadeRepoCollectionTask)
 def trim_commits_post_analysis_facade_task(repo_git):
-
-    logger = logging.getLogger(trim_commits_post_analysis_facade_task.__name__)
-    
+  
     facade_helper = FacadeHelper(logger)
 
     repo = repo = get_repo_by_repo_git(repo_git)
@@ -154,7 +147,6 @@ def trim_commits_post_analysis_facade_task(repo_git):
 @celery.task
 def facade_analysis_end_facade_task():
 
-    logger = logging.getLogger(facade_analysis_end_facade_task.__name__)
     facade_helper = FacadeHelper(logger)
     facade_helper.log_activity('Info','Running analysis (complete)')
 
@@ -163,14 +155,12 @@ def facade_analysis_end_facade_task():
 @celery.task
 def facade_start_contrib_analysis_task():
 
-    logger = logging.getLogger(facade_start_contrib_analysis_task.__name__)
     facade_helper = FacadeHelper(logger)
     facade_helper.update_status('Updating Contributors')
     facade_helper.log_activity('Info', 'Updating Contributors with commits')
 
 @celery.task(base=AugurFacadeRepoCollectionTask)
 def facade_fetch_missing_commit_messages(repo_git):
-    logger = logging.getLogger(facade_fetch_missing_commit_messages.__name__)
     facade_helper = FacadeHelper(logger)
 
     repo = get_repo_by_repo_git(repo_git)
@@ -229,7 +219,6 @@ def analyze_commits_in_parallel(repo_git, multithreaded: bool)-> None:
     """
 
     #create new session for celery thread.
-    logger = logging.getLogger(analyze_commits_in_parallel.__name__)
     facade_helper = FacadeHelper(logger)
 
     repo = get_repo_by_repo_git(repo_git)
@@ -340,8 +329,6 @@ def analyze_commits_in_parallel(repo_git, multithreaded: bool)-> None:
 # retry this task indefinitely every 5 minutes if it errors. Since the only way it gets scheduled is by itself, so if it stops running no more clones will happen till the instance is restarted
 @celery.task(autoretry_for=(Exception,), retry_backoff=True, retry_backoff_max=300, retry_jitter=True, max_retries=None)
 def clone_repos():
-
-    logger = logging.getLogger(clone_repos.__name__)
     
     is_pending = CollectionStatus.facade_status == CollectionState.PENDING.value
 
@@ -400,7 +387,6 @@ def clone_repos():
 def git_update_commit_count_weight(self, repo_git):
 
     engine = self.app.engine
-    logger = logging.getLogger(git_update_commit_count_weight.__name__)
     
     # Change facade session to take in engine
     facade_helper = FacadeHelper(logger)
@@ -413,8 +399,6 @@ def git_update_commit_count_weight(self, repo_git):
 
 @celery.task(base=AugurFacadeRepoCollectionTask)
 def git_repo_updates_facade_task(repo_git):
-
-    logger = logging.getLogger(git_repo_updates_facade_task.__name__)
 
     facade_helper = FacadeHelper(logger)
 
@@ -457,7 +441,6 @@ def generate_analysis_sequence(logger,repo_git, facade_helper):
 
 
 def facade_phase(repo_git, full_collection):
-    logger = logging.getLogger(facade_phase.__name__)
     logger.info("Generating facade sequence")
     facade_helper = FacadeHelper(logger)
     #Get the repo_id
