@@ -30,6 +30,8 @@ from augur.tasks.util.collection_util import *
 from augur.tasks.git.util.facade_worker.facade_worker.utilitymethods import get_facade_weight_time_factor
 from augur.application.db.lib import execute_sql, get_session
 
+logger=logging.getLogger(__name__)
+
 RUNNING_DOCKER = os.environ.get('AUGUR_DOCKER_DEPLOY') == "1"
 
 CELERY_GROUP_TYPE = type(group())
@@ -48,21 +50,15 @@ CELERY_CHAIN_TYPE = type(chain())
 #Prelim phases are used to detect if where the repo has hosted has moved or not.
 def prelim_phase(repo_git, full_collection):
 
-    logger = logging.getLogger(prelim_phase.__name__)
-
     return detect_github_repo_move_core.si(repo_git)
 
 def prelim_phase_secondary(repo_git, full_collection):
-    logger = logging.getLogger(prelim_phase.__name__)
-
     return detect_github_repo_move_secondary.si(repo_git)
 
 
 #This is the phase that defines the message for core augur collection
 #A chain is needed for each repo.
 def primary_repo_collect_phase(repo_git, full_collection):
-    logger = logging.getLogger(primary_repo_collect_phase.__name__)
-
 
     #Define primary group of jobs for the primary collect phase: issues and pull requests.
     primary_repo_jobs = group(
@@ -91,9 +87,6 @@ def primary_repo_collect_phase(repo_git, full_collection):
     return repo_task_group
 
 def primary_repo_collect_phase_gitlab(repo_git, full_collection):
-
-    logger = logging.getLogger(primary_repo_collect_phase_gitlab.__name__)
-
     jobs = group(
          chain(collect_gitlab_merge_requests.si(repo_git), group(
                                                                  collect_merge_request_comments.s(repo_git), 
@@ -115,7 +108,6 @@ def primary_repo_collect_phase_gitlab(repo_git, full_collection):
 #This phase creates the message for secondary collection tasks.
 #These are less important and have their own worker.
 def secondary_repo_collect_phase(repo_git, full_collection):
-    logger = logging.getLogger(secondary_repo_collect_phase.__name__)
 
     repo_task_group = group(
         process_pull_request_files.si(repo_git, full_collection),
@@ -135,8 +127,6 @@ def secondary_repo_collect_phase(repo_git, full_collection):
 def non_repo_domain_tasks(self):
 
     engine = self.app.engine
-
-    logger = logging.getLogger(non_repo_domain_tasks.__name__)
 
     logger.info("Executing non-repo domain tasks")
 
@@ -238,9 +228,6 @@ def build_ml_repo_collect_request(session, logger, enabled_phase_names, days_unt
 def augur_collection_monitor(self):     
 
     engine = self.app.engine
-
-    logger = logging.getLogger(augur_collection_monitor.__name__)
-
     logger.info("Checking for repos to collect")
 
     
@@ -279,8 +266,6 @@ def augur_collection_monitor(self):
 def augur_collection_update_weights(self):
 
     engine = self.app.engine
-
-    logger = logging.getLogger(augur_collection_update_weights.__name__)
 
     logger.info("Updating stale collection weights")
 
@@ -326,7 +311,6 @@ def retry_errored_repos(self):
         Periodic task to reset repositories that have errored and try again.
     """
     engine = self.app.engine
-    logger = logging.getLogger(create_collection_status_records.__name__)
 
     #TODO: Isaac needs to normalize the status's to be abstract in the 
     #collection_status table once augur dev is less unstable.
@@ -364,7 +348,6 @@ def create_collection_status_records(self):
     """
 
     engine = self.app.engine
-    logger = logging.getLogger(create_collection_status_records.__name__)
 
     query = s.sql.text("""
     SELECT repo_id FROM repo WHERE repo_id NOT IN (SELECT repo_id FROM augur_operations.collection_status)

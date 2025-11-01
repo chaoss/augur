@@ -16,13 +16,12 @@ from augur.tasks.util.worker_util import remove_duplicate_dicts
 from augur.application.db.models import PullRequestEvent, IssueEvent, Contributor, Repo
 from augur.application.db.lib import get_repo_by_repo_git, bulk_insert_dicts, get_issues_by_repo_id, get_pull_requests_by_repo_id, update_issue_closed_cntrbs_by_repo_id, get_session, get_engine, get_core_data_last_collected, batch_insert_contributors
 
-
+logger=logging.getLogger(__name__)
 platform_id = 1
 
 @celery.task(base=AugurCoreRepoCollectionTask)
 def collect_events(repo_git: str, full_collection: bool):
 
-    logger = logging.getLogger(collect_events.__name__)
 
     owner, repo = get_owner_repo(repo_git)
 

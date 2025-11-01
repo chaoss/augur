@@ -19,6 +19,7 @@ file_list = [
     'environment.yaml.lock'
 ]
 
+logger=logging.getLogger(__name__)
 
 def find(name, path):
     for root, dirs, files in os.walk(path):
@@ -201,10 +202,10 @@ def parse_conda(file_handle):
     dependencies = contents.get('dependencies', [])
     
     if not dependencies:
-        print("No dependencies found.")
+        logger.warning("No dependencies found.")
         return []
     else:
-        print("Dependencies found.")
+        logger.info("Dependencies found.")
     for dep in dependencies:
         if (type(dep) is dict) and dep['pip']:
             pip = dep

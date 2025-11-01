@@ -28,11 +28,12 @@
 import sqlalchemy as s
 from augur.application.db.lib import execute_sql, fetchall_data_from_sql_text
 from .utilitymethods import store_working_author, trim_author
+import logging
 # if platform.python_implementation() == 'PyPy':
 #   import pymysql
 # else:
 #   import MySQLdb
-
+logger=logging.getLogger(__name__)
 def nuke_affiliations(facade_helper):
 
 # Delete all stored affiliations in the database. Normally when you
@@ -71,6 +72,7 @@ def fill_empty_affiliations(facade_helper):
         # intentionally mangled emails (e.g. "developer at domain.com") that have
         # been added as an affiliation rather than an alias.
 
+        
         find_exact_match = s.sql.text("""SELECT ca_affiliation,ca_start_date
             FROM contributor_affiliations 
             WHERE ca_domain = :email 
@@ -180,7 +182,8 @@ def fill_empty_affiliations(facade_helper):
     timefetch = s.sql.text("""SELECT current_timestamp(6) as fetched""")
 
     affiliations_fetched = execute_sql(timefetch).fetchone()[0] 
-    print(affiliations_fetched)
+    logger.info(affiliations_fetched)
+    
     # Now find the last time we worked on affiliations, to figure out what's new
 
     affiliations_processed = facade_helper.get_setting('affiliations_processed')

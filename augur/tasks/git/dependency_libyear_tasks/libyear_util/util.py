@@ -1,5 +1,6 @@
 import dateutil.parser
 import os
+import logging
 from augur.tasks.git.dependency_libyear_tasks.libyear_util.pypi_parser import parse_conda, parse_pipfile,parse_pipfile_lock,parse_poetry,parse_poetry_lock,parse_requirement_txt,parse_setup_py
 from augur.tasks.git.dependency_libyear_tasks.libyear_util.npm_parser import parse_package_json
 from augur.tasks.git.dependency_libyear_tasks.libyear_util.pypi_libyear_util import sort_dependency_requirement,get_pypi_data,get_latest_version,get_release_date
@@ -20,7 +21,7 @@ file_list = [
     'environment.yaml.lock',
     'package.json'
 ]
-
+logger=logging.getLogger(__name__)
 
 def find(name, path):
     for root, dirs, files in os.walk(path):
@@ -82,6 +83,7 @@ def get_parsed_deps(path, logger):
 
 def get_libyear(current_version, current_release_date, latest_version, latest_release_date):
 
+
     if not latest_version:
         return -1
     
@@ -95,7 +97,7 @@ def get_libyear(current_version, current_release_date, latest_version, latest_re
     latest_release_date = dateutil.parser.parse(latest_release_date)    
 
     libdays = (latest_release_date - current_release_date).days
-    print(libdays)
+    logger.info(f"Library days difference: {libdays} days between current release ({current_release_date}) and latest release ({latest_release_date})")
     libyear = libdays/365
     return libyear
 

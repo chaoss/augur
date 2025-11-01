@@ -15,12 +15,13 @@ from augur.tasks.github.util.github_random_key_auth import GithubRandomKeyAuth
 ### Logic: For each unique platform contributor, gather non duplicate events, using the GitHub "id"
 ### for the event API (GitLab coming!)
 
+logger=logging.getLogger(__name__)
+
 @celery.task(bind=True)
 def contributor_breadth_model(self) -> None:
 
     engine = self.app.engine
 
-    logger = logging.getLogger(contributor_breadth_model.__name__)
 
     tool_source = 'Contributor Breadth Worker'
     tool_version = '0.0.1'
@@ -89,7 +90,8 @@ def contributor_breadth_model(self) -> None:
     total = len(current_cntrb_logins)
     for cntrb in current_cntrb_logins:
 
-        print(f"Processing cntrb {index} of {total}")
+        logging.info(f"Processing cntrb {index} of {total}")
+        
         index += 1
 
         repo_cntrb_url = f"https://api.github.com/users/{cntrb['gh_login']}/events"
