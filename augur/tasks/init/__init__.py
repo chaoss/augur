@@ -4,10 +4,9 @@ from augur.application.db.session import DatabaseSession
 from augur.application.db.engine import DatabaseEngine
 from augur.application.config import AugurConfig
 
+logger=logging.getLogger(__name__)
+
 def get_redis_conn_values():
-
-    logger = logging.getLogger(__name__)
-
     with DatabaseEngine() as engine, DatabaseSession(logger, engine) as session:
 
         config = AugurConfig(logger, session)
@@ -21,7 +20,6 @@ def get_redis_conn_values():
     return redis_db_number, redis_conn_string
 
 def get_rabbitmq_conn_string():
-    logger = logging.getLogger(__name__)
 
     with DatabaseEngine() as engine, DatabaseSession(logger, engine) as session:
         config = AugurConfig(logger, session)

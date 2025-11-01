@@ -33,7 +33,7 @@ import logging
 #   import pymysql
 # else:
 #   import MySQLdb
-
+logger=logging.getLogger(__name__)
 def nuke_affiliations(facade_helper):
 
 # Delete all stored affiliations in the database. Normally when you
@@ -62,7 +62,6 @@ def fill_empty_affiliations(facade_helper):
 # function finds any records with NULL affiliation data and fills them.
 
 ### Local helper functions ###
-    logger=logging.getLogger(fill_empty_affiliations.__name__)
     def discover_null_affiliations(attribution,email):
 
     # Try a bunch of ways to match emails to attributions in the database. First it

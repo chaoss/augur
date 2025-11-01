@@ -18,13 +18,11 @@ from augur.application.db.lib import get_secondary_data_last_collected, get_upda
 
 from typing import Generator, List, Dict
 
-
+logger=logging.getLogger(__name__)
 platform_id = 1
 
 @celery.task(base=AugurCoreRepoCollectionTask)
 def collect_pull_requests(repo_git: str, full_collection: bool) -> int:
-
-    logger = logging.getLogger(collect_pull_requests.__name__)
 
     with GithubTaskManifest(logger) as manifest:
 
@@ -225,7 +223,6 @@ def collect_pull_request_review_comments(repo_git: str, full_collection: bool) -
 
     review_msg_url = f"https://api.github.com/repos/{owner}/{repo}/pulls/comments"
 
-    logger = logging.getLogger(collect_pull_request_review_comments.__name__)
     logger.debug(f"Collecting pull request review comments for {owner}/{repo}")
 
     repo_id = get_repo_by_repo_git(repo_git).repo_id
@@ -329,8 +326,6 @@ def collect_pull_request_review_comments(repo_git: str, full_collection: bool) -
 
 @celery.task(base=AugurSecondaryRepoCollectionTask)
 def collect_pull_request_reviews(repo_git: str, full_collection: bool) -> None:
-
-    logger = logging.getLogger(collect_pull_request_reviews.__name__)
 
     owner, repo = get_owner_repo(repo_git)
 

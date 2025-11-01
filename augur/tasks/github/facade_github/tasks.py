@@ -10,7 +10,7 @@ from augur.tasks.github.facade_github.core import *
 from augur.application.db.lib import execute_sql, get_contributor_aliases_by_email, get_unresolved_commit_emails_by_name, get_contributors_by_full_name, get_repo_by_repo_git, batch_insert_contributors
 from augur.application.db.lib import get_session, execute_session_query
 from augur.tasks.git.util.facade_worker.facade_worker.facade00mainprogram import *
-
+logger=logging.getLogger(__name__)
 
 def process_commit_metadata(logger, auth, contributorQueue, repo_id, platform_id):
 
@@ -196,7 +196,6 @@ def insert_facade_contributors(self, repo_git):
     # Set platform id to 1 since this task is github specific
     platform_id = 1
 
-    logger = logging.getLogger(insert_facade_contributors.__name__)
     repo = get_repo_by_repo_git(repo_git)
     repo_id = repo.repo_id
     facade_helper = FacadeHelper(logger)

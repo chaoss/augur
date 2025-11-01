@@ -7,6 +7,7 @@ from augur.application.db.lib import execute_sql
 from augur.tasks.git.util.facade_worker.facade_worker.config import FacadeHelper
 from augur.tasks.git.util.facade_worker.facade_worker.rebuildcache import invalidate_caches, rebuild_unknown_affiliation_and_web_caches
 
+logger=logging.getLogger(__name__)
 
 @celery.task(bind=True)
 def refresh_materialized_views(self):
@@ -15,7 +16,6 @@ def refresh_materialized_views(self):
 
     engine = self.app.engine
 
-    logger = logging.getLogger(refresh_materialized_views.__name__)
     #self.logger = logging.getLogger(refresh_materialized_views.__name__)
 
     mv1_refresh = s.sql.text("""    
