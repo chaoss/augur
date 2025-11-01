@@ -97,7 +97,7 @@ def get_libyear(current_version, current_release_date, latest_version, latest_re
     latest_release_date = dateutil.parser.parse(latest_release_date)    
 
     libdays = (latest_release_date - current_release_date).days
-    logger.info(libdays)
+    logger.info(f"Library days difference: {libdays} days between current release ({current_release_date}) and latest release ({latest_release_date})")
     libyear = libdays/365
     return libyear
 
