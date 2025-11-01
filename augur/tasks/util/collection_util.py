@@ -17,7 +17,7 @@ from augur.application.db.lib import execute_sql, get_session, get_active_repo_c
 from augur.tasks.util.worker_util import calculate_date_weight_from_timestamps
 from augur.tasks.util.collection_state import CollectionState
 
-
+logger=logging.getLogger(__name__)
 def get_list_of_all_users():
     #Get a list of all users.
     query = s.sql.text("""
@@ -237,8 +237,6 @@ def task_failed_util(self, request,exc,traceback):
 
     engine = self.app.engine
 
-    logger = logging.getLogger(task_failed_util.__name__)
-
     # log traceback to error file
     logger.error(f"Task {request.id} raised exception: {exc}\n{traceback}")
     
@@ -293,7 +291,6 @@ def task_failed_util(self, request,exc,traceback):
 def issue_pr_task_update_weight_util(self, issue_and_pr_nums,repo_git=None,session=None):
 
     engine = self.app.engine
-    logger = logging.getLogger(issue_pr_task_update_weight_util.__name__)
 
     if repo_git is None:
         return
@@ -310,7 +307,6 @@ def core_task_success_util(self, repo_git):
 
     engine = self.app.engine
 
-    logger = logging.getLogger(core_task_success_util.__name__)
 
     logger.info(f"Repo '{repo_git}' succeeded through core collection")
 
@@ -377,8 +373,6 @@ def secondary_task_success_util(self, repo_git):
 
     engine = self.app.engine
 
-    logger = logging.getLogger(secondary_task_success_util.__name__)
-
     logger.info(f"Repo '{repo_git}' succeeded through secondary collection")
 
     with get_session() as session:
@@ -430,8 +424,6 @@ def facade_task_success_util(self, repo_git):
 
     engine = self.app.engine
 
-    logger = logging.getLogger(facade_task_success_util.__name__)
-
     logger.info(f"Repo '{repo_git}' succeeded through facade task collection")
 
     with get_session() as session:
@@ -452,8 +444,6 @@ def facade_task_success_util(self, repo_git):
 def ml_task_success_util(self, repo_git):
 
     engine = self.app.engine
-
-    logger = logging.getLogger(facade_task_success_util.__name__)
 
     logger.info(f"Repo '{repo_git}' succeeded through machine learning task collection")
 
@@ -477,8 +467,6 @@ def ml_task_success_util(self, repo_git):
 def facade_clone_success_util(self, repo_git):
 
     engine = self.app.engine
-
-    logger = logging.getLogger(facade_clone_success_util.__name__)
 
     logger.info(f"Repo '{repo_git}' succeeded through facade update/clone")
 
