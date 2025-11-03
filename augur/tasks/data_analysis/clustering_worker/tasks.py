@@ -27,11 +27,12 @@ from augur.tasks.init.celery_app import AugurMlRepoCollectionTask
 
 MODEL_FILE_NAME = "kmeans_repo_messages"
 stemmer = nltk.stem.snowball.SnowballStemmer("english")
-logger=logging.getLogger(__name__)
+
 
 @celery.task(base=AugurMlRepoCollectionTask, bind=True)
 def clustering_task(self, repo_git):
 
+    logger = logging.getLogger(clustering_model.__name__)
     engine = self.app.engine
 
     clustering_model(repo_git, logger, engine)

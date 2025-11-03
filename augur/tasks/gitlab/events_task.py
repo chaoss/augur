@@ -14,7 +14,7 @@ from augur.tasks.gitlab.gitlab_random_key_auth import GitlabRandomKeyAuth
 
 
 platform_id = 2
-logger=logging.getLogger(__name__)
+
 @celery.task(base=AugurCoreRepoCollectionTask)
 def collect_gitlab_issue_events(repo_git) -> int:
     """
@@ -25,6 +25,8 @@ def collect_gitlab_issue_events(repo_git) -> int:
     """
 
     owner, repo = Repo.parse_gitlab_repo_url(repo_git)
+
+    logger = logging.getLogger(collect_gitlab_issue_events.__name__) 
 
     repo_id = get_repo_by_repo_git(repo_git).repo_id
 
@@ -51,6 +53,9 @@ def collect_gitlab_merge_request_events(repo_git) -> int:
     """
 
     owner, repo = Repo.parse_gitlab_repo_url(repo_git)
+
+    logger = logging.getLogger(collect_gitlab_issue_events.__name__) 
+
     repo_id = get_repo_by_repo_git(repo_git).repo_id
 
     key_auth = GitlabRandomKeyAuth(logger)
