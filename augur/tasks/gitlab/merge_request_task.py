@@ -11,7 +11,7 @@ from augur.tasks.util.worker_util import remove_duplicate_dicts
 from augur.application.db.lib import bulk_insert_dicts, get_repo_by_repo_git, get_session, batch_insert_contributors
 
 platform_id = 2
-logger=logging.getLogger(__name__)
+
 @celery.task(base=AugurCoreRepoCollectionTask)
 def collect_gitlab_merge_requests(repo_git: str) -> int:
     """
@@ -22,6 +22,7 @@ def collect_gitlab_merge_requests(repo_git: str) -> int:
     """
 
 
+    logger = logging.getLogger(collect_gitlab_merge_requests.__name__)
 
     repo_id = get_repo_by_repo_git(repo_git).repo_id
 
@@ -174,6 +175,8 @@ def collect_merge_request_comments(mr_ids, repo_git) -> int:
 
     owner, repo = Repo.parse_gitlab_repo_url(repo_git)
 
+    logger = logging.getLogger(collect_merge_request_comments.__name__) 
+
     repo_identifier = get_gitlab_repo_identifier(owner, repo)
 
     repo_id = get_repo_by_repo_git(repo_git).repo_id
@@ -287,6 +290,8 @@ def collect_merge_request_metadata(mr_ids, repo_git) -> int:
 
     repo_identifier = get_gitlab_repo_identifier(owner, repo)
 
+    logger = logging.getLogger(collect_merge_request_metadata.__name__) 
+
     repo_id = get_repo_by_repo_git(repo_git).repo_id
 
     key_auth = GitlabRandomKeyAuth(logger)
@@ -351,6 +356,8 @@ def collect_merge_request_reviewers(mr_ids, repo_git) -> int:
     owner, repo = Repo.parse_gitlab_repo_url(repo_git)
 
     repo_identifier = get_gitlab_repo_identifier(owner, repo)
+
+    logger = logging.getLogger(collect_merge_request_reviewers.__name__) 
 
     repo_id = get_repo_by_repo_git(repo_git).repo_id
 
@@ -419,6 +426,8 @@ def collect_merge_request_commits(mr_ids, repo_git) -> int:
 
     repo_identifier = get_gitlab_repo_identifier(owner, repo)
 
+    logger = logging.getLogger(collect_merge_request_commits.__name__) 
+
     repo_id = get_repo_by_repo_git(repo_git).repo_id
 
     key_auth = GitlabRandomKeyAuth(logger)
@@ -482,6 +491,8 @@ def collect_merge_request_files(mr_ids, repo_git) -> int:
         mr_ids: the ids of mrs to get files for.
         repo_git: the repo url string
     """
+
+    logger = logging.getLogger(collect_merge_request_files.__name__) 
 
     owner, repo = Repo.parse_gitlab_repo_url(repo_git)
 

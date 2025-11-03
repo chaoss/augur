@@ -6,9 +6,11 @@ from augur.tasks.init.celery_app import AugurCoreRepoCollectionTask, AugurSecond
 from augur.application.db.lib import get_repo_by_repo_git, get_session
 from augur.tasks.github.util.github_random_key_auth import GithubRandomKeyAuth
 
-logger=logging.getLogger(__name__)
+
 @celery.task(base=AugurCoreRepoCollectionTask)
 def detect_github_repo_move_core(repo_git : str) -> None:
+
+    logger = logging.getLogger(detect_github_repo_move_core.__name__)
 
     logger.info(f"Starting repo_move operation with {repo_git}")
 
@@ -27,6 +29,9 @@ def detect_github_repo_move_core(repo_git : str) -> None:
 
 @celery.task(base=AugurSecondaryRepoCollectionTask)
 def detect_github_repo_move_secondary(repo_git : str) -> None:
+
+    logger = logging.getLogger(detect_github_repo_move_secondary.__name__)
+
     logger.info(f"Starting repo_move operation with {repo_git}")
 
     repo = get_repo_by_repo_git(repo_git)

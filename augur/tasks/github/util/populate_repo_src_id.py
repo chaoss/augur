@@ -4,9 +4,11 @@ import sqlalchemy as s
 from augur.tasks.init.celery_app import celery_app as celery
 from augur.application.db.lib import get_repo_by_repo_git, execute_sql
 from augur.tasks.github.util.util import get_owner_repo, get_repo_src_id
-logger=logging.getLogger(__name__)
+
 @celery.task
 def populate_repo_src_id_task(repo_git):
+
+    logger = logging.getLogger(populate_repo_src_id_task.__name__)
 
     repo_obj = get_repo_by_repo_git(repo_git)
     repo_id = repo_obj.repo_id

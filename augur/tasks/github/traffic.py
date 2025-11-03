@@ -8,10 +8,11 @@ from augur.application.db.models import RepoClone
 from augur.application.db.lib import get_repo_by_repo_git, bulk_insert_dicts
 from augur.tasks.github.util.github_random_key_auth import GithubRandomKeyAuth
 
-logger=logging.getLogger(__name__)
+
 @celery.task
 def collect_github_repo_clones_data(repo_git: str) -> None:
     
+    logger = logging.getLogger(collect_github_repo_clones_data.__name__)
     
     repo_obj = get_repo_by_repo_git(repo_git)
     repo_id = repo_obj.repo_id

@@ -4,11 +4,12 @@ from augur.tasks.git.dependency_tasks.core import *
 from augur.tasks.init.celery_app import celery_app as celery
 from augur.tasks.init.celery_app import AugurFacadeRepoCollectionTask, AugurSecondaryRepoCollectionTask
 from augur.tasks.util.metadata_exception import MetadataException 
-logger=logging.getLogger(__name__)
+
 
 @celery.task(base=AugurFacadeRepoCollectionTask)
 def process_dependency_metrics(repo_git):
 
+    logger = logging.getLogger(process_dependency_metrics.__name__)
 
     generate_deps_data(logger, repo_git)
 
@@ -17,6 +18,8 @@ def process_dependency_metrics(repo_git):
 def process_ossf_dependency_metrics(self, repo_git):
 
     engine = self.app.engine
+    
+    logger = logging.getLogger(process_ossf_dependency_metrics.__name__)
 
     try:
         generate_scorecard(logger, repo_git)

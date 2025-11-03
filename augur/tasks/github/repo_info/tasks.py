@@ -8,10 +8,12 @@ from augur.application.db.lib import get_repo_by_repo_git
 from augur.tasks.github.util.github_random_key_auth import GithubRandomKeyAuth
 from augur.application.db import get_engine
 
-logger=logging.getLogger(__name__)
+
 #Task to get regular misc github info
 @celery.task(base=AugurCoreRepoCollectionTask)
 def collect_repo_info(repo_git: str):
+
+    logger = logging.getLogger(collect_repo_info.__name__)
 
     repo = get_repo_by_repo_git(repo_git)
 
@@ -25,6 +27,8 @@ def collect_repo_info(repo_git: str):
 def collect_linux_badge_info(repo_git: str):
 
     engine = get_engine()
+
+    logger = logging.getLogger(collect_linux_badge_info.__name__)
 
     repo = get_repo_by_repo_git(repo_git)
 

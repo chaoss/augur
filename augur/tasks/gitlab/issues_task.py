@@ -15,7 +15,7 @@ from augur.application.db.lib import bulk_insert_dicts, get_repo_by_repo_git, ge
 from augur.tasks.gitlab.gitlab_random_key_auth import GitlabRandomKeyAuth
 
 platform_id = 2
-logger=logging.getLogger(__name__)
+
 @celery.task(base=AugurCoreRepoCollectionTask)
 def collect_gitlab_issues(repo_git : str) -> int:
     """
@@ -24,6 +24,8 @@ def collect_gitlab_issues(repo_git : str) -> int:
     Arguments:
         repo_git: the repo url string
     """
+
+    logger = logging.getLogger(collect_gitlab_issues.__name__) 
 
     repo_id = get_repo_by_repo_git(repo_git).repo_id
 
@@ -208,6 +210,8 @@ def collect_gitlab_issue_comments(issue_ids, repo_git) -> int:
     """
 
     owner, repo = Repo.parse_gitlab_repo_url(repo_git)
+
+    logger = logging.getLogger(collect_gitlab_issues.__name__) 
 
     repo_id = get_repo_by_repo_git(repo_git).repo_id
 
