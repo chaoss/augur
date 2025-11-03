@@ -7,6 +7,8 @@ import datetime
 import traceback
 import inspect
 import celery
+import time
+from datetime import datetime, timedelta
 from celery import Celery
 from celery import current_app 
 from celery.signals import after_setup_logger
@@ -242,8 +244,6 @@ def setup_periodic_tasks(sender, **kwargs):
 
         mat_views_interval = int(config.get_value('Celery', 'refresh_materialized_views_interval_in_days'))
         if mat_views_interval > 0: 
-            import time
-            from datetime import datetime, timedelta
             # system timezone
             timezone_name = time.tzname[0]
             # next expected refresh time
