@@ -6,9 +6,11 @@ from augur.tasks.init.celery_app import AugurCoreRepoCollectionTask
 from augur.application.db.lib import get_repo_by_repo_git, get_session
 from augur.tasks.github.util.github_random_key_auth import GithubRandomKeyAuth
 
-logger=logging.getLogger(__name__)
+
 @celery.task(base=AugurCoreRepoCollectionTask)
 def collect_releases(repo_git):
+
+    logger = logging.getLogger(collect_releases.__name__)
 
     repo_obj = get_repo_by_repo_git(repo_git)
     repo_id = repo_obj.repo_id

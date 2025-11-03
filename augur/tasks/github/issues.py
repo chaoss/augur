@@ -15,13 +15,14 @@ from augur.tasks.util.worker_util import remove_duplicate_dicts
 from augur.application.db.models import Issue, IssueLabel, IssueAssignee, Contributor
 from augur.application.config import get_development_flag
 from augur.application.db.lib import get_repo_by_repo_git, bulk_insert_dicts, get_core_data_last_collected, batch_insert_contributors
-logger=logging.getLogger(__name__)
+
 
 development = get_development_flag()
 
 @celery.task(base=AugurCoreRepoCollectionTask)
 def collect_issues(repo_git : str, full_collection: bool) -> int:
 
+    logger = logging.getLogger(collect_issues.__name__) 
 
     repo_id = get_repo_by_repo_git(repo_git).repo_id
 

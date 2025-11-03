@@ -19,7 +19,6 @@ file_list = [
     'environment.yaml.lock'
 ]
 
-logger=logging.getLogger(__name__)
 
 def find(name, path):
     for root, dirs, files in os.walk(path):
@@ -193,6 +192,7 @@ def parse_poetry_lock(file_handle):
 
 # Pip dependencies can be embedded in conda environment files
 def parse_conda(file_handle):
+    logger = logging.getLogger(parse_conda.__name__)
     contents = yaml.safe_load(file_handle)
     deps = list()
     pip = None
