@@ -1,6 +1,94 @@
 import logging
+from dataclasses import dataclass
+from datetime import datetime
+from typing import Dict, List, Tuple, Optional, TypedDict, Any, Union, Literal
 
-from typing import Dict, List, Tuple, Optional
+# custom type definitions for better type safety and documentation
+class ContributorData(TypedDict, total=False):
+    """Type definition for contributor data structure."""
+    cntrb_id: int
+    login: str
+    type: str
+    html_url: str
+    created_at: datetime
+    updated_at: datetime
+    name: Optional[str]
+    email: Optional[str]
+    company: Optional[str]
+    location: Optional[str]
+    bio: Optional[str]
+    login: str
+    email: Optional[str]
+    type: str
+    cntrb_created_at: datetime
+    cntrb_updated_at: datetime
+    cntrb_canonical: str
+    tool_source: str
+    tool_version: str
+    data_source: str
+
+class PRLabelData(TypedDict):
+    """Type definition for PR label data structure."""
+    pr_label_src_id: str
+    pr_src_id: str
+    pr_src_node_id: Optional[str]
+    pr_url: str
+    pr_src_number: int
+    pr_src_title: Optional[str]
+    pr_src_state: str
+    pr_created_at: datetime
+    pr_updated_at: datetime
+    pr_merged_at: Optional[datetime]
+    pr_closed_at: Optional[datetime]
+    pr_merged: bool
+    pr_merge_commit_sha: Optional[str]
+    pr_author_association: str
+    pr_head_label: str
+    pr_head_ref: str
+    pr_head_sha: str
+    pr_base_label: str
+    pr_base_ref: str
+    pr_base_sha: str
+    pr_comment_count: int
+    pr_review_comments: int
+    pr_maintainer_can_modify: bool
+    pr_commits: int
+    pr_additions: int
+    pr_deletions: int
+    pr_changed_files: int
+    repo_id: int
+    tool_source: str
+    tool_version: str
+    data_source: str
+
+class PRBaseData(TypedDict):
+    """Base type for PR-related data structures."""
+    pull_request_id: int
+    pr_url: str
+
+class PRReturnData(PRBaseData):
+    """Type for PR return data containing pull request IDs and URLs."""
+    pass
+
+class PRMappingData(TypedDict):
+    """Type for mapping PR data to their related entities."""
+    labels: List[Dict[str, Any]]
+    assignees: List[Dict[str, Any]]
+    reviewers: List[Dict[str, Any]]
+    metadata: List[Dict[str, Any]]
+
+PRHeadOrBase = Literal['head', 'base']
+PRState = Literal['open', 'closed', 'merged']
+PRReviewState = Literal['APPROVED', 'CHANGES_REQUESTED', 'COMMENTED', 'DISMISSED', 'PENDING']
+
+# type aliases for better readability
+PRNumber = int
+PRUrl = str
+RepoId = int
+ToolSource = str
+ToolVersion = str
+DataSource = str
+LogHandler = logging.Logger
 
 from augur.application.db.data_parse import *
 from augur.application.db.session import DatabaseSession
@@ -13,11 +101,20 @@ PLATFORM_ID = 1
 
 #TODO: Document tool_source, tool_source, data_source
 
-def extract_data_from_pr(pr_data: dict, 
-                        repo_id: int, 
-                        tool_source: str, 
-                        tool_version: str, 
-                        data_source: str) -> Tuple[dict, List[dict], List[dict], List[dict], List[dict], List[dict]]:
+def extract_data_from_pr(
+    pr_data: Dict[str, Any],
+    repo_id: RepoId,
+    tool_source: ToolSource,
+    tool_version: ToolVersion,
+    data_source: DataSource
+) -> Tuple[
+    Dict[str, Any],  # PR data
+    List[Dict[str, Any]],  # Labels
+    List[Dict[str, Any]],  # Assignees
+    List[Dict[str, Any]],  # Reviewers
+    List[Dict[str, Any]],  # Metadata
+    List[ContributorData]  # Contributors
+]:
     """Extract needed data from single pull request.
 
     Args:
@@ -75,15 +172,18 @@ def extract_data_from_pr(pr_data: dict,
     return pr_needed_data, pr_labels, pr_assignees, pr_reviewers, pr_metadata, contributor_data
 
 
-def extract_data_from_pr_list(pull_requests: List[dict], 
-                                repo_id: int, 
-                                tool_source: str, 
-                                tool_version: str, 
-                                data_source: str) -> Tuple[List[dict], 
-                                                            Dict[str, Dict[str, List[dict]]], 
-                                                            List[int], 
-                                                            List[dict]
-                                                        ]:
+def extract_data_from_pr_list(
+    pull_requests: List[Dict[str, Any]],
+    repo_id: RepoId,
+    tool_source: ToolSource,
+    tool_version: ToolVersion,
+    data_source: DataSource
+) -> Tuple[
+    List[Dict[str, Any]],  # PR data list
+    Dict[PRUrl, PRMappingData],  # PR mapping data
+    List[PRNumber],  # PR numbers for review tasks
+    List[ContributorData]  # Contributors
+]:
     """Extract needed data from list of pull requests
 
     Note:
@@ -130,7 +230,11 @@ def extract_data_from_pr_list(pull_requests: List[dict],
     return pr_dicts, pr_mapping_data, pr_numbers, contributors
 
 
-def insert_pr_contributors(contributors: List[dict], logger, task_name: str) -> None:
+def insert_pr_contributors(
+    contributors: List[ContributorData],
+    logger: LogHandler,
+    task_name: str
+) -> None:
     """Insert pr contributors
     
     Args:
@@ -147,7 +251,11 @@ def insert_pr_contributors(contributors: List[dict], logger, task_name: str) -> 
     batch_insert_contributors(logger, contributors)
 
 
-def insert_prs(pr_dicts: List[dict], logger, task_name: str) -> Optional[List[dict]]:
+def insert_prs(
+    pr_dicts: List[Dict[str, Any]],
+    logger: LogHandler,
+    task_name: str
+) -> Optional[List[PRReturnData]]:
     """Insert pull requests
     
     Args:
@@ -168,9 +276,10 @@ def insert_prs(pr_dicts: List[dict], logger, task_name: str) -> Optional[List[di
     return pr_return_data
 
 def map_other_pr_data_to_pr(
-                            pr_return_data: List[dict], 
-                            pr_mapping_data: Dict[str, Dict[str, List[dict]]], 
-                            logger: logging.Logger) -> Tuple[List[dict], List[dict], List[dict], List[dict]]:
+    pr_return_data: List[PRReturnData],
+    pr_mapping_data: Dict[PRUrl, PRMappingData],
+    logger: LogHandler
+) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]], List[Dict[str, Any]], List[Dict[str, Any]]]:
     """Map labels, assigness, reviewers, and metadata to their respecive prs
     
     Args:
@@ -212,7 +321,10 @@ def map_other_pr_data_to_pr(
     return pr_label_dicts, pr_assignee_dicts, pr_reviewer_dicts, pr_metadata_dicts 
 
 
-def insert_pr_labels(labels: List[dict], logger: logging.Logger) -> None:
+def insert_pr_labels(
+    labels: List[Dict[str, Any]],
+    logger: LogHandler
+) -> None:
     """Insert pull request labels
 
     Note:
@@ -227,7 +339,10 @@ def insert_pr_labels(labels: List[dict], logger: logging.Logger) -> None:
     bulk_insert_dicts(labels, PullRequestLabel, pr_label_natural_keys)
 
 
-def insert_pr_assignees(assignees: List[dict], logger: logging.Logger) -> None:
+def insert_pr_assignees(
+    assignees: List[Dict[str, Any]],
+    logger: LogHandler
+) -> None:
     """Insert pull request assignees
 
     Note:
@@ -242,7 +357,10 @@ def insert_pr_assignees(assignees: List[dict], logger: logging.Logger) -> None:
     bulk_insert_dicts(logger, assignees, PullRequestAssignee, pr_assignee_natural_keys)
 
 
-def insert_pr_reviewers(reviewers: List[dict], logger: logging.Logger) -> None:
+def insert_pr_reviewers(
+    reviewers: List[Dict[str, Any]],
+    logger: LogHandler
+) -> None:
     """Insert pull request reviewers
 
     Note:
@@ -257,7 +375,10 @@ def insert_pr_reviewers(reviewers: List[dict], logger: logging.Logger) -> None:
     bulk_insert_dicts(reviewers, PullRequestReviewer, pr_reviewer_natural_keys)
 
 
-def insert_pr_metadata(metadata: List[dict], logger: logging.Logger) -> None:
+def insert_pr_metadata(
+    metadata: List[Dict[str, Any]],
+    logger: LogHandler
+) -> None:
     """Insert pull request metadata
 
     Note:
@@ -278,7 +399,12 @@ def insert_pr_metadata(metadata: List[dict], logger: logging.Logger) -> None:
 # TODO: Should we insert metadata without user relation?
 # NOTE: For contributor related operations: extract_needed_contributor_data takes a piece of github contributor data
 # and creates a cntrb_id (primary key for the contributors table) and gets the data needed for the table
-def process_pull_request_contributors(pr: dict, tool_source: str, tool_version: str, data_source: str) -> Tuple[dict, List[dict]]:
+def process_pull_request_contributors(
+    pr: Dict[str, Any],
+    tool_source: ToolSource,
+    tool_version: ToolVersion,
+    data_source: DataSource
+) -> Tuple[Dict[str, Any], List[ContributorData]]:
 
     contributors = []
 
