@@ -4,6 +4,13 @@ We love to pull requests from everyone! We follow the standard Git workflow of `
 
 If you are new to open source, we recommend GitHub's excellent guide on "[How to Contribute to Open Source](https://opensource.guide/how-to-contribute/)". In addition, please feel free to reach out to any of the maintainers or other community members if you are struggling as we are here to help you learn!
 
+### 💬 Join the CHAOSS Community on Slack
+
+We’d love for you to be part of the conversations, meetings, and planning around this project!  
+Join the CHAOSS Slack workspace by following the [Getting Started guide](https://chaoss.community/kb-getting-started/).
+
+Once you’ve joined, hop into the **#wg-augur-8knot** channel to connect with the team, ask questions, and take part in discussions about ongoing work and ideas.
+
 Before getting started, please make sure you've read the [README](README.md) to get a primer on our project. Augur's documentation can be found [here](https://oss-augur.readthedocs.io/en/main/).
 
 ## Opening an issue
