@@ -242,8 +242,13 @@ def setup_periodic_tasks(sender, **kwargs):
 
         mat_views_interval = int(config.get_value('Celery', 'refresh_materialized_views_interval_in_days'))
         if mat_views_interval > 0: 
+            # check correct pluralization
+            if mat_views_interval == 1:
+                day_text = "day"
+            else:
+                day_text = "days"
             # Relative log message from startup time (insted of 1am CDT)
-            logger.info(f"Scheduling refresh materialized view {mat_views_interval} day(s) after startup")
+            logger.info(f"Scheduling refresh materialized view every {mat_views_interval} {day_text} from startup")
             sender.add_periodic_task(datetime.timedelta(days=mat_views_interval), refresh_materialized_views.s())
         else:
             logger.info(f"Refresh materialized view task is disabled.")
