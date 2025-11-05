@@ -1,87 +1,19 @@
 import logging
-from dataclasses import dataclass
 from datetime import datetime
-from typing import Dict, List, Tuple, Optional, TypedDict, Any, Union, Literal
+from typing import Dict, List, Tuple, Optional, Any, Literal, TypedDict
 
-# custom type definitions for better type safety and documentation
-class ContributorData(TypedDict, total=False):
-    """Type definition for contributor data structure."""
-    cntrb_id: int
-    login: str
-    type: str
-    html_url: str
-    created_at: datetime
-    updated_at: datetime
-    name: Optional[str]
-    email: Optional[str]
-    company: Optional[str]
-    location: Optional[str]
-    bio: Optional[str]
-    login: str
-    email: Optional[str]
-    type: str
-    cntrb_created_at: datetime
-    cntrb_updated_at: datetime
-    cntrb_canonical: str
-    tool_source: str
-    tool_version: str
-    data_source: str
+# SQLAlchemy and database related imports
+from augur.application.db.data_parse import *
+from augur.application.db.session import DatabaseSession
+from augur.application.db.lib import bulk_insert_dicts, batch_insert_contributors
+from augur.tasks.github.util.util import add_key_value_pair_to_dicts
+from augur.tasks.util.worker_util import remove_duplicate_dicts
+from augur.application.db.models import (
+    PullRequest, PullRequestLabel, PullRequestReviewer,
+    PullRequestMeta, PullRequestAssignee, Contributor
+)
 
-class PRLabelData(TypedDict):
-    """Type definition for PR label data structure."""
-    pr_label_src_id: str
-    pr_src_id: str
-    pr_src_node_id: Optional[str]
-    pr_url: str
-    pr_src_number: int
-    pr_src_title: Optional[str]
-    pr_src_state: str
-    pr_created_at: datetime
-    pr_updated_at: datetime
-    pr_merged_at: Optional[datetime]
-    pr_closed_at: Optional[datetime]
-    pr_merged: bool
-    pr_merge_commit_sha: Optional[str]
-    pr_author_association: str
-    pr_head_label: str
-    pr_head_ref: str
-    pr_head_sha: str
-    pr_base_label: str
-    pr_base_ref: str
-    pr_base_sha: str
-    pr_comment_count: int
-    pr_review_comments: int
-    pr_maintainer_can_modify: bool
-    pr_commits: int
-    pr_additions: int
-    pr_deletions: int
-    pr_changed_files: int
-    repo_id: int
-    tool_source: str
-    tool_version: str
-    data_source: str
-
-class PRBaseData(TypedDict):
-    """Base type for PR-related data structures."""
-    pull_request_id: int
-    pr_url: str
-
-class PRReturnData(PRBaseData):
-    """Type for PR return data containing pull request IDs and URLs."""
-    pass
-
-class PRMappingData(TypedDict):
-    """Type for mapping PR data to their related entities."""
-    labels: List[Dict[str, Any]]
-    assignees: List[Dict[str, Any]]
-    reviewers: List[Dict[str, Any]]
-    metadata: List[Dict[str, Any]]
-
-PRHeadOrBase = Literal['head', 'base']
-PRState = Literal['open', 'closed', 'merged']
-PRReviewState = Literal['APPROVED', 'CHANGES_REQUESTED', 'COMMENTED', 'DISMISSED', 'PENDING']
-
-# type aliases for better readability
+# Type aliases for better readability
 PRNumber = int
 PRUrl = str
 RepoId = int
@@ -90,16 +22,29 @@ ToolVersion = str
 DataSource = str
 LogHandler = logging.Logger
 
-from augur.application.db.data_parse import *
-from augur.application.db.session import DatabaseSession
-from augur.application.db.lib import bulk_insert_dicts, batch_insert_contributors
-from augur.tasks.github.util.util import add_key_value_pair_to_dicts
-from augur.tasks.util.worker_util import remove_duplicate_dicts
-from augur.application.db.models import PullRequest, PullRequestLabel, PullRequestReviewer, PullRequestMeta, PullRequestAssignee, Contributor
+# Literal types for type hints
+PRHeadOrBase = Literal['head', 'base']
+PRState = Literal['open', 'closed', 'merged']
+PRReviewState = Literal['APPROVED', 'CHANGES_REQUESTED', 'COMMENTED', 'DISMISSED', 'PENDING']
 
+# Type for mapping PR data to their related entities
+class PRMappingData(TypedDict):
+    """Type for mapping PR data to their related entities."""
+    labels: List[Dict[str, Any]]
+    assignees: List[Dict[str, Any]]
+    reviewers: List[Dict[str, Any]]
+    metadata: List[Dict[str, Any]]
+
+# Type for PR return data containing pull request IDs and URLs
+class PRReturnData(TypedDict):
+    """Type for PR return data containing pull request IDs and URLs."""
+    pull_request_id: int
+    pr_url: str
+
+# Constants
 PLATFORM_ID = 1
 
-#TODO: Document tool_source, tool_source, data_source
+# TODO: Document tool_source, tool_source, data_source
 
 def extract_data_from_pr(
     pr_data: Dict[str, Any],
@@ -113,7 +58,7 @@ def extract_data_from_pr(
     List[Dict[str, Any]],  # Assignees
     List[Dict[str, Any]],  # Reviewers
     List[Dict[str, Any]],  # Metadata
-    List[ContributorData]  # Contributors
+    List[Dict[str, Any]]   # Contributors
 ]:
     """Extract needed data from single pull request.
 
@@ -182,7 +127,7 @@ def extract_data_from_pr_list(
     List[Dict[str, Any]],  # PR data list
     Dict[PRUrl, PRMappingData],  # PR mapping data
     List[PRNumber],  # PR numbers for review tasks
-    List[ContributorData]  # Contributors
+    List[Dict[str, Any]]   # Contributors
 ]:
     """Extract needed data from list of pull requests
 
@@ -231,7 +176,7 @@ def extract_data_from_pr_list(
 
 
 def insert_pr_contributors(
-    contributors: List[ContributorData],
+    contributors: List[Dict[str, Any]],
     logger: LogHandler,
     task_name: str
 ) -> None:
@@ -404,47 +349,63 @@ def process_pull_request_contributors(
     tool_source: ToolSource,
     tool_version: ToolVersion,
     data_source: DataSource
-) -> Tuple[Dict[str, Any], List[ContributorData]]:
-
+) -> Tuple[Dict[str, Any], List[Dict[str, Any]]]:
+    """Process contributors from a pull request.
+    
+    Args:
+        pr: The pull request data
+        tool_source: Source of the tool
+        tool_version: Version of the tool
+        data_source: Source of the data
+        
+    Returns:
+        A tuple containing:
+            - The updated pull request data with contributor IDs
+            - A list of contributor data dictionaries
+    """
     contributors = []
 
-    # get contributor data and set pr cntrb_id
-    pr_cntrb = extract_needed_contributor_data(pr["user"], tool_source, tool_version, data_source)
-    pr["cntrb_id"] = pr_cntrb["cntrb_id"]
+    # Process PR author
+    if pr.get("user"):
+        pr_cntrb = extract_needed_contributor_data(pr["user"], tool_source, tool_version, data_source)
+        if pr_cntrb and "cntrb_id" in pr_cntrb:
+            pr["cntrb_id"] = pr_cntrb["cntrb_id"]
+            contributors.append(pr_cntrb)
 
-    contributors.append(pr_cntrb)
+    # Process base repository owner
+    if pr.get("base", {}).get("user"):
+        pr_meta_base_cntrb = extract_needed_contributor_data(
+            pr["base"]["user"], tool_source, tool_version, data_source
+        )
+        if pr_meta_base_cntrb and "cntrb_id" in pr_meta_base_cntrb:
+            pr["base"]["cntrb_id"] = pr_meta_base_cntrb["cntrb_id"]
+            contributors.append(pr_meta_base_cntrb)
 
+    # Process head repository owner
+    if pr.get("head", {}).get("user"):
+        pr_meta_head_cntrb = extract_needed_contributor_data(
+            pr["head"]["user"], tool_source, tool_version, data_source
+        )
+        if pr_meta_head_cntrb and "cntrb_id" in pr_meta_head_cntrb:
+            pr["head"]["cntrb_id"] = pr_meta_head_cntrb["cntrb_id"]
+            contributors.append(pr_meta_head_cntrb)
 
-    if pr["base"]["user"]:
+    # Process assignees
+    for assignee in pr.get("assignees", []):
+        pr_assignee_cntrb = extract_needed_contributor_data(
+            assignee, tool_source, tool_version, data_source
+        )
+        if pr_assignee_cntrb and "cntrb_id" in pr_assignee_cntrb:
+            assignee["cntrb_id"] = pr_assignee_cntrb["cntrb_id"]
+            contributors.append(pr_assignee_cntrb)
 
-        # get contributor data and set pr metadat cntrb_id
-        pr_meta_base_cntrb = extract_needed_contributor_data(pr["base"]["user"], tool_source, tool_version, data_source)
-        pr["base"]["cntrb_id"] = pr_meta_base_cntrb["cntrb_id"]
-
-        contributors.append(pr_meta_base_cntrb)
-
-    if pr["head"]["user"]:
-
-        pr_meta_head_cntrb = extract_needed_contributor_data(pr["head"]["user"], tool_source, tool_version, data_source)
-        pr["head"]["cntrb_id"] = pr_meta_head_cntrb["cntrb_id"]
-
-        contributors.append(pr_meta_head_cntrb)
-
-    # set cntrb_id for assignees
-    for assignee in pr["assignees"]:
-
-        pr_asignee_cntrb = extract_needed_contributor_data(assignee, tool_source, tool_version, data_source)
-        assignee["cntrb_id"] = pr_asignee_cntrb["cntrb_id"]
-
-        contributors.append(pr_asignee_cntrb)
-
-
-    # set cntrb_id for reviewers
-    for reviewer in pr["requested_reviewers"]:
-
-        pr_reviwer_cntrb = extract_needed_contributor_data(reviewer, tool_source, tool_version, data_source)
-        reviewer["cntrb_id"] = pr_reviwer_cntrb["cntrb_id"]
-
-        contributors.append(pr_reviwer_cntrb)
+    # Process requested reviewers
+    for reviewer in pr.get("requested_reviewers", []):
+        pr_reviewer_cntrb = extract_needed_contributor_data(
+            reviewer, tool_source, tool_version, data_source
+        )
+        if pr_reviewer_cntrb and "cntrb_id" in pr_reviewer_cntrb:
+            reviewer["cntrb_id"] = pr_reviewer_cntrb["cntrb_id"]
+            contributors.append(pr_reviewer_cntrb)
 
     return pr, contributors
