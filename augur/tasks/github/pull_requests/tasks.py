@@ -158,9 +158,9 @@ def process_pull_requests(pull_requests, task_name, repo_id, logger, augur_db):
     logger.info(f"{task_name}: Inserting other pr data of lengths: Labels: {len(pr_label_dicts)} - Assignees: {len(pr_assignee_dicts)} - Reviewers: {len(pr_reviewer_dicts)} - Metadata: {len(pr_metadata_dicts)}")
 
     # inserting pr labels
-    # we are using pr_src_id and pull_request_id to determine if the label is already in the database.
-    pr_label_natural_keys = ['pr_src_id', 'pull_request_id']
-    pr_label_string_fields = ["pr_src_description"]
+    # we are using pr_label_src_id and pull_request_id to determine if the label is already in the database.
+    pr_label_natural_keys = ['pr_label_src_id', 'pull_request_id']
+    pr_label_string_fields = ["pr_label_description"]
     augur_db.insert_data(pr_label_dicts, PullRequestLabel, pr_label_natural_keys, string_fields=pr_label_string_fields)
 
     # inserting pr assignees

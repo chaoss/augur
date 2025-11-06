@@ -155,8 +155,8 @@ def process_merge_requests(data, task_name, repo_id, logger):
     mr_assignee_natural_keys = ['pr_assignee_src_id', 'pull_request_id']
     bulk_insert_dicts(logger, mr_assignee_dicts, PullRequestAssignee, mr_assignee_natural_keys)
 
-    pr_label_natural_keys = ['pr_src_id', 'pull_request_id']
-    pr_label_string_fields = ["pr_src_description"]
+    pr_label_natural_keys = ['pr_label_src_id', 'pull_request_id']
+    pr_label_string_fields = ["pr_label_description"]
     bulk_insert_dicts(logger, mr_label_dicts, PullRequestLabel, pr_label_natural_keys, string_fields=pr_label_string_fields)
 
     return mr_ids

@@ -279,8 +279,8 @@ def insert_pr_labels(
         labels: list of labels to insert
         logger: handles logging
     """
-    # we are using pr_src_id and pull_request_id to determine if the label is already in the database.
-    pr_label_natural_keys = ['pr_src_id', 'pull_request_id']
+    # we are using pr_label_src_id and pull_request_id to determine if the label is already in the database.
+    pr_label_natural_keys = ['pr_label_src_id', 'pull_request_id']
     bulk_insert_dicts(labels, PullRequestLabel, pr_label_natural_keys)
 
 
