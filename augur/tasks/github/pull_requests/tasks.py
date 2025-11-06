@@ -16,7 +16,7 @@ from augur.application.db.util import execute_session_query
 from ..messages import process_github_comment_contributors
 from augur.application.db.lib import get_secondary_data_last_collected, get_updated_prs, get_core_data_last_collected
 
-from typing import Generator, List, Dict
+from typing import List, Dict
 
 
 platform_id = 1
