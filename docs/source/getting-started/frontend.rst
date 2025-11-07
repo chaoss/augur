@@ -5,9 +5,7 @@ In modern versions of Augur, the frontend is automatically served when you start
 
 1. **Start the Augur server** (if not already running):
 
-   .. code-block:: bash
-
-      augur run
+   Run ``uv run augur run`` to start the server.
 
 2. **Access the frontend**:
    - The frontend is automatically available at ``http://localhost:5002`` by default
