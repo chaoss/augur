@@ -8,6 +8,7 @@ Create Date: 2022-07-11 11:17:31.706564
 from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
+from sqlalchemy.dialects.postgresql import TIMESTAMP
 from sqlalchemy.sql import text
 from augur.tasks.util.AugurUUID import AugurUUID, GithubUUID, UnresolvableUUID
 
@@ -35,12 +36,14 @@ def upgrade():
    add_user_repo_table_12()
    add_materialized_views_13()
    set_repo_name_path_null_14()
+   convert_repo_deps_libyear_dates_15()
 
 
 def downgrade():
 
     upgrade=False
 
+    convert_repo_deps_libyear_dates_15(upgrade)
     set_repo_name_path_null_14(upgrade)
     add_materialized_views_13(upgrade)
     add_user_repo_table_12(upgrade)
@@ -1186,3 +1189,81 @@ def set_repo_name_path_null_14(upgrade=True):
                existing_server_default=sa.text('nextval(\'"augur_data".releases_release_id_seq\'::regclass)'),
                schema='augur_data')
         op.drop_constraint("cmt_ght_author_cntrb_id_fk", 'commits', schema='augur_data', type_='foreignkey')
+
+
+def convert_repo_deps_libyear_dates_15(upgrade=True):
+    """
+    Convert current_release_date and latest_release_date columns from VARCHAR to TIMESTAMP.
+    This allows pandas to properly convert these columns to datetime types.
+    """
+    if upgrade:
+        conn = op.get_bind()
+        
+        # First, update any existing string dates to proper timestamp format
+        # Handle various date formats that might exist in the database
+        conn.execute(text("""
+            UPDATE augur_data.repo_deps_libyear
+            SET current_release_date = CASE
+                WHEN current_release_date IS NULL OR current_release_date = '' THEN NULL
+                WHEN current_release_date ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}' THEN 
+                    (current_release_date::timestamp)
+                ELSE NULL
+            END
+            WHERE current_release_date IS NOT NULL AND current_release_date != '';
+        """))
+        
+        conn.execute(text("""
+            UPDATE augur_data.repo_deps_libyear
+            SET latest_release_date = CASE
+                WHEN latest_release_date IS NULL OR latest_release_date = '' THEN NULL
+                WHEN latest_release_date ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}' THEN 
+                    (latest_release_date::timestamp)
+                ELSE NULL
+            END
+            WHERE latest_release_date IS NOT NULL AND latest_release_date != '';
+        """))
+        
+        # This alters the column types from VARCHAR to TIMESTAMP
+        op.alter_column('repo_deps_libyear', 'current_release_date',
+               existing_type=sa.String(),
+               type_=TIMESTAMP(precision=0),
+               existing_nullable=True,
+               schema='augur_data',
+               postgresql_using='current_release_date::timestamp')
+        
+        op.alter_column('repo_deps_libyear', 'latest_release_date',
+               existing_type=sa.String(),
+               type_=TIMESTAMP(precision=0),
+               existing_nullable=True,
+               schema='augur_data',
+               postgresql_using='latest_release_date::timestamp')
+    else:
+        # Downgrade: convert TIMESTAMP back to VARCHAR
+        # Convert timestamps to ISO 8601 strings
+        conn = op.get_bind()
+        
+        conn.execute(text("""
+            UPDATE augur_data.repo_deps_libyear
+            SET current_release_date = current_release_date::text
+            WHERE current_release_date IS NOT NULL;
+        """))
+        
+        conn.execute(text("""
+            UPDATE augur_data.repo_deps_libyear
+            SET latest_release_date = latest_release_date::text
+            WHERE latest_release_date IS NOT NULL;
+        """))
+        
+        op.alter_column('repo_deps_libyear', 'current_release_date',
+               existing_type=TIMESTAMP(precision=0),
+               type_=sa.String(),
+               existing_nullable=True,
+               schema='augur_data',
+               postgresql_using='current_release_date::text')
+        
+        op.alter_column('repo_deps_libyear', 'latest_release_date',
+               existing_type=TIMESTAMP(precision=0),
+               type_=sa.String(),
+               existing_nullable=True,
+               schema='augur_data',
+               postgresql_using='latest_release_date::text')
