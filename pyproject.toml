@@ -162,7 +162,7 @@ constraint-dependencies = [
 [tool.tox]
 legacy_tox_ini = """
     [tox]
-    envlist = py{,311}-{classes,worker-persistance,workers}
+    envlist = py{,311}-{classes,tests,worker-persistance,workers}
     skip_missing_interpreters = true
     requires = tox-uv
 
@@ -180,6 +180,7 @@ legacy_tox_ini = """
         metric-routes: python tests/test_routes/runner.py
         workers: pytest tests/test_workers/
         classes: pytest tests/test_classes/
+        tests: pytest tests/test_tests/
         worker-persistance: pytest tests/test_workers/worker_persistance/
 
     [pytest]
