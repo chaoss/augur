@@ -184,15 +184,62 @@ def empty_db(empty_db_template):
     yield from generate_db_from_template(empty_db_template)
 
 
-# TODO: Add populated db template and populated db fixtures so this fixture is more useful
 @pytest.fixture(scope='session')
-def read_only_db(empty_db):
+def populated_db_template():
     """
-    This fixtture creates a read-only database from the populated_db_template.
+    This fixture creates a template database with sample data for testing.
+    Returns the name of the populated template database.
+    """
+    # First create a clean database from the schema
+    db_name = None
+    for name in generate_template_db("tests/entire_db.sql"):
+        db_name = name
+        break
+    
+    # Add sample data to the database
+    # Note: You may want to add more comprehensive test data here
+    with s.create_engine(f"postgresql+psycopg2://postgres:postgres@localhost:5432/{db_name}").connect() as conn:
+        with conn.begin():
+            # Example: Insert test data into the database
+            conn.execute("""
+                INSERT INTO augur_operations.users (login, first_name, last_name, email)
+                VALUES ('testuser', 'Test', 'User', 'test@example.com');
+                
+                -- Add more test data as needed
+                -- INSERT INTO augur_data.repos (repo_git, repo_group_id, repo_name)
+                -- VALUES ('https://github.com/chaoss/augur.git', 1, 'augur');
+            """)
+    
+    # Convert the database to a template
+    conn, cursor = create_connection()
+    cursor.execute(f"ALTER DATABASE {db_name} IS_TEMPLATE = true;")
+    cursor.close()
+    conn.close()
+    
+    yield db_name
+    
+    # Cleanup
+    conn, cursor = create_connection()
+    cursor.execute(f"DROP DATABASE IF EXISTS {db_name};")
+    cursor.close()
+    conn.close()
+
+
+@pytest.fixture(scope='session')
+def populated_db(populated_db_template):
+    """
+    This fixture creates a database from the populated_db_template
+    """
+    yield from generate_db_from_template(populated_db_template)
+
+
+@pytest.fixture(scope='session')
+def read_only_db(populated_db):
+    """
+    This fixture creates a read-only database from the populated_db_template.
     Yields a read-only engine object for the populated_db.
     """
-
-    database_name = empty_db.url.database
+    database_name = populated_db.url.database
     test_username = "testuser"
     test_password = "testpass"
     schemas = ["public", "augur_data", "augur_operations"]
