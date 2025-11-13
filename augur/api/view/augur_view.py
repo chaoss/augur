@@ -3,7 +3,7 @@ from flask_login import LoginManager
 from io import StringIO
 from .utils import *
 from .init import logger
-from .url_converters import *
+from .url_converters import ListConverter, BoolConverter, JSONConverter
 
 # from .server import User
 from ..server import app, db_session
@@ -65,7 +65,11 @@ def unauthorized():
 
         return jsonify({"status": "Login required"})
 
-    session["login_next"] = url_for(request.endpoint, **request.args)
+    try:
+        session["login_next"] = url_for(request.endpoint, **request.view_args)
+    except Exception:
+        # If we can't build the URL, just redirect to root
+        session["login_next"] = url_for('root')
     return redirect(url_for('user_login'))
 
 @login_manager.user_loader
@@ -96,7 +100,7 @@ def load_user(user_id):
     return user
 
 @login_manager.request_loader
-def load_user_request(request):
+def load_user_request(req):
     token = get_bearer_token()
 
     current_time = int(time.time())
