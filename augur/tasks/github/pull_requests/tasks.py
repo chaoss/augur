@@ -16,7 +16,7 @@ from augur.application.db.util import execute_session_query
 from ..messages import process_github_comment_contributors
 from augur.application.db.lib import get_secondary_data_last_collected, get_updated_prs, get_core_data_last_collected
 
-from typing import Generator, List, Dict
+from typing import Any, Dict, Generator, List, Optional
 
 
 platform_id = 1
@@ -66,7 +66,7 @@ def collect_pull_requests(repo_git: str, full_collection: bool) -> int:
     
 # TODO: Rename pull_request_reviewers table to pull_request_requested_reviewers
 # TODO: Fix column names in pull request labels table
-def retrieve_all_pr_data(repo_git: str, logger, key_auth, since): #-> Generator[List[Dict]]:
+def retrieve_all_pr_data(repo_git: str, logger: logging.Logger, key_auth: 'GithubRandomKeyAuth', since: datetime) -> Generator[Dict[str, Any], None, None]:
 
     owner, repo = get_owner_repo(repo_git)
 
@@ -90,7 +90,7 @@ def retrieve_all_pr_data(repo_git: str, logger, key_auth, since): #-> Generator[
         if since and datetime.fromisoformat(pr["updated_at"].replace("Z", "+00:00")).replace(tzinfo=timezone.utc) < since:
             return 
 
-def process_pull_requests(pull_requests, task_name, repo_id, logger, augur_db):
+def process_pull_requests(pull_requests: List[Dict[str, Any]], task_name: str, repo_id: int, logger: logging.Logger, augur_db: Any) -> None:
     """
     Parse and insert all retrieved PR data.
 
@@ -206,7 +206,7 @@ def process_pull_requests(pull_requests, task_name, repo_id, logger, augur_db):
 
 
 
-def process_pull_request_review_contributor(pr_review: dict, tool_source: str, tool_version: str, data_source: str):
+def process_pull_request_review_contributor(pr_review: Dict[str, Any], tool_source: str, tool_version: str, data_source: str) -> Optional[Dict[str, Any]]:
 
     # get contributor data and set pr cntrb_id
     user = pr_review["user"]
