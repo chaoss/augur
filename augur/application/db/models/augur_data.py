@@ -1334,7 +1334,8 @@ class Commit(Base):
 
 class CommitMessage(Base):
     __tablename__ = "commit_messages"
-    __table_args__ = ( UniqueConstraint("repo_id","cmt_hash", name="commit-message-insert-unique"),
+    __table_args__ = (
+        UniqueConstraint("repo_id","cmt_hash", name="commit-message-insert-unique"),
         { 
             "schema": "augur_data",
             "comment": "This table holds commit messages",
@@ -1893,9 +1894,12 @@ class RepoClusterMessage(Base):
 
 class RepoDependency(Base):
     __tablename__ = "repo_dependencies"
-    __table_args__ = ( UniqueConstraint("repo_id","dep_name","data_collection_date", name="deps-insert-unique"),
-        {"schema": "augur_data",
-        "comment": "Contains the dependencies for a repo.",},
+    __table_args__ = (
+        UniqueConstraint("repo_id","dep_name","data_collection_date", name="deps-insert-unique"),
+        {
+            "schema": "augur_data",
+            "comment": "Contains the dependencies for a repo."
+        },
     )
 
     repo_dependencies_id = Column(
@@ -1921,7 +1925,8 @@ class RepoDependency(Base):
 
 class RepoDepsLibyear(Base):
     __tablename__ = "repo_deps_libyear"
-    __table_args__ = ( UniqueConstraint("repo_id","name", "data_collection_date", name="deps-libyear-insert-unique"),
+    __table_args__ = (
+        UniqueConstraint("repo_id","name", "data_collection_date", name="deps-libyear-insert-unique"),
         {"schema": "augur_data"}
     )
 
@@ -1952,7 +1957,8 @@ class RepoDepsLibyear(Base):
 
 class RepoDepsScorecard(Base):
     __tablename__ = "repo_deps_scorecard"
-    __table_args__ = ( UniqueConstraint("repo_id","name", name="deps-scorecard-insert-unique"),
+    __table_args__ = (
+        UniqueConstraint("repo_id","name", name="deps-scorecard-insert-unique"),
         {"schema": "augur_data"}
     )
 
