@@ -192,6 +192,7 @@ def parse_poetry_lock(file_handle):
 
 # Pip dependencies can be embedded in conda environment files
 def parse_conda(file_handle):
+    logger = logging.getLogger(parse_conda.__name__)
     contents = yaml.safe_load(file_handle)
     deps = list()
     pip = None
@@ -201,10 +202,10 @@ def parse_conda(file_handle):
     dependencies = contents.get('dependencies', [])
     
     if not dependencies:
-        print("No dependencies found.")
+        logger.warning("No dependencies found.")
         return []
     else:
-        print("Dependencies found.")
+        logger.info("Dependencies found.")
     for dep in dependencies:
         if (type(dep) is dict) and dep['pip']:
             pip = dep
