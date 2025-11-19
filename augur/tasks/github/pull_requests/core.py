@@ -23,14 +23,17 @@ def extract_data_from_pr(pr_data: dict,
     Args:
         pr_data: a pull request from the github api
         repo_id: an integer representing the repo a repo in the repos table
+        tool_source: the name of the tool that is collecting the data
+        tool_version: the version of the tool that is collecting the data
+        data_source: the source of the data (e.g., 'GitHub API', 'GitLab API')
 
     Returns:
-        A tuples that includes
+        A tuple that includes:
             The needed data from the pr
             The needed data for pr labels
             The needed data for pr assignees
             The needed data for pr reviewers
-            The needed data for pr meatadata
+            The needed data for pr metadata
             The contributors found amongst all the pull request data
     """
     # adds cntrb_id to reference the contributors table to the 
