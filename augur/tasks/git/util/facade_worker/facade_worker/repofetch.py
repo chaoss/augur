@@ -485,39 +485,16 @@ def git_repo_updates(facade_helper, repo_git):
                 facade_helper.log_activity('Verbose', f'Second pass failed: {e}.')
                 pass
 
-        cmdpull2 = (f"git -C {absolute_path} pull")
-<<<<<<< HEAD
-        logger.info(cmdpull2)
-        return_code = subprocess.Popen([cmdpull2], shell=True).wait()
-=======
+        cmdpull2 = f"git -C {absolute_path} pull"
 
-        print(cmdpull2)
-<<<<<<< HEAD
-        try:
-            result = subprocess.run(
-                cmdpull2, shell=True,
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
-                timeout=600,  # 10 minutes for git pull
-                check=False
-            )
-            return_code = result.returncode
-        except subprocess.TimeoutExpired:
-            facade_helper.log_activity('Error', f'Git operation timed out: {cmdpull2}')
-            return_code = -1  # Timeout error code
->>>>>>> 7aefd1bef (Fix deadlock issues by implementing timeout handling for git operations)
-=======
         return_code, _ = facade_helper.run_git_command(
             cmdpull2,
             timeout=600,  # 10 minutes for git pull
             capture_output=False,
             operation_description=f'git pull {repo.repo_git}'
         )
->>>>>>> f8f06a259 (refactor git command execution to use unified timeout handling across facade operation)
 
         attempt += 1
-
-        # default_branch = ''
 
     if return_code == 0:
 

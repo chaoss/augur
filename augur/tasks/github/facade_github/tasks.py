@@ -251,10 +251,13 @@ def insert_facade_contributors(self, repo_git):
 
     #Execute statement with session.
     result = execute_sql(new_contrib_sql)
+<<<<<<< HEAD
 
     # Fetch all results immediately to close the database cursor/connection
     # This prevents holding the connection open during GitHub API calls
     rows = result.mappings().fetchall()
+=======
+>>>>>>> 836544d9d (fix: Process facade contributor results in batches)
 
     #print(new_contribs)
 
@@ -268,7 +271,11 @@ def insert_facade_contributors(self, repo_git):
     batch = []
     BATCH_SIZE = 1000
 
+<<<<<<< HEAD
     for row in rows:
+=======
+    for row in result.mappings():
+>>>>>>> 836544d9d (fix: Process facade contributor results in batches)
         batch.append(dict(row))
 
         if len(batch) >= BATCH_SIZE:
@@ -316,15 +323,22 @@ def insert_facade_contributors(self, repo_git):
 
     result = execute_sql(resolve_email_to_cntrb_id_sql)
 
+<<<<<<< HEAD
     # Fetch all results immediately to close the database cursor/connection
     # This prevents holding the connection open during database UPDATE operations
     rows = result.mappings().fetchall()
 
+=======
+>>>>>>> 836544d9d (fix: Process facade contributor results in batches)
     # Process results in batches to reduce memory usage
     batch = []
     BATCH_SIZE = 1000
 
+<<<<<<< HEAD
     for row in rows:
+=======
+    for row in result.mappings():
+>>>>>>> 836544d9d (fix: Process facade contributor results in batches)
         batch.append(dict(row))
 
         if len(batch) >= BATCH_SIZE:
