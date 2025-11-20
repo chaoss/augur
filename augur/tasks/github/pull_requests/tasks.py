@@ -403,27 +403,7 @@ def collect_pull_request_reviews(repo_git: str, full_collection: bool) -> None:
                 if "cntrb_id" in review:
                     pr_reviews.append(extract_needed_pr_review_data(review, pull_request_id, repo_id, platform_id, tool_source, tool_version))
 
-<<<<<<< HEAD
-            logger.info(f"{owner}/{repo}: Inserting pr reviews of length: {len(pr_reviews)}")
-            pr_review_natural_keys = ["pr_review_src_id",]
-            pr_review_string_fields = ["pr_review_body",]
-            augur_db.insert_data(pr_reviews, PullRequestReview, pr_review_natural_keys, string_fields=pr_review_string_fields)
-
-
-
-
-
-
-
-
-
-
-
-
-
-=======
         logger.info(f"{owner}/{repo}: Inserting {len(pr_reviews)} pr reviews")
         pr_review_natural_keys = ["pr_review_src_id",]
         augur_db.insert_data(pr_reviews, PullRequestReview, pr_review_natural_keys)
->>>>>>> 40f9fab2e (fix: Add batch processing to PR commits and files collection)
 
