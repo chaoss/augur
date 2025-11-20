@@ -1,5 +1,5 @@
 name: "Functional tests"
-# Runs automated test suites that ensure functaionality is preserved. Any failures should prevent code from shipping.
+# Runs automated test suites that ensure functionality is preserved. Any failures should prevent code from shipping.
 on:
   pull_request:
     branches: [main, release]
