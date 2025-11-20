@@ -63,10 +63,14 @@ def collect_issues(repo_git: str, full_collection: bool) -> int:
 
             if len(batch) >= batch_size:
 <<<<<<< HEAD
+<<<<<<< HEAD
                 logger.info(f"{owner}/{repo}: Processing batch of {len(batch)} issues (total so far: {total_issues + len(batch)})")
 =======
                 logger.info(f"{owner}/{repo}: Processing batch of {len(batch)} issues (total so far: {total_issues})")
 >>>>>>> 7f502bd94 (fix: Convert issues collection to generator pattern with batching)
+=======
+                logger.info(f"{owner}/{repo}: Processing batch of {len(batch)} issues (total so far: {total_issues + len(batch)})")
+>>>>>>> 7162e832e4b9bffb7f2b1121ab6c2d2aa7ad4a11
                 process_issues(batch, f"{owner}/{repo}: Issue task", repo_id, logger)
                 total_issues += len(batch)
                 batch.clear()
@@ -90,6 +94,7 @@ def collect_issues(repo_git: str, full_collection: bool) -> int:
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 def retrieve_all_issue_data(repo_git: str, logger: logging.Logger, key_auth: GithubRandomKeyAuth, since: datetime | None = None):
 =======
 def retrieve_all_issue_data(repo_git: str, logger:logging.Logger, key_auth: GithubRandomKeyAuth, since: datetime | None = None):
@@ -97,6 +102,9 @@ def retrieve_all_issue_data(repo_git: str, logger:logging.Logger, key_auth: Gith
 =======
 def retrieve_all_issue_data(repo_git: str, logger: logging.Logger, key_auth: GithubRandomKeyAuth, since: datetime | None = None):
 >>>>>>> ab2fd7b72 (Update augur/tasks/github/issues.py)
+=======
+def retrieve_all_issue_data(repo_git: str, logger: logging.Logger, key_auth: GithubRandomKeyAuth, since: datetime | None = None):
+>>>>>>> 7162e832e4b9bffb7f2b1121ab6c2d2aa7ad4a11
     """
     Retrieve all issue data for a repository as a generator.
 
