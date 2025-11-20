@@ -1,23 +1,65 @@
 import logging
+from datetime import datetime
+from typing import Dict, List, Tuple, Optional, Any, Literal, TypedDict
 
-from typing import Dict, List, Tuple, Optional
-
+# SQLAlchemy and database related imports
 from augur.application.db.data_parse import *
 from augur.application.db.session import DatabaseSession
 from augur.application.db.lib import bulk_insert_dicts, batch_insert_contributors
 from augur.tasks.github.util.util import add_key_value_pair_to_dicts
 from augur.tasks.util.worker_util import remove_duplicate_dicts
-from augur.application.db.models import PullRequest, PullRequestLabel, PullRequestReviewer, PullRequestMeta, PullRequestAssignee, Contributor
+from augur.application.db.models import (
+    PullRequest, PullRequestLabel, PullRequestReviewer,
+    PullRequestMeta, PullRequestAssignee, Contributor
+)
 
+# Type aliases for better readability
+PRNumber = int
+PRUrl = str
+RepoId = int
+ToolSource = str
+ToolVersion = str
+DataSource = str
+LogHandler = logging.Logger
+
+# Literal types for type hints
+PRHeadOrBase = Literal['head', 'base']
+PRState = Literal['open', 'closed', 'merged']
+PRReviewState = Literal['APPROVED', 'CHANGES_REQUESTED', 'COMMENTED', 'DISMISSED', 'PENDING']
+
+# Type for mapping PR data to their related entities
+class PRMappingData(TypedDict):
+    """Type for mapping PR data to their related entities."""
+    labels: List[Dict[str, Any]]
+    assignees: List[Dict[str, Any]]
+    reviewers: List[Dict[str, Any]]
+    metadata: List[Dict[str, Any]]
+
+# Type for PR return data containing pull request IDs and URLs
+class PRReturnData(TypedDict):
+    """Type for PR return data containing pull request IDs and URLs."""
+    pull_request_id: int
+    pr_url: str
+
+# Constants
 PLATFORM_ID = 1
 
-#TODO: Document tool_source, tool_source, data_source
+# TODO: Document tool_source, tool_source, data_source
 
-def extract_data_from_pr(pr_data: dict, 
-                        repo_id: int, 
-                        tool_source: str, 
-                        tool_version: str, 
-                        data_source: str) -> Tuple[dict, List[dict], List[dict], List[dict], List[dict], List[dict]]:
+def extract_data_from_pr(
+    pr_data: Dict[str, Any],
+    repo_id: RepoId,
+    tool_source: ToolSource,
+    tool_version: ToolVersion,
+    data_source: DataSource
+) -> Tuple[
+    Dict[str, Any],  # PR data
+    List[Dict[str, Any]],  # Labels
+    List[Dict[str, Any]],  # Assignees
+    List[Dict[str, Any]],  # Reviewers
+    List[Dict[str, Any]],  # Metadata
+    List[Dict[str, Any]]   # Contributors
+]:
     """Extract needed data from single pull request.
 
     Args:
@@ -75,15 +117,18 @@ def extract_data_from_pr(pr_data: dict,
     return pr_needed_data, pr_labels, pr_assignees, pr_reviewers, pr_metadata, contributor_data
 
 
-def extract_data_from_pr_list(pull_requests: List[dict], 
-                                repo_id: int, 
-                                tool_source: str, 
-                                tool_version: str, 
-                                data_source: str) -> Tuple[List[dict], 
-                                                            Dict[str, Dict[str, List[dict]]], 
-                                                            List[int], 
-                                                            List[dict]
-                                                        ]:
+def extract_data_from_pr_list(
+    pull_requests: List[Dict[str, Any]],
+    repo_id: RepoId,
+    tool_source: ToolSource,
+    tool_version: ToolVersion,
+    data_source: DataSource
+) -> Tuple[
+    List[Dict[str, Any]],  # PR data list
+    Dict[PRUrl, PRMappingData],  # PR mapping data
+    List[PRNumber],  # PR numbers for review tasks
+    List[Dict[str, Any]]   # Contributors
+]:
     """Extract needed data from list of pull requests
 
     Note:
@@ -130,7 +175,11 @@ def extract_data_from_pr_list(pull_requests: List[dict],
     return pr_dicts, pr_mapping_data, pr_numbers, contributors
 
 
-def insert_pr_contributors(contributors: List[dict], logger, task_name: str) -> None:
+def insert_pr_contributors(
+    contributors: List[Dict[str, Any]],
+    logger: LogHandler,
+    task_name: str
+) -> None:
     """Insert pr contributors
     
     Args:
@@ -147,7 +196,11 @@ def insert_pr_contributors(contributors: List[dict], logger, task_name: str) -> 
     batch_insert_contributors(logger, contributors)
 
 
-def insert_prs(pr_dicts: List[dict], logger, task_name: str) -> Optional[List[dict]]:
+def insert_prs(
+    pr_dicts: List[Dict[str, Any]],
+    logger: LogHandler,
+    task_name: str
+) -> Optional[List[PRReturnData]]:
     """Insert pull requests
     
     Args:
@@ -168,9 +221,10 @@ def insert_prs(pr_dicts: List[dict], logger, task_name: str) -> Optional[List[di
     return pr_return_data
 
 def map_other_pr_data_to_pr(
-                            pr_return_data: List[dict], 
-                            pr_mapping_data: Dict[str, Dict[str, List[dict]]], 
-                            logger: logging.Logger) -> Tuple[List[dict], List[dict], List[dict], List[dict]]:
+    pr_return_data: List[PRReturnData],
+    pr_mapping_data: Dict[PRUrl, PRMappingData],
+    logger: LogHandler
+) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]], List[Dict[str, Any]], List[Dict[str, Any]]]:
     """Map labels, assigness, reviewers, and metadata to their respecive prs
     
     Args:
@@ -212,7 +266,10 @@ def map_other_pr_data_to_pr(
     return pr_label_dicts, pr_assignee_dicts, pr_reviewer_dicts, pr_metadata_dicts 
 
 
-def insert_pr_labels(labels: List[dict], logger: logging.Logger) -> None:
+def insert_pr_labels(
+    labels: List[Dict[str, Any]],
+    logger: LogHandler
+) -> None:
     """Insert pull request labels
 
     Note:
@@ -222,12 +279,15 @@ def insert_pr_labels(labels: List[dict], logger: logging.Logger) -> None:
         labels: list of labels to insert
         logger: handles logging
     """
-    # we are using pr_src_id and pull_request_id to determine if the label is already in the database.
-    pr_label_natural_keys = ['pr_src_id', 'pull_request_id']
+    # we are using pr_label_src_id and pull_request_id to determine if the label is already in the database.
+    pr_label_natural_keys = ['pr_label_src_id', 'pull_request_id']
     bulk_insert_dicts(labels, PullRequestLabel, pr_label_natural_keys)
 
 
-def insert_pr_assignees(assignees: List[dict], logger: logging.Logger) -> None:
+def insert_pr_assignees(
+    assignees: List[Dict[str, Any]],
+    logger: LogHandler
+) -> None:
     """Insert pull request assignees
 
     Note:
@@ -242,7 +302,10 @@ def insert_pr_assignees(assignees: List[dict], logger: logging.Logger) -> None:
     bulk_insert_dicts(logger, assignees, PullRequestAssignee, pr_assignee_natural_keys)
 
 
-def insert_pr_reviewers(reviewers: List[dict], logger: logging.Logger) -> None:
+def insert_pr_reviewers(
+    reviewers: List[Dict[str, Any]],
+    logger: LogHandler
+) -> None:
     """Insert pull request reviewers
 
     Note:
@@ -257,7 +320,10 @@ def insert_pr_reviewers(reviewers: List[dict], logger: logging.Logger) -> None:
     bulk_insert_dicts(reviewers, PullRequestReviewer, pr_reviewer_natural_keys)
 
 
-def insert_pr_metadata(metadata: List[dict], logger: logging.Logger) -> None:
+def insert_pr_metadata(
+    metadata: List[Dict[str, Any]],
+    logger: LogHandler
+) -> None:
     """Insert pull request metadata
 
     Note:
@@ -278,47 +344,68 @@ def insert_pr_metadata(metadata: List[dict], logger: logging.Logger) -> None:
 # TODO: Should we insert metadata without user relation?
 # NOTE: For contributor related operations: extract_needed_contributor_data takes a piece of github contributor data
 # and creates a cntrb_id (primary key for the contributors table) and gets the data needed for the table
-def process_pull_request_contributors(pr: dict, tool_source: str, tool_version: str, data_source: str) -> Tuple[dict, List[dict]]:
-
+def process_pull_request_contributors(
+    pr: Dict[str, Any],
+    tool_source: ToolSource,
+    tool_version: ToolVersion,
+    data_source: DataSource
+) -> Tuple[Dict[str, Any], List[Dict[str, Any]]]:
+    """Process contributors from a pull request.
+    
+    Args:
+        pr: The pull request data
+        tool_source: Source of the tool
+        tool_version: Version of the tool
+        data_source: Source of the data
+        
+    Returns:
+        A tuple containing:
+            - The updated pull request data with contributor IDs
+            - A list of contributor data dictionaries
+    """
     contributors = []
 
-    # get contributor data and set pr cntrb_id
-    pr_cntrb = extract_needed_contributor_data(pr["user"], tool_source, tool_version, data_source)
-    pr["cntrb_id"] = pr_cntrb["cntrb_id"]
+    # Process PR author
+    if pr.get("user"):
+        pr_cntrb = extract_needed_contributor_data(pr["user"], tool_source, tool_version, data_source)
+        if pr_cntrb and "cntrb_id" in pr_cntrb:
+            pr["cntrb_id"] = pr_cntrb["cntrb_id"]
+            contributors.append(pr_cntrb)
 
-    contributors.append(pr_cntrb)
+    # Process base repository owner
+    if pr.get("base", {}).get("user"):
+        pr_meta_base_cntrb = extract_needed_contributor_data(
+            pr["base"]["user"], tool_source, tool_version, data_source
+        )
+        if pr_meta_base_cntrb and "cntrb_id" in pr_meta_base_cntrb:
+            pr["base"]["cntrb_id"] = pr_meta_base_cntrb["cntrb_id"]
+            contributors.append(pr_meta_base_cntrb)
 
+    # Process head repository owner
+    if pr.get("head", {}).get("user"):
+        pr_meta_head_cntrb = extract_needed_contributor_data(
+            pr["head"]["user"], tool_source, tool_version, data_source
+        )
+        if pr_meta_head_cntrb and "cntrb_id" in pr_meta_head_cntrb:
+            pr["head"]["cntrb_id"] = pr_meta_head_cntrb["cntrb_id"]
+            contributors.append(pr_meta_head_cntrb)
 
-    if pr["base"]["user"]:
+    # Process assignees
+    for assignee in pr.get("assignees", []):
+        pr_assignee_cntrb = extract_needed_contributor_data(
+            assignee, tool_source, tool_version, data_source
+        )
+        if pr_assignee_cntrb and "cntrb_id" in pr_assignee_cntrb:
+            assignee["cntrb_id"] = pr_assignee_cntrb["cntrb_id"]
+            contributors.append(pr_assignee_cntrb)
 
-        # get contributor data and set pr metadat cntrb_id
-        pr_meta_base_cntrb = extract_needed_contributor_data(pr["base"]["user"], tool_source, tool_version, data_source)
-        pr["base"]["cntrb_id"] = pr_meta_base_cntrb["cntrb_id"]
-
-        contributors.append(pr_meta_base_cntrb)
-
-    if pr["head"]["user"]:
-
-        pr_meta_head_cntrb = extract_needed_contributor_data(pr["head"]["user"], tool_source, tool_version, data_source)
-        pr["head"]["cntrb_id"] = pr_meta_head_cntrb["cntrb_id"]
-
-        contributors.append(pr_meta_head_cntrb)
-
-    # set cntrb_id for assignees
-    for assignee in pr["assignees"]:
-
-        pr_asignee_cntrb = extract_needed_contributor_data(assignee, tool_source, tool_version, data_source)
-        assignee["cntrb_id"] = pr_asignee_cntrb["cntrb_id"]
-
-        contributors.append(pr_asignee_cntrb)
-
-
-    # set cntrb_id for reviewers
-    for reviewer in pr["requested_reviewers"]:
-
-        pr_reviwer_cntrb = extract_needed_contributor_data(reviewer, tool_source, tool_version, data_source)
-        reviewer["cntrb_id"] = pr_reviwer_cntrb["cntrb_id"]
-
-        contributors.append(pr_reviwer_cntrb)
+    # Process requested reviewers
+    for reviewer in pr.get("requested_reviewers", []):
+        pr_reviewer_cntrb = extract_needed_contributor_data(
+            reviewer, tool_source, tool_version, data_source
+        )
+        if pr_reviewer_cntrb and "cntrb_id" in pr_reviewer_cntrb:
+            reviewer["cntrb_id"] = pr_reviewer_cntrb["cntrb_id"]
+            contributors.append(pr_reviewer_cntrb)
 
     return pr, contributors
