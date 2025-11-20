@@ -64,6 +64,7 @@ def collect_issues(repo_git: str, full_collection: bool) -> int:
             if len(batch) >= batch_size:
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                 logger.info(f"{owner}/{repo}: Processing batch of {len(batch)} issues (total so far: {total_issues + len(batch)})")
 =======
                 logger.info(f"{owner}/{repo}: Processing batch of {len(batch)} issues (total so far: {total_issues})")
@@ -71,6 +72,9 @@ def collect_issues(repo_git: str, full_collection: bool) -> int:
 =======
                 logger.info(f"{owner}/{repo}: Processing batch of {len(batch)} issues (total so far: {total_issues + len(batch)})")
 >>>>>>> 7162e832e4b9bffb7f2b1121ab6c2d2aa7ad4a11
+=======
+                logger.info(f"{owner}/{repo}: Processing batch of {len(batch)} issues (total so far: {total_issues + len(batch)})")
+>>>>>>> 0d068dc8c (Update augur/tasks/github/issues.py)
                 process_issues(batch, f"{owner}/{repo}: Issue task", repo_id, logger)
                 total_issues += len(batch)
                 batch.clear()
