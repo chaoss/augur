@@ -1315,15 +1315,7 @@ class Commit(Base):
             onupdate="CASCADE",
             initially="DEFERRED",
             deferrable=True,
-        ),
-        ForeignKey(
-            "augur_data.contributors.cntrb_login",
-            name="fk_commits_contributors_4",
-            ondelete="CASCADE",
-            onupdate="CASCADE",
-            initially="DEFERRED",
-            deferrable=True,
-        ),
+        )
     )
     tool_source = Column(String)
     tool_version = Column(String)
