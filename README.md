@@ -43,10 +43,25 @@ For more information on [how to get involved on the CHAOSS website](https://chao
 
 ## Collecting Data
 
-Augur supports ```Python3.7``` through ```Python3.11``` on all platforms. ```Python3.12``` and above do not yet work because of machine learning worker dependencies. On OSX, you can create a ```Python3.11``` environment, by running:
+Augur aims to support the current officially supported Python versions (currently centered around **Python 3.11**). We recommend using a Python installation that matches your platform's supported releases and creating an isolated virtual environment for development.
+
+Quick virtual environment examples:
+
+Windows (PowerShell):
 ```
-$ python3.11 -m venv path/to/venv
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
 ```
+
+macOS / Linux:
+```
+python3 -m venv .venv
+source .venv/bin/activate
+```
+
+After activating the virtual environment, install the project's development dependencies as described in the developer docs.
+
+For full, up-to-date setup instructions (including Docker-based development), see the developer documentation: https://oss-augur.readthedocs.io/en/main/development-guide/toc.html
 
 Augur's main focus is to measure the overall health and sustainability of open source projects.
 
@@ -78,8 +93,13 @@ If you get stuck, please feel free to [ask for help](https://github.com/chaoss/a
 
 ## Onboarding for New Contributors
 
-Newcomers can find a short onboarding guide with suggested steps and resources in `docs/onboarding.md`.
-It covers joining the community, running Augur locally, finding starter issues, and where to ask for help.
+If you're new to Augur and want a clear path for getting started, here are the recommended steps:
+
+- **Join the community**: Introduce yourself on the CHAOSS Slack (https://chaoss.community/kb-getting-started/) and find the project calendar for meetings (newcomer hangouts, community calls, and working group meetings).
+- **Read the contribution docs**: Review `CONTRIBUTING.md` and the developer documentation to learn workflows and coding standards.
+- **Run Augur**: Follow the developer docs (including Docker instructions) to get Augur running locally; if docs are unclear, ask on Slack or open an issue.
+- **Find a starter task**: Look for issues labeled `first-timers-only` or `good first issue` to make your first contribution.
+- **Ask for help**: If you get stuck, ask on Slack, comment on your issue/PR, or bring questions to community meetings — maintainers are happy to assist.
 
 
 ## Contributing
