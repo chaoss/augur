@@ -25,6 +25,6 @@ def get_rabbitmq_conn_string():
 
     with DatabaseEngine() as engine, DatabaseSession(logger, engine) as session:
         config = AugurConfig(logger, session)
-        rabbbitmq_conn_string = config.get_value("RabbitMQ", "connection_string")
+        rabbitmq_conn_string = config.get_value("RabbitMQ", "connection_string")
 
-    return rabbbitmq_conn_string
+    return rabbitmq_conn_string
