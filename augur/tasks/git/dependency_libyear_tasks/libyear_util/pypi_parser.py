@@ -72,14 +72,17 @@ def parse_requirement_txt(file_handle):
 
 
 def map_dependencies(info):
-    if type(info) is dict:
+    if isinstance(info, dict):
 
         if "version" in info:
             return info['version']
-        elif 'git' in info:
-            return info['git']+'#'+info['ref']
-    else:            
-        return info
+
+        if "git" in info:
+            return info['git'] + '#' + info['ref']
+
+        return None  # Explicit fallback
+
+    return info
 
 
 def map_dependencies_pipfile(packages, type):
@@ -98,16 +101,19 @@ def map_dependencies_pipfile(packages, type):
 ## Erro handling Means that the parse_pipfile(...) old function is assuming the presence of a dev-packages key in the parsed Pipfile, but that key does not exist in some cases.
 
 def parse_pipfile(file_handle):
-    import toml
-
     try:
         manifest = toml.load(file_handle)
     except Exception as e:
-        logging.warning(f"Failed to parse Pipfile: {getattr(file_handle, 'name', 'unknown')}, error: {e}")
+        logging.warning(
+            f"Failed to parse Pipfile: {getattr(file_handle, 'name', 'unknown')}, error: {e}"
+        )
         return []
 
-    return map_dependencies_pipfile(manifest.get('packages', {}), 'runtime') + \
-           map_dependencies_pipfile(manifest.get('dev-packages', {}), 'develop')
+    return (
+        map_dependencies_pipfile(manifest.get('packages', {}), 'runtime')
+        + map_dependencies_pipfile(manifest.get('dev-packages', {}), 'develop')
+    )
+
 
 def parse_pipfile_lock(file_object):
     manifest = json.load(file_object)
@@ -204,8 +210,7 @@ def parse_conda(file_handle):
     if not dependencies:
         logger.warning("No dependencies found.")
         return []
-    else:
-        logger.info("Dependencies found.")
+    logger.info("Dependencies found.")
     for dep in dependencies:
         if (type(dep) is dict) and dep['pip']:
             pip = dep

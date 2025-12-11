@@ -88,19 +88,20 @@ def get_release_date(data, version,logger):
     return version_date
 
 
-def sort_dependency_requirement(dependency,data):
-    if dependency['requirement'] == '' or dependency['requirement'] is None or dependency['requirement'] == '*':
+def sort_dependency_requirement(dependency, data):
+    req = dependency.get('requirement')
+
+    if not req or req == '*':
         return None
 
-    elif re.search(r'<', dependency['requirement']):
+    if re.search(r'<', req):
         return handle_upper_limit_dependency(dependency, data)
 
-    elif re.search(r'>=', dependency['requirement']):
+    if re.search(r'>=', req):
         return None
 
-    else:
-        # return get_version(data, clean_version(dependency['requirement']))
-        return clean_version(dependency['requirement'])
+    # default case
+    return clean_version(req)
 
 
 def get_libyear(current_version, current_release_date, latest_version, latest_release_date):
