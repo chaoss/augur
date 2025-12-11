@@ -17,6 +17,7 @@ from sqlalchemy import (
     Text,
     UniqueConstraint,
     text,
+    Sequence,
 )
 from sqlalchemy.dialects.postgresql import JSONB, TIMESTAMP, UUID
 from sqlalchemy.orm import relationship
@@ -66,10 +67,8 @@ class ChaossMetricStatus(Base):
 
     cms_id = Column(
         BigInteger,
+        Sequence('chaoss_metric_status_cms_id_seq', start=1),
         primary_key=True,
-        server_default=text(
-            "nextval('augur_data.chaoss_metric_status_cms_id_seq'::regclass)"
-        ),
     )
     cm_group = Column(String)
     cm_source = Column(String)
@@ -97,10 +96,8 @@ class ChaossUser(Base):
 
     chaoss_id = Column(
         BigInteger,
+        Sequence('chaoss_user_chaoss_id_seq', start=1),
         primary_key=True,
-        server_default=text(
-            "nextval('augur_data.chaoss_user_chaoss_id_seq'::regclass)"
-        ),
     )
     chaoss_login_name = Column(String)
     chaoss_login_hashword = Column(String)
@@ -123,10 +120,8 @@ class ContributorAffiliation(Base):
 
     ca_id = Column(
         BigInteger,
+        Sequence('contributor_affiliations_ca_id_seq', start=25430),
         primary_key=True,
-        server_default=text(
-            "nextval('augur_data.contributor_affiliations_ca_id_seq'::regclass)"
-        ),
     )
     ca_domain = Column(String(64), nullable=False, unique=True)
     ca_start_date = Column(Date, server_default=text("'1970-01-01'::date"))
@@ -161,6 +156,7 @@ class Contributor(Base):
         Index("contributors_idx_cntrb_email3", "cntrb_email"),
         Index("cntrb_canonica-idx11", "cntrb_canonical"),
         Index("cntrb_login_platform_index", "cntrb_login"),
+        Index("gh_login", text("gh_login ASC NULLS FIRST")),
 
 
         # added
@@ -178,10 +174,8 @@ class Contributor(Base):
 
     cntrb_id = Column(
         UUID(as_uuid=True),
+        Sequence('contributors_cntrb_id_seq', start=25430),
         primary_key=True,
-        server_default=text(
-            "nextval('augur_data.contributors_cntrb_id_seq'::regclass)"
-        ),
     )
     cntrb_login = Column(
         String,
@@ -497,10 +491,8 @@ class LstmAnomalyModel(Base):
 
     model_id = Column(
         BigInteger,
+        Sequence('lstm_anomaly_models_model_id_seq', start=1),
         primary_key=True,
-        server_default=text(
-            "nextval('augur_data.lstm_anomaly_models_model_id_seq'::regclass)"
-        ),
     )
     model_name = Column(String)
     model_description = Column(String)
@@ -548,10 +540,8 @@ class RepoGroup(Base):
 
     repo_group_id = Column(
         BigInteger,
+        Sequence('repo_groups_repo_group_id_seq', start=25430),
         primary_key=True,
-        server_default=text(
-            "nextval('augur_data.repo_groups_repo_group_id_seq'::regclass)"
-        ),
     )
     rg_name = Column(String, nullable=False)
     rg_description = Column(String, server_default=text("'NULL'::character varying"))
@@ -637,10 +627,8 @@ class TopicWord(Base):
 
     topic_words_id = Column(
         BigInteger,
+        Sequence('topic_words_topic_words_id_seq', start=1),
         primary_key=True,
-        server_default=text(
-            "nextval('augur_data.topic_words_topic_words_id_seq'::regclass)"
-        ),
     )
     topic_id = Column(BigInteger)
     word = Column(String)
@@ -680,10 +668,8 @@ class UnresolvedCommitEmail(Base):
 
     email_unresolved_id = Column(
         BigInteger,
+        Sequence('unresolved_commit_emails_email_unresolved_id_seq', start=1),
         primary_key=True,
-        server_default=text(
-            "nextval('augur_data.unresolved_commit_emails_email_unresolved_id_seq'::regclass)"
-        ),
     )
     email = Column(String, nullable=False, unique=True)
     name = Column(String)
@@ -734,10 +720,8 @@ class ContributorRepo(Base):
 
     cntrb_repo_id = Column(
         BigInteger,
+        Sequence('contributor_repo_cntrb_repo_id_seq', start=1),
         primary_key=True,
-        server_default=text(
-            "nextval('augur_data.contributor_repo_cntrb_repo_id_seq'::regclass)"
-        ),
     )
     cntrb_id = Column(
         ForeignKey(
@@ -778,10 +762,8 @@ class ContributorsAlias(Base):
 
     cntrb_alias_id = Column(
         BigInteger,
+        Sequence('contributors_aliases_cntrb_alias_id_seq', start=1),
         primary_key=True,
-        server_default=text(
-            "nextval('augur_data.contributors_aliases_cntrb_alias_id_seq'::regclass)"
-        ),
     )
     cntrb_id = Column(
         ForeignKey(
@@ -813,6 +795,7 @@ class Repo(Base):
     __tablename__ = "repo"
     __table_args__ = (
         UniqueConstraint("repo_git", name="repo_git-unique"),
+        UniqueConstraint("repo_src_id", name="repo_src_id_unique"),
 
         Index("forked", "forked_from"),
         Index("repo_idx_repo_id_repo_namex", "repo_id", "repo_name"),
@@ -1173,10 +1156,8 @@ class RepoTestCoverage(Base):
 
     repo_id = Column(
         ForeignKey("augur_data.repo.repo_id"),
+        Sequence('repo_test_coverage_repo_id_seq', start=1),
         primary_key=True,
-        server_default=text(
-            "nextval('augur_data.repo_test_coverage_repo_id_seq'::regclass)"
-        ),
     )
     repo_clone_date = Column(TIMESTAMP(precision=0))
     rtc_analysis_date = Column(TIMESTAMP(precision=0))
@@ -1205,10 +1186,8 @@ class RepoGroupInsight(Base):
 
     rgi_id = Column(
         BigInteger,
+        Sequence('repo_group_insights_rgi_id_seq', start=25430),
         primary_key=True,
-        server_default=text(
-            "nextval('augur_data.repo_group_insights_rgi_id_seq'::regclass)"
-        ),
     )
     repo_group_id = Column(ForeignKey("augur_data.repo_groups.repo_group_id"))
     rgi_metric = Column(String)
@@ -1238,10 +1217,8 @@ class RepoGroupsListServe(Base):
 
     rgls_id = Column(
         BigInteger,
+        Sequence('repo_groups_list_serve_rgls_id_seq', start=25430),
         primary_key=True,
-        server_default=text(
-            "nextval('augur_data.repo_groups_list_serve_rgls_id_seq'::regclass)"
-        ),
     )
     repo_group_id = Column(
         ForeignKey("augur_data.repo_groups.repo_group_id"), nullable=False
@@ -1319,7 +1296,14 @@ class Commit(Base):
     cmt_whitespace = Column(Integer, nullable=False)
     cmt_filename = Column(String, nullable=False)
     cmt_date_attempted = Column(TIMESTAMP(precision=0), nullable=False)
-    cmt_ght_author_id = Column(ForeignKey("augur_data.contributors.cntrb_id"))
+    cmt_ght_author_id = Column(ForeignKey(
+        "augur_data.contributors.cntrb_id",
+        name="cmt_ght_author_cntrb_id_fk",
+        onupdate="CASCADE",
+        ondelete="RESTRICT",
+        initially="DEFERRED",
+        deferrable=True
+    ))
     cmt_ght_committer_id = Column(Integer)
     cmt_ght_committed_at = Column(TIMESTAMP(precision=0))
     cmt_committer_timestamp = Column(TIMESTAMP(True, 0))
@@ -1332,15 +1316,7 @@ class Commit(Base):
             onupdate="CASCADE",
             initially="DEFERRED",
             deferrable=True,
-        ),
-        ForeignKey(
-            "augur_data.contributors.cntrb_login",
-            name="fk_commits_contributors_4",
-            ondelete="CASCADE",
-            onupdate="CASCADE",
-            initially="DEFERRED",
-            deferrable=True,
-        ),
+        )
     )
     tool_source = Column(String)
     tool_version = Column(String)
@@ -1510,10 +1486,8 @@ class LstmAnomalyResult(Base):
 
     result_id = Column(
         BigInteger,
+        Sequence('lstm_anomaly_results_result_id_seq', start=1),
         primary_key=True,
-        server_default=text(
-            "nextval('augur_data.lstm_anomaly_results_result_id_seq'::regclass)"
-        ),
     )
     repo_id = Column(ForeignKey("augur_data.repo.repo_id"))
     repo_category = Column(String)
@@ -1620,10 +1594,8 @@ class MessageAnalysisSummary(Base):
 
     msg_summary_id = Column(
         BigInteger,
+        Sequence('message_analysis_summary_msg_summary_id_seq', start=1),
         primary_key=True,
-        server_default=text(
-            "nextval('augur_data.message_analysis_summary_msg_summary_id_seq'::regclass)"
-        ),
     )
     repo_id = Column(ForeignKey("augur_data.repo.repo_id"))
     worker_run_id = Column(
@@ -1659,10 +1631,8 @@ class MessageSentimentSummary(Base):
 
     msg_summary_id = Column(
         BigInteger,
+        Sequence('message_sentiment_summary_msg_summary_id_seq', start=1),
         primary_key=True,
-        server_default=text(
-            "nextval('augur_data.message_sentiment_summary_msg_summary_id_seq'::regclass)"
-        ),
     )
     repo_id = Column(ForeignKey("augur_data.repo.repo_id"))
     worker_run_id = Column(
@@ -1695,19 +1665,18 @@ class PullRequest(Base):
         UniqueConstraint("repo_id", "pr_src_id", name="unique-pr"),
         UniqueConstraint("repo_id", "pr_src_id", name="unique-prx"),
         UniqueConstraint("pr_url", name="pull-request-insert-unique"),
-        Index("id_node", "pr_src_id", "pr_src_node_id"),
+        Index("id_node", text("pr_src_id DESC"), text("pr_src_node_id DESC NULLS LAST")),
         Index(
             "pull_requests_idx_repo_id_data_datex", "repo_id", "data_collection_date"
         ),
+        Index("pr_ID_prs_table", "pull_request_id"),
         {"schema": "augur_data"},
     )
 
     pull_request_id = Column(
         BigInteger,
+        Sequence('pull_requests_pull_request_id_seq', start=25430),
         primary_key=True,
-        server_default=text(
-            "nextval('augur_data.pull_requests_pull_request_id_seq'::regclass)"
-        ),
     )
     repo_id = Column(
         ForeignKey("augur_data.repo.repo_id", ondelete="CASCADE", onupdate="CASCADE"),
@@ -1835,7 +1804,7 @@ class Release(Base):
     __table_args__ = {"schema": "augur_data"}
 
     release_id = Column(
-        CHAR(128),
+        CHAR(256),
         primary_key=True,
         server_default=text("nextval('augur_data.releases_release_id_seq'::regclass)"),
     )
@@ -1870,10 +1839,8 @@ class RepoBadging(Base):
 
     badge_collection_id = Column(
         BigInteger,
+        Sequence('repo_badging_badge_collection_id_seq', start=25012),
         primary_key=True,
-        server_default=text(
-            "nextval('augur_data.repo_badging_badge_collection_id_seq'::regclass)"
-        ),
     )
     repo_id = Column(ForeignKey("augur_data.repo.repo_id"))
     created_at = Column(
@@ -1911,10 +1878,8 @@ class RepoClusterMessage(Base):
 
     msg_cluster_id = Column(
         BigInteger,
+        Sequence('repo_cluster_messages_msg_cluster_id_seq', start=1),
         primary_key=True,
-        server_default=text(
-            "nextval('augur_data.repo_cluster_messages_msg_cluster_id_seq'::regclass)"
-        ),
     )
     repo_id = Column(ForeignKey("augur_data.repo.repo_id"))
     cluster_content = Column(Integer)
@@ -1941,10 +1906,8 @@ class RepoDependency(Base):
 
     repo_dependencies_id = Column(
         BigInteger,
+        Sequence('repo_dependencies_repo_dependencies_id_seq', start=1),
         primary_key=True,
-        server_default=text(
-            "nextval('augur_data.repo_dependencies_repo_dependencies_id_seq'::regclass)"
-        ),
     )
     repo_id = Column(
         ForeignKey("augur_data.repo.repo_id"), comment="Forign key for repo id. "
@@ -1971,10 +1934,8 @@ class RepoDepsLibyear(Base):
 
     repo_deps_libyear_id = Column(
         BigInteger,
+        Sequence('repo_deps_libyear_repo_deps_libyear_id_seq', start=1),
         primary_key=True,
-        server_default=text(
-            "nextval('augur_data.repo_deps_libyear_repo_deps_libyear_id_seq'::regclass)"
-        ),
     )
     repo_id = Column(ForeignKey("augur_data.repo.repo_id"))
     name = Column(String)
@@ -1999,16 +1960,14 @@ class RepoDepsLibyear(Base):
 class RepoDepsScorecard(Base):
     __tablename__ = "repo_deps_scorecard"
     __table_args__ = (
-        UniqueConstraint("repo_id","name", name="deps-scorecard-insert-unique"),
+        UniqueConstraint("repo_id","name", "data_collection_date", name="deps_scorecard_new_unique"),
         {"schema": "augur_data"}
     )
 
     repo_deps_scorecard_id = Column(
         BigInteger,
+        Sequence('repo_deps_scorecard_repo_deps_scorecard_id_seq1', start=1),
         primary_key=True,
-        server_default=text(
-            "nextval('augur_data.repo_deps_scorecard_repo_deps_scorecard_id_seq1'::regclass)"
-        ),
     )
     repo_id = Column(ForeignKey("augur_data.repo.repo_id"))
     name = Column(String)
@@ -2035,10 +1994,8 @@ class RepoInfo(Base):
 
     repo_info_id = Column(
         BigInteger,
+        Sequence('repo_info_repo_info_id_seq', start=25430),
         primary_key=True,
-        server_default=text(
-            "nextval('augur_data.repo_info_repo_info_id_seq'::regclass)"
-        ),
     )
     repo_id = Column(ForeignKey("augur_data.repo.repo_id"), nullable=False)
     last_updated = Column(
@@ -2124,10 +2081,8 @@ class RepoInsightsRecord(Base):
 
     ri_id = Column(
         BigInteger,
+        Sequence('repo_insights_records_ri_id_seq', start=1),
         primary_key=True,
-        server_default=text(
-            "nextval('augur_data.repo_insights_records_ri_id_seq'::regclass)"
-        ),
         comment="Primary key. ",
     )
     repo_id = Column(
@@ -2170,10 +2125,8 @@ class RepoLabor(Base):
 
     repo_labor_id = Column(
         BigInteger,
+        Sequence('repo_labor_repo_labor_id_seq', start=25430),
         primary_key=True,
-        server_default=text(
-            "nextval('augur_data.repo_labor_repo_labor_id_seq'::regclass)"
-        ),
     )
     repo_id = Column(ForeignKey("augur_data.repo.repo_id"))
     repo_clone_date = Column(TIMESTAMP(precision=0))
@@ -2227,10 +2180,8 @@ class RepoSbomScan(Base):
 
     rsb_id = Column(
         BigInteger,
+        Sequence('repo_sbom_scans_rsb_id_seq', start=25430),
         primary_key=True,
-        server_default=text(
-            "nextval('augur_data.repo_sbom_scans_rsb_id_seq'::regclass)"
-        ),
     )
     repo_id = Column(
         ForeignKey("augur_data.repo.repo_id", ondelete="CASCADE", onupdate="CASCADE")
@@ -2269,10 +2220,8 @@ class RepoTopic(Base):
 
     repo_topic_id = Column(
         BigInteger,
+        Sequence('repo_topic_repo_topic_id_seq', start=1),
         primary_key=True,
-        server_default=text(
-            "nextval('augur_data.repo_topic_repo_topic_id_seq'::regclass)"
-        ),
     )
     repo_id = Column(ForeignKey("augur_data.repo.repo_id"))
     topic_id = Column(Integer)
@@ -2296,10 +2245,8 @@ class CommitCommentRef(Base):
 
     cmt_comment_id = Column(
         BigInteger,
+        Sequence('commit_comment_ref_cmt_comment_id_seq', start=25430),
         primary_key=True,
-        server_default=text(
-            "nextval('augur_data.commit_comment_ref_cmt_comment_id_seq'::regclass)"
-        ),
     )
     cmt_id = Column(
         ForeignKey(
@@ -2357,11 +2304,9 @@ class CommitParent(Base):
     )
     parent_id = Column(
         ForeignKey("augur_data.commits.cmt_id"),
+        Sequence('commit_parents_parent_id_seq', start=25430),
         primary_key=True,
         nullable=False,
-        server_default=text(
-            "nextval('augur_data.commit_parents_parent_id_seq'::regclass)"
-        ),
     )
     tool_source = Column(String)
     tool_version = Column(String)
@@ -2385,10 +2330,8 @@ class DiscourseInsight(Base):
 
     msg_discourse_id = Column(
         BigInteger,
+        Sequence('discourse_insights_msg_discourse_id_seq1', start=1),
         primary_key=True,
-        server_default=text(
-            "nextval('augur_data.discourse_insights_msg_discourse_id_seq1'::regclass)"
-        ),
     )
     msg_id = Column(ForeignKey("augur_data.message.msg_id"))
     discourse_act = Column(String)
@@ -2412,10 +2355,8 @@ class IssueAssignee(Base):
 
     issue_assignee_id = Column(
         BigInteger,
+        Sequence('issue_assignees_issue_assignee_id_seq', start=1),
         primary_key=True,
-        server_default=text(
-            "nextval('augur_data.issue_assignees_issue_assignee_id_seq'::regclass)"
-        ),
     )
     issue_id = Column(ForeignKey("augur_data.issues.issue_id"))
     repo_id = Column(
@@ -2471,10 +2412,8 @@ class IssueEvent(Base):
 
     event_id = Column(
         BigInteger,
+        Sequence('issue_events_event_id_seq', start=25430),
         primary_key=True,
-        server_default=text(
-            "nextval('augur_data.issue_events_event_id_seq'::regclass)"
-        ),
     )
     issue_id = Column(
         ForeignKey(
@@ -2555,10 +2494,8 @@ class IssueLabel(Base):
 
     issue_label_id = Column(
         BigInteger,
+        Sequence('issue_labels_issue_label_id_seq', start=25430),
         primary_key=True,
-        server_default=text(
-            "nextval('augur_data.issue_labels_issue_label_id_seq'::regclass)"
-        ),
     )
     issue_id = Column(
         ForeignKey("augur_data.issues.issue_id", ondelete="CASCADE", onupdate="CASCADE")
@@ -2611,10 +2548,8 @@ class IssueMessageRef(Base):
 
     issue_msg_ref_id = Column(
         BigInteger,
+        Sequence('issue_message_ref_issue_msg_ref_id_seq', start=25430),
         primary_key=True,
-        server_default=text(
-            "nextval('augur_data.issue_message_ref_issue_msg_ref_id_seq'::regclass)"
-        ),
     )
     issue_id = Column(
         ForeignKey(
@@ -2672,10 +2607,8 @@ class LibraryDependency(Base):
 
     lib_dependency_id = Column(
         BigInteger,
+        Sequence('library_dependencies_lib_dependency_id_seq', start=25430),
         primary_key=True,
-        server_default=text(
-            "nextval('augur_data.library_dependencies_lib_dependency_id_seq'::regclass)"
-        ),
     )
     library_id = Column(ForeignKey("augur_data.libraries.library_id"))
     manifest_platform = Column(String)
@@ -2698,10 +2631,8 @@ class LibraryVersion(Base):
 
     library_version_id = Column(
         BigInteger,
+        Sequence('library_version_library_version_id_seq', start=25430),
         primary_key=True,
-        server_default=text(
-            "nextval('augur_data.library_version_library_version_id_seq'::regclass)"
-        ),
     )
     library_id = Column(ForeignKey("augur_data.libraries.library_id"))
     library_platform = Column(String)
@@ -2723,10 +2654,8 @@ class MessageAnalysis(Base):
 
     msg_analysis_id = Column(
         BigInteger,
+        Sequence('message_analysis_msg_analysis_id_seq', start=1),
         primary_key=True,
-        server_default=text(
-            "nextval('augur_data.message_analysis_msg_analysis_id_seq'::regclass)"
-        ),
     )
     msg_id = Column(ForeignKey("augur_data.message.msg_id"))
     worker_run_id = Column(
@@ -2765,10 +2694,8 @@ class MessageSentiment(Base):
 
     msg_analysis_id = Column(
         BigInteger,
+        Sequence('message_sentiment_msg_analysis_id_seq', start=1),
         primary_key=True,
-        server_default=text(
-            "nextval('augur_data.message_sentiment_msg_analysis_id_seq'::regclass)"
-        ),
     )
     msg_id = Column(ForeignKey("augur_data.message.msg_id"))
     worker_run_id = Column(
@@ -2805,10 +2732,8 @@ class PullRequestAnalysis(Base):
 
     pull_request_analysis_id = Column(
         BigInteger,
+        Sequence('pull_request_analysis_pull_request_analysis_id_seq', start=1),
         primary_key=True,
-        server_default=text(
-            "nextval('augur_data.pull_request_analysis_pull_request_analysis_id_seq'::regclass)"
-        ),
     )
     pull_request_id = Column(
         ForeignKey(
@@ -2854,10 +2779,8 @@ class PullRequestAssignee(Base):
 
     pr_assignee_map_id = Column(
         BigInteger,
+        Sequence('pull_request_assignees_pr_assignee_map_id_seq', start=25430),
         primary_key=True,
-        server_default=text(
-            "nextval('augur_data.pull_request_assignees_pr_assignee_map_id_seq'::regclass)"
-        ),
     )
     pull_request_id = Column(
         ForeignKey(
@@ -2916,10 +2839,8 @@ class PullRequestCommit(Base):
 
     pr_cmt_id = Column(
         BigInteger,
+        Sequence('pull_request_commits_pr_cmt_id_seq', start=1),
         primary_key=True,
-        server_default=text(
-            "nextval('augur_data.pull_request_commits_pr_cmt_id_seq'::regclass)"
-        ),
     )
     pull_request_id = Column(
         ForeignKey(
@@ -2962,6 +2883,7 @@ class PullRequestEvent(Base):
     __table_args__ = (
         Index("pr_events_ibfk_1", "pull_request_id"),
         Index("pr_events_ibfk_2", "cntrb_id"),
+        UniqueConstraint("repo_id", "issue_event_src_id", name="pr_events_repo_id_event_src_id_unique"),
         UniqueConstraint("platform_id", "node_id", name="unique-pr-event-id"),
         UniqueConstraint("node_id", name="pr-unqiue-event"),
         {"schema": "augur_data"},
@@ -2969,10 +2891,8 @@ class PullRequestEvent(Base):
 
     pr_event_id = Column(
         BigInteger,
+        Sequence('pull_request_events_pr_event_id_seq', start=25430),
         primary_key=True,
-        server_default=text(
-            "nextval('augur_data.pull_request_events_pr_event_id_seq'::regclass)"
-        ),
     )
     pull_request_id = Column(
         ForeignKey(
@@ -3058,7 +2978,8 @@ class PullRequestEvent(Base):
 class PullRequestFile(Base):
     __tablename__ = "pull_request_files"
     __table_args__ = (
-        UniqueConstraint("pull_request_id", "repo_id", "pr_file_path"),
+        Index("pr_id_pr_files","pull_request_id"),
+        UniqueConstraint("pull_request_id", "repo_id", "pr_file_path", name="prfiles_unique"),
         {
             "schema": "augur_data",
             "comment": "Pull request commits are an enumeration of each commit associated with a pull request. \nNot all pull requests are from a branch or fork into master. \nThe commits table intends to count only commits that end up in the master branch (i.e., part of the deployed code base for a project).\nTherefore, there will be commit “SHA”’s in this table that are no associated with a commit SHA in the commits table. \nIn cases where the PR is to the master branch of a project, you will find a match. In cases where the PR does not involve the master branch, you will not find a corresponding commit SHA in the commits table. This is expected. ",
@@ -3067,10 +2988,8 @@ class PullRequestFile(Base):
 
     pr_file_id = Column(
         BigInteger,
+        Sequence('pull_request_files_pr_file_id_seq', start=25150),
         primary_key=True,
-        server_default=text(
-            "nextval('augur_data.pull_request_files_pr_file_id_seq'::regclass)"
-        ),
     )
     pull_request_id = Column(
         ForeignKey(
@@ -3118,10 +3037,8 @@ class PullRequestLabel(Base):
 
     pr_label_id = Column(
         BigInteger,
+        Sequence('pull_request_labels_pr_label_id_seq', start=25430),
         primary_key=True,
-        server_default=text(
-            "nextval('augur_data.pull_request_labels_pr_label_id_seq'::regclass)"
-        ),
     )
     pull_request_id = Column(
         ForeignKey(
@@ -3179,10 +3096,8 @@ class PullRequestMessageRef(Base):
 
     pr_msg_ref_id = Column(
         BigInteger,
+        Sequence('pull_request_message_ref_pr_msg_ref_id_seq', start=25430),
         primary_key=True,
-        server_default=text(
-            "nextval('augur_data.pull_request_message_ref_pr_msg_ref_id_seq'::regclass)"
-        ),
     )
     pull_request_id = Column(
         ForeignKey(
@@ -3231,10 +3146,8 @@ class PullRequestMeta(Base):
 
     pr_repo_meta_id = Column(
         BigInteger,
+        Sequence('pull_request_meta_pr_repo_meta_id_seq', start=25430),
         primary_key=True,
-        server_default=text(
-            "nextval('augur_data.pull_request_meta_pr_repo_meta_id_seq'::regclass)"
-        ),
     )
     pull_request_id = Column(
         ForeignKey(
@@ -3303,10 +3216,8 @@ class PullRequestReviewer(Base):
 
     pr_reviewer_map_id = Column(
         BigInteger,
+        Sequence('pull_request_reviewers_pr_reviewer_map_id_seq', start=25430),
         primary_key=True,
-        server_default=text(
-            "nextval('augur_data.pull_request_reviewers_pr_reviewer_map_id_seq'::regclass)"
-        ),
     )
     pull_request_id = Column(
         ForeignKey(
@@ -3357,16 +3268,15 @@ class PullRequestReviewer(Base):
 class PullRequestReview(Base):
     __tablename__ = "pull_request_reviews"
     __table_args__ = (
-        UniqueConstraint("pr_review_src_id", "tool_source"),
+        UniqueConstraint("pr_review_src_id", "tool_source", name="pr_review_unique"),
+        Index("pr_id_pr_reviews", "pull_request_id"),
         {"schema": "augur_data"},
     )
 
     pr_review_id = Column(
         BigInteger,
+        Sequence('pull_request_reviews_pr_review_id_seq', start=1),
         primary_key=True,
-        server_default=text(
-            "nextval('augur_data.pull_request_reviews_pr_review_id_seq'::regclass)"
-        ),
     )
     pull_request_id = Column(
         ForeignKey(
@@ -3430,10 +3340,8 @@ class PullRequestTeam(Base):
 
     pr_team_id = Column(
         BigInteger,
+        Sequence('pull_request_teams_pr_team_id_seq', start=25430),
         primary_key=True,
-        server_default=text(
-            "nextval('augur_data.pull_request_teams_pr_team_id_seq'::regclass)"
-        ),
     )
     pull_request_id = Column(
         ForeignKey(
@@ -3473,10 +3381,8 @@ class PullRequestRepo(Base):
 
     pr_repo_id = Column(
         BigInteger,
+        Sequence('pull_request_repo_pr_repo_id_seq', start=25430),
         primary_key=True,
-        server_default=text(
-            "nextval('augur_data.pull_request_repo_pr_repo_id_seq'::regclass)"
-        ),
     )
     pr_repo_meta_id = Column(
         ForeignKey(
@@ -3515,10 +3421,8 @@ class PullRequestReviewMessageRef(Base):
 
     pr_review_msg_ref_id = Column(
         BigInteger,
+        Sequence('pull_request_review_message_ref_pr_review_msg_ref_id_seq', start=1),
         primary_key=True,
-        server_default=text(
-            "nextval('augur_data.pull_request_review_message_ref_pr_review_msg_ref_id_seq'::regclass)"
-        ),
     )
     pr_review_id = Column(
         ForeignKey(
@@ -3587,10 +3491,8 @@ class RepoClone(Base):
 
     repo_clone_data_id = Column(
         BigInteger,
+        Sequence('repo_clones_data_id_seq', start=1),
         primary_key=True,
-        server_default=text(
-            "nextval('augur_data.repo_clones_data_id_seq'::regclass)"
-        ),
     )
     repo_id = Column(
         ForeignKey(
