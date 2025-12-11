@@ -559,7 +559,7 @@ def retrieve_merge_request_data(ids, url, name, owner, repo, key_auth, logger, r
     api_handler = GitlabApiHandler(key_auth, logger)
     for id in ids:
         
-        print(f"Collecting {owner}/{repo} gitlab merge request {name} for merge request {index} of {mr_count}")
+        logger.info(f"Collecting {owner}/{repo} gitlab merge request {name} for merge request {index} of {mr_count}")
         formatted_url = url.format(id=id)
 
         if response_type == "dict":

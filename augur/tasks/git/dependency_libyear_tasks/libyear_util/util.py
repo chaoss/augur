@@ -1,5 +1,6 @@
 import dateutil.parser
 import os
+import logging
 from augur.tasks.git.dependency_libyear_tasks.libyear_util.pypi_parser import parse_conda, parse_pipfile,parse_pipfile_lock,parse_poetry,parse_poetry_lock,parse_requirement_txt,parse_setup_py
 from augur.tasks.git.dependency_libyear_tasks.libyear_util.npm_parser import parse_package_json
 from augur.tasks.git.dependency_libyear_tasks.libyear_util.pypi_libyear_util import sort_dependency_requirement,get_pypi_data,get_latest_version,get_release_date
@@ -81,6 +82,8 @@ def get_parsed_deps(path, logger):
     return dependency_list
 
 def get_libyear(current_version, current_release_date, latest_version, latest_release_date):
+    
+    logger = logging.getLogger(get_libyear.__name__)
 
     if not latest_version:
         return -1
@@ -95,7 +98,7 @@ def get_libyear(current_version, current_release_date, latest_version, latest_re
     latest_release_date = dateutil.parser.parse(latest_release_date)    
 
     libdays = (latest_release_date - current_release_date).days
-    print(libdays)
+    logger.info(libdays)
     libyear = libdays/365
     return libyear
 

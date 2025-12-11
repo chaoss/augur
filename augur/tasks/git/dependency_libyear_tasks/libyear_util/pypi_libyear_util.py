@@ -1,6 +1,7 @@
 import requests
 import dateutil.parser
 # from packaging import version
+import logging
 from distutils.version import LooseVersion
 import re 
 
@@ -87,23 +88,25 @@ def get_release_date(data, version,logger):
     return version_date
 
 
-def sort_dependency_requirement(dependency,data):
-    if dependency['requirement'] == '' or dependency['requirement'] is None or dependency['requirement'] == '*':
+def sort_dependency_requirement(dependency, data):
+    req = dependency.get('requirement')
+
+    if not req or req == '*':
         return None
 
-    elif re.search(r'<', dependency['requirement']):
+    if re.search(r'<', req):
         return handle_upper_limit_dependency(dependency, data)
 
-    elif re.search(r'>=', dependency['requirement']):
+    if re.search(r'>=', req):
         return None
 
-    else:
-        # return get_version(data, clean_version(dependency['requirement']))
-        return clean_version(dependency['requirement'])
+    # default case
+    return clean_version(req)
 
 
 def get_libyear(current_version, current_release_date, latest_version, latest_release_date):
 
+    logger = logging.getLogger(get_libyear.__name__)
     if not latest_version:
         return -1
     
@@ -117,6 +120,6 @@ def get_libyear(current_version, current_release_date, latest_version, latest_re
     latest_release_date = dateutil.parser.parse(latest_release_date)    
 
     libdays = (latest_release_date - current_release_date).days
-    print(libdays)
+    logger.info(f"Library days difference: {libdays} days between current release ({current_release_date}) and latest release ({latest_release_date})")
     libyear = libdays/365
     return libyear

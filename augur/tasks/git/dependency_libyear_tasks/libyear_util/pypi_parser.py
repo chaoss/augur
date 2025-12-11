@@ -72,14 +72,17 @@ def parse_requirement_txt(file_handle):
 
 
 def map_dependencies(info):
-    if type(info) is dict:
+    if isinstance(info, dict):
 
         if "version" in info:
             return info['version']
-        elif 'git' in info:
-            return info['git']+'#'+info['ref']
-    else:            
-        return info
+
+        if "git" in info:
+            return info['git'] + '#' + info['ref']
+
+        return None  # Explicit fallback
+
+    return info
 
 
 def map_dependencies_pipfile(packages, type):
@@ -98,16 +101,19 @@ def map_dependencies_pipfile(packages, type):
 ## Erro handling Means that the parse_pipfile(...) old function is assuming the presence of a dev-packages key in the parsed Pipfile, but that key does not exist in some cases.
 
 def parse_pipfile(file_handle):
-    import toml
-
     try:
         manifest = toml.load(file_handle)
     except Exception as e:
-        logging.warning(f"Failed to parse Pipfile: {getattr(file_handle, 'name', 'unknown')}, error: {e}")
+        logging.warning(
+            f"Failed to parse Pipfile: {getattr(file_handle, 'name', 'unknown')}, error: {e}"
+        )
         return []
 
-    return map_dependencies_pipfile(manifest.get('packages', {}), 'runtime') + \
-           map_dependencies_pipfile(manifest.get('dev-packages', {}), 'develop')
+    return (
+        map_dependencies_pipfile(manifest.get('packages', {}), 'runtime')
+        + map_dependencies_pipfile(manifest.get('dev-packages', {}), 'develop')
+    )
+
 
 def parse_pipfile_lock(file_object):
     manifest = json.load(file_object)
@@ -192,6 +198,7 @@ def parse_poetry_lock(file_handle):
 
 # Pip dependencies can be embedded in conda environment files
 def parse_conda(file_handle):
+    logger = logging.getLogger(parse_conda.__name__)
     contents = yaml.safe_load(file_handle)
     deps = list()
     pip = None
@@ -201,10 +208,9 @@ def parse_conda(file_handle):
     dependencies = contents.get('dependencies', [])
     
     if not dependencies:
-        print("No dependencies found.")
+        logger.warning("No dependencies found.")
         return []
-    else:
-        print("Dependencies found.")
+    logger.info("Dependencies found.")
     for dep in dependencies:
         if (type(dep) is dict) and dep['pip']:
             pip = dep

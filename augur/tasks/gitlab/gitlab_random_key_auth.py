@@ -16,7 +16,7 @@ class GitlabRandomKeyAuth(RandomKeyAuth):
         gitlab_api_keys = GitlabApiKeyHandler(logger).keys
 
         if not gitlab_api_keys:
-            print("Failed to find github api keys. This is usually because your key has expired")
+            self.logger.info("Failed to find github api keys. This is usually because your key has expired")
 
         header_name = "Authorization"
         key_format = "Bearer {0}"
