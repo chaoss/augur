@@ -5,17 +5,49 @@ We love to pull requests from everyone! We follow the standard Git workflow of `
 If you are new to open source, we recommend GitHub's excellent guide on "[How to Contribute to Open Source](https://opensource.guide/how-to-contribute/)". In addition, please feel free to reach out to any of the maintainers or other community members if you are struggling as we are here to help you learn!
 
 Before getting started, please make sure you've read the [README](README.md) to get a primer on our project. Augur's documentation can be found [here](https://oss-augur.readthedocs.io/en/main/).
+## Your Journey from Newcomer to Confident Contributor
+New to open source or Augur? Here's how most people get started. Go at your own pace.
+### 1. Join the Community & Learn How Things Work
+- **Join Slack**: Go to [CHAOSS Slack](https://chaoss-workspace.slack.com/join/shared_invite/zt-35ir7w0jr-aiwTPYShbj~mMsMbzhGWWQ#/shared-invite/email) and join `#wg-augur-8knot`
+- **Read CHAOSS Docs**: Look at the [Code of Conduct](https://chaoss.community/) and browse the [CHAOSS website](https://chaoss.community/)
+- **Review this CONTRIBUTING.md**: Get familiar with our contribution guidelines and AI contribution policy
+- **Attend Meetings**: Check the [CHAOSS calendar](https://chaoss.community/chaoss-calendar/) for meetings like:
+  - [Newcomer Hangout](https://zoom.us/my/chaoss)
+  - [Community Call](https://zoom.us/my/chaoss)
+  - [Augur/8-Knot Software Working Group](https://zoom.us/my/chaoss)
+- **Watch Recordings**: Find past meetings on the [CHAOSS YouTube channel](https://www.youtube.com/@CHAOSStube)
+- **Request a Tour Guide** (Optional): Not sure where to start? Ask in the `#newcomers` Slack channel for 1:1 help
+### 2. Run Augur
+- **Read the Docs**: Start at [Augur documentation](https://oss-augur.readthedocs.io/en/main/) (check out the Docker setup guide)
+- **Install Augur**: Follow the installation instructions [getting-started-guide](https://oss-augur.readthedocs.io/en/main/getting-started/toc.html) to get it running on your machine
+### 3. Start with Good First Issues
+- **Browse Issues**: Look for [`good first issue`](https://github.com/chaoss/augur/labels/good%20first%20issue) labels
+- **Brand New?**: Try [`first-timers-only`](https://github.com/chaoss/augur/issues?q=state%3Aopen%20label%3Afirst-timers-only) issues
+- **Pick Something**: Choose an issue that looks doable
+- **Found a Bug?**: Open an issue and talk to us before you start
+#### How to Find Good First Issues
+Go to the [issue](https://github.com/chaoss/augur/issues) tab:
 
-## Join the Community
+<img width="1890" height="781" alt="Image" src="https://github.com/user-attachments/assets/55b21b8a-df91-4c11-bbcd-38597f9d3cd8" />
 
-We encourage all contributors to join the [CHAOSS Slack workspace](https://chaoss.community/kb-getting-started/) and participate in the `#wg-augur-8knot` channel. This is a great place to ask questions, get help with issues, participate in discussions, and stay updated on community meetings and planning. Don't hesitate to introduce yourself and ask for help if you get stuck!
+filter by `good first issue` or `first-timers-only`:
 
-## Opening an issue
-If you're experiencing an issue with Augur or have a question you'd like help answering, please feel free to open an [issue](https://github.com/chaoss/augur/issues). To help us prevent duplicates, we kindly ask that you briefly search for your problem or question in our [issues](https://github.com/chaoss/augur/issues) before opening a new one.
+<img width="1738" height="631" alt="Image" src="https://github.com/user-attachments/assets/f505dc2f-c034-4229-97da-98bc8173f713" />
 
-Please note that if you open a bug report and your issue **does not** follow our template, we cannot help you until you have provided us all the relevant information in that format. 
-Respectfully, we do not have the time to try and recreate an error given with minimal or no context, so by providing this information you are helping us help you!
+You'll see available issues:
 
+<img width="1872" height="770" alt="Image" src="https://github.com/user-attachments/assets/c67cf2e8-0425-4451-9296-839bc9bf11f5" />
+
+### 4. Need Help?
+- Ask in `#wg-augur-8knot` on Slack
+- Bring questions to community meetings
+- Comment on the issue or PR you're working on
+
+We're here to help.
+### 5. Ready for More?
+- Try [`challenging first issue`](https://github.com/chaoss/augur/labels/challenging%20first%20issue) labels
+- Look at [`documentation`](https://github.com/chaoss/augur/labels/documentation) or [`tech debt`](https://github.com/chaoss/augur/labels/tech%20debt) issues
+- Ask on Slack what would be a good fit for your interests
 ### How to submit a bug report
 To see the template referred to in the above section, click on **New Issue**, then click on the **Get Started** button on the **Bug Report** option.
 A dialogue box populated with descriptions of what to put in each section, will pop up on a new page.
