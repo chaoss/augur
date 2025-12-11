@@ -12,8 +12,8 @@ def get_redis_conn_values():
 
         config = AugurConfig(logger, session)
 
-    redis_db_number = config.get_value("Redis", "cache_group") * 3
-    redis_conn_string = config.get_value("Redis", "connection_string")
+        redis_db_number = config.get_value("Redis", "cache_group") * 3
+        redis_conn_string = config.get_value("Redis", "connection_string")
 
     if redis_conn_string[-1] != "/":
         redis_conn_string += "/"
@@ -25,7 +25,6 @@ def get_rabbitmq_conn_string():
 
     with DatabaseEngine() as engine, DatabaseSession(logger, engine) as session:
         config = AugurConfig(logger, session)
-    
         rabbbitmq_conn_string = config.get_value("RabbitMQ", "connection_string")
 
     return rabbbitmq_conn_string
