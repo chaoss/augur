@@ -5,7 +5,7 @@ from augur.tasks.init.celery_app import AugurCoreRepoCollectionTask
 from augur.tasks.gitlab.gitlab_api_handler import GitlabApiHandler
 from augur.application.db.data_parse import extract_needed_pr_data_from_gitlab_merge_request, extract_needed_merge_request_assignee_data, extract_needed_mr_label_data, extract_needed_mr_reviewer_data, extract_needed_mr_commit_data, extract_needed_mr_file_data, extract_needed_mr_metadata, extract_needed_gitlab_mr_message_ref_data, extract_needed_gitlab_message_data, extract_needed_gitlab_contributor_data
 from augur.tasks.github.util.util import get_gitlab_repo_identifier, add_key_value_pair_to_dicts
-from augur.application.db.models import PullRequest, PullRequestLabel, PullRequestMeta, PullRequestCommit, PullRequestFile, PullRequestMessageRef, Repo, Message, Contributor, PullRequestAssignee
+from augur.application.db.models import PullRequest, PullRequestLabel, PullRequestMeta, PullRequestCommit, PullRequestFile, PullRequestMessageRef, Repo, Message, PullRequestAssignee
 from augur.tasks.gitlab.gitlab_random_key_auth import GitlabRandomKeyAuth
 from augur.tasks.util.worker_util import remove_duplicate_dicts
 from augur.application.db.lib import bulk_insert_dicts, get_repo_by_repo_git, get_session, batch_insert_contributors
@@ -155,8 +155,8 @@ def process_merge_requests(data, task_name, repo_id, logger):
     mr_assignee_natural_keys = ['pr_assignee_src_id', 'pull_request_id']
     bulk_insert_dicts(logger, mr_assignee_dicts, PullRequestAssignee, mr_assignee_natural_keys)
 
-    pr_label_natural_keys = ['pr_src_id', 'pull_request_id']
-    pr_label_string_fields = ["pr_src_description"]
+    pr_label_natural_keys = ['pr_label_src_id', 'pull_request_id']
+    pr_label_string_fields = ["pr_label_description"]
     bulk_insert_dicts(logger, mr_label_dicts, PullRequestLabel, pr_label_natural_keys, string_fields=pr_label_string_fields)
 
     return mr_ids

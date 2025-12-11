@@ -1780,6 +1780,7 @@ class PullRequest(Base):
     reviews = relationship("PullRequestReview", back_populates="pr")
     labels = relationship("PullRequestLabel", back_populates="pull_request")
     assignees = relationship("PullRequestAssignee", back_populates="pull_request")
+    requested_reviewers = relationship("PullRequestRequestedReviewer", back_populates="pull_request")
     files = relationship("PullRequestFile", back_populates="")
 
     @classmethod
@@ -3112,7 +3113,7 @@ class PullRequestFile(Base):
 class PullRequestLabel(Base):
     __tablename__ = "pull_request_labels"
     __table_args__ = (
-        UniqueConstraint("pr_src_id", "pull_request_id"),
+        UniqueConstraint("pr_label_src_id", "pull_request_id"),
         {"schema": "augur_data"},
     )
 
@@ -3133,12 +3134,12 @@ class PullRequestLabel(Base):
     repo_id = Column(
         ForeignKey("augur_data.repo.repo_id", ondelete="RESTRICT", onupdate="CASCADE")
     )
-    pr_src_id = Column(BigInteger)
-    pr_src_node_id = Column(String)
-    pr_src_url = Column(String)
-    pr_src_description = Column(String)
-    pr_src_color = Column(String)
-    pr_src_default_bool = Column(Boolean)
+    pr_label_src_id = Column(BigInteger, comment="Source ID of the label from the platform (e.g., GitHub label ID)")
+    pr_label_node_id = Column(String, comment="Node ID of the label from the platform (e.g., GitHub node ID)")
+    pr_label_url = Column(String, comment="URL to the label on the platform")
+    pr_label_description = Column(String, comment="Description of the label")
+    pr_label_color = Column(String, comment="Color code of the label (e.g., 'd4c5f9' for purple)")
+    pr_label_default_bool = Column(Boolean, comment="Whether this is a default label for the repository")
     tool_source = Column(String)
     tool_version = Column(String)
     data_source = Column(String)
@@ -3156,12 +3157,12 @@ class PullRequestLabel(Base):
         pr_label_obj = cls()
 
         # store the pr_url data on in the pr label data for now so we can relate it back to a pr later
-        pr_label_obj.pr_src_id = int(label['id'])
-        pr_label_obj.pr_src_node_id = label['node_id']
-        pr_label_obj.pr_src_url = label['url']
-        pr_label_obj.pr_src_description = label['name']
-        pr_label_obj.pr_src_color = label['color']
-        pr_label_obj.pr_src_default_bool = label['default']
+        pr_label_obj.pr_label_src_id = int(label['id'])
+        pr_label_obj.pr_label_node_id = label['node_id']
+        pr_label_obj.pr_label_url = label['url']
+        pr_label_obj.pr_label_description = label['name']
+        pr_label_obj.pr_label_color = label['color']
+        pr_label_obj.pr_label_default_bool = label['default']
         pr_label_obj.tool_source = tool_source
         pr_label_obj.tool_version = tool_version
         pr_label_obj.data_source = data_source
@@ -3293,10 +3294,10 @@ class PullRequestMeta(Base):
         return pr_meta_obj
 
 
-class PullRequestReviewer(Base):
-    __tablename__ = "pull_request_reviewers"
+class PullRequestRequestedReviewer(Base):
+    __tablename__ = "pull_request_requested_reviewers"
     __table_args__ = (
-        Index("pr-reviewers-cntrb-idx1", "cntrb_id"),
+        Index("pr-requested-reviewers-cntrb-idx1", "cntrb_id"),
         UniqueConstraint("pull_request_id", "pr_reviewer_src_id"),
         {"schema": "augur_data"},
     )
@@ -3337,7 +3338,7 @@ class PullRequestReviewer(Base):
     )
 
     cntrb = relationship("Contributor")
-    pull_request = relationship("PullRequest")
+    pull_request = relationship("PullRequest", back_populates="requested_reviewers")
 
     @classmethod
     def from_github(cls, reviewer, repo_id, tool_source, tool_version, data_source):
