@@ -7,7 +7,7 @@ from augur.application.db.util import execute_session_query
 from augur.application.db.lib import bulk_insert_dicts
 
 
-def get_release_inf(repo_id, release, tag_only):
+def get_release_inf(repo_id, release, tag_only, logger=None):
     if not tag_only:
 
         if release['author'] is None:
@@ -22,8 +22,17 @@ def get_release_inf(repo_id, release, tag_only):
             author = name + '_' + company
 
 
+        # Truncate release_id to 256 characters to match database constraint (character(256))
+        release_id_raw = str(release['id']).strip()
+        if len(release_id_raw) > 256:
+            if logger:
+                logger.warning(f"Release ID truncated from {len(release_id_raw)} to 256 characters for release '{release.get('name', 'unknown')}'")
+            release_id = release_id_raw[:256]
+        else:
+            release_id = release_id_raw
+        
         release_inf = {
-            'release_id': str(release['id']).strip(),
+            'release_id': release_id,
             'repo_id': repo_id,
             'release_name': release['name'],
             'release_description': release['description'] if release['description'] is not None else '',
@@ -50,8 +59,17 @@ def get_release_inf(repo_id, release, tag_only):
         else:
             author = "nobody"
             date = ""
+        # Truncate release_id to 256 characters to match database constraint (character(256))
+        release_id_raw = str(release['id']).strip()
+        if len(release_id_raw) > 256:
+            if logger:
+                logger.warning(f"Release ID truncated from {len(release_id_raw)} to 256 characters for tag '{release.get('name', 'unknown')}'")
+            release_id = release_id_raw[:256]
+        else:
+            release_id = release_id_raw
+        
         release_inf = {
-            'release_id': str(release['id']).strip(),
+            'release_id': release_id,
             'repo_id': repo_id,
             'release_name': release['name'],
             'release_description': 'tag_only',
@@ -75,7 +93,7 @@ def insert_release(session, logger, repo_id, owner, release, tag_only = False):
 
     # Put all data together in format of the table
     logger.info(f'Inserting release for repo with id:{repo_id}, owner:{owner}, release name:{release["name"]}\n')
-    release_inf = get_release_inf(repo_id, release, tag_only)
+    release_inf = get_release_inf(repo_id, release, tag_only, logger)
     
     # Check if release already exists (with proper trimming)
     new_release_id = str(release_inf['release_id']).strip()
