@@ -6,7 +6,7 @@ import sqlalchemy as s
 from sqlalchemy import func 
 from sqlalchemy.exc import DataError
 from sqlalchemy.dialects import postgresql
-from sqlalchemy.exc import OperationalError
+from sqlalchemy.exc import OperationalError, IntegrityError
 from psycopg2.errors import DeadlockDetected
 from typing import List, Any, Optional, Union
 
@@ -545,14 +545,20 @@ def update_issue_closed_cntrbs_by_repo_id(repo_id):
         )
 
     if update_data:
-        with engine.connect() as connection:
-            update_stmt = s.text("""
-                UPDATE issues
-                SET cntrb_id = :cntrb_id
-                WHERE issue_id = :issue_id
-                AND repo_id = :repo_id
-            """)
-            connection.execute(update_stmt, update_data)
+        try:
+            with engine.begin() as connection:
+                update_stmt = s.text("""
+                    UPDATE issues
+                    SET cntrb_id = :cntrb_id
+                    WHERE issue_id = :issue_id
+                    AND repo_id = :repo_id
+                """)
+                connection.execute(update_stmt, update_data)
+        except IntegrityError as e:
+            logger.error(f"Ran into integrity error while updating issue closed contributors for repo_id {repo_id}: {e}")
+            # Log the offending data for debugging
+            logger.debug(f"Offending update data: {update_data}")
+            # Don't raise the error - allow the task to continue
 
 def get_core_data_last_collected(repo_id):
     
