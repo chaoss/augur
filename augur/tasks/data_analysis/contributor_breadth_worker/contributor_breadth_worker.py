@@ -129,6 +129,8 @@ def process_contributor_events(cntrb, cntrb_events, logger, tool_source, tool_ve
 
     cntrb_repos_insert = []
     for event_id_api in cntrb_events:
+        if not event_id_api.get('public', True):
+            continue    
 
         cntrb_repos_insert.append({
             "cntrb_id": cntrb['cntrb_id'],
