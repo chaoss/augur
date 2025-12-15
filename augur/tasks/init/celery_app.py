@@ -77,13 +77,17 @@ BACKEND_URL = f'{redis_conn_string}{redis_db_number+1}'
 class AugurCoreRepoCollectionTask(celery.Task):
 
     def augur_handle_task_failure(self,exc,task_id,repo_git,logger_name,collection_hook='core',after_fail=CollectionState.ERROR.value):
-            
+
         # Note: I think self.app.engine would work but leaving it to try later
         engine = get_engine()
 
         logger = AugurLogger(logger_name).get_logger()
 
         logger.error(f"Task {task_id} raised exception: {exc}\n Traceback: {''.join(traceback.format_exception(None, exc, exc.__traceback__))}")
+
+        if repo_git is None:
+            logger.error(f"Task {task_id} failed but could not extract repo_git from task args/kwargs. Cannot update collection status.")
+            return
 
         with get_session() as session:
             logger.info(f"Repo git: {repo_git}")

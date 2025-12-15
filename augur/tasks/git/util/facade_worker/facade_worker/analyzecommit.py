@@ -48,10 +48,30 @@ from typing import Optional, List, Tuple, Dict, Any
 from augur.application.db.lib import execute_sql, fetchall_data_from_sql_text
 from augur.tasks.init import get_rabbitmq_conn_string
 
+# Fallback for invalid/missing git timestamps
+FALLBACK_TIMESTAMP = "1970-01-01 00:00:15 -0500"
+
 def check_swapped_emails(name: str, email: str) -> Tuple[str, str]:
     if name.find('@') >= 0 and email.find('@') == -1:
         return email, name
     return name, email
+
+def sanitize_timestamp(timestamp_str: Optional[str]) -> str:
+    """Validate and sanitize git timestamp to prevent PostgreSQL errors.
+
+    Args:
+        timestamp_str: Git timestamp in format 'YYYY-MM-DD HH:MM:SS ±HHMM'.
+
+    Returns:
+        Original timestamp if valid, or FALLBACK_TIMESTAMP if invalid.
+    """
+    if not timestamp_str:
+        return FALLBACK_TIMESTAMP
+    try:
+        datetime.datetime.strptime(timestamp_str.strip(), "%Y-%m-%d %H:%M:%S %z")
+        return timestamp_str
+    except ValueError:
+        return FALLBACK_TIMESTAMP
 
 def strip_extra_amp(email: str) -> str:
     if email.count('@') > 1:
@@ -100,7 +120,6 @@ def generate_commit_record(
     committer_name, committer_email = check_swapped_emails(committer_name or '', committer_email or '')
     author_email = strip_extra_amp(author_email or '')
     committer_email = strip_extra_amp(committer_email or '')
-    placeholder_date = "1970-01-01 00:00:15 -0500"
     return {
         'repo_id': repos_id,
         'cmt_commit_hash': str(commit),
@@ -109,16 +128,16 @@ def generate_commit_record(
         'cmt_author_raw_email': author_email,
         'cmt_author_email': discover_alias(author_email),
         'cmt_author_date': author_date,
-        'cmt_author_timestamp': author_timestamp or placeholder_date,
+        'cmt_author_timestamp': author_timestamp or FALLBACK_TIMESTAMP,
         'cmt_committer_name': committer_name,
         'cmt_committer_raw_email': committer_email,
         'cmt_committer_email': discover_alias(committer_email),
-        'cmt_committer_date': committer_date or placeholder_date,
-        'cmt_committer_timestamp': committer_timestamp or placeholder_date,
+        'cmt_committer_date': committer_date or FALLBACK_TIMESTAMP,
+        'cmt_committer_timestamp': committer_timestamp or FALLBACK_TIMESTAMP,
         'cmt_added': added,
         'cmt_removed': removed,
         'cmt_whitespace': whitespace,
-        'cmt_date_attempted': committer_date or placeholder_date,
+        'cmt_date_attempted': committer_date or FALLBACK_TIMESTAMP,
         'tool_source': "Facade",
         'tool_version': "0.80",
         'data_source': "git"
@@ -214,7 +233,7 @@ def analyze_commit(
             continue
         if line.startswith('author_date:'):
             author_date = line[12:22]
-            author_timestamp = line[12:]
+            author_timestamp = sanitize_timestamp(line[12:])
             continue
         if line.startswith('committer_name:'):
             committer_name = line[16:]
@@ -224,7 +243,7 @@ def analyze_commit(
             continue
         if line.startswith('committer_date:'):
             committer_date = line[16:26]
-            committer_timestamp = line[16:]
+            committer_timestamp = sanitize_timestamp(line[16:])
             continue
         if line.startswith('parents:'):
             if len(line[9:].split(' ')) == 2:
