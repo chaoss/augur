@@ -1,5 +1,5 @@
 """Defines the GithubRandomKeyAuth class"""
-
+import logging
 from augur.tasks.util.random_key_auth import RandomKeyAuth
 from augur.tasks.github.util.github_api_key_handler import GithubApiKeyHandler
 from sqlalchemy.orm import Session
@@ -18,7 +18,7 @@ class GithubRandomKeyAuth(RandomKeyAuth):
         #github_api_keys = random.sample(github_api_keys, len(github_api_keys))
 
         if not github_api_keys:
-            print("Failed to find github api keys. This is usually because your key has expired")
+            logging.error("Failed to find github api keys. This is usually because your key has expired")
 
         # defines the structure of the github api key
         header_name = "Authorization"

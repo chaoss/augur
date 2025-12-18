@@ -156,7 +156,7 @@ class FacadeHelper():
             last_modified DESC LIMIT 1""").bindparams(settingParam=setting)
         
         result = execute_sql(query).fetchone()
-        print(result)
+        self.logger.info(result)
         return result[0]
         
 

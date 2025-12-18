@@ -6,7 +6,7 @@ the github api key handler.
 import httpx
 import time
 import random
-
+import logging
 from typing import List
 
 from augur.tasks.util.redis_list import RedisList
@@ -121,7 +121,7 @@ class GitlabApiKeyHandler():
                 if self.is_bad_api_key(client, key) is False:
                     valid_keys.append(key)
                 else:
-                    print(f"WARNING: The key '{key}' is not a valid key. Hint: If valid in past it may have expired")
+                    logging.warning(f"WARNING: The key '{key}' is not a valid key. Hint: If valid in past it may have expired")
 
         # just in case the mulitprocessing adds extra values to the list.
         # we are clearing it before we push the values we got

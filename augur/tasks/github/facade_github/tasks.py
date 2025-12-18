@@ -302,7 +302,7 @@ def insert_facade_contributors(self, repo_git):
     result = execute_sql(resolve_email_to_cntrb_id_sql)
     existing_cntrb_emails = [dict(row) for row in result.mappings()]
 
-    print(existing_cntrb_emails)
+    logging.info(existing_cntrb_emails)
     link_commits_to_contributor(logger, facade_helper,list(existing_cntrb_emails))
 
     return

@@ -2,7 +2,7 @@
 It imports the redis_connection as redis which is a connection to a redis cahce
 """
 from typing import Iterable, Any, Union
-
+import logging
 from collections.abc import MutableSequence
 from augur.tasks.init.redis_connection import get_redis_connection
 from augur import instance_id
@@ -211,7 +211,7 @@ class RedisList(MutableSequence):
         key_list_length = self.redis.llen(self.redis_list_key) 
 
         for i in range(key_list_length):
-            print(self.redis.lindex(self.redis_list_key, i))
+            logging.info(self.redis.lindex(self.redis_list_key, i))
 
 if __name__ == "__main__":
 
@@ -223,7 +223,7 @@ if __name__ == "__main__":
     # redis_list.append(8)
     # redis_list.append(8)
     redis_list[0:4:2] = [0, 1]
-    print("List values")
+    logging.info("List values")
     redis_list.print_values()
 
     redis_list.redis.delete("list")

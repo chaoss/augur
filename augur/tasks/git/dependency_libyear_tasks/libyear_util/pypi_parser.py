@@ -201,10 +201,10 @@ def parse_conda(file_handle):
     dependencies = contents.get('dependencies', [])
     
     if not dependencies:
-        print("No dependencies found.")
+        logging.warning("No dependencies found.")
         return []
     else:
-        print("Dependencies found.")
+        logging.info("Dependencies found.")
     for dep in dependencies:
         if (type(dep) is dict) and dep['pip']:
             pip = dep
