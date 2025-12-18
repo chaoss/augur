@@ -1,5 +1,5 @@
 import logging
-
+import traceback
 
 from augur.tasks.init.celery_app import celery_app as celery
 from augur.tasks.init.celery_app import AugurFacadeRepoCollectionTask
