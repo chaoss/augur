@@ -89,10 +89,14 @@ def collect_issues(repo_git: str, full_collection: bool) -> int:
 
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 def retrieve_all_issue_data(repo_git: str, logger: logging.Logger, key_auth: GithubRandomKeyAuth, since: datetime | None = None):
 =======
 def retrieve_all_issue_data(repo_git: str, logger:logging.Logger, key_auth: GithubRandomKeyAuth, since: datetime | None = None):
 >>>>>>> 7f502bd94 (fix: Convert issues collection to generator pattern with batching)
+=======
+def retrieve_all_issue_data(repo_git: str, logger: logging.Logger, key_auth: GithubRandomKeyAuth, since: datetime | None = None):
+>>>>>>> ab2fd7b72 (Update augur/tasks/github/issues.py)
     """
     Retrieve all issue data for a repository as a generator.
 
