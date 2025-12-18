@@ -486,7 +486,6 @@ def git_repo_updates(facade_helper, repo_git):
                 pass
 
         cmdpull2 = (f"git -C {absolute_path} pull")
-        cmdpull2 = (f"git -C {absolute_path} pull")
 
         logger.info(cmdpull2)
         return_code, _ = facade_helper.run_git_command(
