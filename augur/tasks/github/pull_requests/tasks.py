@@ -331,8 +331,9 @@ def _flush_pr_review_batch(augur_db, contributors: list, pr_reviews: list, logge
     if pr_reviews:
         logger.info(f"{owner}/{repo}: Inserting {len(pr_reviews)} pr reviews")
         pr_review_natural_keys = ["pr_review_src_id"]
-        pr_review_string_fields = ["pr_review_body"]
-        augur_db.insert_data(pr_reviews, PullRequestReview, pr_review_natural_keys, string_fields=pr_review_string_fields)
+
+        augur_db.insert_data(pr_reviews, PullRequestReview, pr_review_natural_keys)
+
 
 
 @celery.task(base=AugurSecondaryRepoCollectionTask)
@@ -410,50 +411,44 @@ def collect_pull_request_reviews(repo_git: str, full_collection: bool) -> None:
             except UrlNotFoundException as e:
                 logger.warning(f"{owner}/{repo} PR #{pr_number}: {e}")
                 continue
-
-<<<<<<< HEAD
-            if pr_reviews:
-                all_pr_reviews[pull_request_id] = pr_reviews
-
-        if not list(all_pr_reviews.keys()):
-            logger.debug(f"{owner}/{repo} No pr reviews for repo")
+        pr_count = len(prs)
+        if pr_count == 0:
+            logger.debug(f"{owner}/{repo} No PRs to collect reviews for")
             return
 
-        # Process contributors (all_pr_reviews already in memory, so no OOM risk)
-        contributors = []
-        for pull_request_id, reviews in all_pr_reviews.items():
+        logger.info(f"{owner}/{repo}: Collecting reviews for {pr_count} PRs")
 
-            for review in reviews:
-=======
+        github_data_access = GithubDataAccess(manifest.key_auth, logger)
+
+        # Batch processing: accumulate reviews until batch size reached, then flush
+        REVIEW_BATCH_SIZE = 1000
+        contributors = []
+        pr_review_dicts = []
+        total_reviews_collected = 0
+
+        for index, pr in enumerate(prs):
+            pr_number = pr.pr_src_number
+            pull_request_id = pr.pull_request_id
+
+            # Log progress every 100 PRs
+            if index % 100 == 0:
+                logger.debug(f"{owner}/{repo} Processing PR {index + 1} of {pr_count}")
+
+            pr_review_url = f"https://api.github.com/repos/{owner}/{repo}/pulls/{pr_number}/reviews"
+
+            try:
+                pr_reviews = list(github_data_access.paginate_resource(pr_review_url))
+            except UrlNotFoundException as e:
+                logger.warning(f"{owner}/{repo} PR #{pr_number}: {e}")
+                continue
+
             # Single-pass extraction: get both contributor and review data together
             for review in pr_reviews:
                 # Extract contributor
->>>>>>> 7162e832e4b9bffb7f2b1121ab6c2d2aa7ad4a11
                 contributor = process_pull_request_review_contributor(review, tool_source, tool_version, data_source)
                 if contributor:
                     contributors.append(contributor)
 
-<<<<<<< HEAD
-        logger.info(f"{owner}/{repo} Pr reviews: Inserting {len(contributors)} contributors")
-        augur_db.insert_data(contributors, Contributor, ["cntrb_id"])
-        logger.info(f"{owner}/{repo} Pr reviews: Inserting {len(contributors)} contributors")
-        augur_db.insert_data(contributors, Contributor, ["cntrb_id"])
-
-
-        # Process pr reviews (all_pr_reviews already in memory, so no OOM risk)
-        pr_reviews = []
-        for pull_request_id, reviews in all_pr_reviews.items():
-
-            for review in reviews:
-
-                if "cntrb_id" in review:
-                    pr_reviews.append(extract_needed_pr_review_data(review, pull_request_id, repo_id, platform_id, tool_source, tool_version))
-
-        logger.info(f"{owner}/{repo}: Inserting pr reviews of length: {len(pr_reviews)}")
-        pr_review_natural_keys = ["pr_review_src_id",]
-        pr_review_string_fields = ["pr_review_body",]
-        augur_db.insert_data(pr_reviews, PullRequestReview, pr_review_natural_keys, string_fields=pr_review_string_fields)
-=======
                 # Extract review data (only if contributor was successfully linked)
                 if "cntrb_id" in review:
                     pr_review_dicts.append(
@@ -471,7 +466,6 @@ def collect_pull_request_reviews(repo_git: str, full_collection: bool) -> None:
         if pr_review_dicts:
             _flush_pr_review_batch(augur_db, contributors, pr_review_dicts, logger, owner, repo)
             total_reviews_collected += len(pr_review_dicts)
->>>>>>> 7162e832e4b9bffb7f2b1121ab6c2d2aa7ad4a11
 
         if total_reviews_collected == 0:
             logger.debug(f"{owner}/{repo} No pr reviews found for repo")
