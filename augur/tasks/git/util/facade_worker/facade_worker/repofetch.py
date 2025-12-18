@@ -486,29 +486,30 @@ def git_repo_updates(facade_helper, repo_git):
                 pass
 
         cmdpull2 = (f"git -C {absolute_path} pull")
-cmdpull2 = (f"git -C {absolute_path} pull")
+        cmdpull2 = (f"git -C {absolute_path} pull")
 
-logger.info(cmdpull2)
-return_code, _ = facade_helper.run_git_command(
-    cmdpull2,
-    timeout=600,  # 10 minutes for git pull
-    capture_output=False,
-    operation_description=f'git pull {repo.repo_git}'
-)
+        logger.info(cmdpull2)
+        return_code, _ = facade_helper.run_git_command(
+            cmdpull2,
+            timeout=600,  # 10 minutes for git pull
+            capture_output=False,
+            operation_description=f'git pull {repo.repo_git}'
+        )
 
 
         attempt += 1
 
         # default_branch = ''
 
-    if return_code == 0:
+        if return_code == 0:
 
-        update_repo_log(logger, facade_helper, repo.repo_id, 'Up-to-date')
-        facade_helper.log_activity('Verbose', f"Updated {repo.repo_git}")
 
-    else:
+            update_repo_log(logger, facade_helper, repo.repo_id, 'Up-to-date')
+            facade_helper.log_activity('Verbose', f"Updated {repo.repo_git}")
 
-        update_repo_log(logger, facade_helper, repo.repo_id, f"Failed ({return_code})")
-        facade_helper.log_activity('Error', f"Could not update {repo.repo_git}")
+        else:       
+                
+            update_repo_log(logger, facade_helper, repo.repo_id, f"Failed ({return_code})")
+            facade_helper.log_activity('Error', f"Could not update {repo.repo_git}")
 
-    facade_helper.log_activity('Info', 'Updating existing repos (complete)')
+            facade_helper.log_activity('Info', 'Updating existing repos (complete)')
