@@ -255,11 +255,9 @@ def analyze_commits_in_parallel(repo_git, multithreaded: bool)-> None:
     facade_helper.log_activity('Debug',f"Commits missing from repo {repo_id}: {len(missing_commits)}")
 
     
-<<<<<<< HEAD
-    if missing_commits or repo_id is None:
-=======
+
     if not missing_commits or repo_id is None:
->>>>>>> 7162e832e4b9bffb7f2b1121ab6c2d2aa7ad4a11
+
         #session.log_activity('Info','Type of missing_commits: %s' % type(missing_commits))
         return
     
