@@ -122,9 +122,8 @@ def calculate_date_weight_from_timestamps(added,last_collection,domain_start_day
         #If the repo is older than thirty days, start to decrease its weight.
         if delta.days >= domain_start_days:
             return factor
-        else:
-            #Else increase its weight
-            return -1 * factor
+        #Else increase its weight
+        return -1 * factor
 
 def parse_json_from_subprocess_call(logger, subprocess_arr, cwd=None):
     logger.info(f"running subprocess {subprocess_arr[0]}")

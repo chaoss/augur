@@ -36,9 +36,8 @@ def collect_gitlab_merge_requests(repo_git: str) -> int:
         mr_ids = process_merge_requests(mr_data, f"{owner}/{repo}: Mr task", repo_id, logger)
 
         return mr_ids
-    else:
-        logger.info(f"{owner}/{repo} has no merge requests")
-        return []
+    logger.info(f"{owner}/{repo} has no merge requests")
+    return []
 
 
 def retrieve_all_mr_data(repo_git: str, logger, key_auth) -> None:
