@@ -9,17 +9,18 @@ Before getting started, please make sure you've read the [README](README.md) to 
 New to open source or Augur? Here's how most people get started. Go at your own pace.
 ### 1. Join the Community & Learn How Things Work
 - **Join Slack**: Go to [CHAOSS Slack](https://chaoss-workspace.slack.com/join/shared_invite/zt-35ir7w0jr-aiwTPYShbj~mMsMbzhGWWQ#/shared-invite/email) and join `#wg-augur-8knot`
-- **Read CHAOSS Docs**: Look at the [Code of Conduct](https://chaoss.community/) and browse the [CHAOSS website](https://chaoss.community/)
-- **Review this CONTRIBUTING.md**: Get familiar with our contribution guidelines and AI contribution policy
+- **Read CHAOSS Docs**: Look at the [Code of Conduct](https://chaoss.community/code-of-conduct/) and browse the [CHAOSS website](https://chaoss.community/)
+- **Review this CONTRIBUTING.md**: Get familiar with our contribution guidelines and current project policies
 - **Attend Meetings**: Check the [CHAOSS calendar](https://chaoss.community/chaoss-calendar/) for meetings like:
-  - [Newcomer Hangout](https://zoom.us/my/chaoss)
-  - [Community Call](https://zoom.us/my/chaoss)
-  - [Augur/8-Knot Software Working Group](https://zoom.us/my/chaoss)
+  - Newcomer Hangout
+  - Community Call
+  - Augur/8-Knot Software Working Group 
 - **Watch Recordings**: Find past meetings on the [CHAOSS YouTube channel](https://www.youtube.com/@CHAOSStube)
 - **Request a Tour Guide** (Optional): Not sure where to start? Ask in the `#newcomers` Slack channel for 1:1 help
 ### 2. Run Augur
 - **Read the Docs**: Start at [Augur documentation](https://oss-augur.readthedocs.io/en/main/) (check out the Docker setup guide)
 - **Install Augur**: Follow the installation instructions [getting-started-guide](https://oss-augur.readthedocs.io/en/main/getting-started/toc.html) to get it running on your machine
+- **Getting Started Video**: Set up and run Augur on [YouTube](https://www.youtube.com/watch?v=SXLnWwwSsSE)
 ### 3. Start with Good First Issues
 - **Browse Issues**: Look for [`good first issue`](https://github.com/chaoss/augur/labels/good%20first%20issue) labels
 - **Brand New?**: Try [`first-timers-only`](https://github.com/chaoss/augur/issues?q=state%3Aopen%20label%3Afirst-timers-only) issues
@@ -28,15 +29,15 @@ New to open source or Augur? Here's how most people get started. Go at your own 
 #### How to Find Good First Issues
 Go to the [issue](https://github.com/chaoss/augur/issues) tab:
 
-<img width="1890" height="781" alt="Image" src="https://github.com/user-attachments/assets/55b21b8a-df91-4c11-bbcd-38597f9d3cd8" />
+<img width="1560" alt="Image" src="https://github.com/user-attachments/assets/7ed7f91e-4d17-4466-b1c1-249bcedd77a1" />
 
 filter by `good first issue` or `first-timers-only`:
 
-<img width="1738" height="631" alt="Image" src="https://github.com/user-attachments/assets/f505dc2f-c034-4229-97da-98bc8173f713" />
+<img width="1563"  alt="Image" src="https://github.com/user-attachments/assets/fe69e6ac-55f9-489b-954d-ffdf7d1de47d" />
 
 You'll see available issues:
 
-<img width="1872" height="770" alt="Image" src="https://github.com/user-attachments/assets/c67cf2e8-0425-4451-9296-839bc9bf11f5" />
+<img width="1563" alt="Image" src="https://github.com/user-attachments/assets/ae1278ea-385b-4ac5-928f-2f5e36e533e5" />
 
 ### 4. Need Help?
 - Ask in `#wg-augur-8knot` on Slack
