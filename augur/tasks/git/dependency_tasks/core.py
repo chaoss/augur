@@ -8,6 +8,8 @@ from augur.tasks.util.worker_util import parse_json_from_subprocess_call
 from augur.tasks.git.util.facade_worker.facade_worker.utilitymethods import get_absolute_repo_path
 from augur.tasks.github.util.github_random_key_auth import GithubRandomKeyAuth
 from augur.tasks.util.metadata_exception import MetadataException
+from augur.metadata import __version__
+
 
 
 def generate_deps_data(logger, repo_git):
@@ -126,7 +128,7 @@ def generate_scorecard(logger, repo_git):
                 'scorecard_check_details': check,
                 'score': check['score'],
                 'tool_source': 'scorecard_model',
-                'tool_version': '0.89.1',
+                'tool_version': __version__,
                 'data_source': 'Git',
                 'data_collection_date': datetime.now().strftime('%Y-%m-%dT%H:%M:%SZ')
             }

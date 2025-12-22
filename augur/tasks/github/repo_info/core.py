@@ -11,6 +11,7 @@ from augur.application.db.lib import execute_sql
 from augur.tasks.github.util.github_task_session import *
 from augur.application.db.models.augur_data import RepoBadging
 from urllib.parse import quote
+from augur.metadata import __version__
 
 def query_committers_count(key_auth, logger, owner, repo):
 
@@ -223,7 +224,7 @@ def repo_info_model(key_auth, repo_orm_obj, logger):
         'pull_requests_closed': data['pr_closed']['totalCount'] if data['pr_closed'] else None,
         'pull_requests_merged': data['pr_merged']['totalCount'] if data['pr_merged'] else None,
         'tool_source': 'Repo_info Model',
-        'tool_version': '0.50.0',
+        'tool_version': __version__,
         'data_source': "Github"
     }
 
