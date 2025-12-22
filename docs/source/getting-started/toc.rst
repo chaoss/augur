@@ -26,6 +26,7 @@ Happy hacking!
 
    database
    installation
+   wsl-setup
    collecting-data
    frontend
    command-line-interface/toc
