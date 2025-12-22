@@ -28,6 +28,7 @@ from augur.application.db.session import DatabaseSession
 from augur.application.logs import AugurLogger
 from augur.application.db.lib import get_value
 from augur.application.cli import test_connection, test_db_connection, with_database, DatabaseContext
+from augur.application.config import AugurConfig
 import sqlalchemy as s
 
 from keyman.KeyClient import KeyClient, KeyPublisher
@@ -157,6 +158,10 @@ def start(ctx, disable_collection, development, pidfile, port):
             keypub.publish(key, "gitlab_rest")
         
         with DatabaseSession(logger, engine=ctx.obj.engine) as session:
+            # Sync missing config values from defaults to database
+            # This ensures new config values are automatically added for existing installations
+            config = AugurConfig(logger, session)
+            config.sync_missing_config_values()
 
             clean_collection_status(session)
             assign_orphan_repos_to_default_user(session)
