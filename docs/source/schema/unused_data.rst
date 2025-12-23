@@ -1,69 +1,53 @@
-List of Unused Data Tables In Augur
-===================================
+List of Unused and Legacy Data Tables
+=============================
 
-** This is a list of data tables in augur that are not currently in use. **
+This page tracks tables that are not part of the current collection/analysis
+pipelines, and how we plan to handle them. Tables are grouped into three
+categories:
 
-    * chaoss_metric_status
+1. **Currently in use** (keep as-is if they are used by the current collection/analysis pipelines)
+2. **Legacy (keep for historical data, move to a legacy schema if possible)**
+3. **Candidates for removal** (drop once confirmed no longer needed)
 
-        .. image:: images/chaoss_metric_status.png
-            :width: 200
+Currently in use
+----------------
 
-    * chaoss_user
+- ``message_sentiment`` and ``message_sentiment_summary``  
+  Still used by the message insights / sentiment worker.
 
-        .. image:: images/chaoss_user.png
-            :width: 200
+Legacy (keep for historical data)
+---------------------------------
+These tables are no longer written by current workers, but may exist on older
+instances. Preserve the data and consider moving them to a dedicated legacy
+schema so they do not clutter the active schema.
 
-    * commit_comment_ref
+- ``chaoss_metric_status`` — legacy CHAOSS metric metadata (not populated today).
+- ``chaoss_user`` — legacy CHAOSS user metadata.
+- ``commit_comment_ref`` — historical commit/message linkage data from earlier releases.
+- ``libraries`` / ``library_dependencies`` / ``library_version`` — legacy dependency manifests.
+- ``lstm_anomaly_models`` / ``lstm_anomaly_results`` — legacy anomaly model outputs.
+- ``repo_group_insights`` — legacy insights table.
+- ``repo_groups_list_serve`` — legacy listserv group table.
+- ``repo_test_coverage`` — legacy coverage table.
+- ``dei_badging`` — one-off DEI badging event data (see #3423).
 
-        .. image:: images/commit_comment_ref.png
-            :width: 200
+Candidates for removal
+----------------------
+These tables have no current code paths and no known active consumers. They can
+be dropped after confirming they are empty on the target instance (or after
+migrating any preserved rows to a legacy schema):
 
-    * libraries
+- ``chaoss_metric_status``
+- ``chaoss_user``
+- ``libraries``, ``library_dependencies``, ``library_version``
+- ``lstm_anomaly_models``, ``lstm_anomaly_results``
+- ``repo_group_insights``
+- ``repo_groups_list_serve``
+- ``repo_test_coverage``
 
-        .. image:: images/libraries.png
-            :width: 200
-
-    * library_dependencies
-
-        .. image:: images/library_dependencies.png
-            :width: 200
-
-    * library_version
-
-        .. image:: images/library_version.png
-            :width: 200
-
-    * lstm_anomaly_models
-
-        .. image:: images/lstm_anomaly_models.png
-            :width: 200
-
-    * lstm_anomaly_results
-
-        .. image:: images/lstm_anomaly_results.png
-            :width: 200
-
-    * message_sentiment
-
-        .. image:: images/message_sentiment.png
-            :width: 200
-
-    * message_sentiment_summary
-
-        .. image:: images/message_sentiment_summary.png
-            :width: 200
-
-    * Repo_group_insights
-
-        .. image:: images/repo_group_insights.png
-            :width: 200
-
-    * repo_groups_list_serve
-
-        .. image:: images/repo_groups_list_serve.png
-            :width: 200
-
-    * repo_test_coverage
-
-        .. image:: images/repo_test_coverage.png
-            :width: 200
+Notes
+-----
+- For safety, export or move tables in the **Legacy** section to a ``legacy``
+  schema before dropping from the active schemas.
+- If you are running optional analysis workers that rely on sentiment, keep
+  ``message_sentiment`` and ``message_sentiment_summary``.
