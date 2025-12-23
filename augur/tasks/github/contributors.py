@@ -35,7 +35,7 @@ def process_contributors():
         logger.info("No contributors to enrich...returning...")
         return
 
-    print(f"Length of contributors to enrich: {contributors_len}")
+    logging.info(f"Length of contributors to enrich: {contributors_len}")
     enriched_contributors = []
     for index, contributor in enumerate(contributors):
 
@@ -50,7 +50,7 @@ def process_contributors():
         data = retrieve_dict_data(url, key_auth, logger)
 
         if data is None:
-            print(f"Unable to get contributor data for: {contributor_dict['cntrb_login']}")
+            logging.info(f"Unable to get contributor data for: {contributor_dict['cntrb_login']}")
             continue
 
         new_contributor_data = {
