@@ -1,5 +1,5 @@
 List of Unused and Legacy Data Tables
-=============================
+=====================================
 
 This page tracks tables that are not part of the current collection/analysis
 pipelines, and how we plan to handle them. Tables are grouped into three
