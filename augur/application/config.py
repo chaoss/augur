@@ -299,6 +299,38 @@ class AugurConfig():
 
             return file_data
 
+    def sync_missing_config_values(self) -> None:
+        """Sync missing config values from defaults to the database.
+        
+        This method ensures that when new config values are added to default_config,
+        they are automatically added to the database for existing installations.
+        It only adds values that don't already exist in the database, preserving
+        any user customizations.
+        """
+        try:
+            writeable_config = self._get_writable_source()
+        except NotWriteableException:
+            # Can't write to config, skip syncing
+            return
+        
+        # Get the default config (from JsonConfig with default_config)
+        default_config_source = self.config_sources[0]  # First source is always default_config
+        default_config_dict = default_config_source.retrieve_dict()
+        
+        # For each section in default config, check if values exist in database
+        for section_name, section_values in default_config_dict.items():
+            if not isinstance(section_values, dict):
+                continue
+            
+            # Check each setting in the default section
+            for setting_name, default_value in section_values.items():
+                # Only add if it doesn't exist in database
+                if not writeable_config.has_value(section_name, setting_name):
+                    self.logger.info(f"Adding missing config value: {section_name}.{setting_name} = {default_value}")
+                    # Use ignore_existing=True since we've already checked it doesn't exist
+                    # This ensures we don't accidentally overwrite if there's a race condition
+                    writeable_config.add_value(section_name, setting_name, default_value, ignore_existing=True)
+
     def load_config_from_dict(self, dict_data: dict) -> None:
         """Create config from a dict.
         

@@ -114,6 +114,18 @@ class FacadeHelper():
         with DatabaseSession(logger, engine) as session:
             config = AugurConfig(logger, session)
         
+            """ worker_options is a dictionary containing all settings from the "Facade" section
+            of the config. It comes from config.get_section("Facade"), which merges config
+            from multiple sources in order of precedence:
+            1. default_config (from augur/application/config.py)
+            2. augur.json file (if it exists)
+            3. Database config (augur_operations.config table)
+            
+            The merge uses dict.update(), so database values override defaults.
+            If a new config value is added to default_config but doesn't exist in the database,
+            it will be missing from worker_options unless sync_missing_config_values() has
+            been called to populate it.
+            """
             worker_options = config.get_section("Facade")
 
         self.limited_run = worker_options["limited_run"]
@@ -132,7 +144,7 @@ class FacadeHelper():
         self.multithreaded = worker_options["multithreaded"]
         self.create_xlsx_summary_files = worker_options["create_xlsx_summary_files"]
         self.facade_contributor_full_recollect = worker_options["facade_contributor_full_recollect"]
-        self.commit_messages = worker_options["commit_messages"]
+        self.commit_messages = worker_options.get("commit_messages", 1)
 
         self.tool_source = "Facade"
         self.data_source = "Git Log"
