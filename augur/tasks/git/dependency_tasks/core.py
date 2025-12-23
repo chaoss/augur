@@ -6,7 +6,6 @@ from augur.tasks.github.util.github_api_key_handler import GithubApiKeyHandler
 from augur.tasks.git.dependency_tasks.dependency_util import dependency_calculator as dep_calc
 from augur.tasks.util.worker_util import parse_json_from_subprocess_call
 from augur.tasks.git.util.facade_worker.facade_worker.utilitymethods import get_absolute_repo_path
-from augur.tasks.github.util.github_random_key_auth import GithubRandomKeyAuth
 from augur.tasks.util.metadata_exception import MetadataException
 
 
