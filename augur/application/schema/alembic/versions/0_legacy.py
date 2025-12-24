@@ -50,6 +50,13 @@ def upgrade():
             # database has never been created
             augur_version = 79
             logger.info(f"New database, will run all legacy migrations")
+    
+    # Replace hardcoded "augur" in OWNER statements with CURRENT_USER
+    # This allows migrations to work with any database username, not just "augur"
+    # CURRENT_USER is a PostgreSQL keyword that always refers to the current session user
+    current_user_replacement = "CURRENT_USER"
+    logger.info(f"Replacing OWNER TO 'augur' with OWNER TO {current_user_replacement} in legacy migrations")
+    
     legacy_folder = Path(__file__).parent / "legacy"
     relevant_legacy_migrations = filter(
         lambda file_name: is_newer_than_current_version(file_name, augur_version),
@@ -65,12 +72,32 @@ def upgrade():
         legacy_migration_file_path = legacy_folder / legacy_migration_filename
         with legacy_migration_file_path.open() as legacy_migration_file:
             logger.info(f"Running legacy migration {legacy_migration_filename}")
-            op.execute(legacy_migration_file.read())
+            sql_content = legacy_migration_file.read()
+            
+            # Replace all variations of OWNER TO "augur" with CURRENT_USER
+            # Handle: OWNER TO "augur", OWNER TO 'augur', OWNER TO augur
+            sql_content = re.sub(
+                r'OWNER TO\s+["\']?augur["\']?',
+                f'OWNER TO {current_user_replacement}',
+                sql_content,
+                flags=re.IGNORECASE
+            )
+            
+            op.execute(sql_content)
 
     # execute the commit.sql file at then end of all the sql files to COMMIT everything in the first revision
-    commit_file_path = str(legacy_folder) + "/commit.sql"
-    with open(commit_file_path, "r") as commit_file:
-        op.execute(commit_file.read())
+    commit_file_path = legacy_folder / "commit.sql"
+    if commit_file_path.exists():
+        with open(commit_file_path, "r") as commit_file:
+            commit_sql = commit_file.read()
+            # Replace OWNER TO "augur" in commit.sql as well
+            commit_sql = re.sub(
+                r'OWNER TO\s+["\']?augur["\']?',
+                f'OWNER TO {current_user_replacement}',
+                commit_sql,
+                flags=re.IGNORECASE
+            )
+            op.execute(commit_sql)
 
 
 def downgrade():

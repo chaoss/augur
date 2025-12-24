@@ -38,7 +38,7 @@ def upgrade():
 
 
             ALTER TABLE "augur_operations"."user_groups" 
-            OWNER TO "augur";
+            OWNER TO CURRENT_USER;
 
             INSERT INTO "augur_operations"."user_groups" ("group_id", "user_id", "name") VALUES (1, {}, 'default') ON CONFLICT ("user_id", "name") DO NOTHING;
             ALTER SEQUENCE user_groups_group_id_seq RESTART WITH 2;
