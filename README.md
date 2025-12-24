@@ -43,9 +43,11 @@ For more information on [how to get involved on the CHAOSS website](https://chao
 
 ## Collecting Data
 
-Augur supports ```Python3.7``` through ```Python3.11``` on all platforms. ```Python3.12``` and above do not yet work because of machine learning worker dependencies. On OSX, you can create a ```Python3.11``` environment, by running:
+Augur officially supports ```Python3.11``` on all platforms. ```Python3.12``` and above do not yet work because of machine learning worker dependencies. We recommend using [uv](https://github.com/astral-sh/uv) to manage your Python environment:
 ```
-$ python3.11 -m venv path/to/venv
+$ uv venv --python 3.11
+$ source .venv/bin/activate  # On Unix/macOS
+$ .venv\Scripts\activate     # On Windows
 ```
 
 Augur's main focus is to measure the overall health and sustainability of open source projects.
