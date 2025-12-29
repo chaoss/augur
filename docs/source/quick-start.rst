@@ -7,7 +7,7 @@ Get Augur running in minutes! We offer two straightforward paths:
 
 **Manual Installation** - For production deployments, development work, or if Docker isn't available on your platform.
 
-Note: Augur's dependencies support Python 3.8 - Python 3.10. Python 3.11+ is not yet fully supported.
+Note: Augur's dependencies support all python versions (although some features may not work on brand new python versions as soon as they release)
 
 .. toctree::
    :maxdepth: 2

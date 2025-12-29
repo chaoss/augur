@@ -9,13 +9,13 @@ Choose Your Installation Method
 
 Augur offers two primary installation approaches:
 
-**Docker (Recommended for Quickstart)**: The fastest way to get Augur up and running with minimal setup. Ideal for trying out Augur, demonstrations, or light installations (~< 2,000 repos).
+**Docker (Recommended for Quickstart)**: The fastest way to get Augur up and running with minimal setup. Ideal for trying out Augur, demonstrations.
 
 **Manual Installation (Recommended for Long-term Use)**: For production deployments, long-term data collection, or development work. We officially support macOS, Ubuntu, and Fedora.
 
 .. note::
 
-    We recommend either using the Docker images or setting up a virtual machine with a supported operating system installed if you are using Windows.
+    We recommend either using the Docker images or setting up a virtual machine .
 
 Select the installation method below to get started:
 
