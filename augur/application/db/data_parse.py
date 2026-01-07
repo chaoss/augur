@@ -8,7 +8,6 @@ import sqlalchemy as s
 from typing import List
 
 
-# retrieve only the needed data for pr labels from the api response
 def extract_needed_pr_label_data(labels: List[dict], repo_id: int, tool_source: str, tool_version: str, data_source: str) -> List[dict]:
 
     if len(labels) == 0:
@@ -18,7 +17,6 @@ def extract_needed_pr_label_data(labels: List[dict], repo_id: int, tool_source: 
     for label in labels:
 
         label_dict = {
-            # store the pr_url data on in the pr label data for now so we can relate it back to a pr later
             'pr_src_id': int(label['id']),
             'pr_src_node_id': label['node_id'],
             'pr_src_url': label['url'],
@@ -30,8 +28,6 @@ def extract_needed_pr_label_data(labels: List[dict], repo_id: int, tool_source: 
             'data_source': data_source,
             'repo_id': repo_id
         }
-
-        # label_obj = PullRequestLabels(**label_dict)
 
         label_dicts.append(label_dict)
 
@@ -66,7 +62,6 @@ def extract_needed_mr_label_data(labels: List[dict], repo_id: int, tool_source: 
             'pr_src_url': None,
             'pr_src_description': label['name'],
             'pr_src_color': label['color'],
-            # TODO: Populate this by making an api call for each label
             'pr_src_default_bool': None,
             'tool_source': tool_source,
             'tool_version': tool_version,
@@ -201,7 +196,6 @@ def extract_needed_pr_metadata(metadata_list: List[dict], repo_id: int, tool_sou
             'pr_src_meta_label': meta['label'],
             'pr_src_meta_ref': meta['ref'],
             'pr_sha': meta['sha'],
-            # Cast as int for the `nan` user by SPG on 11/28/2021; removed 12/6/2021
             'cntrb_id': meta["cntrb_id"] if "cntrb_id" in meta else None,
             'tool_source': tool_source,
             'tool_version': tool_version,
@@ -217,7 +211,6 @@ def extract_needed_pr_metadata(metadata_list: List[dict], repo_id: int, tool_sou
 def extract_pr_review_message_ref_data(comment: dict, augur_pr_review_id, github_pr_review_id, repo_id: int, tool_version: str, data_source: str) -> dict:
 
     pr_review_comment_message_ref = {
-        # msg_id turned up null when I removed the cast to int ..
         'msg_id': comment["msg_id"],
         'pr_review_id': augur_pr_review_id,
         'pr_review_msg_url': comment['url'],
@@ -226,59 +219,25 @@ def extract_pr_review_message_ref_data(comment: dict, augur_pr_review_id, github
         'pr_review_msg_node_id': comment['node_id'],
         'pr_review_msg_diff_hunk': comment['diff_hunk'],
         'pr_review_msg_path': comment['path'],
-        'pr_review_msg_position': s.sql.expression.null() if not (  # This had to be changed because "None" is JSON. SQL requires NULL SPG 11/28/2021
-            # 12/6/2021 - removed casting from value check
-            comment['position']
-        ) else comment['position'],
-        'pr_review_msg_original_position': s.sql.expression.null() if not (  # This had to be changed because "None" is JSON. SQL requires NULL SPG 11/28/2021
-            # 12/6/2021 - removed casting from value check
-            comment['original_position']
-        ) else comment['original_position'],
+        'pr_review_msg_position': s.sql.expression.null() if not comment['position'] else comment['position'],
+        'pr_review_msg_original_position': s.sql.expression.null() if not comment['original_position'] else comment['original_position'],
         'pr_review_msg_commit_id': str(comment['commit_id']),
         'pr_review_msg_original_commit_id': str(comment['original_commit_id']),
         'pr_review_msg_updated_at': comment['updated_at'],
         'pr_review_msg_html_url': comment['html_url'],
         'pr_url': comment['pull_request_url'],
         'pr_review_msg_author_association': comment['author_association'],
-        'pr_review_msg_start_line': s.sql.expression.null() if not (  # This had to be changed because "None" is JSON. SQL requires NULL SPG 11/28/2021
-            # 12/6/2021 - removed casting from value check
-            comment['start_line']
-        ) else comment['start_line'],
-        'pr_review_msg_original_start_line': s.sql.expression.null() if not (  # This had to be changed because "None" is JSON. SQL requires NULL SPG 11/28/2021
-            # 12/6/2021 - removed casting from value check
-            comment['original_start_line']
-        ) else int(comment['original_start_line']),
-        'pr_review_msg_start_side': s.sql.expression.null() if not (  # This had to be changed because "None" is JSON. SQL requires NULL SPG 11/28/2021
-            str(comment['start_side'])
-        ) else str(comment['start_side']),
-        'pr_review_msg_line': s.sql.expression.null() if not (  # This had to be changed because "None" is JSON. SQL requires NULL SPG 11/28/2021
-            # 12/6/2021 - removed casting from value check
-            comment['line']
-        ) else int(comment['line']),
-        'pr_review_msg_original_line': s.sql.expression.null() if not (  # This had to be changed because "None" is JSON. SQL requires NULL SPG 11/28/2021
-            # 12/6/2021 - removed casting from value check
-            comment['original_line']
-        ) else int(comment['original_line']),
-        'pr_review_msg_side': s.sql.expression.null() if not (  # This had to be changed because "None" is JSON. SQL requires NULL SPG 11/28/2021
-            str(comment['side'])
-        ) else str(comment['side']),
+        'pr_review_msg_start_line': s.sql.expression.null() if not comment['start_line'] else comment['start_line'],
+        'pr_review_msg_original_start_line': s.sql.expression.null() if not comment['original_start_line'] else int(comment['original_start_line']),
+        'pr_review_msg_start_side': s.sql.expression.null() if not str(comment['start_side']) else str(comment['start_side']),
+        'pr_review_msg_line': s.sql.expression.null() if not comment['line'] else int(comment['line']),
+        'pr_review_msg_original_line': s.sql.expression.null() if not comment['original_line'] else int(comment['original_line']),
+        'pr_review_msg_side': s.sql.expression.null() if not str(comment['side']) else str(comment['side']),
         'tool_source': 'pull_request_reviews model',
         'tool_version': tool_version + "_reviews",
         'data_source': data_source,
         'repo_id': repo_id
     }
-
-    # pr_comment_msg_ref = {
-    #     'pull_request_id': pr_id,
-    #     # to cast, or not to cast. That is the question. 12/6/2021
-    #     'msg_id': msg_id,
-    #     'pr_message_ref_src_comment_id': int(comment['id']),
-    #     'pr_message_ref_src_node_id': comment['node_id'],
-    #     'tool_source': tool_source,
-    #     'tool_version': tool_version,
-    #     'data_source': data_source,
-    #     'repo_id': repo_id
-    # }
 
     return pr_review_comment_message_ref
 
@@ -338,7 +297,7 @@ def extract_needed_issue_assignee_data(assignees: List[dict], repo_id: int, tool
     for assignee in assignees:
 
         assignee_dict = {
-            'cntrb_id': assignee["cntrb_id"], # # this is added to the data by the function process_issue_contributors in issue_tasks.py
+            'cntrb_id': assignee["cntrb_id"],
             'tool_source': tool_source,
             'tool_version': tool_version,
             'data_source': data_source,
@@ -389,7 +348,6 @@ def extract_needed_gitlab_issue_assignee_data(assignees: List[dict], repo_id: in
 
 
 
-# retrieve only the needed data for pr labels from the api response
 def extract_needed_issue_label_data(labels: List[dict], repo_id: int, tool_source: str, tool_version: str, data_source: str) -> List[dict]:
 
     if len(labels) == 0:
@@ -409,8 +367,6 @@ def extract_needed_issue_label_data(labels: List[dict], repo_id: int, tool_sourc
             'label_src_node_id': label['node_id'],
             'repo_id': repo_id 
         }
-
-        # label_obj = PullRequestLabels(**label_dict)
 
         label_dicts.append(label_dict)
 
@@ -486,7 +442,6 @@ def extract_needed_issue_message_ref_data(message: dict, issue_id: int, repo_id:
 
     return message_ref_dict
 
-# retrieve only the needed data for pr labels from the api response
 def extract_needed_pr_message_ref_data(comment: dict, pull_request_id: int, repo_id: int, tool_source: str, tool_version: str, data_source: str) -> dict:
 
     message_ref_dict = {
@@ -521,9 +476,7 @@ def extract_needed_pr_data(pr, repo_id, tool_source, tool_version):
     pr = {
         'repo_id': repo_id,
         'pr_url': pr['url'],
-        # 1-22-2022 inconsistent casting; sometimes int, sometimes float in bulk_insert
         'pr_src_id': int(str(pr['id']).encode(encoding='UTF-8').decode(encoding='UTF-8')),
-        # 9/20/2021 - This was null. No idea why.
         'pr_src_node_id': pr['node_id'],
         'pr_html_url': pr['html_url'],
         'pr_diff_url': pr['diff_url'],
@@ -535,7 +488,6 @@ def extract_needed_pr_data(pr, repo_id, tool_source, tool_version):
         'pr_src_locked': pr['locked'],
         'pr_src_title': str(pr['title']),
         'pr_augur_contributor_id': pr["cntrb_id"],
-        ### Changed to int cast based on error 12/3/2021 SPG (int cast above is first change on 12/3)
         'pr_body': str(pr['body']).encode(encoding='UTF-8', errors='backslashreplace').decode(encoding='UTF-8', errors='ignore') if (
             pr['body']
         ) else None,
@@ -591,16 +543,15 @@ def extract_needed_issue_data(issue: dict, repo_id: int, tool_source: str, tool_
     """
 
     dict_data = {
-        'cntrb_id': None, # this the contributor who closed the issue
+        'cntrb_id': None,
         'repo_id': repo_id,
-        'reporter_id': issue["cntrb_id"], # this is the contributor who opened the issue
+        'reporter_id': issue["cntrb_id"],
         'pull_request': None,
         'pull_request_id': None,
         'created_at': issue['created_at'],
         'issue_title': str(issue['title']).encode(encoding='UTF-8', errors='backslashreplace').decode(encoding='UTF-8', errors='ignore') if (
             issue['title']
         ) else None,
-        # 'issue_body': issue['body'].replace('0x00', '____') if issue['body'] else None,
         'issue_body': str(issue['body']).encode(encoding='UTF-8', errors='backslashreplace').decode(encoding='UTF-8', errors='ignore') if (
             issue['body']
         ) else None,
@@ -662,7 +613,7 @@ def extract_needed_contributor_data(contributor, tool_source, tool_version, data
             # "cntrb_type": , dont have a use for this as of now ... let it default to null
             "cntrb_canonical": contributor['email'] if 'email' in contributor else None,
             "gh_user_id": contributor['id'],
-            "gh_login": str(contributor['login']),  ## cast as string by SPG on 11/28/2021 due to `nan` user
+            "gh_login": str(contributor['login']),
             "gh_url": contributor['url'],
             "gh_html_url": contributor['html_url'],
             "gh_node_id": contributor['node_id'],
@@ -689,6 +640,21 @@ def extract_needed_contributor_data(contributor, tool_source, tool_version, data
     return contributor
 
 def extract_needed_gitlab_contributor_data(contributor, tool_source, tool_version,  data_source):
+    """
+    Extract and map GitLab contributor data to the correct database columns.
+    
+    CRITICAL: Populates GitLab-specific columns (gl_*) ONLY. All GitHub columns (gh_*)
+    are set to None to prevent cross-contamination (Issue #3469).
+    
+    Args:
+        contributor: GitLab user data from API response
+        tool_source: Source of data collection
+        tool_version: Version of tool collecting data
+        data_source: Data source identifier
+        
+    Returns:
+        Dict with contributor data mapped to correct columns, or None if contributor is empty
+    """
 
     if not contributor:
         return None
@@ -696,41 +662,51 @@ def extract_needed_gitlab_contributor_data(contributor, tool_source, tool_versio
     cntrb_id = GitlabUUID()   
     cntrb_id["user"] = contributor["id"]
 
-    contributor = {
-            "cntrb_id": cntrb_id.to_UUID(),
-            "cntrb_login": contributor['username'],
-            "cntrb_created_at": contributor['created_at'] if 'created_at' in contributor else None,
-            "cntrb_email": contributor['email'] if 'email' in contributor else None,
-            "cntrb_company": contributor['company'] if 'company' in contributor else None,
-            "cntrb_location": contributor['location'] if 'location' in contributor else None,
-            # "cntrb_type": , dont have a use for this as of now ... let it default to null
-            "cntrb_canonical": contributor['email'] if 'email' in contributor else None,
-            "gh_user_id": contributor['id'],
-            "gh_login": str(contributor['username']),  ## cast as string by SPG on 11/28/2021 due to `nan` user
-            "gh_url": contributor['web_url'],
-            "gh_html_url": None,
-            "gh_node_id": None,
-            "gh_avatar_url": contributor['avatar_url'],
-            "gh_gravatar_id": None,
-            "gh_followers_url": None,
-            "gh_following_url": None,
-            "gh_gists_url": None,
-            "gh_starred_url": None,
-            "gh_subscriptions_url": None,
-            "gh_organizations_url": None,
-            "gh_repos_url": None,
-            "gh_events_url": None,
-            "gh_received_events_url": None,
-            "gh_type": None,
-            "gh_site_admin": None,
-            "cntrb_last_used" : None,
-            "cntrb_full_name" : None,
-            "tool_source": tool_source,
-            "tool_version": tool_version,
-            "data_source": data_source
-        }
+    contributor_dict = {
+        "cntrb_id": cntrb_id.to_UUID(),
+        "cntrb_login": contributor['username'],
+        "cntrb_created_at": contributor.get('created_at'),
+        "cntrb_email": contributor.get('email'),
+        "cntrb_company": contributor.get('company'),
+        "cntrb_location": contributor.get('location'),
+        "cntrb_canonical": contributor.get('email'),
+        "cntrb_last_used": None,
+        "cntrb_full_name": contributor.get('name'),
+        
+        # GitLab-specific fields
+        "gl_id": contributor['id'],
+        "gl_username": str(contributor['username']),
+        "gl_web_url": contributor.get('web_url'),
+        "gl_avatar_url": contributor.get('avatar_url'),
+        "gl_state": contributor.get('state'),
+        "gl_full_name": contributor.get('name'),
+        
+        # GitHub fields explicitly set to None to prevent cross-contamination
+        "gh_user_id": None,
+        "gh_login": None,
+        "gh_url": None,
+        "gh_html_url": None,
+        "gh_node_id": None,
+        "gh_avatar_url": None,
+        "gh_gravatar_id": None,
+        "gh_followers_url": None,
+        "gh_following_url": None,
+        "gh_gists_url": None,
+        "gh_starred_url": None,
+        "gh_subscriptions_url": None,
+        "gh_organizations_url": None,
+        "gh_repos_url": None,
+        "gh_events_url": None,
+        "gh_received_events_url": None,
+        "gh_type": None,
+        "gh_site_admin": None,
+        
+        "tool_source": tool_source,
+        "tool_version": tool_version,
+        "data_source": data_source
+    }
 
-    return contributor
+    return contributor_dict
 
 
 def extract_needed_clone_history_data(clone_history_data:List[dict], repo_id:int):
@@ -763,7 +739,7 @@ def extract_needed_pr_review_data(review, pull_request_id, repo_id, platform_id,
                 'pr_review_submitted_at': review['submitted_at'] if (
                     'submitted_at' in review
                 ) else None,
-                'pr_review_src_id': int(float(review['id'])), #12/3/2021 cast as int due to error. # Here, `pr_review_src_id` is mapped to `id` SPG 11/29/2021. This is fine. Its the review id.
+                'pr_review_src_id': int(float(review['id'])),
                 'pr_review_node_id': review['node_id'],
                 'pr_review_html_url': review['html_url'],
                 'pr_review_pull_request_url': review['pull_request_url'],
