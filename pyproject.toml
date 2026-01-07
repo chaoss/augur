@@ -193,3 +193,8 @@ ignore_missing_imports = true
 follow_imports = "skip"
 disallow_untyped_defs = false
 exclude_gitignore = true
+
+[tool.pylint.messages_control]
+disable = [
+    "R1705",  
+]
