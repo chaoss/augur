@@ -1,6 +1,6 @@
 ## Augur Setup
 
-**NOTE**: Currently, our machine learning dependencies allow Augur to only fully support python 3.8 to python 3.10. Python 3.11 will sometimes work, but often there are libraries at the operating system level that have not yet been updated to support machine learning libraries at python 3.11. 
+**NOTE**: Augur supports Python 3.10 and newer. Python 3.11 is recommended and has been tested on macOS Apple Silicon. 
 
 # OSX: Note: This has **MOSTLY** been tested on Apple Silicon with Python 3.11 at this time, however, one user has been successful with Intel based Apple computers.
 ## For OSX You Need to make sure to install XCode Command line tools: 
@@ -435,4 +435,4 @@ You can stop augur with `augur backend stop`, followed by `augur backend kill`. 
    - Change to variables in `environment.txt` to include the correct values for your local, non-docker-container database.
 4. `sudo docker build -t augur-new -f docker/backend/Dockerfile .`
 5. `sudo docker compose --env-file ./environment.txt --file docker-compose.yml up` to run the database in a Docker Container or 
-   `sudo docker compose --env-file ./environment.txt --file docker-compose.yml up` to connect to an already running database. 
+   `sudo docker compose --env-file ./environment.txt --file docker-compose-externalDB.yml up` to connect to an already running database. 
