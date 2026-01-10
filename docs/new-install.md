@@ -1,7 +1,7 @@
 ## Augur Setup
 
 # Ubuntu 22.x
-We default to this version of Ubuntu for the moment because Augur does not yet support python3.10, which is the default version of python3.x distributed with Ubuntu 22.0x.x
+We default to this version of Ubuntu. Augur requires Python 3.10 or newer (Python 3.11 is recommended).
 
 ## Git Platform Requirements (Things to have setup prior to initiating installation.)
 1. Obtain a GitHub Access Token: https://github.com/settings/tokens
@@ -371,6 +371,8 @@ Note: Augur will run on port 5000 by default (you probably need to change that i
 You can stop augur with `augur backend stop`, followed by `augur backend kill`. We recommend waiting 5 minutes between commands so Augur can shutdown more gently. There is no issue with data integrity if you issue them seconds apart, its just that stopping is nicer than killing. 
 
 ### Docker
+**WARNING**: If you choose to run Augur using Docker, you **SHOULD NOT** also run `make install` or try to run Augur locally from source on the same machine using the same database. Doing so can cause conflicts (e.g., Docker configuring the database with file paths like `/logs` that are read-only on your local host). Choose **one** method: Docker OR Local Installation.
+
 *Note: `sudo` is not necessary on OSX or Windows
 
 1. Make sure docker, and docker compose are both installed
@@ -378,9 +380,9 @@ You can stop augur with `augur backend stop`, followed by `augur backend kill`. 
 3. If you are already running postgresql on your server you have two choices: 
    - Change the port mappings in the `docker-compose.yml` file to match ports for Postgresql not currently in use.
    - Change to variables in `environment.txt` to include the correct values for your local, non-docker-container database.
-4. `sudo docker build -t augur-new -f docker/backend/Dockerfile .` OSX: 
+4. `sudo docker build -t augur-new -f docker/backend/Dockerfile .` 
 5. `sudo docker compose --env-file ./environment.txt --file docker-compose.yml up` to run the database in a Docker Container or 
-   `sudo docker compose --env-file ./environment.txt --file docker-compose.yml up` to connect to an already running database. *Note*: Environment file would be modified to point to an already running database. 
+   `sudo docker compose --env-file ./environment.txt --file docker-compose-externalDB.yml up` to connect to an already running database. *Note*: Environment file would be modified to point to an already running database. 
 
 
 #### Possible Apple Silicon Prerequisites: 

@@ -1,7 +1,7 @@
 ## Augur Setup
 
 # Ubuntu 22.x
-We default to this version of Ubuntu for the moment because Augur does not yet support python3.10, which is the default version of python3.x distributed with Ubuntu 22.0x.x
+We default to this version of Ubuntu because Augur fully supports Python 3.10, which is the default version of python3.x distributed with Ubuntu 22.04.
 
 ## Git Platform Requirements (Things to have setup prior to initiating installation.)
 1. Obtain a GitHub Access Token: https://github.com/settings/tokens
@@ -375,4 +375,4 @@ You can stop augur with `augur backend stop`, followed by `augur backend kill`. 
    - Change to variables in `environment.txt` to include the correct values for your local, non-docker-container database.
 4. `sudo docker build -t augur-new -f docker/backend/Dockerfile .`
 5. `sudo docker compose --env-file ./environment.txt --file docker-compose.yml up` to run the database in a Docker Container or 
-   `sudo docker compose --env-file ./environment.txt --file docker-compose.yml up` to connect to an already running database. 
+   `sudo docker compose --env-file ./environment.txt --file docker-compose-externalDB.yml up` to connect to an already running database. 
