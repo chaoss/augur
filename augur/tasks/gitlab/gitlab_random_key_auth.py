@@ -1,7 +1,7 @@
 """Defines the GitlabRandomKeyAuth class"""
 from augur.tasks.util.random_key_auth import RandomKeyAuth
 from augur.tasks.gitlab.gitlab_api_key_handler import GitlabApiKeyHandler
-
+import logging
 
 class GitlabRandomKeyAuth(RandomKeyAuth):
     """Defines a gitlab specific RandomKeyAuth class so 
@@ -16,7 +16,7 @@ class GitlabRandomKeyAuth(RandomKeyAuth):
         gitlab_api_keys = GitlabApiKeyHandler(logger).keys
 
         if not gitlab_api_keys:
-            print("Failed to find github api keys. This is usually because your key has expired")
+            logging.info("Failed to find github api keys. This is usually because your key has expired")
 
         header_name = "Authorization"
         key_format = "Bearer {0}"
