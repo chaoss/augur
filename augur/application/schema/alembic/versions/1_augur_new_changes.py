@@ -21,6 +21,7 @@ depends_on = None
 
 def upgrade():
 
+   op.execute("SET search_path TO augur_data, augur_operations, public")
    change_tables_to_mimic_current_db_1()
    change_natural_keys_for_bulk_upsert_2()
    add_config_table_3()
@@ -62,31 +63,35 @@ def change_tables_to_mimic_current_db_1(upgrade=True):
 
     if upgrade:
         
-        op.drop_constraint('fk_commits_contributors_4', 'commits', schema='augur_data', type_='foreignkey')
+        op.execute(text('ALTER TABLE augur_data.commits DROP CONSTRAINT IF EXISTS fk_commits_contributors_4'))
         op.create_foreign_key('fk_commits_contributors_4', 'commits', 'contributors', ['cmt_author_platform_username'], ['cntrb_login'], source_schema='augur_data', referent_schema='augur_data', onupdate='CASCADE', ondelete='CASCADE', initially='DEFERRED', deferrable=True)
 
-        op.drop_constraint('fk_commits_contributors_3', 'commits', schema='augur_data', type_='foreignkey')
+        op.execute(text('ALTER TABLE augur_data.commits DROP CONSTRAINT IF EXISTS fk_commits_contributors_3'))
         op.create_foreign_key('fk_commits_contributors_3', 'commits', 'contributors', ['cmt_author_platform_username'], ['cntrb_login'], source_schema='augur_data', referent_schema='augur_data', onupdate='CASCADE', ondelete='CASCADE', initially='DEFERRED', deferrable=True)
 
-        op.drop_index('therepo', table_name='repo', schema='augur_data')
+        op.execute(text('DROP INDEX IF EXISTS augur_data.therepo'))
         op.create_index('therepo', 'repo', ['repo_id'], unique=True, schema='augur_data')
 
         # add unique to pull_request assignees
+        op.execute(text('ALTER TABLE augur_data.pull_request_assignees DROP CONSTRAINT IF EXISTS "assigniees-unique"'))
         op.create_unique_constraint('assigniees-unique', 'pull_request_assignees', ['pull_request_id', 'pr_assignee_src_id'], schema='augur_data')
 
         # modify unique-pr-event-id
-        op.drop_constraint('unique-pr-event-id', 'pull_request_events', schema='augur_data', type_='unique')
+        op.execute(text('ALTER TABLE augur_data.pull_request_events DROP CONSTRAINT IF EXISTS "unique-pr-event-id"'))
         op.create_unique_constraint('unique-pr-event-id', 'pull_request_events', ['platform_id', 'node_id'], schema='augur_data')
 
         # add pr-unqiue-event
+        op.execute(text('ALTER TABLE augur_data.pull_request_events DROP CONSTRAINT IF EXISTS "pr-unqiue-event"'))
         op.create_unique_constraint('pr-unqiue-event', 'pull_request_events', ['node_id'], schema='augur_data')
 
         # modify pr reviewers unique
-        op.drop_constraint('unique_pr_src_reviewer_key', 'pull_request_reviewers', schema='augur_data', type_='unique')
+        op.execute(text('ALTER TABLE augur_data.pull_request_reviewers DROP CONSTRAINT IF EXISTS unique_pr_src_reviewer_key'))
         op.create_unique_constraint('unique_pr_src_reviewer_key', 'pull_request_reviewers', ['pull_request_id', 'pr_reviewer_src_id'], schema='augur_data')
 
+        op.execute(text('ALTER TABLE augur_data.pull_requests DROP CONSTRAINT IF EXISTS "unique-pr"'))
         op.create_unique_constraint('unique-pr', 'pull_requests', ['repo_id', 'pr_src_id'], schema='augur_data')
 
+        op.execute(text('ALTER TABLE augur_data.repo DROP CONSTRAINT IF EXISTS "repo_git-unique"'))
         op.create_unique_constraint('repo_git-unique', 'repo', ['repo_git'], schema='augur_data')
 
     else:
@@ -547,8 +552,8 @@ def add_user_repo_table_12(upgrade=True):
         cli_user_id = 1
         conn.execute(text(f"""INSERT INTO "augur_operations"."users" ("user_id", "login_name", "login_hashword", "email", "text_phone", "first_name", "last_name", "tool_source", "tool_version", "data_source", "data_collection_date", "admin") VALUES({cli_user_id}, 'cli_user', 'pbkdf2:sha256:260000$oDmAfipU8Ef8TAau$835fce1fc3290b57b5e02ec83aef4613cc06664e6e7535bb6d267dc44563d5d5', 'cli_user', NULL, 'cli_user', 'cli_user', 'Schema Generaation', NULL, 'Schema Generation', '2022-10-02 21:49:13', 'f');
         
-        ALTER SEQUENCE users_user_id_seq RESTART WITH  2;
-        ALTER SEQUENCE repo_repo_id_seq RESTART WITH 25480;
+        ALTER SEQUENCE augur_operations.users_user_id_seq RESTART WITH  2;
+        ALTER SEQUENCE augur_data.repo_repo_id_seq RESTART WITH 25480;
         """))
         
 
