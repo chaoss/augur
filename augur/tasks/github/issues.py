@@ -15,7 +15,7 @@ from augur.tasks.util.worker_util import remove_duplicate_dicts
 from augur.application.db.models import Issue, IssueLabel, IssueAssignee
 from augur.application.config import get_development_flag
 from augur.application.db.lib import get_repo_by_repo_git, bulk_insert_dicts, get_core_data_last_collected, batch_insert_contributors
-
+from augur.metadata import __version__
 
 development = get_development_flag()
 
@@ -120,7 +120,7 @@ def process_issues(issues, task_name, repo_id, logger) -> None:
     
     # get repo_id or have it passed
     tool_source = "Issue Task"
-    tool_version = "2.0"
+    tool_version = __version__
     data_source = "Github API"
 
     issue_dicts = []
