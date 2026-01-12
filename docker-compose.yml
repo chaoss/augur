@@ -45,6 +45,12 @@ services:
       - RABBIT_MQ_DEFAULT_VHOST=${AUGUR_RABBITMQ_VHOST:-augur_vhost}
     networks:
       - augur
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
 
   augur:
     image: augur-new:latest
