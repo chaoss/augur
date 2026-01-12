@@ -163,19 +163,40 @@ jobs:
           EOF
 
       - name: Start services & wait for output
-        # Start services detached, wait for RabbitMQ readiness, then stream logs
+        # Start compose in background, wait for RabbitMQ health via container health (fallback to rabbitmq-diagnostics), then stream logs
         run: |
-          docker compose -f docker-compose.yml up --no-build -d
-          echo "Waiting for RabbitMQ to be healthy..."
-          for i in $(seq 1 30); do
-            docker compose exec -T rabbitmq rabbitmq-diagnostics -q ping && { echo "RabbitMQ ready"; break; }
-            echo "Waiting for RabbitMQ (attempt $i/30)..."
+          # Start compose and redirect output to a temp log; keep PID so we can shut it down
+          docker compose -f docker-compose.yml up --no-build > /tmp/compose.log 2>&1 &
+          COMPOSE_PID=$!
+          trap 'echo "Cleaning up..."; kill "$COMPOSE_PID" >/dev/null 2>&1 || true; docker compose -f docker-compose.yml down >/dev/null 2>&1 || true' EXIT
+
+          echo "Waiting for RabbitMQ to be healthy (using container health, fallback to rabbitmq-diagnostics)..."
+          ATTEMPTS=60
+          READY=0
+          for i in $(seq 1 $ATTEMPTS); do
+            RABBIT_CONTAINER=$(docker compose ps -q rabbitmq 2>/dev/null || true)
+            if [ -n "$RABBIT_CONTAINER" ]; then
+              STATUS=$(docker inspect -f '{{.State.Health.Status}}' "$RABBIT_CONTAINER" 2>/dev/null || echo "")
+              if [ "$STATUS" = "healthy" ]; then
+                echo "RabbitMQ healthy (container health)"
+                READY=1; break
+              fi
+              if docker compose exec -T rabbitmq rabbitmq-diagnostics -q ping >/dev/null 2>&1; then
+                echo "RabbitMQ responds to rabbitmq-diagnostics ping (fallback)"
+                READY=1; break
+              fi
+            fi
+            echo "Waiting for RabbitMQ (attempt $i/$ATTEMPTS)..."
             sleep 5
           done
-          # Stream logs into await_all.py and bring services down after matches
-          docker compose -f docker-compose.yml logs -f 2>&1 \
-            | (./scripts/ci/await_all.py /tmp/regex_matches.txt && docker compose -f docker-compose.yml down)
-        timeout-minutes: 20
+          if [ "$READY" -ne 1 ]; then
+            echo "RabbitMQ didn't become healthy in time" >&2
+            exit 1
+          fi
+
+          # Stream compose log into await_all.py and bring services down after matches
+          tail -n +1 -f /tmp/compose.log 2>&1 | (./scripts/ci/await_all.py /tmp/regex_matches.txt && echo "Matches found, cleaning up" && kill "$COMPOSE_PID" >/dev/null 2>&1 && docker compose -f docker-compose.yml down)
+        timeout-minutes: 25
         env:
           AUGUR_GITHUB_API_KEY: ${{ secrets.GITHUB_TOKEN }}
           AUGUR_GITHUB_USERNAME: ${{ github.repository_owner }}
