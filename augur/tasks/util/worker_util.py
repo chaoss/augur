@@ -5,7 +5,7 @@ import numpy as np
 from celery import group
 from celery.result import AsyncResult
 from celery.result import allow_join_result
-
+import logging
 from typing import List
 from datetime import datetime
 import json
@@ -19,10 +19,10 @@ def create_grouped_task_load(*args,processes=8,dataList=[],task=None):
     if not dataList or not task:
         raise AssertionError
     
-    print(f"Splitting {len(dataList)} items")
+    logging.info(f"Splitting {len(dataList)} items")
     #numpyData = np.array(list(dataList))
     listsSplitForProcesses = np.array_split(list(dataList), processes)
-    print("Done splitting items.")
+    logging.info("Done splitting items.")
 
     #print("args")
     #print(args)

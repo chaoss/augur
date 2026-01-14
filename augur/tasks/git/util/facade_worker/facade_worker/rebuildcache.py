@@ -26,6 +26,7 @@
 # repos. It also rebuilds analysis data, checks any changed affiliations and
 # aliases, and caches data for display.
 import sqlalchemy as s
+import logging
 from augur.application.db.lib import execute_sql, fetchall_data_from_sql_text
 from .utilitymethods import store_working_author, trim_author
 # if platform.python_implementation() == 'PyPy':
@@ -180,7 +181,7 @@ def fill_empty_affiliations(facade_helper):
     timefetch = s.sql.text("""SELECT current_timestamp(6) as fetched""")
 
     affiliations_fetched = execute_sql(timefetch).fetchone()[0] 
-    print(affiliations_fetched)
+    logging.info(affiliations_fetched)
     # Now find the last time we worked on affiliations, to figure out what's new
 
     affiliations_processed = facade_helper.get_setting('affiliations_processed')
