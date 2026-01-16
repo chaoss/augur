@@ -16,7 +16,9 @@ license-files = ["LICENSE"]
 classifiers = [
     "Intended Audience :: Developers",
     "Topic :: Software Development :: Version Control",
-    "Programming Language :: Python :: 3.10"
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12"
 ]
 dependencies = [
     "alembic>=1.17.1",
@@ -143,6 +145,7 @@ constraint-dependencies = [
     # https://docs.python.org/3.10/whatsnew/3.10.html#removed
     "graphql-server-core>1.1.1",
 ]
+
 
 
 
