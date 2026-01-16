@@ -87,7 +87,7 @@ def request_graphql_dict(key_auth, logger, url,query,variables={},timeout_wait=1
 
         try:
             response_data = result.json()
-        except:
+        except (json.JSONDecodeError, AttributeError):
             response_data = json.loads(json.dumps(result.text))
         
         #self.logger.info(f"api return: {response_data}")
@@ -102,10 +102,10 @@ def request_graphql_dict(key_auth, logger, url,query,variables={},timeout_wait=1
             
             success = True
             break
-        elif type(response_data) == list:
+        if type(response_data) == list:
             logger.warning("Wrong type returned, trying again...")
             logger.info(f"Returned list: {response_data}")
-        elif type(response_data) == str:
+        if type(response_data) == str:
             logger.info(
                 f"Warning! page_data was string: {response_data}")
             if "<!DOCTYPE html>" in response_data:
@@ -117,7 +117,7 @@ def request_graphql_dict(key_auth, logger, url,query,variables={},timeout_wait=1
                     # Sometimes raw text can be converted to a dict
                     response_data = json.loads(response_data)
                     logger.info(f"{response_data}")
-                    err = process_graphql_dict_response(logger,result,response_data)
+                    err = process_dict_response(logger, result, response_data)
 
                     #If we get an error message that's not None
                     if err and err != GithubApiResult.SUCCESS:
@@ -125,7 +125,7 @@ def request_graphql_dict(key_auth, logger, url,query,variables={},timeout_wait=1
                     
                     success = True
                     break
-                except:
+                except (json.JSONDecodeError, KeyError, TypeError):
                     pass
         attempts += 1
 
@@ -192,7 +192,7 @@ class GraphQlPageCollection(collections.abc.Sequence):
 
             try:
                 response_data = result.json()
-            except:
+            except (json.JSONDecodeError, AttributeError):
                 response_data = json.loads(json.dumps(result.text))
             
             #self.logger.info(f"api return: {response_data}")
@@ -211,10 +211,10 @@ class GraphQlPageCollection(collections.abc.Sequence):
                 
                 success = True
                 break
-            elif type(response_data) == list:
+            if type(response_data) == list:
                 self.logger.warning("Wrong type returned, trying again...")
                 self.logger.info(f"Returned list: {response_data}")
-            elif type(response_data) == str:
+            if type(response_data) == str:
                 self.logger.info(
                     f"Warning! page_data was string: {response_data}")
                 if "<!DOCTYPE html>" in response_data:
@@ -226,7 +226,7 @@ class GraphQlPageCollection(collections.abc.Sequence):
                         # Sometimes raw text can be converted to a dict
                         response_data = json.loads(response_data)
                         self.logger.info(f"{response_data}")
-                        err = process_graphql_dict_response(self.logger,result,response_data)
+                        err = process_dict_response(self.logger, result, response_data)
 
                         #If we get an error message that's not None
                         if err and err != GithubApiResult.SUCCESS:
@@ -235,7 +235,7 @@ class GraphQlPageCollection(collections.abc.Sequence):
                         
                         success = True
                         break
-                    except:
+                    except (json.JSONDecodeError, KeyError, TypeError):
                         pass
             attempts += 1
 
@@ -276,7 +276,7 @@ class GraphQlPageCollection(collections.abc.Sequence):
         #first try cache
         try:
             return self.page_cache[index]
-        except:
+        except (IndexError, KeyError):
             pass
 
 

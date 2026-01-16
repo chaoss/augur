@@ -285,7 +285,7 @@ def badges_model(logger,repo_git,repo_id,db):
 
     try:
         response_data = response.json()
-    except:
+    except (json.JSONDecodeError, AttributeError):
         response_data = json.loads(json.dumps(response.text))
 
     #Insert any data that was returned
