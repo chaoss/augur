@@ -15,6 +15,7 @@ from augur.application.db.lib import get_repo_by_repo_git, bulk_insert_dicts, ge
 from augur.application.db.util import execute_session_query
 from ..messages import process_github_comment_contributors
 from augur.application.db.lib import get_secondary_data_last_collected, get_updated_prs, get_core_data_last_collected
+from augur.tasks.github.util.github_api_url import get_github_api_base_url
 
 from typing import List
 
@@ -72,7 +73,7 @@ def retrieve_all_pr_data(repo_git: str, logger, key_auth, since): #-> Generator[
 
     logger.debug(f"Collecting pull requests for {owner}/{repo}")
 
-    url = f"https://api.github.com/repos/{owner}/{repo}/pulls?state=all&direction=desc&sort=updated"
+    url = f"{get_github_api_base_url()}/repos/{owner}/{repo}/pulls?state=all&direction=desc&sort=updated"
 
     github_data_access = GithubDataAccess(key_auth, logger)
 
@@ -219,7 +220,7 @@ def collect_pull_request_review_comments(repo_git: str, full_collection: bool) -
     """
     owner, repo = get_owner_repo(repo_git)
 
-    review_msg_url = f"https://api.github.com/repos/{owner}/{repo}/pulls/comments"
+    review_msg_url = f"{get_github_api_base_url()}/repos/{owner}/{repo}/pulls/comments"
 
     logger = logging.getLogger(collect_pull_request_review_comments.__name__)
     logger.debug(f"Collecting pull request review comments for {owner}/{repo}")
@@ -498,7 +499,7 @@ def collect_pull_request_reviews(repo_git: str, full_collection: bool) -> None:
             if index % 100 == 0:
                 logger.debug(f"{owner}/{repo} Processing PR {index + 1} of {pr_count}")
 
-            pr_review_url = f"https://api.github.com/repos/{owner}/{repo}/pulls/{pr_number}/reviews"
+            pr_review_url = f"{get_github_api_base_url()}/repos/{owner}/{repo}/pulls/{pr_number}/reviews"
 
             try:
                 pr_reviews = list(github_data_access.paginate_resource(pr_review_url))

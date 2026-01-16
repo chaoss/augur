@@ -5,6 +5,7 @@ from augur.tasks.init.celery_app import celery_app as celery
 from augur.tasks.init.celery_app import AugurFacadeRepoCollectionTask
 from augur.tasks.github.util.github_data_access import GithubDataAccess, UrlNotFoundException
 from augur.tasks.github.util.github_random_key_auth import GithubRandomKeyAuth
+from augur.tasks.github.util.github_api_url import get_github_api_base_url
 from augur.tasks.github.facade_github.core import *
 from augur.application.db.lib import execute_sql, get_contributor_aliases_by_email, get_unresolved_commit_emails_by_name, get_contributors_by_full_name, get_repo_by_repo_git, batch_insert_contributors
 from augur.application.db.lib import get_session, execute_session_query
@@ -67,7 +68,7 @@ def process_commit_metadata(logger, auth, contributorQueue, repo_id, platform_id
             logger.error("Failed to get login from supplemental data!")
             continue
 
-        url = ("https://api.github.com/users/" + login)
+        url = f"{get_github_api_base_url()}/users/{login}"
 
         try:
             user_data = github_data_access.get_resource(url)

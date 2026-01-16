@@ -5,6 +5,7 @@ from augur.tasks.github.util.util import get_owner_repo
 from augur.tasks.github.util.gh_graphql_entities import request_graphql_dict
 from augur.application.db.util import execute_session_query
 from augur.application.db.lib import bulk_insert_dicts
+from augur.tasks.github.util.github_api_url import get_github_api_base_url
 
 
 def get_release_inf(repo_id, release, tag_only):
@@ -159,7 +160,7 @@ def fetch_data(key_auth, logger, github_url, repo_id, tag_only = False):
 
     owner, repo = get_owner_repo(github_url)
 
-    url = 'https://api.github.com/graphql'
+    url = f"{get_github_api_base_url()}/graphql"
 
     query = get_query(logger, owner, repo, tag_only)
 

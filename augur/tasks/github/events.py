@@ -15,6 +15,7 @@ from augur.tasks.github.util.util import get_owner_repo
 from augur.tasks.util.worker_util import remove_duplicate_dicts
 from augur.application.db.models import PullRequestEvent, IssueEvent, Contributor, Repo
 from augur.application.db.lib import get_repo_by_repo_git, bulk_insert_dicts, get_issues_by_repo_id, get_pull_requests_by_repo_id, update_issue_closed_cntrbs_by_repo_id, get_session, get_engine, get_core_data_last_collected, batch_insert_contributors
+from augur.tasks.github.util.github_api_url import get_github_api_base_url
 
 
 platform_id = 1
@@ -47,7 +48,7 @@ def collect_events(repo_git: str, full_collection: bool):
 
 def bulk_events_collection_endpoint_contains_all_data(key_auth, logger, owner, repo):
 
-    url = f"https://api.github.com/repos/{owner}/{repo}/issues/events?per_page=100"
+    url = f"{get_github_api_base_url()}/repos/{owner}/{repo}/issues/events?per_page=100"
 
     github_data_access = GithubDataAccess(key_auth, logger)
 
@@ -131,7 +132,7 @@ class BulkGithubEventCollection(GithubEventCollection):
 
         owner, repo = get_owner_repo(repo_git)
 
-        url = f"https://api.github.com/repos/{owner}/{repo}/issues/events"
+        url = f"{get_github_api_base_url()}/repos/{owner}/{repo}/issues/events"
             
         github_data_access = GithubDataAccess(key_auth, self._logger)
 
@@ -309,7 +310,7 @@ class ThoroughGithubEventCollection(GithubEventCollection):
 
             issue_number = issue["issue_number"]
 
-            event_url = f"https://api.github.com/repos/{owner}/{repo}/issues/{issue_number}/events"
+            event_url = f"{get_github_api_base_url()}/repos/{owner}/{repo}/issues/{issue_number}/events"
             
             try:
 
@@ -370,7 +371,7 @@ class ThoroughGithubEventCollection(GithubEventCollection):
 
             pr_number = pr["gh_pr_number"]
 
-            event_url = f"https://api.github.com/repos/{owner}/{repo}/issues/{pr_number}/events"
+            event_url = f"{get_github_api_base_url()}/repos/{owner}/{repo}/issues/{pr_number}/events"
 
             try:
             

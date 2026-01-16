@@ -7,9 +7,8 @@ from sqlalchemy.orm import Session
 
 from augur.tasks.util.redis_list import RedisList
 from augur.application.db.lib import get_value, get_worker_oauth_keys
-from sqlalchemy import func 
-
-RATE_LIMIT_URL = "https://api.github.com/rate_limit"
+from augur.tasks.github.util.github_api_url import get_github_api_base_url
+from sqlalchemy import func
 
 
 class NoValidKeysError(Exception):
@@ -158,7 +157,7 @@ class GithubApiKeyHandler():
 
         headers = {'Authorization': f'token {oauth_key}'}
 
-        data = client.request(method="GET", url=RATE_LIMIT_URL, headers=headers, timeout=180).json()
+        data = client.request(method="GET", url=f"{get_github_api_base_url()}/rate_limit", headers=headers, timeout=180).json()
 
         try:
             if data["message"] == "Bad credentials":
@@ -173,7 +172,7 @@ class GithubApiKeyHandler():
 
         headers = {'Authorization': f'token {github_key}'}
 
-        data = client.request(method="GET", url=RATE_LIMIT_URL, headers=headers, timeout=180).json()
+        data = client.request(method="GET", url=f"{get_github_api_base_url()}/rate_limit", headers=headers, timeout=180).json()
 
         if "message" in data:
             return None, None
