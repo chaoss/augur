@@ -51,10 +51,10 @@ def upgrade():
         print(dict(result[0]))
         value = dict(result[0])["value"]
 
-        conn.execute(text(f"""DELETE FROM augur_operations.config where section_name='Task_Routine' and setting_name='repo_collect_phase';
-            INSERT INTO "augur_operations"."config" ("section_name", "setting_name", "value", "type") VALUES ('Task_Routine', 'secondary_repo_collect_phase', '{value}', 'int');
-            INSERT INTO "augur_operations"."config" ("section_name", "setting_name", "value", "type") VALUES ('Task_Routine', 'primary_repo_collect_phase', '{value}', 'int');
-            """))
+        # remove the old repo_collect_phase and insert the new keyed config values using bound params
+        conn.execute(text("DELETE FROM augur_operations.config where section_name='Task_Routine' and setting_name='repo_collect_phase';"))
+        conn.execute(text("INSERT INTO \"augur_operations\".\"config\" (\"section_name\", \"setting_name\", \"value\", \"type\") VALUES ('Task_Routine', 'secondary_repo_collect_phase', :value, 'int');"), {"value": value})
+        conn.execute(text("INSERT INTO \"augur_operations\".\"config\" (\"section_name\", \"setting_name\", \"value\", \"type\") VALUES ('Task_Routine', 'primary_repo_collect_phase', :value, 'int');"), {"value": value})
 
 
     # ### end Alembic commands ###

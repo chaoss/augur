@@ -416,11 +416,11 @@ def send_insight(repo_id, insights, logger, engine):
         repoSQL = s.sql.text("""
             SELECT repo_git, rg_name 
             FROM repo, repo_groups
-            WHERE repo_id = {}
-        """.format(repo_id))
+            WHERE repo_id = :repo_id
+        """)
 
         with engine.connect() as conn:
-            repo = pd.read_sql(repoSQL, conn, params={}).iloc[0]
+            repo = pd.read_sql(repoSQL, conn, params={"repo_id": repo_id}).iloc[0]
 
         to_send = {
             'message_insight': True,

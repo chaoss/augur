@@ -31,7 +31,7 @@ def upgrade():
 
             repo_path = f"github.com/{owner_name}/"
         
-            conn.execute(text(f"""
+            conn.execute(text("""
                 UPDATE "repo"
                 SET repo_path=:path,repo_name=:name
                 WHERE repo_git=:repo_git
