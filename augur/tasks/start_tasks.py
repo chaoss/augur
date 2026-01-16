@@ -1,5 +1,6 @@
 from __future__ import annotations
 import logging
+from abc import ABC, abstractmethod
 import os
 #from celery.result import AsyncResult
 from celery import group, chain
@@ -157,84 +158,116 @@ def non_repo_domain_tasks(self):
     tasks.apply_async()
 
 
+class CollectionRequestBuilder(ABC):
+    """Base builder; requires a `build(session, logger, enabled_phase_names, days_until_collect_again)` method."""
+
+    @abstractmethod
+    def build(self, session, logger, enabled_phase_names, days_until_collect_again):
+        pass
+
+
+class PrimaryCollectionRequestBuilder(CollectionRequestBuilder):
+    def build(self, session, logger, enabled_phase_names, days_until_collect_again = 15):
+        # Build phases
+        primary_enabled_phases = []
+        primary_gitlab_enabled_phases = []
+
+        # Primary jobs
+        if prelim_phase.__name__ in enabled_phase_names:
+            primary_enabled_phases.append(prelim_phase)
+
+        primary_enabled_phases.append(primary_repo_collect_phase)
+        primary_gitlab_enabled_phases.append(primary_repo_collect_phase_gitlab)
+
+        # Add success task
+        def core_task_success_util_gen(repo_git, full_collection):
+            return core_task_success_util.si(repo_git)
+
+        primary_enabled_phases.append(core_task_success_util_gen)
+        primary_gitlab_enabled_phases.append(core_task_success_util_gen)
+
+        primary_request = CollectionRequest("core",primary_enabled_phases,max_repo=40, days_until_collect_again=days_until_collect_again, gitlab_phases=primary_gitlab_enabled_phases)
+        primary_request.get_valid_repos(session)
+        return primary_request
+
+
+class SecondaryCollectionRequestBuilder(CollectionRequestBuilder):
+    def build(self, session, logger, enabled_phase_names, days_until_collect_again = 1):
+        # Secondary
+        secondary_enabled_phases = []
+
+        if prelim_phase.__name__ in enabled_phase_names:
+            secondary_enabled_phases.append(prelim_phase_secondary)
+
+
+        secondary_enabled_phases.append(secondary_repo_collect_phase)
+
+        def secondary_task_success_util_gen(repo_git, full_collection):
+            return secondary_task_success_util.si(repo_git)
+
+        secondary_enabled_phases.append(secondary_task_success_util_gen)
+        
+        request = CollectionRequest("secondary",secondary_enabled_phases,max_repo=60, days_until_collect_again=days_until_collect_again)
+
+        request.get_valid_repos(session)
+        return request
+
+
+class FacadeCollectionRequestBuilder(CollectionRequestBuilder):
+    def build(self, session, logger, enabled_phase_names, days_until_collect_again = 10):
+        #Deal with facade collection
+        facade_enabled_phases = []
+
+        facade_enabled_phases.append(facade_phase)
+
+        def facade_task_success_util_gen(repo_git, full_collection):
+            return facade_task_success_util.si(repo_git)
+
+        facade_enabled_phases.append(facade_task_success_util_gen)
+
+        def facade_task_update_weight_util_gen(repo_git, full_collection):
+            return git_update_commit_count_weight.si(repo_git)
+
+        facade_enabled_phases.append(facade_task_update_weight_util_gen)
+
+        request = CollectionRequest("facade",facade_enabled_phases,max_repo=30, days_until_collect_again=days_until_collect_again)
+
+        request.get_valid_repos(session)
+        return request
+
+
+class MLCollectionRequestBuilder(CollectionRequestBuilder):
+    def build(self, session, logger, enabled_phase_names, days_until_collect_again = 40):
+        ml_enabled_phases = []
+
+        ml_enabled_phases.append(machine_learning_phase)
+
+        def ml_task_success_util_gen(repo_git, full_collection):
+            return ml_task_success_util.si(repo_git)
+
+        ml_enabled_phases.append(ml_task_success_util_gen)
+
+        request = CollectionRequest("ml",ml_enabled_phases,max_repo=5, days_until_collect_again=days_until_collect_again)
+        request.get_valid_repos(session)
+        return request
+
+
+# Thin wrappers (back-compat)
+
 def build_primary_repo_collect_request(session, logger, enabled_phase_names, days_until_collect_again = 15):
-    #Add all required tasks to a list and pass it to the CollectionRequest
-    primary_enabled_phases = []
-    primary_gitlab_enabled_phases = []
+    return PrimaryCollectionRequestBuilder().build(session, logger, enabled_phase_names, days_until_collect_again)
 
-    #Primary jobs
-    if prelim_phase.__name__ in enabled_phase_names:
-        primary_enabled_phases.append(prelim_phase)
-
-    primary_enabled_phases.append(primary_repo_collect_phase)
-    primary_gitlab_enabled_phases.append(primary_repo_collect_phase_gitlab)
-
-    #task success is scheduled no matter what the config says.
-    def core_task_success_util_gen(repo_git, full_collection):
-        return core_task_success_util.si(repo_git)
-
-    primary_enabled_phases.append(core_task_success_util_gen)
-    primary_gitlab_enabled_phases.append(core_task_success_util_gen)
-
-    primary_request = CollectionRequest("core",primary_enabled_phases,max_repo=40, days_until_collect_again=days_until_collect_again, gitlab_phases=primary_gitlab_enabled_phases)
-    primary_request.get_valid_repos(session)
-    return primary_request
 
 def build_secondary_repo_collect_request(session, logger, enabled_phase_names, days_until_collect_again = 1):
-    #Deal with secondary collection
-    secondary_enabled_phases = []
-
-    if prelim_phase.__name__ in enabled_phase_names:
-        secondary_enabled_phases.append(prelim_phase_secondary)
-
-
-    secondary_enabled_phases.append(secondary_repo_collect_phase)
-
-    def secondary_task_success_util_gen(repo_git, full_collection):
-        return secondary_task_success_util.si(repo_git)
-
-    secondary_enabled_phases.append(secondary_task_success_util_gen)
-    
-    request = CollectionRequest("secondary",secondary_enabled_phases,max_repo=60, days_until_collect_again=days_until_collect_again)
-
-    request.get_valid_repos(session)
-    return request
+    return SecondaryCollectionRequestBuilder().build(session, logger, enabled_phase_names, days_until_collect_again)
 
 
 def build_facade_repo_collect_request(session, logger, enabled_phase_names, days_until_collect_again = 10):
-    #Deal with facade collection
-    facade_enabled_phases = []
+    return FacadeCollectionRequestBuilder().build(session, logger, enabled_phase_names, days_until_collect_again)
 
-    facade_enabled_phases.append(facade_phase)
-
-    def facade_task_success_util_gen(repo_git, full_collection):
-        return facade_task_success_util.si(repo_git)
-
-    facade_enabled_phases.append(facade_task_success_util_gen)
-
-    def facade_task_update_weight_util_gen(repo_git, full_collection):
-        return git_update_commit_count_weight.si(repo_git)
-
-    facade_enabled_phases.append(facade_task_update_weight_util_gen)
-
-    request = CollectionRequest("facade",facade_enabled_phases,max_repo=30, days_until_collect_again=days_until_collect_again)
-
-    request.get_valid_repos(session)
-    return request
 
 def build_ml_repo_collect_request(session, logger, enabled_phase_names, days_until_collect_again = 40):
-    ml_enabled_phases = []
-
-    ml_enabled_phases.append(machine_learning_phase)
-
-    def ml_task_success_util_gen(repo_git, full_collection):
-        return ml_task_success_util.si(repo_git)
-
-    ml_enabled_phases.append(ml_task_success_util_gen)
-
-    request = CollectionRequest("ml",ml_enabled_phases,max_repo=5, days_until_collect_again=days_until_collect_again)
-    request.get_valid_repos(session)
-    return request
+    return MLCollectionRequestBuilder().build(session, logger, enabled_phase_names, days_until_collect_again)
 
 @celery.task(bind=True)
 def augur_collection_monitor(self):     
@@ -246,7 +279,7 @@ def augur_collection_monitor(self):
     logger.info("Checking for repos to collect")
 
     
-    #Get list of enabled phases 
+    # enabled phases
     enabled_phase_names = get_enabled_phase_names_from_config(engine, logger)
 
     enabled_collection_hooks = []
