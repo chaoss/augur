@@ -11,6 +11,7 @@ from augur.tasks.github.util.util import get_owner_repo
 from augur.application.db.models import PullRequest, Message, Issue, PullRequestMessageRef, IssueMessageRef, Contributor, Repo, CollectionStatus
 from augur.application.db import get_engine, get_session
 from augur.application.db.lib import get_core_data_last_collected
+from augur.tasks.github.util.github_api_url import get_github_api_base_url
 from sqlalchemy.sql import text
 
 platform_id = 1
@@ -63,7 +64,7 @@ def fast_retrieve_all_pr_and_issue_messages(repo_git: str, logger, key_auth, tas
     owner, repo = get_owner_repo(repo_git)
 
     # url to get issue and pull request comments
-    url = f"https://api.github.com/repos/{owner}/{repo}/issues/comments"
+    url = f"{get_github_api_base_url()}/repos/{owner}/{repo}/issues/comments"
 
     if since:
         url += f"?since={since.isoformat()}"

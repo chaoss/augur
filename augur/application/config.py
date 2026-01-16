@@ -2,7 +2,7 @@ import sqlalchemy as s
 from sqlalchemy import and_, update
 import json
 import copy
-from typing import List, Any, Optional
+from typing import Any, Optional
 import os
 from augur.application.db.models import Config 
 from augur.application.db.util import execute_session_query, convert_type_of_value
@@ -40,7 +40,8 @@ default_config = {
             },
             "Keys": {
                 "github": "<gh_api_key>",
-                "gitlab": "<gl_api_key>"
+                "gitlab": "<gl_api_key>",
+                "github_api_base_url": "https://api.github.com"
             },
             "Facade": {
                 "check_updates": 1,
