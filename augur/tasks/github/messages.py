@@ -92,21 +92,24 @@ def process_large_issue_and_pr_message_collection(repo_id, repo_git: str, logger
     with engine.connect() as connection:
 
         if since:
-             query = text(f"""
-                (select pr_comments_url from pull_requests WHERE repo_id={repo_id} AND pr_updated_at > timestamptz(timestamp '{since}') order by pr_created_at desc)
+             query = text("""
+                (select pr_comments_url from pull_requests WHERE repo_id=:repo_id AND pr_updated_at > :since order by pr_created_at desc)
                 UNION
-                (select comments_url as comment_url from issues WHERE repo_id={repo_id} AND updated_at > timestamptz(timestamp '{since}') order by created_at desc);
+                (select comments_url as comment_url from issues WHERE repo_id=:repo_id AND updated_at > :since order by created_at desc);
             """)
         else:
 
-            query = text(f"""
-                (select pr_comments_url from pull_requests WHERE repo_id={repo_id} order by pr_created_at desc)
+            query = text("""
+                (select pr_comments_url from pull_requests WHERE repo_id=:repo_id order by pr_created_at desc)
                 UNION
-                (select comments_url as comment_url from issues WHERE repo_id={repo_id} order by created_at desc);
+                (select comments_url as comment_url from issues WHERE repo_id=:repo_id order by created_at desc);
             """)
         
+        params = {"repo_id": repo_id}
+        if since:
+            params["since"] = since
 
-        result = connection.execute(query).fetchall()
+        result = connection.execute(query, params).fetchall()
     comment_urls = [x[0] for x in result]
 
     github_data_access = GithubDataAccess(key_auth, logger)

@@ -138,8 +138,8 @@ def fill_empty_affiliations(facade_helper):
                     f"SET cmt_{attribution}_affiliation = :affiliation "
                     f"WHERE cmt_{attribution}_email = :email "
                     f"AND cmt_{attribution}_affiliation IS NULL "
-                    f"AND cmt_{attribution}_date::date >= \'{match['ca_start_date']}\'::date")
-                    ).bindparams(affiliation=match['ca_affiliation'],email=email)
+                    f"AND cmt_{attribution}_date::date >= :start_date ::date")
+                    ).bindparams(affiliation=match['ca_affiliation'], email=email, start_date=match['ca_start_date'])
 
                 facade_helper.log_activity('Info', f"attr: {attribution} \nmatch:{match}\nsql: {update}")
 

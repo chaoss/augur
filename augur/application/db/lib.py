@@ -520,7 +520,7 @@ def update_issue_closed_cntrbs_by_repo_id(repo_id):
 
     engine = get_engine()
 
-    get_ranked_issues = s.text(f"""
+    get_ranked_issues = s.text("""
         WITH RankedIssues AS (
             SELECT repo_id, issue_id, cntrb_id, 
                 ROW_NUMBER() OVER(PARTITION BY issue_id ORDER BY created_at DESC) AS rn
@@ -528,11 +528,11 @@ def update_issue_closed_cntrbs_by_repo_id(repo_id):
             WHERE "action" = 'closed'
         )
                                             
-        SELECT issue_id, cntrb_id from RankedIssues where rn=1 and repo_id={repo_id} and cntrb_id is not NULL
+        SELECT issue_id, cntrb_id from RankedIssues where rn=1 and repo_id=:repo_id and cntrb_id is not NULL
     """)
 
     with engine.connect() as conn:
-        result = conn.execute(get_ranked_issues).fetchall()
+        result = conn.execute(get_ranked_issues, {"repo_id": repo_id}).fetchall()
 
     update_data = []
     for row in result:

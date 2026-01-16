@@ -59,18 +59,23 @@ class CollectionRequest:
 
 def get_newly_added_repos(session, limit, hook):
 
-    condition_string = ""
-    order_by_field = ""
+    params = {"limit_num": limit}
+    status_conditions = []
+    
     if hook in ["core", "secondary", "ml"]:
-        condition_string += f"""{hook}_status='{str(CollectionState.PENDING.value)}'"""
+        status_conditions.append(f"{hook}_status = :status")
+        params["status"] = str(CollectionState.PENDING.value)
         order_by_field = "issue_pr_sum"
-        
     elif hook == "facade":
-        condition_string += f"""facade_status='{str(CollectionState.UPDATE.value)}'"""
+        status_conditions.append("facade_status = :status")
+        params["status"] = str(CollectionState.UPDATE.value)
         order_by_field = "commit_sum"
 
     if hook == "secondary":
-        condition_string += f""" and core_status='{str(CollectionState.SUCCESS.value)}'"""
+        status_conditions.append("core_status = :core_status")
+        params["core_status"] = str(CollectionState.SUCCESS.value)
+
+    condition_string = " AND ".join(status_conditions)
 
     repo_query = s.sql.text(f"""
         select repo_git 
@@ -79,7 +84,7 @@ def get_newly_added_repos(session, limit, hook):
         and {condition_string}
         order by {order_by_field}
         limit :limit_num
-    """).bindparams(limit_num=limit)
+    """).bindparams(**params)
 
     valid_repos = session.execute_sql(repo_query).fetchall()
     valid_repo_git_list = [repo[0] for repo in valid_repos]
@@ -89,20 +94,19 @@ def get_newly_added_repos(session, limit, hook):
 def get_repos_for_recollection(session, limit, hook, days_until_collect_again):
 
     if hook in ["core", "secondary", "ml"]:
-        condition_string = f"""{hook}_status='{str(CollectionState.SUCCESS.value)}'"""
-        
+        condition_string = f"{hook}_status = :status"
     elif hook == "facade":
-        condition_string = f"""facade_status='{str(CollectionState.SUCCESS.value)}'"""
+        condition_string = "facade_status = :status"
 
     repo_query = s.sql.text(f"""
         select repo_git 
         from augur_operations.collection_status x,  repo y 
         where x.repo_id = y.repo_id
         and {condition_string}
-        and {hook}_data_last_collected <= NOW() - INTERVAL '{days_until_collect_again} DAYS'
+        and {hook}_data_last_collected <= NOW() - CAST(:interval AS INTERVAL)
         order by {hook}_data_last_collected 
         limit :limit_num
-    """).bindparams(limit_num=limit)
+    """).bindparams(limit_num=limit, status=str(CollectionState.SUCCESS.value), interval=f"{days_until_collect_again} DAYS")
 
     valid_repos = session.execute_sql(repo_query).fetchall()
     valid_repo_git_list = [repo[0] for repo in valid_repos]

@@ -40,11 +40,11 @@ def upgrade():
             ALTER TABLE "augur_operations"."user_groups" 
             OWNER TO "augur";
 
-            INSERT INTO "augur_operations"."user_groups" ("group_id", "user_id", "name") VALUES (1, {}, 'default') ON CONFLICT ("user_id", "name") DO NOTHING;
+            INSERT INTO "augur_operations"."user_groups" ("group_id", "user_id", "name") VALUES (1, :cli_user_id, 'default') ON CONFLICT ("user_id", "name") DO NOTHING;
             ALTER SEQUENCE user_groups_group_id_seq RESTART WITH 2;
-            """.format(CLI_USER_ID)
+            """
 
-        session.execute_sql(sa.sql.text(create_user_groups_table))
+        session.execute_sql(sa.sql.text(create_user_groups_table).bindparams(cli_user_id=CLI_USER_ID))
 
 
         user_repos = []
@@ -62,8 +62,8 @@ def upgrade():
                 if user_id == CLI_USER_ID:
                     continue
 
-                user_group_insert = sa.sql.text(f"""INSERT INTO "augur_operations"."user_groups" ("user_id", "name") VALUES ({user_id}, 'default') RETURNING group_id, user_id;""")
-                result.append(session.fetchall_data_from_sql_text(user_group_insert)[0])
+                user_group_insert = sa.sql.text("""INSERT INTO "augur_operations"."user_groups" ("user_id", "name") VALUES (:user_id, 'default') RETURNING group_id, user_id;""")
+                result.append(session.fetchall_data_from_sql_text(user_group_insert.bindparams(user_id=user_id))[0])
             
             # cli user mapping by default
             user_group_id_mapping = {CLI_USER_ID: "1"}
@@ -98,8 +98,8 @@ def upgrade():
             group_id = data["group_id"]
             repo_id = data["repo_id"]
 
-            user_repo_insert = sa.sql.text(f"""INSERT INTO "augur_operations"."user_repos" ("group_id", "repo_id") VALUES ({group_id}, {repo_id});""")
-            result = session.execute_sql(user_repo_insert)
+            user_repo_insert = sa.sql.text("""INSERT INTO "augur_operations"."user_repos" ("group_id", "repo_id") VALUES (:group_id, :repo_id);""")
+            result = session.execute_sql(user_repo_insert.bindparams(group_id=int(data["group_id"]), repo_id=int(data["repo_id"])))
 
     op.create_table('client_applications',
     sa.Column('id', sa.String(), nullable=False),
@@ -211,18 +211,9 @@ def downgrade():
 
             if repos:
 
-                query_text_array = ["""INSERT INTO "augur_operations"."user_repos" ("repo_id", "user_id") VALUES """]
-                for i, repo_id in enumerate(repos):
-                    query_text_array.append(f"({repo_id}, {user_id})")
-
-                    delimiter = ";" if i == len(repos) -1 else ","
-
-                    query_text_array.append(delimiter)
-
-
-                query_text = "".join(query_text_array)
-
-                session.execute_sql(sa.sql.text(query_text))
+                user_repo_insert = sa.sql.text("""INSERT INTO "augur_operations"."user_repos" ("repo_id", "user_id") VALUES (:repo_id, :user_id);""")
+                for repo_id in repos:
+                    session.execute_sql(user_repo_insert.bindparams(repo_id=int(repo_id), user_id=int(user_id)))
 
     op.drop_table('user_session_tokens', schema='augur_operations')
     op.drop_table('client_applications', schema='augur_operations')

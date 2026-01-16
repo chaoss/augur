@@ -339,23 +339,19 @@ def retry_errored_repos(self):
 
     #TODO: Isaac needs to normalize the status's to be abstract in the 
     #collection_status table once augur dev is less unstable.
-    query = s.sql.text(f"""UPDATE collection_status SET secondary_status = '{CollectionState.PENDING.value}'"""
-    f""" WHERE secondary_status = '{CollectionState.ERROR.value}' and secondary_data_last_collected is NULL;"""
-    f"""UPDATE collection_status SET core_status = '{CollectionState.PENDING.value}'"""
-    f""" WHERE core_status = '{CollectionState.ERROR.value}' and core_data_last_collected is NULL;"""
-    f"""UPDATE collection_status SET facade_status = '{CollectionState.PENDING.value}'"""
-    f""" WHERE facade_status = '{CollectionState.ERROR.value}' and facade_data_last_collected is NULL;"""
-    f"""UPDATE collection_status SET ml_status = '{CollectionState.PENDING.value}'"""
-    f""" WHERE ml_status = '{CollectionState.ERROR.value}' and ml_data_last_collected is NULL;"""
-    
-    f"""UPDATE collection_status SET secondary_status = '{CollectionState.SUCCESS.value}'"""
-    f""" WHERE secondary_status = '{CollectionState.ERROR.value}' and secondary_data_last_collected is not NULL;"""
-    f"""UPDATE collection_status SET core_status = '{CollectionState.SUCCESS.value}'"""
-    f""" WHERE core_status = '{CollectionState.ERROR.value}' and core_data_last_collected is not NULL;;"""
-    f"""UPDATE collection_status SET facade_status = '{CollectionState.SUCCESS.value}'"""
-    f""" WHERE facade_status = '{CollectionState.ERROR.value}' and facade_data_last_collected is not NULL;;"""
-    f"""UPDATE collection_status SET ml_status = '{CollectionState.SUCCESS.value}'"""
-    f""" WHERE ml_status = '{CollectionState.ERROR.value}' and ml_data_last_collected is not NULL;;"""
+    query = s.sql.text("""
+        UPDATE collection_status SET secondary_status = :pending WHERE secondary_status = :error and secondary_data_last_collected is NULL;
+        UPDATE collection_status SET core_status = :pending WHERE core_status = :error and core_data_last_collected is NULL;
+        UPDATE collection_status SET facade_status = :pending WHERE facade_status = :error and facade_data_last_collected is NULL;
+        UPDATE collection_status SET ml_status = :pending WHERE ml_status = :error and ml_data_last_collected is NULL;
+        UPDATE collection_status SET secondary_status = :success WHERE secondary_status = :error and secondary_data_last_collected is not NULL;
+        UPDATE collection_status SET core_status = :success WHERE core_status = :error and core_data_last_collected is not NULL;
+        UPDATE collection_status SET facade_status = :success WHERE facade_status = :error and facade_data_last_collected is not NULL;
+        UPDATE collection_status SET ml_status = :success WHERE ml_status = :error and ml_data_last_collected is not NULL;
+    """).bindparams(
+        pending=CollectionState.PENDING.value,
+        error=CollectionState.ERROR.value,
+        success=CollectionState.SUCCESS.value
     )
 
     execute_sql(query)
