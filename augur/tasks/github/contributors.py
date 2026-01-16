@@ -92,7 +92,7 @@ def retrieve_dict_data(url: str, key_auth, logger):
                 )
                 break
 
-            elif "You have exceeded a secondary rate limit. Please wait a few minutes before you try again" in page_data['message']:
+            if "You have exceeded a secondary rate limit. Please wait a few minutes before you try again" in page_data['message']:
                 logger.info('\n\n\n\nSleeping for 100 seconds due to secondary rate limit issue.\n\n\n\n')
                 time.sleep(100)
                 continue
