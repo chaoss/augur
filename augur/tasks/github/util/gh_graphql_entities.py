@@ -7,6 +7,7 @@ import collections
 import time
 import traceback
 from augur.tasks.github.util.github_paginator import GithubApiResult, process_dict_response
+from augur.tasks.github.util.github_api_url import get_github_api_base_url
 
 """
     Should be designed on a per entity basis that has attributes that call 
@@ -140,13 +141,13 @@ def request_graphql_dict(key_auth, logger, url,query,variables={},timeout_wait=1
 #Should keep track of embedded data that is incomplete.
 class GraphQlPageCollection(collections.abc.Sequence):
     #Bind is needed for things like query by repo. Contains bind variables for the graphql query
-    def __init__(self,query,keyAuth,logger,bind={},numPerPage=100,url="https://api.github.com/graphql",repaginateIfIncomplete=[]):
+    def __init__(self,query,keyAuth,logger,bind={},numPerPage=100,url=None,repaginateIfIncomplete=[]):
         self.per_page = numPerPage
         self.query = query
         self.keyAuth = keyAuth
         self.logger = logger
 
-        self.url = url
+        self.url = url if url else f"{get_github_api_base_url()}/graphql"
 
         self.page_cache = []
 
@@ -405,7 +406,7 @@ class GitHubRepo():
     def __init__(self, logger, key_auth, owner, repo):
 
         self.keyAuth = key_auth
-        self.url = "https://api.github.com/graphql"
+        self.url = f"{get_github_api_base_url()}/graphql"
 
         self.logger = logger
 
@@ -538,7 +539,7 @@ class PullRequest():
     def __init__(self, logger, key_auth, owner, repo, number):
 
         self.keyAuth = key_auth
-        self.url = "https://api.github.com/graphql"
+        self.url = f"{get_github_api_base_url()}/graphql"
 
         self.logger = logger
 

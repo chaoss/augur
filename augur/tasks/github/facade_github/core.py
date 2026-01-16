@@ -5,6 +5,7 @@ from augur.application.db.models import *
 from augur.tasks.util.AugurUUID import GithubUUID
 from augur.application.db.lib import bulk_insert_dicts, batch_insert_contributors
 from augur.tasks.github.util.github_data_access import GithubDataAccess
+from augur.tasks.github.util.github_api_url import get_github_api_base_url
 
 
 
@@ -26,10 +27,7 @@ def query_github_contributors(logger, key_auth, github_url):
         raise e
 
     # Set the base of the url and place to hold contributors to insert
-    contributors_url = (
-        f"https://api.github.com/repos/{owner}/{name}/" +
-        "contributors?state=all"
-    )
+    contributors_url = f"{get_github_api_base_url()}/repos/{owner}/{name}/contributors?state=all"
 
     # Get contributors that we already have stored
     #   Set our duplicate and update column map keys (something other than PK) to
@@ -53,7 +51,7 @@ def query_github_contributors(logger, key_auth, github_url):
             # Need to hit this single contributor endpoint to get extra data including...
             #   `created at`
             #   i think that's it
-            cntrb_url = ("https://api.github.com/users/" + repo_contributor['login'])
+            cntrb_url = f"{get_github_api_base_url()}/users/{repo_contributor['login']}"
 
             
             logger.info("Hitting endpoint: " + cntrb_url + " ...\n")
