@@ -16,13 +16,15 @@ license-files = ["LICENSE"]
 classifiers = [
     "Intended Audience :: Developers",
     "Topic :: Software Development :: Version Control",
-    "Programming Language :: Python :: 3.10"
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12"
 ]
 dependencies = [
     "alembic>=1.17.1",
     "Beaker==1.11.0",
     "blinker==1.4",
-    "bokeh==2.0.2",
+    "bokeh>=2.4.3",
     "boto3==1.17.57",
     "bs4==0.0.1",
     "celery~=5.5",
@@ -74,7 +76,7 @@ dependencies = [
     "seaborn==0.11.1",
     "selenium==3.141.0",
     "sendgrid",
-    "six==1.15.0",
+    "six==1.16.0",
     "sklearn==0.0",
     "sklearn-crfsuite>=0.3.6",
     "slack==0.0.2",
@@ -163,7 +165,7 @@ constraint-dependencies = [
 [tool.tox]
 legacy_tox_ini = """
     [tox]
-    envlist = py{,311}-{classes}
+    envlist = py{,311,312}-{classes}
     skip_missing_interpreters = true
     requires = tox-uv
 
