@@ -283,23 +283,23 @@ class ThoroughGithubEventCollection(GithubEventCollection):
 
             if since:
                 # TODO: Remove src id if it ends up not being needed
-                query = text(f"""
+                query = text("""
                     select issue_id as issue_id, gh_issue_number as issue_number, gh_issue_id as gh_src_id 
                     from issues 
-                    where repo_id={repo_id} 
-                    and updated_at > timestamptz(timestamp '{since}')
+                    where repo_id = :repo_id 
+                    and updated_at > :since
                     order by created_at desc;
                 """)
+                issue_result = connection.execute(query, {"repo_id": repo_id, "since": since}).fetchall()
             else:
                 # TODO: Remove src id if it ends up not being needed
-                query = text(f"""
+                query = text("""
                     select issue_id as issue_id, gh_issue_number as issue_number, gh_issue_id as gh_src_id 
                     from issues 
-                    where repo_id={repo_id} 
+                    where repo_id = :repo_id 
                     order by created_at desc;
                 """)
-
-            issue_result = connection.execute(query).fetchall()
+                issue_result = connection.execute(query, {"repo_id": repo_id}).fetchall()
 
         events = []
         contributors = []
@@ -345,22 +345,22 @@ class ThoroughGithubEventCollection(GithubEventCollection):
         with engine.connect() as connection:
 
             if since:
-                query = text(f"""
+                query = text("""
                     select pull_request_id, pr_src_number as gh_pr_number, pr_src_id 
                     from pull_requests 
-                    where repo_id={repo_id}
-                    and pr_updated_at > timestamptz(timestamp '{since}') 
+                    where repo_id = :repo_id
+                    and pr_updated_at > :since 
                     order by pr_created_at desc;
                 """)
+                pr_result = connection.execute(query, {"repo_id": repo_id, "since": since}).fetchall()
             else:
-                query = text(f"""
+                query = text("""
                     select pull_request_id, pr_src_number as gh_pr_number, pr_src_id 
                     from pull_requests 
-                    where repo_id={repo_id}
+                    where repo_id = :repo_id
                     order by pr_created_at desc;
                 """)
-
-            pr_result = connection.execute(query).fetchall()
+                pr_result = connection.execute(query, {"repo_id": repo_id}).fetchall()
 
         events = []
         contributors = []
