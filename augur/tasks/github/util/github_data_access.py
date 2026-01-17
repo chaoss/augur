@@ -1,11 +1,13 @@
 import logging
 import time
+import os
 import httpx
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_exception, RetryError
 from urllib.parse import urlparse, parse_qs, urlencode
 from keyman.KeyClient import KeyClient
 
 GITHUB_RATELIMIT_REMAINING_CAP = 50
+GITHUB_KEY_RESET_BUFFER = int(os.getenv("GITHUB_KEY_RESET_BUFFER", 120))
 
 
 class RatelimitException(Exception):
@@ -219,7 +221,8 @@ class GithubDataAccess:
                 key_reset_time = 0
                 
             self.logger.info(f"\n\n\nAPI rate limit exceeded. Key resets in {key_reset_time} seconds. Informing key manager that key is expired")
-            self.key = self.key_client.expire(self.key, epoch_when_key_resets)
+            expire_time = max(epoch_when_key_resets, int(time.time()) + GITHUB_KEY_RESET_BUFFER)
+            self.key = self.key_client.expire(self.key, expire_time)
 
         else:
             self.key = self.key_client.expire(self.key, time.time() + 60)
