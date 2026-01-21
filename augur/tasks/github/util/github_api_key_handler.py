@@ -3,11 +3,12 @@ import time
 import random
 
 from typing import List
-
+from sqlalchemy.orm import Session
 
 from augur.tasks.util.redis_list import RedisList
 from augur.application.db.lib import get_value, get_worker_oauth_keys
 from augur.tasks.github.util.github_api_url import get_github_api_base_url
+from sqlalchemy import func 
 
 
 
@@ -97,7 +98,7 @@ class GithubApiKeyHandler():
             try:
                 keys = self.get_api_keys_from_database()
                 break
-            except Exception:
+            except:
                 time.sleep(5)
                 attempts += 1
 

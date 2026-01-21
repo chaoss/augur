@@ -72,11 +72,11 @@ def request_dict_from_endpoint(logger, session, url, timeout_wait=10):
             success = True
             break
 
-        if type(response_data) == list:
+        elif type(response_data) == list:
             logger.warning("Wrong type returned, trying again...")
             logger.debug(f"Returned list: {response_data}")
 
-        if type(response_data) == str:
+        elif type(response_data) == str:
             logger.warning(f"Warning! page_data was string: {response_data}")
             if "<!DOCTYPE html>" in response_data:
                 logger.warning("HTML was returned, trying again...\n")
@@ -93,7 +93,7 @@ def request_dict_from_endpoint(logger, session, url, timeout_wait=10):
 
                     success = True
                     break
-                except (json.JSONDecodeError, KeyError, TypeError):
+                except:
                     pass
 
         attempts += 1
@@ -387,7 +387,7 @@ def get_login_with_commit_hash(logger, auth, commit_data, repo_id):
 
     try:
         match = login_json['author']['login']
-    except (KeyError, TypeError):
+    except:
         match = None
 
     return match
