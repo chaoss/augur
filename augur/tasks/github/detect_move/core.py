@@ -9,7 +9,6 @@ from augur.application.db.util import execute_session_query
 from augur.application.db.lib import bulk_insert_dicts
 from augur.application.db.models import HistoricalRepoURLs
 from sqlalchemy.exc import IntegrityError
-from augur.tasks.github.util.github_api_url import get_github_api_base_url
 
 
 class RepoMovedException(Exception):
