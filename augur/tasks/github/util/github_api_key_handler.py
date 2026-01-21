@@ -98,7 +98,7 @@ class GithubApiKeyHandler():
             try:
                 keys = self.get_api_keys_from_database()
                 break
-            except:
+            except:  # pylint: disable=bare-except
                 time.sleep(5)
                 attempts += 1
 

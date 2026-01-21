@@ -87,7 +87,7 @@ def request_graphql_dict(key_auth, logger, url,query,variables={},timeout_wait=1
 
         try:
             response_data = result.json()
-        except:
+        except:  # pylint: disable=bare-except
             response_data = json.loads(json.dumps(result.text))
         
         #self.logger.info(f"api return: {response_data}")
@@ -125,7 +125,7 @@ def request_graphql_dict(key_auth, logger, url,query,variables={},timeout_wait=1
                     
                     success = True
                     break
-                except:
+                except:  # pylint: disable=bare-except
                     pass
         attempts += 1
 
@@ -192,7 +192,7 @@ class GraphQlPageCollection(collections.abc.Sequence):
 
             try:
                 response_data = result.json()
-            except:
+            except:  # pylint: disable=bare-except
                 response_data = json.loads(json.dumps(result.text))
             
             #self.logger.info(f"api return: {response_data}")
@@ -235,7 +235,7 @@ class GraphQlPageCollection(collections.abc.Sequence):
                         
                         success = True
                         break
-                    except:
+                    except:  # pylint: disable=bare-except
                         pass
             attempts += 1
 
@@ -276,7 +276,7 @@ class GraphQlPageCollection(collections.abc.Sequence):
         #first try cache
         try:
             return self.page_cache[index]
-        except:
+        except:  # pylint: disable=bare-except
             pass
 
 

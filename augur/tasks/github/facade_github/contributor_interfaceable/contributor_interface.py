@@ -93,7 +93,7 @@ def request_dict_from_endpoint(logger, session, url, timeout_wait=10):
 
                     success = True
                     break
-                except:
+                except:  # pylint: disable=bare-except
                     pass
 
         attempts += 1
@@ -387,7 +387,7 @@ def get_login_with_commit_hash(logger, auth, commit_data, repo_id):
 
     try:
         match = login_json['author']['login']
-    except:
+    except:  # pylint: disable=bare-except
         match = None
 
     return match
