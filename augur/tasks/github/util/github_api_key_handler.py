@@ -3,12 +3,12 @@ import time
 import random
 
 from typing import List
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session  # pylint: disable=unused-import
 
 from augur.tasks.util.redis_list import RedisList
 from augur.application.db.lib import get_value, get_worker_oauth_keys
 from augur.tasks.github.util.github_api_url import get_github_api_base_url
-from sqlalchemy import func 
+from sqlalchemy import func  # pylint: disable=unused-import 
 
 
 

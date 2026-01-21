@@ -97,7 +97,7 @@ def retrieve_dict_data(url: str, key_auth, logger):
                 time.sleep(100)
                 continue
 
-            elif "You have triggered an abuse detection mechanism." in page_data['message']:
+            elif "You have triggered an abuse detection mechanism." in page_data['message']:  # pylint: disable=no-else-continue
                 #self.update_rate_limit(response, temporarily_disable=True,platform=platform)
                 continue
         else:
