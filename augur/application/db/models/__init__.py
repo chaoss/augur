@@ -41,6 +41,7 @@ from augur.application.db.models.augur_data import (
     RepoStat,
     RepoTopic,
     TopicModelMeta,
+    TopicModelEvent,
     CommitCommentRef,
     CommitParent,
     DiscourseInsight,

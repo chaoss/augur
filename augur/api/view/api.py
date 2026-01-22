@@ -1,11 +1,10 @@
 import logging
 import re
 
-from flask import flash, current_app, jsonify, redirect, request, url_for
+from flask import flash, jsonify, redirect, request, url_for
 from flask_login import current_user, login_required
 
-from augur.application.db.models import Repo, RepoGroup, UserGroup, UserRepo
-from augur.application.db.session import DatabaseSession
+from augur.application.db.models import Repo, UserGroup, UserRepo
 from augur.tasks.frontend import (
     add_github_orgs_and_repos,
     add_gitlab_repos,
@@ -14,7 +13,10 @@ from augur.tasks.frontend import (
 )
 
 from ..server import app
-from .utils import *
+from .utils import render_module, renderRepos, render_message, toCacheFilename, getSetting
+from .init import report_requests
+
+logger = logging.getLogger(__name__)
 
 @app.route('/cache/file/')
 @app.route('/cache/file/<path:file>')
@@ -234,5 +236,11 @@ Locking request loop:
 """
 @app.route('/requests/report/wait/<id>')
 def wait_for_report_request(id):
-    requestReports(id)
+    # Initialize report_requests for this id if it doesn't exist
+    # Return the report request data (or empty images dict if not populated)
+    if id not in report_requests:
+        report_requests[id] = {"images": {}}
+    elif "images" not in report_requests[id]:
+        report_requests[id]["images"] = {}
+    
     return jsonify(report_requests[id])
