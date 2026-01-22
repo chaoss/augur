@@ -1,11 +1,13 @@
-# Contributors & Participants
+# Maintainers & Contributors
 
-This file contains full attribution lists for:
-- Current maintainers
+This file lists the project maintainers and contributors per [CHAOSS governance guidelines](https://chaoss.community/about/charter/).
+
+**Contents:**
+- Current Maintainers
 - Founding Maintainers
-- Former maintainers
+- Former Maintainers
 - Contributors
-- Google Summer of Code participants (by year)
+- Google Summer of Code Participants (by year)
 
 ---
 ## Current Maintainers
