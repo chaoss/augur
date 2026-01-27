@@ -46,13 +46,15 @@ If you want to see augur in action, you can view CHAOSS's augur instance `here <
 
 Current maintainers
 --------------------
-- `Derek Howard <https://github.com/howderek>`_
+- `Sean P. Goggins <https://github.com/sgoggins>`_
+- `Adrian Edwards <https://github.com/MoralCode>`_
 - `Andrew Brain <https://github.com/ABrain7710>`_
 - `Isaac Milarsky <https://github.com/IsaacMilarky>`_
-- `John McGinnes <https://github.com/Ulincys>`_
-- `Sean P. Goggins <https://github.com/sgoggins>`_
+- `John McGinnes <https://github.com/Ulincsys>`_
 
-
+Founding maintainers
+--------------------
+- `Derek Howard <https://github.com/howderek>`_
 
 Former maintainers
 --------------------
@@ -71,6 +73,13 @@ Contributors
 - `Dawn Foster <https://github.com/geekygirldawn/>`_
 - `Ivana Atanasova <https://github.com/ivanayov/>`_
 - `Georg J.P. Link <https://github.com/GeorgLink/>`_
+- `Gary P. White <https://github.com/garypwhite/>`_
+
+GSoC 2025 participants
+-----------------------
+- `Akshat Baranwal <https://github.com/akshatb2006>`_
+- `Asish Kumar <https://github.com/officialasishkumar>`_
+- `Jiahong Lin <https://github.com/xiaoha-cloud>`_
 
 GSoC 2022 participants
 -----------------------
@@ -84,7 +93,7 @@ GSoC 2021 participants
 -----------------------
 - `Dhruv Sachdev <https://github.com/Dhruv-Sachdev1313>`_
 - `Rashmi K A <https://github.com/Rashmi-K-A>`_
-- `Yash Prakash <https://github.com/yash2002109/>`__
+- `Yash Prakash <https://gist.github.com/yash-yp>`__
 - `Anuj Lamoria <https://github.com/anujlamoria/>`_
 - `Yeming Gu <https://github.com/gymgym1212/>`_
 - `Ritik Malik <https://gist.github.com/ritik-malik>`_
