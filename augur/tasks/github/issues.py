@@ -15,6 +15,7 @@ from augur.tasks.util.worker_util import remove_duplicate_dicts
 from augur.application.db.models import Issue, IssueLabel, IssueAssignee
 from augur.application.config import get_development_flag
 from augur.application.db.lib import get_repo_by_repo_git, bulk_insert_dicts, get_core_data_last_collected, batch_insert_contributors
+from augur.tasks.github.util.github_api_url import get_github_api_base_url
 
 
 # Batch size for processing issues - controls memory usage during collection
@@ -103,7 +104,7 @@ def retrieve_all_issue_data(repo_git: str, logger: logging.Logger, key_auth: Git
 
     logger.info(f"Collecting issues for {owner}/{repo}")
 
-    url = f"https://api.github.com/repos/{owner}/{repo}/issues?state=all"
+    url = f"{get_github_api_base_url()}/repos/{owner}/{repo}/issues?state=all"
 
     if since:
         url += f"&since={since.isoformat()}"
