@@ -27,8 +27,7 @@ Required:
    <https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/scopes-for-oauth-apps#available-scopes>`_,
    i.e., leave all scopes UNchecked.)
 -  `GitLab Access Token <https://gitlab.com/profile/personal_access_tokens>`__
--  `Python 3.6 - 3.8 <https://www.python.org/downloads/>`__
-
+-  `Python 3.8 - 3.10 <https://www.python.org/downloads/>`__
 
 
 Our REST API & data collection workers query the GitHub & GitLab API to collect data about issues, pull requests, contributors, and other information about a repository. Values for GitLab and GitHub access tokens are **required** for data collection and must be provided (an invalid token can be provided if you don't plan to use one platform) .
@@ -174,6 +173,11 @@ macOS takes "helpful" measures to prevent Python subprocesses (which Augur uses)
 .. warning::
   If you skip this step, you'll likely see all housekeeper jobs randomly exiting for no reason, and the Gunicorn server will not behave nicely either. Skip this step at your own risk!
 
+.. warning::
+  Augur currently supports Python **3.8 through 3.10**.
+  Using Python 3.11 or newer (including Python 3.12) may cause
+  installation failures during ``make install`` due to dependency
+  incompatibilities (for example, missing ``SafeConfigParser``).
 
 General Augur Installation Steps (Irrespective of Operating System)
 -------------------------------------------------------------------
