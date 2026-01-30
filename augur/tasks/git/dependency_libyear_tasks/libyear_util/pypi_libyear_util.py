@@ -68,23 +68,32 @@ def get_latest_version(data):
     return data['info']['version']
 
 
-def get_release_date(data, version,logger):
+def get_release_date(data, version, logger):
     if not data:
         logger.info('invalid data')
         return None
-    releases = data['releases']
-    name = data['info']['name']
-    try:
-        version_date = releases[version][-1]['upload_time_iso_8601']
-    except IndexError:
-        logger.error(f'Used release of {name}=={version} has no upload time.')
-        return None 
-    except KeyError as e:
-        logger.error(f'Could not find an entry for version {version}')
+    if version is None:
+        logger.warning('Version is None, cannot get release date')
         return None
     
-    # version_date = dateutil.parser.parse(version_date)
-    return version_date
+    releases = data.get('releases', {})
+    name = data.get('info', {}).get('name', 'unknown')
+    
+    if version not in releases:
+        logger.error(f'Version {version} not found in releases for {name}')
+        return None
+    
+    try:
+        if not releases[version]:
+            logger.error(f'Release {version} for {name} has no upload data')
+            return None
+            
+        version_date = releases[version][-1]['upload_time_iso_8601']
+        return version_date
+        
+    except (IndexError, KeyError) as e:
+        logger.error(f'Error getting release date for {name}=={version}: {e}')
+        return None
 
 
 def sort_dependency_requirement(dependency,data):
