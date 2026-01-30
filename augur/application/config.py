@@ -618,18 +618,14 @@ class JsonConfig(ConfigStore):
     def has_value(self, section_name: str, value_key: str) -> bool:
         return self.has_section(section_name) and self.json_data[section_name].get(value_key, None) is not None
 
-    def add_value(self, section_name: str, value_key: str, value, ignore_existing=False) -> None:
-        if not self.writable:
-            raise NotWriteableException()
+   def add_value(self, section_name: str, value_key: str, value, ignore_existing=False) -> None:
+    if not self.writable:
+        raise NotWriteableException()
 
-        if not self.has_section(section_name):
-            self.create_section(section_name, {[value_key]: value}, ignore_existing=ignore_existing)
-            return
-        
-        if ignore_existing:
-            self.json_data[section_name][value_key] = value
-        else:
-            self.json_data[section_name][value_key].update(value)
+    if not self.has_section(section_name):
+        # BUG FIX: {[value_key]: value} is invalid syntax
+        self.create_section(section_name, {value_key: value}, ignore_existing=ignore_existing)
+        return
 
 
     def get_value(self, section_name: str, value_key: str):
