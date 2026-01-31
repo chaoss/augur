@@ -48,9 +48,7 @@ Augur supports ```Python3.7``` through ```Python3.11``` on all platforms. ```Pyt
 $ python3.11 -m venv path/to/venv
 ```
 
-Augur's main focus is to measure the overall health and sustainability of open source projects.
-
-Augur collects more data about open source software projects than any other available software. Augur's main focus is to measure the overall health and sustainability of open source projects.
+Augur collects more data about open source software projects than any other available software.
 
 One of Augur's core tenets is a desire to openly gather data that people can trust, and then provide useful and well-defined metrics that help give important context to the larger stories being told by that data.
 
@@ -66,6 +64,18 @@ We are also hard at work building workers for new data sources. If you have an i
 
 
 ## Getting Started
+
+### ⚠ Python Version Compatibility
+
+Augur supports Python **3.7 through 3.11** on all platforms.
+
+Python **3.12 and above are not yet supported** due to machine learning worker dependencies.
+
+On macOS, you can create a Python 3.11 virtual environment using:
+
+```bash
+python3.11 -m venv path/to/venv
+```
 
 If you're interested in collecting data with our tool, the Augur team has worked hard to develop a detailed guide to get started with our project which can be found [in our documentation](https://oss-augur.readthedocs.io/en/main/getting-started/toc.html).
 
