@@ -18,6 +18,13 @@ def value_model(logger,repo_git):
 
     logger.info('Generating value data for repo')
     logger.info(f"Repo ID: {repo_id}, Path: {path}")
+
+    # Check if the repo path exists before running scc
+    # The repo may not have been cloned yet, in which case we should skip gracefully
+    if not os.path.exists(path):
+        logger.warning(f"Repository path does not exist: {path}. Skipping SCC analysis - repo may not be cloned yet.")
+        return
+
     logger.info('Running scc...')
 
     path_to_scc = os.getenv('SCC_DIR', os.environ['HOME'] + '/scc')
