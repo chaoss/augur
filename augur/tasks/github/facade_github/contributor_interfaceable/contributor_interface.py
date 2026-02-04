@@ -8,6 +8,7 @@ from augur.tasks.github.util.github_data_access import GithubDataAccess
 # Debugger
 from augur.tasks.github.util.github_paginator import GithubApiResult
 from augur.application.db.lib import get_repo_by_repo_id, bulk_insert_dicts, execute_sql, get_contributors_by_github_user_id
+from augur.tasks.github.util.github_api_url import get_github_api_base_url
 
 
 ##TODO: maybe have a TaskSession class that holds information about the database, logger, config, etc.
@@ -71,11 +72,11 @@ def request_dict_from_endpoint(logger, session, url, timeout_wait=10):
             success = True
             break
 
-        elif type(response_data) == list:
+        elif type(response_data) == list:  # pylint: disable=no-else-break
             logger.warning("Wrong type returned, trying again...")
             logger.debug(f"Returned list: {response_data}")
 
-        elif type(response_data) == str:
+        elif type(response_data) == str:  # pylint: disable=no-else-break
             logger.warning(f"Warning! page_data was string: {response_data}")
             if "<!DOCTYPE html>" in response_data:
                 logger.warning("HTML was returned, trying again...\n")
@@ -92,7 +93,7 @@ def request_dict_from_endpoint(logger, session, url, timeout_wait=10):
 
                     success = True
                     break
-                except:
+                except:  # pylint: disable=bare-except
                     pass
 
         attempts += 1
@@ -106,8 +107,7 @@ def request_dict_from_endpoint(logger, session, url, timeout_wait=10):
 def create_endpoint_from_email(email):
     # Note: I added "+type:user" to avoid having user owned organizations be returned
     # Also stopped splitting per note above.
-    url = 'https://api.github.com/search/users?q={}+in:email+type:user'.format(
-        email)
+    url = f"{get_github_api_base_url()}/search/users?q={email}+in:email+type:user"
     
 
     return url
@@ -131,7 +131,7 @@ def create_endpoint_from_commit_sha(logger, commit_sha, repo_id):
     split_git = result.repo_git.split('/')
     repo_name_and_org = split_git[-2] + "/" + result.repo_name
 
-    url = "https://api.github.com/repos/" + repo_name_and_org + "/commits/" + commit_sha
+    url = f"{get_github_api_base_url()}/repos/{split_git[-2]}/{result.repo_name}/commits/{commit_sha}"
 
     logger.debug(f"Commit Hash URL: {url}")
 
@@ -151,8 +151,7 @@ def create_endpoint_from_name(contributor):
         # Pythonic way to get the end of a list so that we truely get the last name.
         'lname': contributor[name_field].split()[-1]
     }
-    url = 'https://api.github.com/search/users?q=fullname:{}+{}'.format(
-        cmt_cntrb['fname'], cmt_cntrb['lname'])
+    url = f"{get_github_api_base_url()}/search/users?q=fullname:{cmt_cntrb['fname']}+{cmt_cntrb['lname']}"
 
     return url
 
@@ -388,7 +387,7 @@ def get_login_with_commit_hash(logger, auth, commit_data, repo_id):
 
     try:
         match = login_json['author']['login']
-    except:
+    except:  # pylint: disable=bare-except
         match = None
 
     return match

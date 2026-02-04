@@ -3,13 +3,13 @@ import time
 import random
 
 from typing import List
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session  # pylint: disable=unused-import
 
 from augur.tasks.util.redis_list import RedisList
 from augur.application.db.lib import get_value, get_worker_oauth_keys
-from sqlalchemy import func 
+from augur.tasks.github.util.github_api_url import get_github_api_base_url
+from sqlalchemy import func  # pylint: disable=unused-import 
 
-RATE_LIMIT_URL = "https://api.github.com/rate_limit"
 
 
 class NoValidKeysError(Exception):
@@ -98,7 +98,7 @@ class GithubApiKeyHandler():
             try:
                 keys = self.get_api_keys_from_database()
                 break
-            except:
+            except:  # pylint: disable=bare-except
                 time.sleep(5)
                 attempts += 1
 
@@ -158,7 +158,7 @@ class GithubApiKeyHandler():
 
         headers = {'Authorization': f'token {oauth_key}'}
 
-        data = client.request(method="GET", url=RATE_LIMIT_URL, headers=headers, timeout=180).json()
+        data = client.request(method="GET", url=f"{get_github_api_base_url()}/rate_limit", headers=headers, timeout=180).json()
 
         try:
             if data["message"] == "Bad credentials":
@@ -173,7 +173,7 @@ class GithubApiKeyHandler():
 
         headers = {'Authorization': f'token {github_key}'}
 
-        data = client.request(method="GET", url=RATE_LIMIT_URL, headers=headers, timeout=180).json()
+        data = client.request(method="GET", url=f"{get_github_api_base_url()}/rate_limit", headers=headers, timeout=180).json()
 
         if "message" in data:
             return None, None

@@ -7,6 +7,8 @@ import collections
 import time
 import traceback
 from augur.tasks.github.util.github_paginator import GithubApiResult, process_dict_response
+from augur.tasks.github.util.github_api_url import get_github_api_base_url
+process_graphql_dict_response = process_dict_response
 
 """
     Should be designed on a per entity basis that has attributes that call 
@@ -86,7 +88,7 @@ def request_graphql_dict(key_auth, logger, url,query,variables={},timeout_wait=1
 
         try:
             response_data = result.json()
-        except:
+        except (json.JSONDecodeError, AttributeError):
             response_data = json.loads(json.dumps(result.text))
         
         #self.logger.info(f"api return: {response_data}")
@@ -101,10 +103,10 @@ def request_graphql_dict(key_auth, logger, url,query,variables={},timeout_wait=1
             
             success = True
             break
-        elif type(response_data) == list:
+        if type(response_data) == list:
             logger.warning("Wrong type returned, trying again...")
             logger.info(f"Returned list: {response_data}")
-        elif type(response_data) == str:
+        if type(response_data) == str:
             logger.info(
                 f"Warning! page_data was string: {response_data}")
             if "<!DOCTYPE html>" in response_data:
@@ -116,7 +118,7 @@ def request_graphql_dict(key_auth, logger, url,query,variables={},timeout_wait=1
                     # Sometimes raw text can be converted to a dict
                     response_data = json.loads(response_data)
                     logger.info(f"{response_data}")
-                    err = process_graphql_dict_response(logger,result,response_data)
+                    err = process_dict_response(logger, result, response_data)
 
                     #If we get an error message that's not None
                     if err and err != GithubApiResult.SUCCESS:
@@ -124,7 +126,7 @@ def request_graphql_dict(key_auth, logger, url,query,variables={},timeout_wait=1
                     
                     success = True
                     break
-                except:
+                except (json.JSONDecodeError, KeyError, TypeError):
                     pass
         attempts += 1
 
@@ -140,13 +142,13 @@ def request_graphql_dict(key_auth, logger, url,query,variables={},timeout_wait=1
 #Should keep track of embedded data that is incomplete.
 class GraphQlPageCollection(collections.abc.Sequence):
     #Bind is needed for things like query by repo. Contains bind variables for the graphql query
-    def __init__(self,query,keyAuth,logger,bind={},numPerPage=100,url="https://api.github.com/graphql",repaginateIfIncomplete=[]):
+    def __init__(self,query,keyAuth,logger,bind={},numPerPage=100,url=None,repaginateIfIncomplete=[]):
         self.per_page = numPerPage
         self.query = query
         self.keyAuth = keyAuth
         self.logger = logger
 
-        self.url = url
+        self.url = url if url else f"{get_github_api_base_url()}/graphql"
 
         self.page_cache = []
 
@@ -191,7 +193,7 @@ class GraphQlPageCollection(collections.abc.Sequence):
 
             try:
                 response_data = result.json()
-            except:
+            except:  # pylint: disable=bare-except
                 response_data = json.loads(json.dumps(result.text))
             
             #self.logger.info(f"api return: {response_data}")
@@ -234,7 +236,7 @@ class GraphQlPageCollection(collections.abc.Sequence):
                         
                         success = True
                         break
-                    except:
+                    except:  # pylint: disable=bare-except
                         pass
             attempts += 1
 
@@ -275,7 +277,7 @@ class GraphQlPageCollection(collections.abc.Sequence):
         #first try cache
         try:
             return self.page_cache[index]
-        except:
+        except:  # pylint: disable=bare-except
             pass
 
 
@@ -405,7 +407,7 @@ class GitHubRepo():
     def __init__(self, logger, key_auth, owner, repo):
 
         self.keyAuth = key_auth
-        self.url = "https://api.github.com/graphql"
+        self.url = f"{get_github_api_base_url()}/graphql"
 
         self.logger = logger
 
@@ -538,7 +540,7 @@ class PullRequest():
     def __init__(self, logger, key_auth, owner, repo, number):
 
         self.keyAuth = key_auth
-        self.url = "https://api.github.com/graphql"
+        self.url = f"{get_github_api_base_url()}/graphql"
 
         self.logger = logger
 

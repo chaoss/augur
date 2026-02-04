@@ -69,7 +69,7 @@ def extract_owner_and_repo_from_endpoint(key_auth, url, logger):
 def ping_github_for_repo_move(session, key_auth, repo, logger,collection_hook='core'):
 
     owner, name = get_owner_repo(repo.repo_git)
-    url = f"https://api.github.com/repos/{owner}/{name}"
+    url = f"{get_github_api_base_url()}/repos/{owner}/{name}"
 
     attempts = 0
     while attempts < 10:

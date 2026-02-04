@@ -10,6 +10,7 @@ from augur.application.db.models import Contributor
 from augur.application.db.util import execute_session_query
 from augur.application.db.lib import bulk_insert_dicts, get_session, batch_insert_contributors
 from augur.tasks.github.util.github_random_key_auth import GithubRandomKeyAuth
+from augur.tasks.github.util.github_api_url import get_github_api_base_url
 
 
 
@@ -45,7 +46,7 @@ def process_contributors():
 
         del contributor_dict["_sa_instance_state"]
 
-        url = f"https://api.github.com/users/{contributor_dict['cntrb_login']}" 
+        url = f"{get_github_api_base_url()}/users/{contributor_dict['cntrb_login']}" 
 
         data = retrieve_dict_data(url, key_auth, logger)
 
@@ -91,12 +92,12 @@ def retrieve_dict_data(url: str, key_auth, logger):
                 )
                 break
 
-            elif "You have exceeded a secondary rate limit. Please wait a few minutes before you try again" in page_data['message']:
+            if "You have exceeded a secondary rate limit. Please wait a few minutes before you try again" in page_data['message']:
                 logger.info('\n\n\n\nSleeping for 100 seconds due to secondary rate limit issue.\n\n\n\n')
                 time.sleep(100)
                 continue
 
-            elif "You have triggered an abuse detection mechanism." in page_data['message']:
+            elif "You have triggered an abuse detection mechanism." in page_data['message']:  # pylint: disable=no-else-continue
                 #self.update_rate_limit(response, temporarily_disable=True,platform=platform)
                 continue
         else:
