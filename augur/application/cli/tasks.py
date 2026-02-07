@@ -17,6 +17,7 @@ from augur.application.config import AugurConfig
 from augur.application.db.session import DatabaseSession
 from augur.application.cli import test_connection, test_db_connection 
 from augur.application.cli.backend import clear_rabbitmq_messages, raise_open_file_limit
+from augur.tasks.start_tasks import trigger_ml_phase
 
 
 logger = AugurLogger("augur", reset_logfiles=False).get_logger()
@@ -101,5 +102,14 @@ def clear():
             return
         else:
             logger.error("Invalid input")
+
+
+@cli.command("trigger-ml")
+@test_connection
+@test_db_connection
+def trigger_ml():
+    logger.info("Starting ML tasks")
+    trigger_ml_phase.delay()
+    logger.info("ML tasks started")
 
     
