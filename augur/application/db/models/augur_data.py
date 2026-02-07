@@ -18,6 +18,7 @@ from sqlalchemy import (
     Text,
     UniqueConstraint,
     text,
+    Sequence,
     func
 )
 from sqlalchemy.dialects.postgresql import JSONB, TIMESTAMP, UUID
@@ -68,6 +69,7 @@ class ChaossMetricStatus(Base):
 
     cms_id = Column(
         BigInteger,
+        Sequence('chaoss_metric_status_cms_id_seq', start=1, schema='augur_data'),
         primary_key=True,
         server_default=text(
             "nextval('augur_data.chaoss_metric_status_cms_id_seq'::regclass)"
@@ -99,6 +101,7 @@ class ChaossUser(Base):
 
     chaoss_id = Column(
         BigInteger,
+        Sequence('chaoss_user_chaoss_id_seq', start=1, schema='augur_data'),
         primary_key=True,
         server_default=text(
             "nextval('augur_data.chaoss_user_chaoss_id_seq'::regclass)"
@@ -125,6 +128,7 @@ class ContributorAffiliation(Base):
 
     ca_id = Column(
         BigInteger,
+        Sequence('contributor_affiliations_ca_id_seq', start=25430, schema='augur_data'),
         primary_key=True,
         server_default=text(
             "nextval('augur_data.contributor_affiliations_ca_id_seq'::regclass)"
@@ -180,6 +184,7 @@ class Contributor(Base):
 
     cntrb_id = Column(
         UUID(as_uuid=True),
+        Sequence('contributors_cntrb_id_seq', start=25430, schema='augur_data'),
         primary_key=True,
         server_default=text(
             "nextval('augur_data.contributors_cntrb_id_seq'::regclass)"
@@ -499,6 +504,7 @@ class LstmAnomalyModel(Base):
 
     model_id = Column(
         BigInteger,
+        Sequence('lstm_anomaly_models_model_id_seq', start=1, schema='augur_data'),
         primary_key=True,
         server_default=text(
             "nextval('augur_data.lstm_anomaly_models_model_id_seq'::regclass)"
@@ -550,6 +556,7 @@ class RepoGroup(Base):
 
     repo_group_id = Column(
         BigInteger,
+        Sequence('repo_groups_repo_group_id_seq', start=25430, schema='augur_data'),
         primary_key=True,
         server_default=text(
             "nextval('augur_data.repo_groups_repo_group_id_seq'::regclass)"
@@ -639,6 +646,7 @@ class TopicWord(Base):
 
     topic_words_id = Column(
         BigInteger,
+        Sequence('topic_words_topic_words_id_seq', start=1, schema='augur_data'),
         primary_key=True,
         server_default=text(
             "nextval('augur_data.topic_words_topic_words_id_seq'::regclass)"
@@ -682,6 +690,7 @@ class UnresolvedCommitEmail(Base):
 
     email_unresolved_id = Column(
         BigInteger,
+        Sequence('unresolved_commit_emails_email_unresolved_id_seq', start=1, schema='augur_data'),
         primary_key=True,
         server_default=text(
             "nextval('augur_data.unresolved_commit_emails_email_unresolved_id_seq'::regclass)"
@@ -736,6 +745,7 @@ class ContributorRepo(Base):
 
     cntrb_repo_id = Column(
         BigInteger,
+        Sequence('contributor_repo_cntrb_repo_id_seq', start=1, schema='augur_data'),
         primary_key=True,
         server_default=text(
             "nextval('augur_data.contributor_repo_cntrb_repo_id_seq'::regclass)"
@@ -780,6 +790,7 @@ class ContributorsAlias(Base):
 
     cntrb_alias_id = Column(
         BigInteger,
+        Sequence('contributors_aliases_cntrb_alias_id_seq', start=1, schema='augur_data'),
         primary_key=True,
         server_default=text(
             "nextval('augur_data.contributors_aliases_cntrb_alias_id_seq'::regclass)"
@@ -1192,6 +1203,7 @@ class RepoTestCoverage(Base):
 
     repo_id = Column(
         ForeignKey("augur_data.repo.repo_id"),
+        Sequence('repo_test_coverage_repo_id_seq', start=1, schema='augur_data'),
         primary_key=True,
         server_default=text(
             "nextval('augur_data.repo_test_coverage_repo_id_seq'::regclass)"
@@ -1224,6 +1236,7 @@ class RepoGroupInsight(Base):
 
     rgi_id = Column(
         BigInteger,
+        Sequence('repo_group_insights_rgi_id_seq', start=25430, schema='augur_data'),
         primary_key=True,
         server_default=text(
             "nextval('augur_data.repo_group_insights_rgi_id_seq'::regclass)"
@@ -1257,6 +1270,7 @@ class RepoGroupsListServe(Base):
 
     rgls_id = Column(
         BigInteger,
+        Sequence('repo_groups_list_serve_rgls_id_seq', start=25430, schema='augur_data'),
         primary_key=True,
         server_default=text(
             "nextval('augur_data.repo_groups_list_serve_rgls_id_seq'::regclass)"
@@ -1529,6 +1543,7 @@ class LstmAnomalyResult(Base):
 
     result_id = Column(
         BigInteger,
+        Sequence('lstm_anomaly_results_result_id_seq', start=1, schema='augur_data'),
         primary_key=True,
         server_default=text(
             "nextval('augur_data.lstm_anomaly_results_result_id_seq'::regclass)"
@@ -1639,6 +1654,7 @@ class MessageAnalysisSummary(Base):
 
     msg_summary_id = Column(
         BigInteger,
+        Sequence('message_analysis_summary_msg_summary_id_seq', start=1, schema='augur_data'),
         primary_key=True,
         server_default=text(
             "nextval('augur_data.message_analysis_summary_msg_summary_id_seq'::regclass)"
@@ -1678,6 +1694,7 @@ class MessageSentimentSummary(Base):
 
     msg_summary_id = Column(
         BigInteger,
+        Sequence('message_sentiment_summary_msg_summary_id_seq', start=1, schema='augur_data'),
         primary_key=True,
         server_default=text(
             "nextval('augur_data.message_sentiment_summary_msg_summary_id_seq'::regclass)"
@@ -1723,6 +1740,7 @@ class PullRequest(Base):
 
     pull_request_id = Column(
         BigInteger,
+        Sequence('pull_requests_pull_request_id_seq', start=25430, schema='augur_data'),
         primary_key=True,
         server_default=text(
             "nextval('augur_data.pull_requests_pull_request_id_seq'::regclass)"
@@ -1889,6 +1907,7 @@ class RepoBadging(Base):
 
     badge_collection_id = Column(
         BigInteger,
+        Sequence('repo_badging_badge_collection_id_seq', start=25012, schema='augur_data'),
         primary_key=True,
         server_default=text(
             "nextval('augur_data.repo_badging_badge_collection_id_seq'::regclass)"
@@ -1930,6 +1949,7 @@ class RepoClusterMessage(Base):
 
     msg_cluster_id = Column(
         BigInteger,
+        Sequence('repo_cluster_messages_msg_cluster_id_seq', start=1, schema='augur_data'),
         primary_key=True,
         server_default=text(
             "nextval('augur_data.repo_cluster_messages_msg_cluster_id_seq'::regclass)"
@@ -1960,6 +1980,7 @@ class RepoDependency(Base):
 
     repo_dependencies_id = Column(
         BigInteger,
+        Sequence('repo_dependencies_repo_dependencies_id_seq', start=1, schema='augur_data'),
         primary_key=True,
         server_default=text(
             "nextval('augur_data.repo_dependencies_repo_dependencies_id_seq'::regclass)"
@@ -1990,6 +2011,7 @@ class RepoDepsLibyear(Base):
 
     repo_deps_libyear_id = Column(
         BigInteger,
+        Sequence('repo_deps_libyear_repo_deps_libyear_id_seq', start=1, schema='augur_data'),
         primary_key=True,
         server_default=text(
             "nextval('augur_data.repo_deps_libyear_repo_deps_libyear_id_seq'::regclass)"
@@ -2024,6 +2046,7 @@ class RepoDepsScorecard(Base):
 
     repo_deps_scorecard_id = Column(
         BigInteger,
+        Sequence('repo_deps_scorecard_repo_deps_scorecard_id_seq1', start=1, schema='augur_data'),
         primary_key=True,
         server_default=text(
             "nextval('augur_data.repo_deps_scorecard_repo_deps_scorecard_id_seq1'::regclass)"
@@ -2054,6 +2077,7 @@ class RepoInfo(Base):
 
     repo_info_id = Column(
         BigInteger,
+        Sequence('repo_info_repo_info_id_seq', start=25430, schema='augur_data'),
         primary_key=True,
         server_default=text(
             "nextval('augur_data.repo_info_repo_info_id_seq'::regclass)"
@@ -2143,6 +2167,7 @@ class RepoInsightsRecord(Base):
 
     ri_id = Column(
         BigInteger,
+        Sequence('repo_insights_records_ri_id_seq', start=1, schema='augur_data'),
         primary_key=True,
         server_default=text(
             "nextval('augur_data.repo_insights_records_ri_id_seq'::regclass)"
@@ -2189,6 +2214,7 @@ class RepoLabor(Base):
 
     repo_labor_id = Column(
         BigInteger,
+        Sequence('repo_labor_repo_labor_id_seq', start=25430, schema='augur_data'),
         primary_key=True,
         server_default=text(
             "nextval('augur_data.repo_labor_repo_labor_id_seq'::regclass)"
@@ -2246,6 +2272,7 @@ class RepoSbomScan(Base):
 
     rsb_id = Column(
         BigInteger,
+        Sequence('repo_sbom_scans_rsb_id_seq', start=25430, schema='augur_data'),
         primary_key=True,
         server_default=text(
             "nextval('augur_data.repo_sbom_scans_rsb_id_seq'::regclass)"
@@ -2288,6 +2315,7 @@ class RepoTopic(Base):
 
     repo_topic_id = Column(
         BigInteger,
+        Sequence('repo_topic_repo_topic_id_seq', start=1, schema='augur_data'),
         primary_key=True,
         server_default=text(
             "nextval('augur_data.repo_topic_repo_topic_id_seq'::regclass)"
@@ -2315,6 +2343,7 @@ class CommitCommentRef(Base):
 
     cmt_comment_id = Column(
         BigInteger,
+        Sequence('commit_comment_ref_cmt_comment_id_seq', start=25430, schema='augur_data'),
         primary_key=True,
         server_default=text(
             "nextval('augur_data.commit_comment_ref_cmt_comment_id_seq'::regclass)"
@@ -2376,6 +2405,7 @@ class CommitParent(Base):
     )
     parent_id = Column(
         ForeignKey("augur_data.commits.cmt_id"),
+        Sequence('commit_parents_parent_id_seq', start=25430, schema='augur_data'),
         primary_key=True,
         nullable=False,
         server_default=text(
@@ -2404,6 +2434,7 @@ class DiscourseInsight(Base):
 
     msg_discourse_id = Column(
         BigInteger,
+        Sequence('discourse_insights_msg_discourse_id_seq1', start=1, schema='augur_data'),
         primary_key=True,
         server_default=text(
             "nextval('augur_data.discourse_insights_msg_discourse_id_seq1'::regclass)"
@@ -2431,6 +2462,7 @@ class IssueAssignee(Base):
 
     issue_assignee_id = Column(
         BigInteger,
+        Sequence('issue_assignees_issue_assignee_id_seq', start=1, schema='augur_data'),
         primary_key=True,
         server_default=text(
             "nextval('augur_data.issue_assignees_issue_assignee_id_seq'::regclass)"
@@ -2490,6 +2522,7 @@ class IssueEvent(Base):
 
     event_id = Column(
         BigInteger,
+        Sequence('issue_events_event_id_seq', start=25430, schema='augur_data'),
         primary_key=True,
         server_default=text(
             "nextval('augur_data.issue_events_event_id_seq'::regclass)"
@@ -2574,6 +2607,7 @@ class IssueLabel(Base):
 
     issue_label_id = Column(
         BigInteger,
+        Sequence('issue_labels_issue_label_id_seq', start=25430, schema='augur_data'),
         primary_key=True,
         server_default=text(
             "nextval('augur_data.issue_labels_issue_label_id_seq'::regclass)"
@@ -2630,6 +2664,7 @@ class IssueMessageRef(Base):
 
     issue_msg_ref_id = Column(
         BigInteger,
+        Sequence('issue_message_ref_issue_msg_ref_id_seq', start=25430, schema='augur_data'),
         primary_key=True,
         server_default=text(
             "nextval('augur_data.issue_message_ref_issue_msg_ref_id_seq'::regclass)"
@@ -2691,6 +2726,7 @@ class LibraryDependency(Base):
 
     lib_dependency_id = Column(
         BigInteger,
+        Sequence('library_dependencies_lib_dependency_id_seq', start=25430, schema='augur_data'),
         primary_key=True,
         server_default=text(
             "nextval('augur_data.library_dependencies_lib_dependency_id_seq'::regclass)"
@@ -2717,6 +2753,7 @@ class LibraryVersion(Base):
 
     library_version_id = Column(
         BigInteger,
+        Sequence('library_version_library_version_id_seq', start=25430, schema='augur_data'),
         primary_key=True,
         server_default=text(
             "nextval('augur_data.library_version_library_version_id_seq'::regclass)"
@@ -2742,6 +2779,7 @@ class MessageAnalysis(Base):
 
     msg_analysis_id = Column(
         BigInteger,
+        Sequence('message_analysis_msg_analysis_id_seq', start=1, schema='augur_data'),
         primary_key=True,
         server_default=text(
             "nextval('augur_data.message_analysis_msg_analysis_id_seq'::regclass)"
@@ -2784,6 +2822,7 @@ class MessageSentiment(Base):
 
     msg_analysis_id = Column(
         BigInteger,
+        Sequence('message_sentiment_msg_analysis_id_seq', start=1, schema='augur_data'),
         primary_key=True,
         server_default=text(
             "nextval('augur_data.message_sentiment_msg_analysis_id_seq'::regclass)"
@@ -2824,6 +2863,7 @@ class PullRequestAnalysis(Base):
 
     pull_request_analysis_id = Column(
         BigInteger,
+        Sequence('pull_request_analysis_pull_request_analysis_id_seq', start=1, schema='augur_data'),
         primary_key=True,
         server_default=text(
             "nextval('augur_data.pull_request_analysis_pull_request_analysis_id_seq'::regclass)"
@@ -2873,6 +2913,7 @@ class PullRequestAssignee(Base):
 
     pr_assignee_map_id = Column(
         BigInteger,
+        Sequence('pull_request_assignees_pr_assignee_map_id_seq', start=25430, schema='augur_data'),
         primary_key=True,
         server_default=text(
             "nextval('augur_data.pull_request_assignees_pr_assignee_map_id_seq'::regclass)"
@@ -2935,6 +2976,7 @@ class PullRequestCommit(Base):
 
     pr_cmt_id = Column(
         BigInteger,
+        Sequence('pull_request_commits_pr_cmt_id_seq', start=1, schema='augur_data'),
         primary_key=True,
         server_default=text(
             "nextval('augur_data.pull_request_commits_pr_cmt_id_seq'::regclass)"
@@ -2988,6 +3030,7 @@ class PullRequestEvent(Base):
 
     pr_event_id = Column(
         BigInteger,
+        Sequence('pull_request_events_pr_event_id_seq', start=25430, schema='augur_data'),
         primary_key=True,
         server_default=text(
             "nextval('augur_data.pull_request_events_pr_event_id_seq'::regclass)"
@@ -3086,6 +3129,7 @@ class PullRequestFile(Base):
 
     pr_file_id = Column(
         BigInteger,
+        Sequence('pull_request_files_pr_file_id_seq', start=25150, schema='augur_data'),
         primary_key=True,
         server_default=text(
             "nextval('augur_data.pull_request_files_pr_file_id_seq'::regclass)"
@@ -3137,6 +3181,7 @@ class PullRequestLabel(Base):
 
     pr_label_id = Column(
         BigInteger,
+        Sequence('pull_request_labels_pr_label_id_seq', start=25430, schema='augur_data'),
         primary_key=True,
         server_default=text(
             "nextval('augur_data.pull_request_labels_pr_label_id_seq'::regclass)"
@@ -3198,6 +3243,7 @@ class PullRequestMessageRef(Base):
 
     pr_msg_ref_id = Column(
         BigInteger,
+        Sequence('pull_request_message_ref_pr_msg_ref_id_seq', start=25430, schema='augur_data'),
         primary_key=True,
         server_default=text(
             "nextval('augur_data.pull_request_message_ref_pr_msg_ref_id_seq'::regclass)"
@@ -3250,6 +3296,7 @@ class PullRequestMeta(Base):
 
     pr_repo_meta_id = Column(
         BigInteger,
+        Sequence('pull_request_meta_pr_repo_meta_id_seq', start=25430, schema='augur_data'),
         primary_key=True,
         server_default=text(
             "nextval('augur_data.pull_request_meta_pr_repo_meta_id_seq'::regclass)"
@@ -3322,6 +3369,7 @@ class PullRequestReviewer(Base):
 
     pr_reviewer_map_id = Column(
         BigInteger,
+        Sequence('pull_request_reviewers_pr_reviewer_map_id_seq', start=25430, schema='augur_data'),
         primary_key=True,
         server_default=text(
             "nextval('augur_data.pull_request_reviewers_pr_reviewer_map_id_seq'::regclass)"
@@ -3382,6 +3430,7 @@ class PullRequestReview(Base):
 
     pr_review_id = Column(
         BigInteger,
+        Sequence('pull_request_reviews_pr_review_id_seq', start=1, schema='augur_data'),
         primary_key=True,
         server_default=text(
             "nextval('augur_data.pull_request_reviews_pr_review_id_seq'::regclass)"
@@ -3449,6 +3498,7 @@ class PullRequestTeam(Base):
 
     pr_team_id = Column(
         BigInteger,
+        Sequence('pull_request_teams_pr_team_id_seq', start=25430, schema='augur_data'),
         primary_key=True,
         server_default=text(
             "nextval('augur_data.pull_request_teams_pr_team_id_seq'::regclass)"
@@ -3492,6 +3542,7 @@ class PullRequestRepo(Base):
 
     pr_repo_id = Column(
         BigInteger,
+        Sequence('pull_request_repo_pr_repo_id_seq', start=25430, schema='augur_data'),
         primary_key=True,
         server_default=text(
             "nextval('augur_data.pull_request_repo_pr_repo_id_seq'::regclass)"
@@ -3534,6 +3585,7 @@ class PullRequestReviewMessageRef(Base):
 
     pr_review_msg_ref_id = Column(
         BigInteger,
+        Sequence('pull_request_review_message_ref_pr_review_msg_ref_id_seq', start=1, schema='augur_data'),
         primary_key=True,
         server_default=text(
             "nextval('augur_data.pull_request_review_message_ref_pr_review_msg_ref_id_seq'::regclass)"
@@ -3606,6 +3658,7 @@ class RepoClone(Base):
 
     repo_clone_data_id = Column(
         BigInteger,
+        Sequence('repo_clones_data_id_seq', start=1, schema='augur_data'),
         primary_key=True,
         server_default=text(
             "nextval('augur_data.repo_clones_data_id_seq'::regclass)"
