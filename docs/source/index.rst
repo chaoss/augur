@@ -45,12 +45,11 @@ If you want to see augur in action, you can view CHAOSS's augur instance `here <
 
 
 Current maintainers
---------------------
-- `Derek Howard <https://github.com/howderek>`_
-- `Andrew Brain <https://github.com/ABrain7710>`_
-- `Isaac Milarsky <https://github.com/IsaacMilarky>`_
-- `John McGinnes <https://github.com/Ulincys>`_
-- `Sean P. Goggins <https://github.com/sgoggins>`_
+-------------------
+
+For the current list of Augur maintainers, please refer to the
+`CONTRIBUTORS.md <https://github.com/chaoss/augur/blob/main/CONTRIBUTORS.md>`_
+file.
 
 
 
