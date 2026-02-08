@@ -3,17 +3,16 @@
 Augur library commands for controlling the backend components
 """
 import os
+import uuid
 import time
 import subprocess
 import click
 import logging
 import psutil
 import signal
-from redis.exceptions import ConnectionError as RedisConnectionError
-import uuid
 import traceback
 import sqlalchemy as s
-
+from redis.exceptions import ConnectionError as RedisConnectionError
 from augur.tasks.start_tasks import augur_collection_monitor, create_collection_status_records
 from augur.tasks.git.facade_tasks import clone_repos
 from augur.tasks.github.util.github_api_key_handler import GithubApiKeyHandler

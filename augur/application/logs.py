@@ -3,13 +3,11 @@ from __future__ import annotations
 import logging
 import logging.config
 import logging.handlers
-from logging import FileHandler
 import os
 from pathlib import Path
 import shutil
 import coloredlogs
 from sqlalchemy.orm import Session
-
 from augur.application.db.models import Config 
 from augur.application.config import convert_type_of_value
 from augur.application.db.util import execute_session_query
@@ -88,31 +86,45 @@ def initialize_stream_handler(logger, log_level):
 def get_log_config():
     
     from augur.application.db.engine import DatabaseEngine
+    from sqlalchemy.exc import OperationalError, ArgumentError
 
-    # we are using this session instead of the 
-    # DatabaseSession class because the DatabaseSession 
-    # class requires a logger, and we are setting up logger thigns here 
-    with DatabaseEngine() as engine:
-        session = Session(engine)
+    # الإعدادات الافتراضية لو مفيش داتابيز
+    default_config = {
+        "log_level": "INFO",
+        "logs_directory": ""
+    }
 
-    query = session.query(Config).filter_by(section_name="Logging")
-    section_data = execute_session_query(query, 'all')
+    try:
+        # we are using this session instead of the 
+        # DatabaseSession class because the DatabaseSession 
+        # class requires a logger, and we are setting up logger thigns here 
+        with DatabaseEngine() as engine:
+            if engine is None:
+                return default_config
+                
+            session = Session(engine)
+            query = session.query(Config).filter_by(section_name="Logging")
+            section_data = execute_session_query(query, 'all')
 
-    session.close()
-    engine.dispose()
-        
-    section_dict = {}
-    for setting in section_data:
-        setting_dict = setting.__dict__
+            session.close()
+            # engine.dispose() is handled by the context manager now
 
-        setting_dict = convert_type_of_value(setting_dict)
+        if not section_data:
+             return default_config
 
-        setting_name = setting_dict["setting_name"]
-        setting_value = setting_dict["value"]
+        section_dict = {}
+        for setting in section_data:
+            setting_dict = setting.__dict__
+            setting_dict = convert_type_of_value(setting_dict)
+            setting_name = setting_dict["setting_name"]
+            setting_value = setting_dict["value"]
+            section_dict[setting_name] = setting_value
 
-        section_dict[setting_name] = setting_value
+        return section_dict
 
-    return section_dict
+    except (OperationalError, ArgumentError, Exception) as e:
+        print(f"Warning: Could not load log config from DB, using defaults. Error: {e}")
+        return default_config
 
 
 #TODO dynamically define loggers for every task names.
@@ -126,7 +138,7 @@ class TaskLogConfig():
 
         if reset_logfiles is True:
             try:
-                print("(tasks) Reseting log files")
+                logging.getLogger(__name__).info("(augur) Reseting log files")
                 shutil.rmtree(base_log_dir)
             except FileNotFoundError as e:
                 pass
@@ -197,7 +209,6 @@ class AugurLogger():
 
         if reset_logfiles is True:
             try:
-                print("(augur) Reseting log files")
                 base_log_dir_path = Path(base_log_dir)
                 for item in base_log_dir_path.iterdir():
                     if item.is_dir():

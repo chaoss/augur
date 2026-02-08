@@ -2,29 +2,22 @@ import sqlalchemy as s
 from sqlalchemy import and_, update
 import json
 import copy
-from typing import List, Any, Optional
+from typing import Any, Optional
 import os
+from augur.application.db.lib import get_value
 from augur.application.db.models import Config 
 from augur.application.db.util import execute_session_query, convert_type_of_value
 from pathlib import Path
 import logging
 
 def get_development_flag_from_config():
-    
-    from logging import getLogger
-    from augur.application.db.session import DatabaseSession
-
-    logger = getLogger(__name__)
-    with DatabaseSession(logger) as session:
-
-        config = AugurConfig(logger, session)
-
-        section = "Augur"
-        setting = "developer"
-
-        flag = config.get_value(section, setting)
-
-    return flag
+    try:
+        section = "Development"
+        setting = "developer_mode"
+        flag = get_value(section, setting)
+        return flag
+    except Exception:
+        return False
 
 def get_development_flag():
     return os.getenv("AUGUR_DEV") or get_development_flag_from_config() or False
