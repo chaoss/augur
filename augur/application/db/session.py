@@ -71,7 +71,7 @@ class DatabaseSession(Session):
 
     def __exit__(self, exception_type, exception_value, exception_traceback):
 
-        if self.engine_created:
+        if self.engine_created and self.engine:
             self.engine.dispose()
         
         self.close()

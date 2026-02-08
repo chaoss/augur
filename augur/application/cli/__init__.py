@@ -1,4 +1,3 @@
-#SPDX-License-Identifier: MIT
 import click
 from functools import update_wrapper
 import os
@@ -11,6 +10,24 @@ import traceback
 from augur.application.db.engine import DatabaseEngine
 from augur.application.db import get_engine, dispose_database_engine
 from sqlalchemy.exc import OperationalError 
+
+def is_bootstrap_command(ctx):
+    """
+    Check if the current command is a bootstrap command (like config init)
+    that should run even without a database connection.
+    """
+    if "--help" in sys.argv:
+        return True
+
+    try:
+        command_path = ctx.command_path.lower()
+        if "augur config" in command_path:
+            return True
+    except AttributeError:
+        pass
+        
+    return False
+ 
 
 
 def test_connection(function_internet_connection):
@@ -49,8 +66,18 @@ def test_connection(function_internet_connection):
 def test_db_connection(function_db_connection):
     @click.pass_context
     def new_func(ctx, *args, **kwargs):
+        
+        if is_bootstrap_command(ctx):
+             return ctx.invoke(function_db_connection, *args, **kwargs)
+        
+
         engine = DatabaseEngine().engine
         usage = re.search(r"Usage:\s(.*)\s\[OPTIONS\]", str(ctx.get_usage())).groups()[0]
+        
+        if engine is None:
+             print(f"\n\n{usage} command setup failed\nERROR: connecting to database\nHint: Database not configured. Run 'augur config init'.\n")
+             sys.exit(-2)
+
         try:
             engine.connect()
             engine.dispose()
@@ -59,16 +86,17 @@ def test_db_connection(function_db_connection):
 
             augur_db_environment_var = os.getenv("AUGUR_DB")
 
-            # determine the location to print in error string
             if augur_db_environment_var:
                 location = f"the AUGUR_DB environment variable\nAUGUR_DB={os.getenv('AUGUR_DB')}"
             else:
-                with open("db.config.json", 'r') as f:
-                    db_config = json.load(f)
-                    location = f"db.config.json\nYour db.config.json is: {db_config}"
+                try:
+                    with open("db.config.json", 'r') as f:
+                        db_config = json.load(f)
+                        location = f"db.config.json\nYour db.config.json is: {db_config}"
+                except FileNotFoundError:
+                    location = "db.config.json (File not found)"
             
             incorrect_values = "host name is" 
-            #  determine which value in the database string is causing the error
             if "could not translate host name" in str(e):
                 incorrect_values = "host name is" 
 
@@ -87,7 +115,8 @@ def test_db_connection(function_db_connection):
             if incorrect_values:
                 print(f"\n\n{usage} command setup failed\nERROR: connecting to database\nHINT: The {incorrect_values} may be incorrectly specified in {location}\n")
                 
-            engine.dispose()
+            if engine:
+                engine.dispose()
             sys.exit(-2)
         
     return update_wrapper(new_func, function_db_connection)
@@ -100,12 +129,19 @@ class DatabaseContext():
 def with_database(f):
     @click.pass_context
     def new_func(ctx, *args, **kwargs):
+        
+        if is_bootstrap_command(ctx):
+            ctx.obj.engine = None
+            return ctx.invoke(f, *args, **kwargs)
+        
+
         ctx.obj.engine = get_engine()
         try:
             return ctx.invoke(f, *args, **kwargs)
         finally:
             dispose_database_engine()
-    return new_func
+    return update_wrapper(new_func, f)
+
 
 
 # def pass_application(f):

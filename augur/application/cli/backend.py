@@ -30,7 +30,7 @@ from augur.application.db.lib import get_value
 from augur.application.cli import test_connection, test_db_connection, with_database, DatabaseContext
 import sqlalchemy as s
 
-from keyman.KeyClient import KeyClient, KeyPublisher
+from keyman.KeyClient import KeyPublisher
 
 reset_logs = os.getenv("AUGUR_RESET_LOGS", 'True').lower() in ('true', '1', 't', 'y', 'yes')
 
@@ -122,7 +122,7 @@ def start(ctx, disable_collection, development, pidfile, port):
     logger.info(f'Augur is running at: {"http" if development else "https"}://{host}:{port}')
     logger.info(f"The API is available at '{api_response.json()['route']}'")
 
-    processes = start_celery_worker_processes((core_worker_count, secondary_worker_count, facade_worker_count), disable_collection)
+    worker_processes = start_celery_worker_processes((core_worker_count, secondary_worker_count, facade_worker_count), disable_collection)
 
     celery_beat_schedule_db = os.getenv("CELERYBEAT_SCHEDULE_DB", "celerybeat-schedule.db")
     if os.path.exists(celery_beat_schedule_db):
@@ -186,7 +186,7 @@ def start(ctx, disable_collection, development, pidfile, port):
             server.terminate()
 
         logger.info("Shutting down all celery worker processes")
-        for p in processes:
+        for p in worker_processes:
             if p:
                 p.terminate()
 
@@ -263,9 +263,9 @@ def stop(ctx):
     """
     Sends SIGTERM to all Augur server & worker processes
     """
-    logger = logging.getLogger("augur.cli")
+    local_logger = logging.getLogger("augur.cli")
 
-    augur_stop(signal.SIGTERM, logger, ctx.obj.engine)
+    augur_stop(signal.SIGTERM, local_logger, ctx.obj.engine)
 
 @cli.command('stop-collection-blocking')
 @test_connection
@@ -276,17 +276,16 @@ def stop_collection(ctx):
     """
     Stop collection tasks if they are running, block until complete
     """
-    processes = get_augur_processes()
+    current_processes = get_augur_processes()
     
     stopped = []
     
-    p: psutil.Process
-    for p in processes:
+    for p in current_processes:
         if p.name() == "celery":
             stopped.append(p)
             p.terminate()
     
-    if not len(stopped):
+    if not stopped:
         logger.info("No collection processes found")
         return
     
@@ -295,19 +294,19 @@ def stop_collection(ctx):
     
     killed = []
     while True:
-        for i in range(len(alive)):
-            if alive[i].status() == psutil.STATUS_ZOMBIE:
-                logger.info(f"KILLING ZOMBIE: {alive[i].pid}")
-                alive[i].kill()
+        for i, proc in enumerate(alive):
+            if proc.status() == psutil.STATUS_ZOMBIE:
+                logger.info(f"KILLING ZOMBIE: {proc.pid}")
+                proc.kill()
                 killed.append(i)
-            elif not alive[i].is_running():
-                logger.info(f"STOPPED: {p.pid}")
+            elif not proc.is_running():
+                logger.info(f"STOPPED: {proc.pid}")
                 killed.append(i)
         
         for i in reversed(killed):
             alive.pop(i)
         
-        if not len(alive):
+        if not alive:
             break
         
         logger.info(f"Waiting on [{', '.join(str(p.pid for p in alive))}]")
@@ -324,11 +323,12 @@ def kill(ctx):
     """
     Sends SIGKILL to all Augur server & worker processes
     """
-    logger = logging.getLogger("augur.cli")
-    augur_stop(signal.SIGKILL, logger, ctx.obj.engine)
+    local_logger = logging.getLogger("augur.cli")
+    augur_stop(signal.SIGKILL, local_logger, ctx.obj.engine)
 
 
-def augur_stop(signal, logger, engine):
+def augur_stop(signal_to_send, local_logger, engine):
+
     """
     Stops augur with the given signal, 
     and cleans up collection if it was running
@@ -338,22 +338,29 @@ def augur_stop(signal, logger, engine):
     # if celery is running, run the cleanup function
     process_names = [process.name() for process in augur_processes]
 
-    _broadcast_signal_to_processes(augur_processes, broadcast_signal=signal, given_logger=logger)
+    _broadcast_signal_to_processes(augur_processes, broadcast_signal=signal_to_send, given_logger=local_logger)
 
     if "celery" in process_names:
-        cleanup_collection_status_and_rabbit(logger, engine)
+        cleanup_collection_status_and_rabbit(local_logger, engine)
 
 
-def cleanup_collection_status_and_rabbit(logger, engine):
-    clear_redis_caches()
+def cleanup_collection_status_and_rabbit(local_logger, engine):
+    try:
+        clear_redis_caches()
+    except RedisConnectionError as e:
+        local_logger.warning("Redis not reachable during startup cleanup: %s", e)
+    except Exception as e:
+        local_logger.warning("Redis cleanup failed (non-fatal): %s", e)
 
     connection_string = get_value("RabbitMQ", "connection_string")
-
-    with DatabaseSession(logger, engine=engine) as session:
-
+    with DatabaseSession(local_logger, engine=engine) as session:
         clean_collection_status(session)
 
-    clear_rabbitmq_messages(connection_string)
+    try:
+        clear_rabbitmq_messages(connection_string)
+    except Exception as e:
+        local_logger.warning("RabbitMQ purge failed (non-fatal): %s", e)
+
 
 def clear_redis_caches():
     """Clears the redis databases that celery and redis use."""
@@ -495,14 +502,14 @@ def get_augur_processes():
                 pass
     return augur_processes
 
-def _broadcast_signal_to_processes(processes, broadcast_signal=signal.SIGTERM, given_logger=None):
+def _broadcast_signal_to_processes(proc_list, broadcast_signal=signal.SIGTERM, given_logger=None):
     if given_logger is None:
         _logger = logger
     else:
         _logger = given_logger
-    for process in processes:
+    for process in proc_list:
         if process.pid != os.getpid():
-            logger.info(f"Stopping process {process.pid}")
+            _logger.info(f"Stopping process {process.pid}")
             try:
                 process.send_signal(broadcast_signal)
             except psutil.NoSuchProcess:

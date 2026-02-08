@@ -74,8 +74,7 @@ def get_database_string() -> str:
 
     if not augur_db_environment_var and not db_json_exists:
 
-        print("ERROR no way to get connection to the database. \n\t\t\t\t\t\t    There is no db.config.json and the AUGUR_DB environment variable is not set\n\t\t\t\t\t\t    Please run make install or set the AUGUR_DB environment then run make install")
-        sys.exit()
+        return None 
 
     if augur_db_environment_var:
         return augur_db_environment_var
@@ -88,7 +87,7 @@ def get_database_string() -> str:
 
     return db_conn_string
 
-def create_database_engine(url: str, **kwargs) -> Engine:  
+def create_database_engine(url: str, **kwargs) -> Engine:
     """Create sqlalchemy database engine 
 
     Note:
@@ -96,7 +95,9 @@ def create_database_engine(url: str, **kwargs) -> Engine:
 
     Returns:
         sqlalchemy database engine
-    """ 
+    """
+    if url is None:
+        return None
 
     engine = create_engine(url, **kwargs)
 
@@ -128,11 +129,14 @@ class DatabaseEngine():
 
 
     def __exit__(self, exception_type, exception_value, exception_traceback):
-
-        self._engine.dispose()
+        # --- التعديل هنا: اتأكد إنه مش None قبل ما تعمل dispose ---
+        if self._engine:
+            self._engine.dispose()
 
     def dispose(self):
-        self._engine.dispose()
+        # --- التعديل هنا كمان ---
+        if self._engine:
+            self._engine.dispose()
 
     @property
     def engine(self):
@@ -140,7 +144,6 @@ class DatabaseEngine():
 
 
     def create_database_engine(self, **kwargs):  
-
 
         db_conn_string = get_database_string()
 

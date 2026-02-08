@@ -6,8 +6,6 @@ Runs Augur with Gunicorn when called
 import os
 import click
 import importlib
-import traceback
-
 from pathlib import Path
 # import augur.application
 
@@ -34,7 +32,7 @@ class AugurMultiCommand(click.MultiCommand):
 
         # Prefer to raise exception instead of silcencing it
         module = importlib.import_module('.' + name, 'augur.application.cli')
-        return module.cli
+        return getattr(module, 'cli', None)
 
 @click.command(cls=AugurMultiCommand, context_settings=CONTEXT_SETTINGS)
 @click.pass_context
