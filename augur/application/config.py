@@ -623,7 +623,7 @@ class JsonConfig(ConfigStore):
             raise NotWriteableException()
 
         if not self.has_section(section_name):
-            self.create_section(section_name, {[value_key]: value}, ignore_existing=ignore_existing)
+            self.create_section(section_name, {value_key: value}, ignore_existing=ignore_existing)
             return
         
         if ignore_existing:
