@@ -2,8 +2,7 @@ import logging
 import time
 import httpx
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_exception, RetryError
-
-URL = "https://api.github.com/graphql"
+from augur.tasks.github.util.github_api_url import get_github_api_base_url
 
 class RatelimitException(Exception):
 
@@ -74,7 +73,7 @@ class GithubGraphQlDataAccess:
             if variables:
                 json_dict['variables'] = variables
             
-            response = client.post(url=URL,auth=self.key_manager,json=json_dict, timeout=timeout)
+            response = client.post(url=f"{get_github_api_base_url()}/graphql",auth=self.key_manager,json=json_dict, timeout=timeout)
 
         response.raise_for_status()
 

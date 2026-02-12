@@ -40,7 +40,8 @@ default_config = {
             },
             "Keys": {
                 "github": "<gh_api_key>",
-                "gitlab": "<gl_api_key>"
+                "gitlab": "<gl_api_key>",
+                "github_api_base_url": "https://api.github.com"
             },
             "Facade": {
                 "check_updates": 1,

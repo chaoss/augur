@@ -8,6 +8,7 @@ from augur.tasks.github.util.github_data_access import GithubDataAccess, UrlNotF
 from augur.application.db.models import ContributorRepo
 from augur.application.db.lib import bulk_insert_dicts
 from augur.tasks.github.util.github_random_key_auth import GithubRandomKeyAuth
+from augur.tasks.github.util.github_api_url import get_github_api_base_url
 
 ### This worker scans all the platform users in Augur, and pulls their platform activity 
 ### logs. Those are then used to analyze what repos each is working in (which will include repos not
@@ -92,7 +93,7 @@ def contributor_breadth_model(self) -> None:
         logger.info(f"Processing cntrb {index} of {total}")
         index += 1
 
-        repo_cntrb_url = f"https://api.github.com/users/{cntrb['gh_login']}/events"
+        repo_cntrb_url = f"{get_github_api_base_url()}/users/{cntrb['gh_login']}/events"
 
         newest_event_in_db = datetime(1970, 1, 1)
         if cntrb["gh_login"] in cntrb_newest_events_map:

@@ -11,12 +11,13 @@ from augur.application.db.lib import execute_sql
 from augur.tasks.github.util.github_task_session import *
 from augur.application.db.models.augur_data import RepoBadging
 from urllib.parse import quote
+from augur.tasks.github.util.github_api_url import get_github_api_base_url
 
 def query_committers_count(key_auth, logger, owner, repo):
 
     data = {}
     logger.info('Querying committers count\n')
-    url = f'https://api.github.com/repos/{owner}/{repo}/contributors?per_page=100'
+    url = f"{get_github_api_base_url()}/repos/{owner}/{repo}/contributors?per_page=100"
     ## If the repository is empty there are zero committers, and the API returns nothing at all. Response 
     ## header of 200 along with an empty JSON. 
     try: 
@@ -58,7 +59,7 @@ def get_repo_data(logger, url, response):
 def get_repo_data(logger, owner, repo):
 
     try:
-        url = f'https://api.github.com/repos/{owner}/{repo}'
+        url = f"{get_github_api_base_url()}/repos/{owner}/{repo}"
         github_data_access = GithubDataAccess(None, logger)
         result = github_data_access.get_resource(url)
         return result
@@ -93,7 +94,7 @@ def is_archived(logger, repo_data):
     return False
 
 def grab_repo_info_from_graphql_endpoint(key_auth, logger, query):
-    url = 'https://api.github.com/graphql'
+    url = f"{get_github_api_base_url()}/graphql"
     # Hit the graphql endpoint and retry 3 times in case of failure
     logger.info("Hitting endpoint: {} ...\n".format(url))
     data = request_graphql_dict(key_auth, logger, url, query)
@@ -284,7 +285,7 @@ def badges_model(logger,repo_git,repo_id,db):
 
     try:
         response_data = response.json()
-    except:
+    except (json.JSONDecodeError, AttributeError):
         response_data = json.loads(json.dumps(response.text))
 
     #Insert any data that was returned
