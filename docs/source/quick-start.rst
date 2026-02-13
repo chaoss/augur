@@ -1,14 +1,32 @@
 Quickstart
-===============
+==========
 
-Select installation instructions from those most closely related to the operating system that you use below. Note that Augur's dependencies do not consistently support python 3.11 at this time. Python 3.8 - Python 3.10 have been tested on each platform.
+Get Augur running in minutes! For more in-depth detail on using Augur, see :doc:`the tutorials <getting-started/toc>`
+
+
+We offer two methods for installing Augur:
+
+Containers
+^^^^^^^^^^
+
+Container images are the fastest way to get started with Augur using Docker or Podman with minimal setup. Viable and supported for installations of any size on Linux and macOS hosts.
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
+
+   getting-started/using-docker
+
+Manual Installation
+^^^^^^^^^^^^^^^^^^^
+
+For power users, deployments requiring more direct system access (such as for machine learning workloads, or if Docker/Podman aren't available on your platform. We officially support macOS, Ubuntu, and Fedora for manual installation.
+
+
+.. toctree::
+   :maxdepth: 1
 
    getting-started/new-install
    getting-started/dev-osx-install
-   getting-started/using-docker
 
 
 Explanations of Technologies
