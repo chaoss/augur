@@ -17,7 +17,7 @@ RUN go install github.com/ossf/scorecard/v5@v5.1.1 \
 
 
 ########################################
-FROM python:3.11-slim-bullseye
+FROM python:3.12-slim-bullseye
 
 LABEL maintainer="outdoors@acm.org"
 
