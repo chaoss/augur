@@ -103,6 +103,10 @@ def contributor_breadth_model(self) -> None:
         try:
             for event in github_data_access.paginate_resource(repo_cntrb_url):
 
+                # skip non-public events — their 'repo' key may be absent (issue #3468)
+                if not event.get("public", True):
+                    continue
+
                 cntrb_events.append(event)
 
                 event_age = datetime.strptime(event["created_at"], "%Y-%m-%dT%H:%M:%SZ")
@@ -130,14 +134,19 @@ def process_contributor_events(cntrb, cntrb_events, logger, tool_source, tool_ve
     cntrb_repos_insert = []
     for event_id_api in cntrb_events:
 
+        # 'repo' is absent for events on private/deleted repos (issue #3468)
+        repo_info = event_id_api.get('repo')
+        if not repo_info:
+            continue
+
         cntrb_repos_insert.append({
             "cntrb_id": cntrb['cntrb_id'],
-            "repo_git": event_id_api['repo']['url'],
+            "repo_git": repo_info['url'],
             "tool_source": tool_source,
             "tool_version": tool_version,
             "data_source": data_source,
-            "repo_name": event_id_api['repo']['name'],
-            "gh_repo_id": event_id_api['repo']['id'],
+            "repo_name": repo_info['name'],
+            "gh_repo_id": repo_info['id'],
             "cntrb_category": event_id_api['type'],
             "event_id": int(event_id_api['id']),
             "created_at": event_id_api['created_at']
