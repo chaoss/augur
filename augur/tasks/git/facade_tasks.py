@@ -223,8 +223,8 @@ def facade_fetch_missing_commit_messages(repo_git):
 
 
 #enable celery multithreading
-@celery.task(base=AugurFacadeRepoCollectionTask)
-def analyze_commits_in_parallel(repo_git, multithreaded: bool)-> None:
+@celery.task(base=AugurFacadeRepoCollectionTask, bind=True)
+def analyze_commits_in_parallel(self, repo_git, multithreaded: bool)-> None:
     """Take a large list of commit data to analyze and store in the database. Meant to be run in parallel with other instances of this task.
     """
 
@@ -301,7 +301,11 @@ def analyze_commits_in_parallel(repo_git, multithreaded: bool)-> None:
         quarterQueue = int(len(queue) / 4) or 1
 
         if (count + 1) % quarterQueue == 0:
-            logger.info(f"Progress through current analysis queue is {(count / len(queue)) * 100}%")
+            percent = (count / len(queue)) * 100
+            logger.info(f"Progress through current analysis queue is {percent}%")
+            # Notify Celery of progress so the broker heartbeat is maintained
+            # for long-running repos (issue #3319).
+            self.update_state(state='PROGRESS', meta={'done': count, 'total': len(queue)})
 
         commitRecords, commit_msg = analyze_commit(logger, repo_id, repo_loc, commitTuple)
         if commitRecords:
