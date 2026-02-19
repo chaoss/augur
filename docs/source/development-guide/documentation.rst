@@ -45,6 +45,25 @@ After opening it once, Make your changes in the regular ``docs/source`` folder a
     # after opening the documentation
     $ make docs
 
+Updating the REST API Spec Version
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The OpenAPI specification for the REST API lives in ``docs/source/rest-api/spec.yml``.
+The ``info.version`` field in that file must be kept in sync with the project version
+defined in ``metadata.py``.
+
+When a new release is cut, update the version field:
+
+.. code-block:: yaml
+
+    info:
+      title: Augur REST API
+      version: 0.92.0   # update to match metadata.__version__
+
+There is no automated sync between ``metadata.py`` and ``spec.yml`` yet; updating both
+manually is the current process. See `#3688 <https://github.com/chaoss/augur/issues/3688>`_
+for the longer-term goal of automating this.
+
 Hosting
 ~~~~~~~
 Our documentation is graciously hosted by `Read the Docs <https://readthedocs.org/>`_.
