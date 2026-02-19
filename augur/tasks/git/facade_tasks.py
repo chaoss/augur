@@ -297,15 +297,17 @@ def analyze_commits_in_parallel(self, repo_git, multithreaded: bool)-> None:
     bulk_insert_dicts(logger,pendingCommitMessageRecordsToInsert, CommitMessage, ["repo_id","cmt_hash"])
     facade_bulk_insert_commits(logger,pendingCommitRecordsToInsert)
     """
+    last_heartbeat = datetime.datetime.utcnow()
     for count, commitTuple in enumerate(queue):
-        quarterQueue = int(len(queue) / 4) or 1
-
-        if (count + 1) % quarterQueue == 0:
+        now = datetime.datetime.utcnow()
+        if (now - last_heartbeat).total_seconds() >= 30:
             percent = (count / len(queue)) * 100
-            logger.info(f"Progress through current analysis queue is {percent}%")
-            # Notify Celery of progress so the broker heartbeat is maintained
-            # for long-running repos (issue #3319).
-            self.update_state(state='PROGRESS', meta={'done': count, 'total': len(queue)})
+            logger.info(f"Progress through current analysis queue is {percent:.1f}%")
+            try:
+                self.update_state(state='PROGRESS', meta={'done': count, 'total': len(queue)})
+            except Exception as e:
+                logger.warning(f"Failed to send Celery heartbeat: {e}")
+            last_heartbeat = now
 
         commitRecords, commit_msg = analyze_commit(logger, repo_id, repo_loc, commitTuple)
         if commitRecords:
