@@ -1295,7 +1295,7 @@ class RepoGroupsListServe(Base):
 class Commit(Base):
     __tablename__ = "commits"
     __table_args__ = (
-        # DB
+        # DB Indexes
         Index("author_affiliation", "cmt_author_affiliation"),
         Index("author_cntrb_id", "cmt_ght_author_id"),
         Index("author_raw_email", "cmt_author_raw_email"),
@@ -1308,7 +1308,6 @@ class Commit(Base):
         ),
         Index("committer_affiliation", "cmt_committer_affiliation",
                  postgresql_using='hash'),
-
         Index(
             "author_email,author_affiliation,author_date",
             "cmt_author_email",
@@ -1317,10 +1316,11 @@ class Commit(Base):
         ),
         Index("committer_raw_email", "cmt_committer_raw_email"),
         Index("repo_id,commit", "repo_id", "cmt_commit_hash"),
-
+        UniqueConstraint("repo_id", "cmt_commit_hash", name="commits_repo_id_cmt_commit_hash_unique"),
         {
             "schema": "augur_data",
-            "comment": "Commits.\nEach row represents changes to one FILE within a single commit. So you will encounter multiple rows per commit hash in many cases. ",
+            "comment": "Commits. Each row represents a single commit. "
+                       "File-level details are stored in the commit_files table.",
         },
     )
 
@@ -1345,14 +1345,10 @@ class Commit(Base):
     cmt_committer_name = Column(String, nullable=False)
     cmt_committer_raw_email = Column(String, nullable=False)
     cmt_committer_email = Column(String, nullable=False)
-    cmt_committer_date = Column(String, nullable=False)
+    cmt_committer_date = Column(String(10), nullable=False)
     cmt_committer_affiliation = Column(
         String, server_default=text("'NULL'::character varying")
     )
-    cmt_added = Column(Integer, nullable=False)
-    cmt_removed = Column(Integer, nullable=False)
-    cmt_whitespace = Column(Integer, nullable=False)
-    cmt_filename = Column(String, nullable=False)
     cmt_date_attempted = Column(TIMESTAMP(precision=0), nullable=False)
     cmt_ght_author_id = Column(ForeignKey(
         "augur_data.contributors.cntrb_id",
@@ -1375,15 +1371,8 @@ class Commit(Base):
             initially="DEFERRED",
             deferrable=True,
         ),
-        ForeignKey(
-            "augur_data.contributors.cntrb_login",
-            name="fk_commits_contributors_4",
-            ondelete="CASCADE",
-            onupdate="CASCADE",
-            initially="DEFERRED",
-            deferrable=True,
-        ),
     )
+
     tool_source = Column(String)
     tool_version = Column(String)
     data_source = Column(String)
@@ -1391,6 +1380,7 @@ class Commit(Base):
         TIMESTAMP(precision=0), server_default=text("CURRENT_TIMESTAMP")
     )
 
+    # Relationships
     contributor = relationship(
         "Contributor",
         primaryjoin="Commit.cmt_author_platform_username == Contributor.cntrb_login",
@@ -1398,6 +1388,58 @@ class Commit(Base):
     )
     repo = relationship("Repo", back_populates="commits")
     message_ref = relationship("CommitCommentRef", back_populates="cmt")
+    files = relationship("CommitFile", back_populates="commit")
+
+
+class CommitFile(Base):
+    __tablename__ = "commit_files"
+    __table_args__ = (
+        UniqueConstraint("commit_id", "cmt_filename", name="commit_files_commit_id_cmt_filename_unique"),
+        Index("commit_files_commit_id_idx", "commit_id"),
+        Index("commit_files_repo_id_idx", "repo_id"),
+        {
+            "schema": "augur_data",
+            "comment": "Commit file-level data. Each row represents changes to one "
+                       "file within a single commit, linked to the commits table.",
+        },
+    )
+
+    commit_file_id = Column(
+        BigInteger,
+        Sequence('commit_files_commit_file_id_seq', start=25430, schema="augur_data"),
+        primary_key=True,
+        server_default=text("nextval('augur_data.commit_files_commit_file_id_seq'::regclass)"),
+    )
+    commit_id = Column(
+        ForeignKey(
+            "augur_data.commits.cmt_id",
+            ondelete="CASCADE",
+            onupdate="CASCADE",
+        ),
+        nullable=False,
+    )
+    repo_id = Column(
+        ForeignKey(
+            "augur_data.repo.repo_id",
+            ondelete="RESTRICT",
+            onupdate="CASCADE",
+        ),
+        nullable=False,
+    )
+    cmt_filename = Column(String, nullable=False)
+    cmt_added = Column(Integer, nullable=False)
+    cmt_removed = Column(Integer, nullable=False)
+    cmt_whitespace = Column(Integer, nullable=False)
+    tool_source = Column(String)
+    tool_version = Column(String)
+    data_source = Column(String)
+    data_collection_date = Column(
+        TIMESTAMP(precision=0), server_default=text("CURRENT_TIMESTAMP")
+    )
+
+    # Relationships
+    commit = relationship("Commit", back_populates="files")
+    repo = relationship("Repo")
 
 class CommitMessage(Base):
     __tablename__ = "commit_messages"

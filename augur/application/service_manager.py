@@ -32,37 +32,39 @@ class AugurServiceManager:
         self.shutting_down = True
         logger.info(f"Received signal {signum}, shutting down gracefully")
 
-        # Stop server
+        # Broadcast terminate to all processes simultaneously to save time
         if self.server:
             logger.info("Stopping server")
             self.server.terminate()
-            try:
-                self.server.wait(timeout=5)
-            except subprocess.TimeoutExpired:
-                logger.warning("Server did not terminate in time, killing")
-                self.server.kill()
 
-        # Stop celery workers
+        if self.celery_beat_process:
+            logger.info("Stopping celery beat")
+            self.celery_beat_process.terminate()
+
         logger.info("Stopping celery workers")
         for p in self.processes:
             if p and p.poll() is None:
                 p.terminate()
-        
-        # Wait for workers to terminate
+
+        # Now wait for them to terminate down with timeouts
+        if self.server:
+            try:
+                self.server.wait(timeout=2)
+            except subprocess.TimeoutExpired:
+                logger.warning("Server did not terminate in time, killing")
+                self.server.kill()
+
         for p in self.processes:
             if p:
                 try:
-                    p.wait(timeout=3)
+                    p.wait(timeout=2)
                 except subprocess.TimeoutExpired:
                     logger.warning(f"Worker {p.pid} did not terminate in time, killing")
                     p.kill()
 
-        # Stop celery beat
         if self.celery_beat_process:
-            logger.info("Stopping celery beat")
-            self.celery_beat_process.terminate()
             try:
-                self.celery_beat_process.wait(timeout=3)
+                self.celery_beat_process.wait(timeout=2)
             except subprocess.TimeoutExpired:
                 logger.warning("Celery beat did not terminate in time, killing")
                 self.celery_beat_process.kill()
@@ -101,8 +103,7 @@ def clear_redis_caches():
     """Clears the redis databases that celery and redis use."""
 
     logger.info("Flushing all redis databases this instance was using")
-    celery_purge_command = "celery -A augur.tasks.init.celery_app.celery_app purge -f"
-    subprocess.call(celery_purge_command.split(" "))
+    # Note: We rely on clear_rabbitmq_messages > celery_app.control.purge() instead of launching a slow CLI process
 
     redis_connection = get_redis_connection()
     redis_connection.flushdb()
@@ -162,5 +163,7 @@ def clear_all_message_queues(connection_string):
     parsed = urlparse(connection_string)
 
     for q in queues:
-        curl_cmd = f"curl -i -u {parsed.username}:{parsed.password} -XDELETE http://localhost:15672/api/queues/{virtual_host_string}/{q}"
+        # We must use the specified hostname and set a strict timeout because this runs during SIGTERM
+        # RabbitMQ might already be stopping, and a hanging curl command will cause Docker shutdown errors.
+        curl_cmd = f"curl -i -u {parsed.username}:{parsed.password} --connect-timeout 2 --max-time 2 -s -o /dev/null -XDELETE http://{parsed.hostname}:15672/api/queues/{virtual_host_string}/{q}"
         subprocess.call(curl_cmd.split(" "),stdout=subprocess.PIPE, stderr=subprocess.PIPE)

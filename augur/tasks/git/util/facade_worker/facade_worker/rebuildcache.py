@@ -504,10 +504,11 @@ def rebuild_unknown_affiliation_and_web_caches(facade_helper):
         r.repo_group_id, 
         a.cmt_author_email, 
         SPLIT_PART(a.cmt_author_email,'@',2), 
-        SUM(a.cmt_added),
+        COALESCE(SUM(cf.cmt_added), 0),
         info.a AS tool_source, info.b AS tool_version, info.c AS data_source
         FROM (VALUES(:tool_source,:tool_version,:data_source)) info(a,b,c), 
         commits a 
+        LEFT JOIN commit_files cf ON cf.commit_id = a.cmt_id 
         JOIN repo r ON r.repo_id = a.repo_id 
         JOIN repo_groups p ON p.repo_group_id = r.repo_group_id 
         WHERE a.cmt_author_affiliation = '(Unknown)' 
@@ -525,10 +526,11 @@ def rebuild_unknown_affiliation_and_web_caches(facade_helper):
         r.repo_group_id, 
         a.cmt_committer_email, 
         SPLIT_PART(a.cmt_committer_email,'@',2), 
-        SUM(a.cmt_added),
+        COALESCE(SUM(cf.cmt_added), 0),
         info.a AS tool_source, info.b AS tool_version, info.c AS data_source
         FROM (VALUES(:tool_source,:tool_version,:data_source)) info(a,b,c), 
         commits a 
+        LEFT JOIN commit_files cf ON cf.commit_id = a.cmt_id 
         JOIN repo r ON r.repo_id = a.repo_id 
         JOIN repo_groups p ON p.repo_group_id = r.repo_group_id 
         WHERE a.cmt_committer_affiliation = '(Unknown)' 
@@ -549,14 +551,15 @@ def rebuild_unknown_affiliation_and_web_caches(facade_helper):
         f"a.cmt_{report_attribution}_affiliation AS affiliation," 
         f"date_part('week', TO_TIMESTAMP(a.cmt_{report_date}_date, 'YYYY-MM-DD')) AS week," 
         f"date_part('year', TO_TIMESTAMP(a.cmt_{report_date}_date, 'YYYY-MM-DD')) AS year, "
-        "SUM(a.cmt_added) AS added, "
-        "SUM(a.cmt_removed) AS removed," 
-        "SUM(a.cmt_whitespace) AS whitespace, "
-        "COUNT(DISTINCT a.cmt_filename) AS files," 
+        "COALESCE(SUM(cf.cmt_added), 0) AS added, "
+        "COALESCE(SUM(cf.cmt_removed), 0) AS removed," 
+        "COALESCE(SUM(cf.cmt_whitespace), 0) AS whitespace, "
+        "COUNT(DISTINCT cf.cmt_filename) AS files," 
         "COUNT(DISTINCT a.cmt_commit_hash) AS patches,"
         "info.a AS tool_source, info.b AS tool_version, info.c AS data_source "
         "FROM (VALUES(:tool_source,:tool_version,:data_source)) info(a,b,c), "
         "commits a "
+        "LEFT JOIN commit_files cf ON cf.commit_id = a.cmt_id "
         "JOIN repo r ON r.repo_id = a.repo_id "
         "JOIN repo_groups p ON p.repo_group_id = r.repo_group_id "
         "LEFT JOIN exclude e ON "
@@ -585,14 +588,15 @@ def rebuild_unknown_affiliation_and_web_caches(facade_helper):
         f"a.cmt_{report_attribution}_affiliation AS affiliation, "
         f"date_part('month', TO_TIMESTAMP(a.cmt_{report_date}_date, 'YYYY-MM-DD')) AS month, "
         f"date_part('year', TO_TIMESTAMP(a.cmt_{report_date}_date, 'YYYY-MM-DD')) AS year, "
-        "SUM(a.cmt_added) AS added, "
-        "SUM(a.cmt_removed) AS removed, "
-        "SUM(a.cmt_whitespace) AS whitespace, "
-        "COUNT(DISTINCT a.cmt_filename) AS files, "
+        "COALESCE(SUM(cf.cmt_added), 0) AS added, "
+        "COALESCE(SUM(cf.cmt_removed), 0) AS removed, "
+        "COALESCE(SUM(cf.cmt_whitespace), 0) AS whitespace, "
+        "COUNT(DISTINCT cf.cmt_filename) AS files, "
         "COUNT(DISTINCT a.cmt_commit_hash) AS patches,"
         "info.a AS tool_source, info.b AS tool_version, info.c AS data_source "
         "FROM (VALUES(:tool_source,:tool_version,:data_source)) info(a,b,c), "
         "commits a "
+        "LEFT JOIN commit_files cf ON cf.commit_id = a.cmt_id "
         "JOIN repo r ON r.repo_id = a.repo_id "
         "JOIN repo_groups p ON p.repo_group_id = r.repo_group_id "
         "LEFT JOIN exclude e ON "
@@ -620,14 +624,15 @@ def rebuild_unknown_affiliation_and_web_caches(facade_helper):
         f"a.cmt_{report_attribution}_email AS email, "
         f"a.cmt_{report_attribution}_affiliation AS affiliation, "
         f"date_part('year', TO_TIMESTAMP(a.cmt_{report_date}_date, 'YYYY-MM-DD')) AS year, "
-        "SUM(a.cmt_added) AS added, "
-        "SUM(a.cmt_removed) AS removed, "
-        "SUM(a.cmt_whitespace) AS whitespace, "
-        "COUNT(DISTINCT a.cmt_filename) AS files, "
+        "COALESCE(SUM(cf.cmt_added), 0) AS added, "
+        "COALESCE(SUM(cf.cmt_removed), 0) AS removed, "
+        "COALESCE(SUM(cf.cmt_whitespace), 0) AS whitespace, "
+        "COUNT(DISTINCT cf.cmt_filename) AS files, "
         "COUNT(DISTINCT a.cmt_commit_hash) AS patches,"
         "info.a AS tool_source, info.b AS tool_version, info.c AS data_source "
         "FROM (VALUES(:tool_source,:tool_version,:data_source)) info(a,b,c), "
         "commits a "
+        "LEFT JOIN commit_files cf ON cf.commit_id = a.cmt_id "
         "JOIN repo r ON r.repo_id = a.repo_id "
         "JOIN repo_groups p ON p.repo_group_id = r.repo_group_id "
         "LEFT JOIN exclude e ON "
@@ -644,9 +649,6 @@ def rebuild_unknown_affiliation_and_web_caches(facade_helper):
         "affiliation, "
         f"a.cmt_{report_attribution}_email,"
         "r.repo_group_id, info.a, info.b, info.c"
-
-        
-        
         )).bindparams(tool_source=facade_helper.tool_source,tool_version=facade_helper.tool_version,data_source=facade_helper.data_source)
 
      
@@ -665,14 +667,15 @@ def rebuild_unknown_affiliation_and_web_caches(facade_helper):
         f"a.cmt_{report_attribution}_affiliation AS affiliation, "
         f"date_part('week', TO_TIMESTAMP(a.cmt_{report_date}_date, 'YYYY-MM-DD')) AS week, "
         f"date_part('year', TO_TIMESTAMP(a.cmt_{report_date}_date, 'YYYY-MM-DD')) AS year, "
-        "SUM(a.cmt_added) AS added, "
-        "SUM(a.cmt_removed) AS removed, "
-        "SUM(a.cmt_whitespace) AS whitespace, "
-        "COUNT(DISTINCT a.cmt_filename) AS files, "
+        "COALESCE(SUM(cf.cmt_added), 0) AS added, "
+        "COALESCE(SUM(cf.cmt_removed), 0) AS removed, "
+        "COALESCE(SUM(cf.cmt_whitespace), 0) AS whitespace, "
+        "COUNT(DISTINCT cf.cmt_filename) AS files, "
         "COUNT(DISTINCT a.cmt_commit_hash) AS patches,"
         "info.a AS tool_source, info.b AS tool_version, info.c AS data_source "
         "FROM (VALUES(:tool_source,:tool_version,:data_source)) info(a,b,c), "
         "commits a "
+        "LEFT JOIN commit_files cf ON cf.commit_id = a.cmt_id "
         "JOIN repo r ON r.repo_id = a.repo_id "
         "JOIN repo_groups p ON p.repo_group_id = r.repo_group_id "
         "LEFT JOIN exclude e ON "
@@ -701,14 +704,15 @@ def rebuild_unknown_affiliation_and_web_caches(facade_helper):
         f"a.cmt_{report_attribution}_affiliation AS affiliation, "
         f"date_part('month', TO_TIMESTAMP(a.cmt_{report_date}_date, 'YYYY-MM-DD')) AS month, "
         f"date_part('year', TO_TIMESTAMP(a.cmt_{report_date}_date, 'YYYY-MM-DD')) AS year, "
-        "SUM(a.cmt_added) AS added, "
-        "SUM(a.cmt_removed) AS removed, "
-        "SUM(a.cmt_whitespace) AS whitespace, "
-        "COUNT(DISTINCT a.cmt_filename) AS files, "
+        "COALESCE(SUM(cf.cmt_added), 0) AS added, "
+        "COALESCE(SUM(cf.cmt_removed), 0) AS removed, "
+        "COALESCE(SUM(cf.cmt_whitespace), 0) AS whitespace, "
+        "COUNT(DISTINCT cf.cmt_filename) AS files, "
         "COUNT(DISTINCT a.cmt_commit_hash) AS patches, "
         "info.a AS tool_source, info.b AS tool_version, info.c AS data_source "
         "FROM (VALUES(:tool_source,:tool_version,:data_source)) info(a,b,c), "
         "commits a "
+        "LEFT JOIN commit_files cf ON cf.commit_id = a.cmt_id "
         "JOIN repo r ON r.repo_id = a.repo_id "
         "JOIN repo_groups p ON p.repo_group_id = r.repo_group_id "
         "LEFT JOIN exclude e ON "
@@ -736,14 +740,15 @@ def rebuild_unknown_affiliation_and_web_caches(facade_helper):
         f"a.cmt_{report_attribution}_email AS email, "
         f"a.cmt_{report_attribution}_affiliation AS affiliation, "
         f"date_part('year', TO_TIMESTAMP(a.cmt_{report_date}_date, 'YYYY-MM-DD')) AS year, "
-        "SUM(a.cmt_added) AS added, "
-        "SUM(a.cmt_removed) AS removed, "
-        "SUM(a.cmt_whitespace) AS whitespace, "
-        "COUNT(DISTINCT a.cmt_filename) AS files, "
+        "COALESCE(SUM(cf.cmt_added), 0) AS added, "
+        "COALESCE(SUM(cf.cmt_removed), 0) AS removed, "
+        "COALESCE(SUM(cf.cmt_whitespace), 0) AS whitespace, "
+        "COUNT(DISTINCT cf.cmt_filename) AS files, "
         "COUNT(DISTINCT a.cmt_commit_hash) AS patches, "
         "info.a AS tool_source, info.b AS tool_version, info.c AS data_source "
         "FROM (VALUES(:tool_source,:tool_version,:data_source)) info(a,b,c), "
         "commits a "
+        "LEFT JOIN commit_files cf ON cf.commit_id = a.cmt_id "
         "JOIN repo r ON r.repo_id = a.repo_id "
         "JOIN repo_groups p ON p.repo_group_id = r.repo_group_id "
         "LEFT JOIN exclude e ON "

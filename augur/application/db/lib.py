@@ -10,7 +10,7 @@ from sqlalchemy.exc import OperationalError
 from psycopg2.errors import DeadlockDetected
 from typing import List, Any, Optional, Union
 
-from augur.application.db.models import Config, Repo, Commit, WorkerOauth, Issue, PullRequest, PullRequestReview, ContributorsAlias,UnresolvedCommitEmail, Contributor, CollectionStatus, UserGroup, RepoGroup
+from augur.application.db.models import Config, Repo, Commit, CommitFile, WorkerOauth, Issue, PullRequest, PullRequestReview, ContributorsAlias,UnresolvedCommitEmail, Contributor, CollectionStatus, UserGroup, RepoGroup
 from augur.tasks.util.collection_state import CollectionState
 from augur.application.db import get_session, get_engine
 from augur.application.db.util import execute_session_query, convert_type_of_value
@@ -141,16 +141,16 @@ def remove_working_commits_by_repo_id(repo_id):
     execute_sql(remove_working_commits)
 
 def remove_commits_by_repo_id_and_hashes(repo_id, commit_hashes):
-
-    remove_commit = s.sql.text("""DELETE FROM commits
+    # Deleting from commits cascades to commit_files via FK ON DELETE CASCADE
+    remove_commit = s.sql.text("""DELETE FROM augur_data.commits
         WHERE repo_id=:repo_id
         AND cmt_commit_hash IN :hashes""").bindparams(repo_id=repo_id,hashes=tuple(commit_hashes))
     execute_sql(remove_commit)
 
 
 def remove_commits_by_repo_id(repo_id):
-
-    remove_commits = s.sql.text("""DELETE FROM commits WHERE repo_id=:repo_id""").bindparams(repo_id=repo_id)
+    # Deleting from commits cascades to commit_files via FK ON DELETE CASCADE
+    remove_commits = s.sql.text("""DELETE FROM augur_data.commits WHERE repo_id=:repo_id""").bindparams(repo_id=repo_id)
     execute_sql(remove_commits) 
 
 def get_working_commits_by_repo_id(repo_id):
@@ -168,10 +168,10 @@ def get_working_commits_by_repo_id(repo_id):
 def get_missing_commit_message_hashes(repo_id):
 
     fetch_missing_hashes_sql = s.sql.text("""
-    SELECT DISTINCT cmt_commit_hash FROM commits
+    SELECT DISTINCT cmt_commit_hash FROM augur_data.commits
     WHERE repo_id=:repo_id 
     AND cmt_commit_hash NOT IN 
-    (SELECT DISTINCT cmt_hash FROM commit_messages WHERE repo_id=:repo_id);
+    (SELECT DISTINCT cmt_hash FROM augur_data.commit_messages WHERE repo_id=:repo_id);
     """).bindparams(repo_id=repo_id)
 
     try:
@@ -196,72 +196,167 @@ def get_active_repo_count(collection_type):
         return session.query(CollectionStatus).filter(getattr(CollectionStatus,f"{collection_type}_status" ) == CollectionState.COLLECTING.value).count()
 
 
+# Fields that belong to the commit-level record (Commit table)
+_COMMIT_LEVEL_FIELDS = {
+    'repo_id', 'cmt_commit_hash',
+    'cmt_author_name', 'cmt_author_raw_email', 'cmt_author_email',
+    'cmt_author_date', 'cmt_author_affiliation',
+    'cmt_committer_name', 'cmt_committer_raw_email', 'cmt_committer_email',
+    'cmt_committer_date', 'cmt_committer_affiliation',
+    'cmt_date_attempted',
+    'cmt_ght_author_id', 'cmt_ght_committer_id', 'cmt_ght_committed_at',
+    'cmt_committer_timestamp', 'cmt_author_timestamp',
+    'cmt_author_platform_username',
+    'tool_source', 'tool_version', 'data_source', 'data_collection_date',
+}
+
+# Fields that belong to the file-level record (CommitFile table)
+_FILE_LEVEL_FIELDS = {
+    'cmt_filename', 'cmt_added', 'cmt_removed', 'cmt_whitespace',
+}
+
+
+def _split_commit_record(record: dict) -> tuple[dict, dict]:
+    """Split a combined commit+file record into separate commit and file dicts."""
+    commit_data = {k: v for k, v in record.items() if k in _COMMIT_LEVEL_FIELDS}
+    file_data = {k: v for k, v in record.items() if k in _FILE_LEVEL_FIELDS}
+    # Carry over provenance fields to file record as well
+    for field in ('tool_source', 'tool_version', 'data_source', 'data_collection_date'):
+        if field in record:
+            file_data[field] = record[field]
+    # Carry over repo_id for the commit_files table
+    file_data['repo_id'] = record['repo_id']
+    return commit_data, file_data
+
+
+def _fix_invalid_timezone(commit_record: dict) -> bool:
+    """Attempt to fix invalid timezone offsets in timestamp fields, returning True if fixed."""
+    placeholder_date = commit_record.get('cmt_author_timestamp', '')
+    if not placeholder_date:
+        return False
+
+    postgres_valid_timezones = {
+        -1200, -1100, -1000, -930, -900, -800, -700,
+        -600, -500, -400, -300, -230, -200, -100, 0,
+        100, 200, 300, 330, 400, 430, 500, 530, 545, 600,
+        630, 700, 800, 845, 900, 930, 1000, 1030, 1100, 1200,
+        1245, 1300, 1400
+    }
+
+    placeholder_date_segments = re.split(" ", placeholder_date)
+    tzdata = placeholder_date_segments.pop()
+
+    if ":" in tzdata:
+        tzdata = tzdata.replace(":", "")
+
+    try:
+        if int(tzdata) not in postgres_valid_timezones:
+            tzdata = "+0000"
+            placeholder_date_segments.append(tzdata)
+            placeholder_date = " ".join(placeholder_date_segments)
+            commit_record['cmt_author_timestamp'] = placeholder_date
+            commit_record['cmt_committer_timestamp'] = placeholder_date
+            return True
+    except (ValueError, TypeError):
+        commit_record['cmt_author_timestamp'] = "1970-01-01 00:00:15 +0000"
+        commit_record['cmt_committer_timestamp'] = "1970-01-01 00:00:15 +0000"
+        return True
+
+    return False
+
+
 def facade_bulk_insert_commits(logger, records):
+    """Insert commit records, splitting each into a commit-level row and a file-level row.
+
+    Each incoming record contains both commit metadata and file-level stats.
+    This function:
+    1. Deduplicates and upserts commit-level data into the `commits` table
+    2. Inserts file-level data into the `commit_files` table with FK to commits
+    """
+    if not records:
+        return
+
+    from sqlalchemy.dialects.postgresql import insert as pg_insert
+
+    # Split records into commit-level and file-level parts
+    commit_data_list = []
+    file_data_list = []
+    seen_commits = set()  # (repo_id, cmt_commit_hash) deduplication
+
+    for record in records:
+        commit_data, file_data = _split_commit_record(record)
+        key = (commit_data['repo_id'], commit_data['cmt_commit_hash'])
+        if key not in seen_commits:
+            seen_commits.add(key)
+            commit_data_list.append(commit_data)
+        file_data_list.append(file_data)
 
     with get_session() as session:
-
         try:
-            session.execute(
-                    s.insert(Commit),
-                    records,
+            # Step 1: Upsert commit-level records
+            if commit_data_list:
+                commit_stmnt = pg_insert(Commit).values(commit_data_list)
+                commit_stmnt = commit_stmnt.on_conflict_do_nothing(
+                    index_elements=['repo_id', 'cmt_commit_hash']
                 )
+                session.execute(commit_stmnt)
+                session.flush()
+
+            # Step 2: Look up cmt_id for each (repo_id, cmt_commit_hash)
+            # Build a mapping from (repo_id, hash) -> cmt_id
+            unique_keys = list(seen_commits)
+            if unique_keys:
+                from sqlalchemy import tuple_
+                cmt_id_query = session.query(
+                    Commit.repo_id, Commit.cmt_commit_hash, Commit.cmt_id
+                ).filter(
+                    tuple_(Commit.repo_id, Commit.cmt_commit_hash).in_(unique_keys)
+                )
+                cmt_id_map = {(row.repo_id, row.cmt_commit_hash): row.cmt_id for row in cmt_id_query.all()}
+            else:
+                cmt_id_map = {}
+
+            # Step 3: Build file records with commit_id and insert
+            valid_file_data = []
+            for i, file_data in enumerate(file_data_list):
+                record = records[i]
+                key = (record['repo_id'], record['cmt_commit_hash'])
+                commit_id = cmt_id_map.get(key)
+                if commit_id is None:
+                    logger.warning(f"Could not find commit_id for {key}, skipping file record")
+                    continue
+                file_data['commit_id'] = commit_id
+                valid_file_data.append(file_data)
+
+            if valid_file_data:
+                session.execute(
+                    s.insert(CommitFile),
+                    valid_file_data,
+                )
+
             session.commit()
+
         except Exception as e:
             session.rollback()
-            
+
             if len(records) > 1:
-                #split list into halves and retry insert until we isolate offending record
+                # Split list into halves and retry insert until we isolate offending record
                 firsthalfRecords = records[:len(records)//2]
                 secondhalfRecords = records[len(records)//2:]
 
                 facade_bulk_insert_commits(logger, firsthalfRecords)
                 facade_bulk_insert_commits(logger, secondhalfRecords)
             elif len(records) == 1:
-                commit_record = records[0]
-                #replace incomprehensible dates with epoch.
-                #2021-10-11 11:57:46 -0500
-                
-                # placeholder_date = "1970-01-01 00:00:15 -0500"
-                placeholder_date = commit_record['cmt_author_timestamp']
-
-                postgres_valid_timezones = {
-                    -1200, -1100, -1000, -930, -900, -800, -700,
-                    -600, -500, -400, -300, -230, -200, -100, 000,
-                    100, 200, 300, 330, 400, 430, 500, 530, 545, 600,
-                    630, 700, 800, 845, 900, 930, 1000, 1030, 1100, 1200,
-                    1245, 1300, 1400
-                }
-                
-                # Reconstruct timezone portion of the date string to UTC
-                placeholder_date_segments = re.split(" ", placeholder_date)
-                tzdata = placeholder_date_segments.pop()
-
-                if ":" in tzdata:
-                    tzdata = tzdata.replace(":", "")
-
-                if int(tzdata) not in postgres_valid_timezones:
-                    tzdata = "+0000"
+                commit_data, _ = _split_commit_record(records[0])
+                if _fix_invalid_timezone(commit_data):
+                    logger.warning(f"commit with invalid timezone set to UTC: {commit_data['cmt_commit_hash']}")
+                    # Rebuild the record with fixed timestamps and retry
+                    fixed_record = dict(records[0])
+                    fixed_record['cmt_author_timestamp'] = commit_data['cmt_author_timestamp']
+                    fixed_record['cmt_committer_timestamp'] = commit_data['cmt_committer_timestamp']
+                    facade_bulk_insert_commits(logger, [fixed_record])
                 else:
                     raise e
-
-                placeholder_date_segments.append(tzdata)
-
-                placeholder_date = " ".join(placeholder_date_segments)
-
-                #Check for improper utc timezone offset
-                #UTC timezone offset should be between -14:00 and +14:00
-
-                # analyzecommit.generate_commit_record() defines the keys on the commit_record dictionary
-                commit_record['cmt_author_timestamp'] = placeholder_date
-                commit_record['cmt_committer_timestamp'] = placeholder_date
-                
-                logger.warning(f"commit with invalid timezone set to UTC: {commit_record['cmt_commit_hash']}")
-
-                session.execute(
-                    s.insert(Commit),
-                    [commit_record],
-                )
-                session.commit()
             else:
                 raise e
 

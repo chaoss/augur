@@ -28,7 +28,7 @@ from augur.application.logs import AugurLogger
 from augur.application.db.session import DatabaseSession
 from augur.application.config import AugurConfig
 from augur.application.db.engine import get_database_string, create_database_engine
-from augur.application.db.models import Repo, Issue, PullRequest, Message, PullRequestReview, Commit, IssueAssignee, PullRequestAssignee, PullRequestCommit, PullRequestFile, Contributor, IssueLabel, PullRequestLabel, ContributorsAlias, Release, ClientApplication
+from augur.application.db.models import Repo, Issue, PullRequest, Message, PullRequestReview, Commit, CommitFile, IssueAssignee, PullRequestAssignee, PullRequestCommit, PullRequestFile, Contributor, IssueLabel, PullRequestLabel, ContributorsAlias, Release, ClientApplication
 
 from metadata import __version__ as augur_code_version
 
@@ -571,9 +571,19 @@ class CommitType(SQLAlchemyObjectType):
         use_connection = True
 
     messages = graphene.List(MessageType)
+    files = graphene.List(lambda: CommitFileType)
 
     def resolve_repo(self, info):
         return self.repo
+
+    def resolve_files(self, info):
+        return self.files
+
+class CommitFileType(SQLAlchemyObjectType):
+
+    class Meta:
+        model = CommitFile
+        use_connection = True
 
 class PageInfoType(graphene.ObjectType):
     next_cursor = graphene.String()
