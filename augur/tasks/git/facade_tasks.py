@@ -223,8 +223,8 @@ def facade_fetch_missing_commit_messages(repo_git):
 
 
 #enable celery multithreading
-@celery.task(base=AugurFacadeRepoCollectionTask)
-def analyze_commits_in_parallel(repo_git, multithreaded: bool)-> None:
+@celery.task(base=AugurFacadeRepoCollectionTask, bind=True)
+def analyze_commits_in_parallel(self, repo_git, multithreaded: bool)-> None:
     """Take a large list of commit data to analyze and store in the database. Meant to be run in parallel with other instances of this task.
     """
 
@@ -297,11 +297,17 @@ def analyze_commits_in_parallel(repo_git, multithreaded: bool)-> None:
     bulk_insert_dicts(logger,pendingCommitMessageRecordsToInsert, CommitMessage, ["repo_id","cmt_hash"])
     facade_bulk_insert_commits(logger,pendingCommitRecordsToInsert)
     """
+    last_heartbeat = datetime.datetime.utcnow()
     for count, commitTuple in enumerate(queue):
-        quarterQueue = int(len(queue) / 4) or 1
-
-        if (count + 1) % quarterQueue == 0:
-            logger.info(f"Progress through current analysis queue is {(count / len(queue)) * 100}%")
+        now = datetime.datetime.utcnow()
+        if (now - last_heartbeat).total_seconds() >= 30:
+            percent = (count / len(queue)) * 100
+            logger.info(f"Progress through current analysis queue is {percent:.1f}%")
+            try:
+                self.update_state(state='PROGRESS', meta={'done': count, 'total': len(queue)})
+            except Exception as e:
+                logger.warning(f"Failed to send Celery heartbeat: {e}")
+            last_heartbeat = now
 
         commitRecords, commit_msg = analyze_commit(logger, repo_id, repo_loc, commitTuple)
         if commitRecords:
