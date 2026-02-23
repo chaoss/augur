@@ -238,6 +238,27 @@ def build_ml_repo_collect_request(session, logger, enabled_phase_names, days_unt
     return request
 
 @celery.task(bind=True)
+def trigger_ml_phase(self):
+    engine = self.app.engine
+    logger = logging.getLogger(trigger_ml_phase.__name__)
+    enabled_phase_names = get_enabled_phase_names_from_config(engine, logger)
+
+    if RUNNING_DOCKER or machine_learning_phase.__name__ not in enabled_phase_names:
+        return 
+    
+    
+    with DatabaseSession(logger, engine) as session:
+        config = AugurConfig(logger, session)
+        ml_phase_request = []
+        ml_interval = config.get_value('Tasks', 'ml_collection_interval_days') or 40
+        ml_phase_request.append(build_ml_repo_collect_request(session, logger, enabled_phase_names, ml_interval))
+    
+    main_routine = AugurTaskRoutine(logger, ml_phase_request)
+
+    main_routine.start_data_collection()
+    
+
+@celery.task(bind=True)
 def augur_collection_monitor(self):     
 
     engine = self.app.engine
@@ -271,10 +292,6 @@ def augur_collection_monitor(self):
         if facade_phase.__name__ in enabled_phase_names:
             #start_facade_collection(session, max_repo=30)
             enabled_collection_hooks.append(build_facade_repo_collect_request(session, logger, enabled_phase_names, facade_interval))
-        
-        if not RUNNING_DOCKER and machine_learning_phase.__name__ in enabled_phase_names:
-            enabled_collection_hooks.append(build_ml_repo_collect_request(session, logger, enabled_phase_names, ml_interval))
-            #start_ml_collection(session,max_repo=5)
         
         logger.info(f"Starting collection phases: {[h.name for h in enabled_collection_hooks]}")
 
