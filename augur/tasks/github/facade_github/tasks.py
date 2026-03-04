@@ -167,7 +167,8 @@ def link_commits_to_contributor(logger, facade_helper, contributorQueue):
                 UPDATE commits 
                 SET cmt_ght_author_id=:cntrb_id
                 WHERE 
-                cmt_author_email=:cntrb_email
+                (cmt_author_raw_email=:cntrb_email
+                OR cmt_author_email=:cntrb_email)
                 AND cmt_ght_author_id is NULL
         """).bindparams(cntrb_id=cntrb["cntrb_id"],cntrb_email=cntrb["email"])
 
