@@ -35,7 +35,6 @@ def process_commit_metadata(logger, auth, contributorQueue, repo_id, platform_id
             continue
         
         #Check the unresolved_commits table to avoid hitting endpoints that we know don't have relevant data needlessly
-        
             
         unresolved_query_result = get_unresolved_commit_emails_by_email(email)
 
@@ -52,11 +51,11 @@ def process_commit_metadata(logger, auth, contributorQueue, repo_id, platform_id
     
         if login == None or login == "":
             logger.warning("Failed to get login from commit hash")
-            # Try to get the login from supplemental data if not found with the commit hash
-            login = get_login_with_supplemental_data(logger, auth,contributor)
+            # Try to get the login from email data if not found with the commit hash
+            login = fetch_username_from_email(logger, auth,contributor)
     
         if login == None or login == "":
-            logger.error("Failed to get login from supplemental data!")
+            logger.error("Failed to get login from email!")
             continue
 
         url = ("https://api.github.com/users/" + login)
@@ -84,7 +83,7 @@ def process_commit_metadata(logger, auth, contributorQueue, repo_id, platform_id
             "cntrb_id" : cntrb_id.to_UUID(),
             "cntrb_login": user_data['login'],
             "cntrb_created_at": user_data['created_at'],
-            "cntrb_email": user_data['email'] if 'email' in user_data else None,
+            "cntrb_email": user_data['email'] if 'email' in user_data and user_data['email'] is not None else emailFromCommitData,
             "cntrb_company": user_data['company'] if 'company' in user_data else None,
             "cntrb_location": user_data['location'] if 'location' in user_data else None,
             # "cntrb_type": , dont have a use for this as of now ... let it default to null
@@ -115,8 +114,6 @@ def process_commit_metadata(logger, auth, contributorQueue, repo_id, platform_id
             #"data_source": interface.data_source
         }
 
-
-        
         #Executes an upsert with sqlalchemy 
         cntrb_natural_keys = ['cntrb_id']
         batch_insert_contributors(logger, [cntrb])
@@ -130,7 +127,6 @@ def process_commit_metadata(logger, auth, contributorQueue, repo_id, platform_id
             logger.error(
                 f"Contributor id not able to be found in database despite the user_id existing. Something very wrong is happening. Error: {e}")
             return 
-        
 
         #Replace each instance of a single or double quote with escape characters 
         #for postgres
@@ -167,11 +163,11 @@ def link_commits_to_contributor(logger, facade_helper, contributorQueue):
         query = s.sql.text("""
                 UPDATE commits 
                 SET cmt_ght_author_id=:cntrb_id
+                cmt_author_platform_username = :cntrb_login
                 WHERE 
-                (cmt_author_raw_email=:cntrb_email
-                OR cmt_author_email=:cntrb_email)
+                cmt_author_email=:cntrb_email
                 AND cmt_ght_author_id is NULL
-        """).bindparams(cntrb_id=cntrb["cntrb_id"],cntrb_email=cntrb["email"])
+        """).bindparams(cntrb_id=cntrb["cntrb_id"],cntrb_email=cntrb["email"],cntrb_login=cntrb["login"])
 
         #engine.execute(query, **data)
         facade_helper.insert_or_update_data(query)          

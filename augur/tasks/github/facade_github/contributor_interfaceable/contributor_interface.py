@@ -204,7 +204,8 @@ def insert_alias(logger, contributor, email):
     alias = {
         "cntrb_id": contributor_table_data[0].cntrb_id,
         "alias_email": email,
-        "canonical_email": contributor['cntrb_canonical'] if 'cntrb_canonical' in contributor and contributor['cntrb_canonical'] is not None else email,
+        # commenting out canonical_email as its already in the contributors table, ease to delete column in the future 
+        # "canonical_email": contributor['cntrb_canonical'] if 'cntrb_canonical' in contributor and contributor['cntrb_canonical'] is not None else email, 
         # "tool_source": ...
         # "tool_version": ...
         # "data_source": ...
