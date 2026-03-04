@@ -6,7 +6,7 @@ from augur.tasks.init.celery_app import AugurFacadeRepoCollectionTask
 from augur.tasks.github.util.github_data_access import GithubDataAccess, UrlNotFoundException
 from augur.tasks.github.util.github_random_key_auth import GithubRandomKeyAuth
 from augur.tasks.github.facade_github.core import *
-from augur.application.db.lib import execute_sql, get_contributor_aliases_by_email, get_unresolved_commit_emails_by_email, get_contributors_by_full_name, get_repo_by_repo_git, batch_insert_contributors, get_batch_size
+from augur.application.db.lib import execute_sql, get_contributor_aliases_by_email, get_unresolved_commit_emails_by_email, get_login_with_email_data, get_repo_by_repo_git, batch_insert_contributors, get_batch_size
 from augur.application.db.lib import get_session, execute_session_query
 from augur.tasks.git.util.facade_worker.facade_worker.facade00mainprogram import *
 
@@ -35,7 +35,6 @@ def process_commit_metadata(logger, auth, contributorQueue, repo_id, platform_id
             continue
         
         #Check the unresolved_commits table to avoid hitting endpoints that we know don't have relevant data needlessly
-        
             
         unresolved_query_result = get_unresolved_commit_emails_by_email(email)
 
@@ -46,27 +45,17 @@ def process_commit_metadata(logger, auth, contributorQueue, repo_id, platform_id
 
         login = None
     
-        #Check the contributors table for a login for the given name
-
-        contributors_with_matching_name = get_contributors_by_full_name(name)
-
-        if not contributors_with_matching_name or len(contributors_with_matching_name) > 1:
-            logger.debug("Failed local login lookup")
-        else:
-            login = contributors_with_matching_name[0].gh_login
-        
-
         # Try to get the login from the commit sha
         if login == None or login == "":
             login = get_login_with_commit_hash(logger, auth, contributor, repo_id)
     
         if login == None or login == "":
             logger.warning("Failed to get login from commit hash")
-            # Try to get the login from supplemental data if not found with the commit hash
-            login = get_login_with_supplemental_data(logger, auth,contributor)
+            # Try to get the login from email data if not found with the commit hash
+            login = get_login_with_email_data(logger, auth,contributor)
     
         if login == None or login == "":
-            logger.error("Failed to get login from supplemental data!")
+            logger.error("Failed to get login from email!")
             continue
 
         url = ("https://api.github.com/users/" + login)
@@ -178,8 +167,7 @@ def link_commits_to_contributor(logger, facade_helper, contributorQueue):
                 UPDATE commits 
                 SET cmt_ght_author_id=:cntrb_id
                 WHERE 
-                (cmt_author_raw_email=:cntrb_email
-                OR cmt_author_email=:cntrb_email)
+                cmt_author_email=:cntrb_email
                 AND cmt_ght_author_id is NULL
         """).bindparams(cntrb_id=cntrb["cntrb_id"],cntrb_email=cntrb["email"])
 
