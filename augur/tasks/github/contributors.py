@@ -8,6 +8,8 @@ from augur.tasks.github.util.github_paginator import hit_api
 from augur.tasks.github.facade_github.tasks import *
 from augur.application.db.models import Contributor
 from augur.application.db.util import execute_session_query
+from augur.application.db.data_parse import extract_needed_contributor_data as extract_github_contributor
+
 from augur.application.db.lib import bulk_insert_dicts, get_session, batch_insert_contributors
 from augur.tasks.github.util.github_random_key_auth import GithubRandomKeyAuth
 
@@ -26,7 +28,7 @@ def process_contributors():
 
     with get_session() as session:
 
-        query = session.query(Contributor).filter(Contributor.data_source == data_source, Contributor.cntrb_created_at is None, Contributor.cntrb_last_used is None)
+        query = session.query(Contributor).filter(Contributor.data_source == data_source, Contributor.cntrb_created_at.is_(None), Contributor.cntrb_last_used.is_(None))
         contributors = execute_session_query(query, 'all')
 
     contributors_len = len(contributors)
@@ -53,10 +55,9 @@ def process_contributors():
             print(f"Unable to get contributor data for: {contributor_dict['cntrb_login']}")
             continue
 
-        new_contributor_data = {
-            "cntrb_created_at": data["created_at"],
-            "cntrb_last_used": data["updated_at"]
-        }
+
+        new_contributor_data = extract_github_contributor(data, tool_source, tool_version, data_source)
+        
 
         contributor_dict.update(new_contributor_data)
 
