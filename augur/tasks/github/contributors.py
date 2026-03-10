@@ -49,10 +49,15 @@ def process_contributors():
 
         url = f"https://api.github.com/users/{contributor_dict['cntrb_login']}" 
 
-        data = retrieve_dict_data(url, key_auth, logger)
+        try:
+            data = retrieve_dict_data(url, key_auth, logger)
+        except json.JSONDecodeError as e:
+            logger.error(f"Encountered error parsing JSON in call to {url}")
+            logger.info(f"Unable to get contributor data for: {contributor_dict['cntrb_login']}")
+            continue
 
         if data is None:
-            print(f"Unable to get contributor data for: {contributor_dict['cntrb_login']}")
+            logger.info(f"Unable to get contributor data for: {contributor_dict['cntrb_login']}")
             continue
 
 
