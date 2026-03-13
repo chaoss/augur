@@ -13,6 +13,12 @@ function blank_confirm() {
         return
     fi
 
+    # In non-interactive mode (e.g. docker compose, CI) stdin is not a TTY.
+    # Skip the confirmation loop rather than blocking indefinitely.
+    if [ ! -t 0 ]; then
+        return
+    fi
+
     confirm_placeholder=${!1}
 
     while [ -z "${confirm_placeholder}" ]; do
